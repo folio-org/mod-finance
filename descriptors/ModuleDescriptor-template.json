@@ -1,0 +1,108 @@
+{
+  "id": "${artifactId}-${version}",
+  "name": "Pet",
+  "requires": [],
+  "provides": [
+    {
+      "id": "pets",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/pets",
+          "permissionsRequired": ["pets.collection.get"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/pets",
+          "permissionsRequired": ["pets.item.post"]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/pets/{id}",
+          "permissionsRequired": ["pets.item.get"]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/pets/{id}",
+          "permissionsRequired": ["pets.item.put"]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/pets/{id}",
+          "permissionsRequired": ["pets.item.delete"]
+        }
+      ]
+    },
+    {
+      "id": "_tenant",
+      "version": "1.0",
+      "interfaceType": "system",
+      "handlers": [
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/_/tenant"
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/_/tenant"
+        }
+      ]
+    }
+  ],
+  "permissionSets": [
+    {
+      "permissionName": "pets.collection.get",
+      "displayName": "Pets - get pets collection",
+      "description": "Get pets collection"
+    },
+    {
+      "permissionName": "pets.item.get",
+      "displayName": "Pets - get individual pet from storage",
+      "description": "Get individual pet"
+    },
+    {
+      "permissionName": "pets.item.post",
+      "displayName": "Pets - create pet",
+      "description": "Create pet"
+    },
+    {
+      "permissionName": "pets.item.put",
+      "displayName": "Pets - modify pet",
+      "description": "Modify pet"
+    },
+    {
+      "permissionName": "pets.item.delete",
+      "displayName": "Pets - delete pet",
+      "description": "Delete pet"
+    },
+    {
+      "permissionName": "pets.all",
+      "displayName": "Pets module - all permissions",
+      "description": "Entire set of permissions needed to use the pets module",
+      "subPermissions": [
+        "pets.collection.get",
+        "pets.item.get",
+        "pets.item.post",
+        "pets.item.put",
+        "pets.item.delete"
+      ],
+      "visible": false
+    }
+  ],
+  "metadata": {
+    "containerMemory": "256",
+    "databaseConnection": "true"
+  },
+  "launchDescriptor": {
+    "dockerImage": "${artifactId}:${version}",
+    "dockerArgs": {
+      "HostConfig": { "PortBindings": { "8081/tcp":  [{ "HostPort": "%p" }] } }
+    },
+    "dockerPull" : false
+  }
+}
