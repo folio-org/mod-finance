@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-finance</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -14,10 +14,13 @@
   </licenses>
 
   <properties>
-    <raml-module-builder.version>23.1.0</raml-module-builder.version>
+    <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas/</jsonschema_paths>
+    <raml-module-builder.version>26.2.3</raml-module-builder.version>
     <vertx.version>3.5.4</vertx.version>
     <junit.version>4.12</junit.version>
     <rest-assured.version>3.1.1</rest-assured.version>
+    <generated_sources_dir>${project.build.directory}/generated-sources</generated_sources_dir>
+    <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo</jsonschema2pojo_output_dir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -83,6 +86,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.1</version>
         <configuration>
+          <systemPropertyVariables>
+            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.Log4j2LogDelegateFactory</vertx.logger-delegate-factory-class-name>
+          </systemPropertyVariables>
           <!-- TODO: update to version 3.0.0 and remove useSystemClassLoader
                https://issues.folio.org/browse/FOLIO-1609
                https://issues.apache.org/jira/browse/SUREFIRE-1588
@@ -90,7 +96,21 @@
           <useSystemClassLoader>false</useSystemClassLoader>
         </configuration>
       </plugin>
-
+      
+      
+      
+      <plugin>
+        <groupId>org.jsonschema2pojo</groupId>
+        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+        <version>0.4.37</version>
+        <configuration>
+          <includes>*.json</includes>
+          <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
+        </configuration>
+      </plugin>
+      
+      
+        
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -130,6 +150,10 @@
                 <systemProperty>
                   <key>project.basedir</key>
                   <value>${basedir}</value>
+                </systemProperty>
+                <systemProperty>
+                  <key>schema_paths</key>
+                  <value>${jsonschema_paths}</value>
                 </systemProperty>
                 <systemProperty>
                   <key>raml_files</key>

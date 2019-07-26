@@ -1,36 +1,36 @@
 {
   "id": "${artifactId}-${version}",
-  "name": "Pet",
+  "name": "Finances",
   "requires": [],
   "provides": [
     {
-      "id": "pets",
+      "id": "finances",
       "version": "1.0",
       "handlers": [
         {
           "methods": ["GET"],
-          "pathPattern": "/pets",
-          "permissionsRequired": ["pets.collection.get"]
+          "pathPattern": "/finances",
+          "permissionsRequired": ["finances.collection.get"]
         },
         {
           "methods": ["POST"],
-          "pathPattern": "/pets",
-          "permissionsRequired": ["pets.item.post"]
+          "pathPattern": "/finances",
+          "permissionsRequired": ["finances.item.post"]
         },
         {
           "methods": ["GET"],
-          "pathPattern": "/pets/{id}",
-          "permissionsRequired": ["pets.item.get"]
+          "pathPattern": "/finances/{id}",
+          "permissionsRequired": ["finances.item.get"]
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/pets/{id}",
-          "permissionsRequired": ["pets.item.put"]
+          "pathPattern": "/finances/{id}",
+          "permissionsRequired": ["finances.item.put"]
         },
         {
           "methods": ["DELETE"],
-          "pathPattern": "/pets/{id}",
-          "permissionsRequired": ["pets.item.delete"]
+          "pathPattern": "/finances/{id}",
+          "permissionsRequired": ["finances.item.delete"]
         }
       ]
     },
@@ -56,40 +56,40 @@
   ],
   "permissionSets": [
     {
-      "permissionName": "pets.collection.get",
-      "displayName": "Pets - get pets collection",
-      "description": "Get pets collection"
+      "permissionName": "finances.collection.get",
+      "displayName": "Finances - get finances collection",
+      "description": "Get finances collection"
     },
     {
-      "permissionName": "pets.item.get",
-      "displayName": "Pets - get individual pet from storage",
-      "description": "Get individual pet"
+      "permissionName": "finances.item.get",
+      "displayName": "Finances - get individual finance from storage",
+      "description": "Get individual finance"
     },
     {
-      "permissionName": "pets.item.post",
-      "displayName": "Pets - create pet",
-      "description": "Create pet"
+      "permissionName": "finances.item.post",
+      "displayName": "Finances - create finance",
+      "description": "Create finance"
     },
     {
-      "permissionName": "pets.item.put",
-      "displayName": "Pets - modify pet",
-      "description": "Modify pet"
+      "permissionName": "finances.item.put",
+      "displayName": "Finances - modify finance",
+      "description": "Modify finance"
     },
     {
-      "permissionName": "pets.item.delete",
-      "displayName": "Pets - delete pet",
-      "description": "Delete pet"
+      "permissionName": "finances.item.delete",
+      "displayName": "Finances - delete finance",
+      "description": "Delete finance"
     },
     {
-      "permissionName": "pets.all",
-      "displayName": "Pets module - all permissions",
-      "description": "Entire set of permissions needed to use the pets module",
+      "permissionName": "finances.all",
+      "displayName": "Finances module - all permissions",
+      "description": "Entire set of permissions needed to use the finances module",
       "subPermissions": [
-        "pets.collection.get",
-        "pets.item.get",
-        "pets.item.post",
-        "pets.item.put",
-        "pets.item.delete"
+        "finances.collection.get",
+        "finances.item.get",
+        "finances.item.post",
+        "finances.item.put",
+        "finances.item.delete"
       ],
       "visible": false
     }
