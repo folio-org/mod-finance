@@ -35,8 +35,8 @@ resourceTypes:
     collection:
       schemaCollection: financeCollection
       schemaItem: finance
-      exampleCollection: !include examples/financeCollection.sample
-      exampleItem: !include examples/finance.sample
+      exampleCollection: !include examples/fundCollection.sample
+      exampleItem: !include examples/fund.sample
 
   post:
     is: [validate]
@@ -55,6 +55,6 @@ resourceTypes:
     type:
       collection-item:
         schema: finance
-        exampleItem: !include examples/finance.sample
+        exampleItem: !include examples/fund.sample
     put:
       is: [validate]

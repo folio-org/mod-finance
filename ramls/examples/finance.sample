@@ -1,8 +1,0 @@
-{
-  "errors": [
-    {
-      "message": "Internal server error, contact administrator",
-      "code": "genericError"
-    }
-  ]
-}
