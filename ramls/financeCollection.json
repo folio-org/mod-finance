@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "collection of finances",
+  "type": "object",
+  "properties": {
+    "finances": {
+      "description": "an array of finance records",
+      "id": "finances",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "$ref": "finance.json"
+      }
+    },
+    "totalRecords": {
+      "description": "total number of records in the array",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "finances",
+    "totalRecords"
+  ]
+}
