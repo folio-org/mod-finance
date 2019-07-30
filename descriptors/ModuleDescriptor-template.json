@@ -10,27 +10,27 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance-funds.collection.get"]
+          "permissionsRequired": ["finance.funds.collection.get"]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance-funds.item.post"]
+          "permissionsRequired": ["finance.funds.item.post"]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance-funds.item.get"]
+          "permissionsRequired": ["finance.funds.item.get"]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance-funds.item.put"]
+          "permissionsRequired": ["finance.funds.item.put"]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance-funds.item.delete"]
+          "permissionsRequired": ["finance.funds.item.delete"]
         }
       ]
     },
@@ -56,40 +56,40 @@
   ],
   "permissionSets": [
     {
-      "permissionName": "finance-funds.collection.get",
+      "permissionName": "finance.funds.collection.get",
       "displayName": "Finances - get finance funds collection",
       "description": "Get finance funds collection"
     },
     {
-      "permissionName": "finance-funds.item.get",
+      "permissionName": "finance.funds.item.get",
       "displayName": "Finances - get individual finance funds from storage",
       "description": "Get individual finance funds"
     },
     {
-      "permissionName": "finance-funds.item.post",
+      "permissionName": "finance.funds.item.post",
       "displayName": "Finances - create finance funds",
       "description": "Create finance funds"
     },
     {
-      "permissionName": "finance-funds.item.put",
+      "permissionName": "finance.funds.item.put",
       "displayName": "Finances - modify finance funds",
       "description": "Modify finance funds"
     },
     {
-      "permissionName": "finance-funds.item.delete",
+      "permissionName": "finance.funds.item.delete",
       "displayName": "Finances - delete finance funds",
       "description": "Delete finance funds"
     },
     {
-      "permissionName": "finance-funds.all",
+      "permissionName": "finance.funds.all",
       "displayName": "Finance Funds module - all permissions",
       "description": "Entire set of permissions needed to use the Finance funds module",
       "subPermissions": [
-        "finance-funds.collection.get",
-        "finance-funds.item.get",
-        "finance-funds.item.post",
-        "finance-funds.item.put",
-        "finance-funds.item.delete"
+        "finance.funds.collection.get",
+        "finance.funds.item.get",
+        "finance.funds.item.post",
+        "finance.funds.item.put",
+        "finance.funds.item.delete"
       ],
       "visible": false
     }

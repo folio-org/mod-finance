@@ -7,22 +7,22 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.jaxrs.model.Finance;
-import org.folio.rest.jaxrs.resource.FinanceFunds;
+
+import org.folio.rest.jaxrs.resource.Finance;
 
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
 import static io.vertx.core.Future.succeededFuture;
 
-public class FinanceFundsImpl implements FinanceFunds {
+public class FinanceFundsImpl implements Finance {
 
   private static final Logger logger = LoggerFactory.getLogger(FinanceFundsImpl.class);
   private static final String NOT_SUPPORTED = "Not supported"; // To overcome sonarcloud warning
 
   @Override
   @Validate
-  public void postFinanceFunds(String lang, Finance entity, Map<String, String> okapiHeaders,
+  public void postFinanceFunds(String lang, org.folio.rest.jaxrs.model.Finance entity, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     logger.info(" === postFinanceFunds === ");
     asyncResultHandler.handle(succeededFuture(PostFinanceFundsResponse.respond500WithTextPlain(NOT_SUPPORTED)));
@@ -39,8 +39,8 @@ public class FinanceFundsImpl implements FinanceFunds {
 
   @Override
   @Validate
-  public void putFinanceFundsById(String id, String lang, Finance entity, Map<String, String> okapiHeaders,
-      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putFinanceFundsById(String id, String lang, org.folio.rest.jaxrs.model.Finance entity,
+      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     logger.info(" === putFinanceFundsById === ");
     asyncResultHandler.handle(succeededFuture(PutFinanceFundsByIdResponse.respond500WithTextPlain(NOT_SUPPORTED)));
 

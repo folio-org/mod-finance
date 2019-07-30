@@ -28,33 +28,34 @@ resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
 
-/finance/funds:
-  displayName: Finance Fund
-  description: Finance Fund
-  type:
-    collection:
-      schemaCollection: financeCollection
-      schemaItem: finance
-      exampleCollection: !include examples/fundCollection.sample
-      exampleItem: !include examples/fund.sample
-
-  post:
-    is: [validate]
-  get:
-    is: [
-      pageable,
-      validate
-    ]
-  /{id}:
-    uriParameters:
-      id:
-        description: The UUID of an finance fund
-        type: UUID
-    displayName: Finance
-    description: Get, Delete or Update a specific finance
+/finance:
+  /funds:
+    displayName: Finance Fund
+    description: Finance Fund
     type:
-      collection-item:
-        schema: finance
+      collection:
+        schemaCollection: financeCollection
+        schemaItem: finance
+        exampleCollection: !include examples/fundCollection.sample
         exampleItem: !include examples/fund.sample
-    put:
+
+    post:
       is: [validate]
+    get:
+      is: [
+        pageable,
+        validate
+      ]
+    /{id}:
+      uriParameters:
+        id:
+          description: The UUID of an finance fund
+          type: UUID
+      displayName: Finance
+      description: Get, Delete or Update a specific finance
+      type:
+        collection-item:
+          schema: finance
+          exampleItem: !include examples/fund.sample
+      put:
+        is: [validate]

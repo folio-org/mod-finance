@@ -15,7 +15,7 @@
 
   <properties>
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas/</jsonschema_paths>
-    <raml-module-builder.version>26.2.3</raml-module-builder.version>
+    <raml-module-builder.version>26.2.4</raml-module-builder.version>
     <vertx.version>3.5.4</vertx.version>
     <junit.version>4.12</junit.version>
     <rest-assured.version>3.1.1</rest-assured.version>
@@ -181,6 +181,8 @@
           <aspectDirectory>src/main/java/org/folio/rest/annotations</aspectDirectory>
           <XaddSerialVersionUID>true</XaddSerialVersionUID>
           <showWeaveInfo>true</showWeaveInfo>
+          <!-- Forces re-compilation, regardless of whether the compiler arguments or the sources have changed. Useful for local re-builds. -->
+          <forceAjcCompile>true</forceAjcCompile>
           <aspectLibraries>
             <aspectLibrary>
               <groupId>org.folio</groupId>
