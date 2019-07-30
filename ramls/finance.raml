@@ -36,8 +36,8 @@ resourceTypes:
       collection:
         schemaCollection: financeCollection
         schemaItem: finance
-        exampleCollection: !include examples/fundCollection.sample
-        exampleItem: !include examples/fund.sample
+        exampleCollection: !include acq-models/mod-finance/examples/fund_collection.sample
+        exampleItem: !include acq-models/mod-finance/examples/fund.sample
 
     post:
       is: [validate]
@@ -56,6 +56,6 @@ resourceTypes:
       type:
         collection-item:
           schema: finance
-          exampleItem: !include examples/fund.sample
+          exampleItem: !include acq-models/mod-finance/examples/fund.sample
       put:
         is: [validate]
