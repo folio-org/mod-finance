@@ -5,13 +5,14 @@ import io.vertx.core.logging.LoggerFactory;
 import org.junit.Test;
 
 import java.io.IOException;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
+
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 public class FinanceFundsApiTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(FinanceFundsApiTest.class);
-  public static final String FINANCE_PATH = "/finance/funds";
-  public static final String FINANCE_PATH_ID = "/finance/funds" + "/%s";
+  private static final String FINANCE_PATH = "/finance/funds";
+  private static final String FINANCE_PATH_ID = FINANCE_PATH + "/%s";
 
   @Test
   public void testGetFinanceFunds() {
@@ -32,7 +33,7 @@ public class FinanceFundsApiTest extends ApiTestBase {
     logger.info("=== Test create Finance Fund ===");
 
     String body = "{}";
-    verifyPostResponse(FINANCE_PATH, body, prepareHeaders(X_OKAPI_TENANT), "", 500);
+    verifyPostResponse(FINANCE_PATH, body, prepareHeaders(X_OKAPI_TENANT), "", 422);
   }
 
   @Test
@@ -40,7 +41,7 @@ public class FinanceFundsApiTest extends ApiTestBase {
     logger.info("=== Test update Finance Fund ===");
 
     String jsonBody = "{}";
-    verifyPut(String.format(FINANCE_PATH_ID, VALID_UUID), jsonBody, TEXT_PLAIN, 500);
+    verifyPut(String.format(FINANCE_PATH_ID, VALID_UUID), jsonBody, APPLICATION_JSON, 422);
   }
 
   @Test

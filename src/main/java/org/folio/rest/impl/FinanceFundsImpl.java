@@ -8,6 +8,7 @@ import io.vertx.core.logging.LoggerFactory;
 
 import org.folio.rest.annotations.Validate;
 
+import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 
 import javax.ws.rs.core.Response;
@@ -22,7 +23,7 @@ public class FinanceFundsImpl implements FinanceFunds {
 
   @Override
   @Validate
-  public void postFinanceFunds(String lang, org.folio.rest.jaxrs.model.Finance entity, Map<String, String> okapiHeaders,
+  public void postFinanceFunds(String lang, Fund entity, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     logger.info(" === postFinanceFunds === ");
     asyncResultHandler.handle(succeededFuture(PostFinanceFundsResponse.respond500WithTextPlain(NOT_SUPPORTED)));
@@ -39,7 +40,7 @@ public class FinanceFundsImpl implements FinanceFunds {
 
   @Override
   @Validate
-  public void putFinanceFundsById(String id, String lang, org.folio.rest.jaxrs.model.Finance entity,
+  public void putFinanceFundsById(String id, String lang, Fund entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     logger.info(" === putFinanceFundsById === ");
     asyncResultHandler.handle(succeededFuture(PutFinanceFundsByIdResponse.respond500WithTextPlain(NOT_SUPPORTED)));
