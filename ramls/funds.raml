@@ -6,12 +6,12 @@ protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
 documentation:
-  - title: Finance API
-    content: This documents the API calls that can be made to manage finances
+  - title: Fund API
+    content: This documents the API calls that can be made to manage funds
 
 types:
-  finance: !include finance.json
-  financeCollection: !include financeCollection.json
+  fund: !include acq-models/mod-finance/schemas/fund.json
+  fundsCollection: !include acq-models/mod-finance/schemas/fund_collection.json
   
   errors: !include raml-util/schemas/errors.schema
   UUID:
@@ -28,14 +28,13 @@ resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
 
-/finance:
-  /funds:
+/finance/funds:
     displayName: Finance Fund
     description: Finance Fund
     type:
       collection:
         schemaCollection: financeCollection
-        schemaItem: finance
+        schemaItem: fund
         exampleCollection: !include acq-models/mod-finance/examples/fund_collection.sample
         exampleItem: !include acq-models/mod-finance/examples/fund.sample
 
@@ -49,13 +48,13 @@ resourceTypes:
     /{id}:
       uriParameters:
         id:
-          description: The UUID of an finance fund
+          description: The UUID of a fund
           type: UUID
-      displayName: Finance
-      description: Get, Delete or Update a specific finance
+      displayName: Fund
+      description: Get, Delete or Update a specific fund
       type:
         collection-item:
-          schema: finance
+          schema: fund
           exampleItem: !include acq-models/mod-finance/examples/fund.sample
       put:
         is: [validate]

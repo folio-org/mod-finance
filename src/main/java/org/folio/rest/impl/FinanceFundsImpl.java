@@ -8,14 +8,14 @@ import io.vertx.core.logging.LoggerFactory;
 
 import org.folio.rest.annotations.Validate;
 
-import org.folio.rest.jaxrs.resource.Finance;
+import org.folio.rest.jaxrs.resource.FinanceFunds;
 
 import javax.ws.rs.core.Response;
 import java.util.Map;
 
 import static io.vertx.core.Future.succeededFuture;
 
-public class FinanceFundsImpl implements Finance {
+public class FinanceFundsImpl implements FinanceFunds {
 
   private static final Logger logger = LoggerFactory.getLogger(FinanceFundsImpl.class);
   private static final String NOT_SUPPORTED = "Not supported"; // To overcome sonarcloud warning
