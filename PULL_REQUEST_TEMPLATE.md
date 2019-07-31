@@ -1,6 +1,6 @@
 <!--
   If you have a relevant JIRA issue number, please put it in the issue title.
-  Example: MODGOBI-43 Move "Renewals" information to Purchase Order level
+  Example: MODORDERS-70 Orders schema updates
 
   TL;DR
     - https://www.youtube.com/watch?v=5aHmO_S8FQ4
@@ -23,7 +23,7 @@
   section."
 
   If you have a relevant JIRA issue, add a link directly to the issue URL here.
-  Example: https://issues.folio.org/browse/MODGOBI-43
+  Example: https://issues.folio.org/browse/MODORDERS-70
  -->
 
 ## Approach
@@ -50,7 +50,7 @@
   to solve this problem.
 -->
 
-## Pre-Merge Checklist
+## Pre-Merge Checklist:
 Before merging this PR, please go through the following list and take appropriate actions.
 
 - Does this PR meet or exceed the expected quality standards?
