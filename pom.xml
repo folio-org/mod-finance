@@ -13,6 +13,21 @@
     </license>
   </licenses>
 
+  <organization>
+    <name>The Open Library Foundation</name>
+    <url>https://dev.folio.org</url>
+  </organization>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://issues.folio.org/browse/MODFUND</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>https://jenkins-aws.indexdata.com/job/folio-org/job/mod-finance</url>
+  </ciManagement>
+  
   <properties>
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas/</jsonschema_paths>
     <raml-module-builder.version>26.2.4</raml-module-builder.version>
