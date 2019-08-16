@@ -1,6 +1,6 @@
 {
   "id": "${artifactId}-${version}",
-  "name": "Finance Funds",
+  "name": "Finance business logic module",
   "requires": [],
   "provides": [
     {
@@ -52,6 +52,17 @@
           "pathPattern": "/_/tenant"
         }
       ]
+    },
+    {
+      "id": "_jsonSchemas",
+      "version": "1.0",
+      "interfaceType" : "multiple",
+      "handlers" : [
+        {
+          "methods" : [ "GET" ],
+          "pathPattern" : "/_/jsonSchemas"
+        }
+      ]
     }
   ],
   "permissionSets": [
@@ -82,14 +93,23 @@
     },
     {
       "permissionName": "finance.funds.all",
-      "displayName": "Finance Funds module - all permissions",
-      "description": "Entire set of permissions needed to use the Finance funds module",
+      "displayName": "Finance Funds - all permissions",
+      "description": "Entire set of permissions needed to use the Finance funds interface",
       "subPermissions": [
         "finance.funds.collection.get",
         "finance.funds.item.get",
         "finance.funds.item.post",
         "finance.funds.item.put",
         "finance.funds.item.delete"
+      ],
+      "visible": false
+    },
+    {
+      "permissionName": "finance.all",
+      "displayName": "Finance module - all permissions",
+      "description": "Entire set of permissions needed to use the finance module",
+      "subPermissions": [
+        "finance.funds.all"
       ],
       "visible": false
     }
