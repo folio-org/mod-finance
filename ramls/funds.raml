@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Finance fund
-version: v0.1
+version: v1
 protocols: [ HTTP, HTTPS ]
 baseUri: http://localhost
 
@@ -12,7 +12,6 @@ documentation:
 types:
   fund: !include acq-models/mod-finance/schemas/fund.json
   fundsCollection: !include acq-models/mod-finance/schemas/fund_collection.json
-  
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -29,32 +28,31 @@ resourceTypes:
   collection-item: !include raml-util/rtypes/item-collection.raml
 
 /finance/funds:
-    displayName: Finance Fund
-    description: Finance Fund
+  displayName: Finance fund
+  description: Finance fund APIs
+  type:
+    collection:
+      schemaCollection: fundsCollection
+      schemaItem: fund
+      exampleCollection: !include acq-models/mod-finance/examples/fund_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/fund.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a fund
+        type: UUID
+    displayName: Fund
+    description: Get, Delete or Update a specific fund
     type:
-      collection:
-        schemaCollection: fundsCollection
-        schemaItem: fund
-        exampleCollection: !include acq-models/mod-finance/examples/fund_collection.sample
+      collection-item:
+        schema: fund
         exampleItem: !include acq-models/mod-finance/examples/fund.sample
-
-    post:
+    put:
       is: [validate]
-    get:
-      is: [
-        pageable,
-        validate
-      ]
-    /{id}:
-      uriParameters:
-        id:
-          description: The UUID of a fund
-          type: UUID
-      displayName: Fund
-      description: Get, Delete or Update a specific fund
-      type:
-        collection-item:
-          schema: fund
-          exampleItem: !include acq-models/mod-finance/examples/fund.sample
-      put:
-        is: [validate]

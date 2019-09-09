@@ -1,29 +1,32 @@
 package org.folio.rest.impl;
 
-import io.restassured.RestAssured;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
-import org.folio.rest.RestVerticle;
-import org.folio.rest.tools.utils.NetworkUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.folio.rest.RestVerticle;
+import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.rest.util.MockServer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
+import io.restassured.RestAssured;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  FinanceFundsApiTest.class
+  EntitiesCrudBasicsTest.class
 })
 public class ApiTestSuite {
 
   private static final int okapiPort = NetworkUtils.nextFreePort();
   public static final int mockPort = NetworkUtils.nextFreePort();
+  private static MockServer mockServer;
   private static Vertx vertx;
   private static boolean initialised;
 
@@ -32,6 +35,9 @@ public class ApiTestSuite {
     if (vertx == null) {
       vertx = Vertx.vertx();
     }
+
+    mockServer = new MockServer(mockPort);
+    mockServer.start();
 
     RestAssured.baseURI = "http://localhost:" + okapiPort;
     RestAssured.port = okapiPort;
@@ -56,6 +62,7 @@ public class ApiTestSuite {
 
   @AfterClass
   public static void after() {
+    mockServer.close();
     vertx.close();
     initialised = false;
   }

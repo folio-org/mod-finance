@@ -1,0 +1,56 @@
+#%RAML 1.0
+
+title: Finance - fund types
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Fund types APIs
+    content: This documents the API calls that can be made to manage fund types
+
+types:
+  fundType: !include acq-models/mod-finance/schemas/fund_type.json
+  fundTypesCollection: !include acq-models/mod-finance/schemas/fund_type_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  uuid:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+  collection-item: !include raml-util/rtypes/item-collection.raml
+
+/finance/fund-types:
+  displayName: Fund types APIs
+  description: Fund type controlled vocabulary
+  type:
+    collection:
+      schemaCollection: fundTypesCollection
+      schemaItem: fundType
+      exampleCollection: !include acq-models/mod-finance/examples/fund_type_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/fund_type.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example name", example: "[\"name\", \"MEDGRANT\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a fund type
+        type: uuid
+    type:
+      collection-item:
+        schema: fundType
+        exampleItem: !include acq-models/mod-finance/examples/fund_type.sample
+    put:
+      is: [validate]
