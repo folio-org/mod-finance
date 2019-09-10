@@ -9,27 +9,42 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/fund-types",
-          "permissionsRequired": ["finance.fund-types.collection.get"]
+          "permissionsRequired": ["finance.fund-types.collection.get"],
+          "modulePermissions": [
+            "finance-storage.fund-types.collection.get"
+          ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/finance/fund-types",
-          "permissionsRequired": ["finance.fund-types.item.post"]
+          "permissionsRequired": ["finance.fund-types.item.post"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.post"
+          ]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/fund-types/{id}",
-          "permissionsRequired": ["finance.fund-types.item.get"]
+          "permissionsRequired": ["finance.fund-types.item.get"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.get"
+          ]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/finance/fund-types/{id}",
-          "permissionsRequired": ["finance.fund-types.item.put"]
+          "permissionsRequired": ["finance.fund-types.item.put"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.put"
+          ]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/finance/fund-types/{id}",
-          "permissionsRequired": ["finance.fund-types.item.delete"]
+          "permissionsRequired": ["finance.fund-types.item.delete"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.delete"
+          ]
         }
       ]
     },
@@ -40,27 +55,42 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance.funds.collection.get"]
+          "permissionsRequired": ["finance.funds.collection.get"],
+          "modulePermissions": [
+            "finance-storage.funds.collection.get"
+          ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance.funds.item.post"]
+          "permissionsRequired": ["finance.funds.item.post"],
+          "modulePermissions": [
+            "finance-storage.funds.item.post"
+          ]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.get"]
+          "permissionsRequired": ["finance.funds.item.get"],
+          "modulePermissions": [
+            "finance-storage.funds.item.get"
+          ]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.put"]
+          "permissionsRequired": ["finance.funds.item.put"],
+          "modulePermissions": [
+            "finance-storage.funds.item.put"
+          ]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.delete"]
+          "permissionsRequired": ["finance.funds.item.delete"],
+          "modulePermissions": [
+            "finance-storage.funds.item.delete"
+          ]
         }
       ]
     },
