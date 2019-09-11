@@ -1,36 +1,96 @@
 {
   "id": "${artifactId}-${version}",
   "name": "Finance business logic module",
-  "requires": [],
   "provides": [
     {
-      "id": "finances",
+      "id": "finance.fund-types",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fund-types",
+          "permissionsRequired": ["finance.fund-types.collection.get"],
+          "modulePermissions": [
+            "finance-storage.fund-types.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/fund-types",
+          "permissionsRequired": ["finance.fund-types.item.post"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fund-types/{id}",
+          "permissionsRequired": ["finance.fund-types.item.get"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/fund-types/{id}",
+          "permissionsRequired": ["finance.fund-types.item.put"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/fund-types/{id}",
+          "permissionsRequired": ["finance.fund-types.item.delete"],
+          "modulePermissions": [
+            "finance-storage.fund-types.item.delete"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "finance.funds",
       "version": "1.0",
       "handlers": [
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance.funds.collection.get"]
+          "permissionsRequired": ["finance.funds.collection.get"],
+          "modulePermissions": [
+            "finance-storage.funds.collection.get"
+          ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/finance/funds",
-          "permissionsRequired": ["finance.funds.item.post"]
+          "permissionsRequired": ["finance.funds.item.post"],
+          "modulePermissions": [
+            "finance-storage.funds.item.post"
+          ]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.get"]
+          "permissionsRequired": ["finance.funds.item.get"],
+          "modulePermissions": [
+            "finance-storage.funds.item.get"
+          ]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.put"]
+          "permissionsRequired": ["finance.funds.item.put"],
+          "modulePermissions": [
+            "finance-storage.funds.item.put"
+          ]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/finance/funds/{id}",
-          "permissionsRequired": ["finance.funds.item.delete"]
+          "permissionsRequired": ["finance.funds.item.delete"],
+          "modulePermissions": [
+            "finance-storage.funds.item.delete"
+          ]
         }
       ]
     },
@@ -46,7 +106,54 @@
       ]
     }
   ],
+  "requires": [
+    {
+      "id": "finance-storage.fund-types",
+      "version": "1.0"
+    },
+    {
+      "id": "finance-storage.funds",
+      "version": "2.0"
+    }
+  ],
   "permissionSets": [
+    {
+      "permissionName" : "finance.fund-types.collection.get",
+      "displayName" : "Fund-type - get the collection of Fund-types",
+      "description" : "Get collection of fund types"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.post",
+      "displayName" : "Fund-type - create a new Fund-type",
+      "description" : "Create a new fund type"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.get",
+      "displayName" : "Fund-type - get an existing Fund-type",
+      "description" : "Fetch a fund type"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.put",
+      "displayName" : "Fund-type - modify an existing Fund-type",
+      "description" : "Update a fund type"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.delete",
+      "displayName" : "Fund-type - delete an existing Fund-type",
+      "description" : "Delete a fund type"
+    },
+    {
+      "permissionName" : "finance.fund-types.all",
+      "displayName" : "All fund-type perms",
+      "description" : "All permissions for the fund type",
+      "subPermissions" : [
+        "finance.fund-types.collection.get",
+        "finance.fund-types.item.post",
+        "finance.fund-types.item.get",
+        "finance.fund-types.item.put",
+        "finance.fund-types.item.delete"
+      ]
+    },
     {
       "permissionName": "finance.funds.collection.get",
       "displayName": "Finances - get finance funds collection",
@@ -90,6 +197,7 @@
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
       "subPermissions": [
+        "finance.fund-types.all",
         "finance.funds.all"
       ],
       "visible": false

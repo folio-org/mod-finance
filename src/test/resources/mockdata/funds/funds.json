@@ -1,0 +1,16 @@
+{
+  "funds": [
+    {
+      "id": "e9285a1c-1dfc-4380-868c-e74073003f43",
+      "name": "European History",
+      "code": "EUROHIST",
+      "externalAccountNo": "256359519755772",
+      "fundStatus": "Active",
+      "fundTypeId": "aea28ac6-f085-4833-bd54-d8f605d28d48",
+      "description": "Do not use for former Soviet countries",
+      "ledgerId": "133a7916-f05e-4df4-8f7f-09eb2a7076d1"
+    }
+  ],
+  "totalRecords": 1
+}
+

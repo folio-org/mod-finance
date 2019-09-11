@@ -1,15 +1,10 @@
 package org.folio.rest.impl;
 
-import io.restassured.RestAssured;
-import io.restassured.http.Header;
-import io.restassured.http.Headers;
-import io.restassured.response.Response;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
+import static org.folio.rest.impl.ApiTestSuite.mockPort;
+import static org.folio.rest.util.HelperUtils.convertToJson;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,10 +15,18 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
-import static org.folio.rest.impl.ApiTestSuite.mockPort;
+import org.apache.commons.io.IOUtils;
+import org.folio.rest.util.MockServer;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+import io.restassured.RestAssured;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 public class ApiTestBase {
 
@@ -32,8 +35,11 @@ public class ApiTestBase {
   static final Header X_OKAPI_URL = new Header(OKAPI_URL, "http://localhost:" + mockPort);
   static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, "eyJhbGciOiJIUzI1NiJ9");
   public static final Header X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "financeimpltest");
-  static final String ID_FOR_INTERNAL_SERVER_ERROR = "168f8a86-d26c-406e-813f-c7527f241ac3";
-  static final String BASE_MOCK_DATA_PATH = "mockdata/";
+  public static final String BAD_QUERY = "unprocessableQuery";
+  public static final String ID_DOES_NOT_EXIST = "d25498e7-3ae6-45fe-9612-ec99e2700d2f";
+  public static final String ID_FOR_INTERNAL_SERVER_ERROR = "168f8a86-d26c-406e-813f-c7527f241ac3";
+  public static final String BASE_MOCK_DATA_PATH = "mockdata/";
+  public static final String TOTAL_RECORDS = "totalRecords";
 
 
   static {
@@ -61,29 +67,39 @@ public class ApiTestBase {
     }
   }
 
-  void verifyPostResponse(String url, String body, Headers headers, String expectedContentType, int expectedCode) {
+  @Before
+  public void setUp() {
+    clearServiceInteractions();
+  }
+
+  protected void clearServiceInteractions() {
+    MockServer.serverRqRs.clear();
+    MockServer.serverRqQueries.clear();
+  }
+
+  void verifyPostResponse(String url, Object body, String expectedContentType, int expectedCode) {
+    Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT, X_OKAPI_TOKEN);
+    verifyPostResponse(url, body, headers, expectedContentType, expectedCode);
+  }
+
+  void verifyPostResponse(String url, Object body, Headers headers, String expectedContentType, int expectedCode) {
     RestAssured
       .with()
         .header(X_OKAPI_URL)
         .headers(headers)
         .header(X_OKAPI_TOKEN)
         .contentType(APPLICATION_JSON)
-        .body(body)
+        .body(convertToJson(body).encodePrettily())
       .post(url)
         .then()
-          .log()
-          .all()
-          .statusCode(expectedCode);
+          .log().all()
+          .statusCode(expectedCode)
+          .contentType(expectedContentType);
   }
 
-  Response verifyPut(String url, String body, String expectedContentType, int expectedCode) {
+  Response verifyPut(String url, Object body, String expectedContentType, int expectedCode) {
     Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT, X_OKAPI_TOKEN);
-    return verifyPut(url, body, headers,expectedContentType, expectedCode);
-  }
-
-  Response verifyPut(String url, JsonObject body, String expectedContentType, int expectedCode) {
-    Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT, X_OKAPI_TOKEN);
-    return verifyPut(url, body.encode(), headers,expectedContentType, expectedCode);
+    return verifyPut(url, convertToJson(body).encodePrettily(), headers, expectedContentType, expectedCode);
   }
 
   Response verifyPut(String url, String body, Headers headers, String expectedContentType, int expectedCode) {
@@ -105,7 +121,7 @@ public class ApiTestBase {
     Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT);
     return verifyGet(url, headers, expectedContentType, expectedCode);
   }
-  
+
   Response verifyGet(String url, Headers headers, String expectedContentType, int expectedCode) {
     return RestAssured
       .with()
@@ -140,7 +156,11 @@ public class ApiTestBase {
     return new Headers(headers);
   }
 
-  static String getMockData(String path) throws IOException {
+  String buildQueryParam(String query) {
+    return "?query=" + query;
+  }
+
+  public static String getMockData(String path) throws IOException {
     logger.info("Using mock datafile: {}", path);
     try (InputStream resourceAsStream = ApiTestBase.class.getClassLoader().getResourceAsStream(path)) {
       if (resourceAsStream != null) {
