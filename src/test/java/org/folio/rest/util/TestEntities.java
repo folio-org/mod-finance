@@ -6,8 +6,10 @@ import static org.folio.rest.util.HelperUtils.ID;
 import java.io.IOException;
 import java.util.function.Supplier;
 
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
+import org.folio.rest.jaxrs.resource.FinanceBudgets;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.tools.parser.JsonPathParser;
@@ -15,6 +17,7 @@ import org.folio.rest.tools.parser.JsonPathParser;
 import io.vertx.core.json.JsonObject;
 
 public enum TestEntities {
+  BUDGET(getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1),
   FUND(getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE(getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1);
 

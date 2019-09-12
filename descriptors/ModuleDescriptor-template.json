@@ -3,6 +3,52 @@
   "name": "Finance business logic module",
   "provides": [
     {
+      "id": "finance.budgets",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/budgets",
+          "permissionsRequired": ["finance.budgets.collection.get"],
+          "modulePermissions": [
+            "finance-storage.budgets.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/budgets",
+          "permissionsRequired": ["finance.budgets.item.post"],
+          "modulePermissions": [
+            "finance-storage.budgets.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/budgets/{id}",
+          "permissionsRequired": ["finance.budgets.item.get"],
+          "modulePermissions": [
+            "finance-storage.budgets.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/budgets/{id}",
+          "permissionsRequired": ["finance.budgets.item.put"],
+          "modulePermissions": [
+            "finance-storage.budgets.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/budgets/{id}",
+          "permissionsRequired": ["finance.budgets.item.delete"],
+          "modulePermissions": [
+            "finance-storage.budgets.item.delete"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.fund-types",
       "version": "1.0",
       "handlers": [
@@ -108,6 +154,10 @@
   ],
   "requires": [
     {
+      "id": "finance-storage.budgets",
+      "version": "1.0"
+    },
+    {
       "id": "finance-storage.fund-types",
       "version": "1.0"
     },
@@ -118,34 +168,71 @@
   ],
   "permissionSets": [
     {
-      "permissionName" : "finance.fund-types.collection.get",
-      "displayName" : "Fund-type - get the collection of Fund-types",
-      "description" : "Get collection of fund types"
+      "permissionName" : "finance.budgets.collection.get",
+      "displayName" : "Budgets - get the collection of budgets",
+      "description" : "Get collection of budgets"
     },
     {
-      "permissionName" : "finance.fund-types.item.post",
-      "displayName" : "Fund-type - create a new Fund-type",
+      "permissionName" : "finance.budgets.item.post",
+      "displayName" : "Budgets - create a new budget",
       "description" : "Create a new fund type"
     },
     {
-      "permissionName" : "finance.fund-types.item.get",
-      "displayName" : "Fund-type - get an existing Fund-type",
+      "permissionName" : "finance.budgets.item.get",
+      "displayName" : "Budgets - get an existing budget",
       "description" : "Fetch a fund type"
     },
     {
-      "permissionName" : "finance.fund-types.item.put",
-      "displayName" : "Fund-type - modify an existing Fund-type",
+      "permissionName" : "finance.budgets.item.put",
+      "displayName" : "Budgets - modify an existing budget",
       "description" : "Update a fund type"
     },
     {
-      "permissionName" : "finance.fund-types.item.delete",
-      "displayName" : "Fund-type - delete an existing Fund-type",
+      "permissionName" : "finance.budgets.item.delete",
+      "displayName" : "Budgets - delete an existing budget",
       "description" : "Delete a fund type"
     },
     {
+      "permissionName" : "finance.budgets.all",
+      "displayName" : "All budget permissions",
+      "description" : "All permissions for the budget APIs",
+      "subPermissions" : [
+        "finance.budgets.collection.get",
+        "finance.budgets.item.post",
+        "finance.budgets.item.get",
+        "finance.budgets.item.put",
+        "finance.budgets.item.delete"
+      ]
+    },
+    {
+      "permissionName" : "finance.fund-types.collection.get",
+      "displayName" : "Fund types - get the collection of fund types",
+      "description" : "Get collection of budgets"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.post",
+      "displayName" : "Fund types - create a new fund type",
+      "description" : "Create a new budget"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.get",
+      "displayName" : "Fund types - get an existing fund type",
+      "description" : "Fetch a budget"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.put",
+      "displayName" : "Fund types - modify an existing fund type",
+      "description" : "Update a budget"
+    },
+    {
+      "permissionName" : "finance.fund-types.item.delete",
+      "displayName" : "Fund types - delete an existing fund type",
+      "description" : "Delete a budget"
+    },
+    {
       "permissionName" : "finance.fund-types.all",
-      "displayName" : "All fund-type perms",
-      "description" : "All permissions for the fund type",
+      "displayName" : "All fund type permissions",
+      "description" : "All permissions for the fund type APIs",
       "subPermissions" : [
         "finance.fund-types.collection.get",
         "finance.fund-types.item.post",
@@ -197,6 +284,7 @@
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
       "subPermissions": [
+        "finance.budgets.all",
         "finance.fund-types.all",
         "finance.funds.all"
       ],

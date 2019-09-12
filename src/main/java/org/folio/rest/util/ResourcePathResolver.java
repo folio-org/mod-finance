@@ -10,14 +10,16 @@ public class ResourcePathResolver {
   private ResourcePathResolver() {
   }
 
+  public static final String BUDGETS = "budgets";
   public static final String FUNDS = "funds";
-  public static final String FUND_TYPES = "fund-types";
+  public static final String FUND_TYPES = "fundTypes";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
 
   static {
     Map<String, String> apis = new HashMap<>();
+    apis.put(BUDGETS, "/finance-storage/budgets");
     apis.put(FUNDS, "/finance-storage/funds");
     apis.put(FUND_TYPES, "/finance-storage/fund-types");
 

@@ -1,0 +1,58 @@
+#%RAML 1.0
+
+title: Finance budget
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Budget API
+    content: This documents the API calls that can be made to manage budgets
+
+types:
+  budget: !include acq-models/mod-finance/schemas/budget.json
+  budgetsCollection: !include acq-models/mod-finance/schemas/budget_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+  collection-item: !include raml-util/rtypes/item-collection.raml
+
+/finance/budgets:
+  displayName: Finance budget
+  description: Finance budget APIs
+  type:
+    collection:
+      schemaCollection: budgetsCollection
+      schemaItem: budget
+      exampleCollection: !include acq-models/mod-finance/examples/budget_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/budget.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"name\", \"HIST-FY19\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a budget
+        type: UUID
+    displayName: Budget
+    description: Get, Delete or Update a specific budget
+    type:
+      collection-item:
+        schema: budget
+        exampleItem: !include acq-models/mod-finance/examples/budget.sample
+    put:
+      is: [validate]
