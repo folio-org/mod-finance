@@ -9,6 +9,8 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.ERROR_X_OKAPI_TENANT;
+import static org.folio.rest.util.MockServer.getCollectionRecords;
+import static org.folio.rest.util.MockServer.getRecordById;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -51,14 +53,13 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   public void testGetCollection() {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
-    String body = verifyGet(testEntity.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).asString();
+    String responseBody = verifyGet(testEntity.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).asString();
 
     // Verify collection response
-    JsonObject collection = new JsonObject(body);
+    JsonObject collection = new JsonObject(responseBody);
 
     // 2 properties are expected
     assertThat(collection, iterableWithSize(2));
-
     collection.iterator().forEachRemaining(entry -> {
       if (TOTAL_RECORDS.equals(entry.getKey())) {
         assertThat(entry.getValue(), is(testEntity.getCollectionQuantity()));
@@ -71,6 +72,9 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
         });
       }
     });
+
+    // Make sure that correct storage endpoint was used
+    assertThat(getCollectionRecords(testEntity.name()), hasSize(1));
   }
 
   @Test
@@ -94,6 +98,9 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     logger.info("=== Test Get {} record by id ===", testEntity.name());
 
     verifyGet(testEntity.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(testEntity.getClazz());
+
+    // Make sure that correct storage endpoint was used
+    assertThat(getRecordById(testEntity.name()), hasSize(1));
   }
 
   @Test
@@ -136,8 +143,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject body = testEntity.getMockObject();
     body.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
 
-    verifyPut(testEntity.getEndpointWithDefaultId(), body, "", NO_CONTENT.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.PUT, body);
+    JsonObject expected = JsonObject.mapFrom(body);
+
+    verifyPut(testEntity.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+    compareRecordWithSentToStorage(HttpMethod.PUT, expected);
   }
 
   @Test

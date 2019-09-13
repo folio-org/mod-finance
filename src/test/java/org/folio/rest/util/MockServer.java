@@ -11,6 +11,7 @@ import static org.folio.rest.impl.ApiTestBase.ID_DOES_NOT_EXIST;
 import static org.folio.rest.impl.ApiTestBase.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.impl.ApiTestBase.getMockData;
 import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -32,6 +33,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
@@ -112,15 +115,15 @@ public class MockServer {
     return getCollectionRecords(getRqRsEntries(HttpMethod.GET, entryName));
   }
 
-  public static List<JsonObject> getRecordsByIds(String entryName) {
-    return getRecordsByIds(getRqRsEntries(HttpMethod.GET, entryName));
+  public static List<JsonObject> getRecordById(String entryName) {
+    return getRecordById(getRqRsEntries(HttpMethod.GET, entryName));
   }
 
   private static List<JsonObject> getCollectionRecords(List<JsonObject> entries) {
     return entries.stream().filter(json -> !json.containsKey(ID)).collect(toList());
   }
 
-  private static List<JsonObject> getRecordsByIds(List<JsonObject> entries) {
+  private static List<JsonObject> getRecordById(List<JsonObject> entries) {
     return entries.stream().filter(json -> json.containsKey(ID)).collect(toList());
   }
 
@@ -128,25 +131,36 @@ public class MockServer {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
 
+    router.route(HttpMethod.POST, resourcesPath(BUDGETS))
+      .handler(ctx -> handlePostEntry(ctx, Budget.class, TestEntities.BUDGET.name()));
     router.route(HttpMethod.POST, resourcesPath(FUNDS))
       .handler(ctx -> handlePostEntry(ctx, Fund.class, TestEntities.FUND.name()));
     router.route(HttpMethod.POST, resourcesPath(FUND_TYPES))
       .handler(ctx -> handlePostEntry(ctx, FundType.class, TestEntities.FUND_TYPE.name()));
 
+    router.route(HttpMethod.GET, resourcesPath(BUDGETS))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
     router.route(HttpMethod.GET, resourcesPath(FUNDS))
-      .handler(this::handleGetFunds);
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND));
     router.route(HttpMethod.GET, resourcesPath(FUND_TYPES))
-      .handler(this::handleGetFundTypes);
-    router.route(HttpMethod.GET, resourceByIdPath(FUNDS))
-      .handler(this::handleGetFundById);
-    router.route(HttpMethod.GET, resourceByIdPath(FUND_TYPES))
-      .handler(this::handleGetFundTypeById);
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND_TYPE));
 
+    router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
+    router.route(HttpMethod.GET, resourceByIdPath(FUNDS))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND));
+    router.route(HttpMethod.GET, resourceByIdPath(FUND_TYPES))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND_TYPE));
+
+    router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.BUDGET.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(FUNDS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND_TYPE.name()));
 
+    router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.BUDGET.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(FUNDS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(FUND_TYPES))
@@ -155,8 +169,8 @@ public class MockServer {
     return router;
   }
 
-  private void handleGetFunds(RoutingContext ctx) {
-    logger.info("handleGetFundRecords got: " + ctx.request().path());
+  private void handleGetCollection(RoutingContext ctx, TestEntities testEntity) {
+    logger.info("handleGetCollection got: " + ctx.request().path());
 
     String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
 
@@ -167,29 +181,75 @@ public class MockServer {
     } else {
       try {
 
-        List<String> fundIds = Collections.emptyList();
+        List<String> ids = Collections.emptyList();
         if (query.startsWith("id==")) {
-          fundIds = extractIdsFromQuery(query);
+          ids = extractIdsFromQuery(query);
         }
 
-        List<Fund> funds = getFundsByIds(fundIds);
-
-        FundsCollection fundCollection = new FundsCollection().withFunds(funds).withTotalRecords(funds.size());
-
-        JsonObject fundsJson = JsonObject.mapFrom(fundCollection);
-        addServerRqRsData(HttpMethod.GET, TestEntities.FUND.name(), fundsJson);
+        JsonObject collection = getCollectionOfRecords(testEntity, ids);
+        addServerRqRsData(HttpMethod.GET, testEntity.name(), collection);
 
         ctx.response()
           .setStatusCode(200)
           .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-          .end(fundsJson.encodePrettily());
+          .end(collection.encodePrettily());
       } catch (Exception e) {
         serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
       }
     }
   }
 
-  private List<Fund> getFundsByIds(List<String> fundIds) {
+  private void handleGetRecordById(RoutingContext ctx, TestEntities testEntity) {
+    logger.info("handleGetRecordById got: {}", ctx.request().path());
+    String id = ctx.request().getParam(ID);
+
+    // Register request
+    addServerRqRsData(HttpMethod.GET, testEntity.name(), new JsonObject().put(ID, id));
+
+    if (id.equals(ID_FOR_INTERNAL_SERVER_ERROR)) {
+      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else {
+      try {
+        JsonObject record = getMockRecord(testEntity, id);
+        if (record == null) {
+          serverResponse(ctx, 404, APPLICATION_JSON, id);
+        } else {
+          serverResponse(ctx, 200, APPLICATION_JSON, record.encodePrettily());
+        }
+      } catch (Exception e) {
+        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+      }
+    }
+  }
+
+  private JsonObject getBudgetsByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<Budget>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.BUDGET.getPathToFileWithData())).mapTo(BudgetsCollection.class).getBudgets();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    List<Budget> records = getMockEntries(TestEntities.BUDGET.name(), Budget.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      records.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new BudgetsCollection().withBudgets(records).withTotalRecords(records.size());
+    } else if (!records.isEmpty()) {
+      record = records.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+
+  private JsonObject getFundsByIds(List<String> fundIds, boolean isCollection) {
     Supplier<List<Fund>> getFromFile = () -> {
       try {
         return new JsonObject(getMockData(TestEntities.FUND.getPathToFileWithData())).mapTo(FundsCollection.class).getFunds();
@@ -204,42 +264,19 @@ public class MockServer {
       funds.removeIf(item -> !fundIds.contains(item.getId()));
     }
 
-    return funds;
-  }
-
-  private void handleGetFundTypes(RoutingContext ctx) {
-    logger.info("handleGetFundTypes got: " + ctx.request().path());
-
-    String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
-
-    if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
-      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    } else if (query.contains(BAD_QUERY)) {
-      serverResponse(ctx, 400, APPLICATION_JSON, BAD_REQUEST.getReasonPhrase());
+    Object record;
+    if (isCollection) {
+      record = new FundsCollection().withFunds(funds).withTotalRecords(funds.size());
+    } else if (!funds.isEmpty()) {
+      record = funds.get(0);
     } else {
-      try {
-        List<String> typeIds = Collections.emptyList();
-        if (query.startsWith("id==")) {
-          typeIds = extractIdsFromQuery(query);
-        }
-        List<FundType> types = getFundTypesByIds(typeIds);
-
-        FundTypesCollection collection = new FundTypesCollection().withFundTypes(types).withTotalRecords(types.size());
-
-        JsonObject typesJson = JsonObject.mapFrom(collection);
-        addServerRqRsData(HttpMethod.GET, TestEntities.FUND.name(), typesJson);
-
-        ctx.response()
-          .setStatusCode(200)
-          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-          .end(typesJson.encodePrettily());
-      } catch (Exception e) {
-        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-      }
+      return null;
     }
+
+    return JsonObject.mapFrom(record);
   }
 
-  private List<FundType> getFundTypesByIds(List<String> ids) {
+  private JsonObject getFundTypesByIds(List<String> ids, boolean isCollection) {
     Supplier<List<FundType>> getFromFile = () -> {
       try {
         return new JsonObject(getMockData(TestEntities.FUND_TYPE.getPathToFileWithData())).mapTo(FundTypesCollection.class)
@@ -255,52 +292,36 @@ public class MockServer {
       types.removeIf(item -> !ids.contains(item.getId()));
     }
 
-    return types;
-  }
-
-  private void handleGetFundById(RoutingContext ctx) {
-    logger.info("handleGetFundById got: {}", ctx.request().path());
-    String id = ctx.request().getParam(ID);
-
-    // Register request
-    addServerRqRsData(HttpMethod.GET, TestEntities.FUND.name(), new JsonObject().put(ID, id));
-
-    if (id.equals(ID_FOR_INTERNAL_SERVER_ERROR)) {
-      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    Object record;
+    if (isCollection) {
+      record = new FundTypesCollection().withFundTypes(types).withTotalRecords(types.size());
+    } else if (!types.isEmpty()) {
+      record = types.get(0);
     } else {
-      try {
-        List<Fund> funds = getFundsByIds(Collections.singletonList(id));
-        if (funds.isEmpty()) {
-          serverResponse(ctx, 404, APPLICATION_JSON, id);
-        } else {
-          serverResponse(ctx, 200, APPLICATION_JSON, JsonObject.mapFrom(funds.get(0)).encodePrettily());
-        }
-      } catch (Exception e) {
-        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-      }
+      return null;
     }
+
+    return JsonObject.mapFrom(record);
   }
 
-  private void handleGetFundTypeById(RoutingContext ctx) {
-    logger.info("handleGetFundTypeById got: {}", ctx.request().path());
-    String id = ctx.request().getParam(ID);
+  private JsonObject getCollectionOfRecords(TestEntities testEntity, List<String> ids) {
+    return getEntries(testEntity, ids, true);
+  }
 
-    // Register request
-    addServerRqRsData(HttpMethod.GET, TestEntities.FUND_TYPE.name(), new JsonObject().put(ID, id));
+  private JsonObject getMockRecord(TestEntities testEntity, String id) {
+    return getEntries(testEntity, Collections.singletonList(id), false);
+  }
 
-    if (id.equals(ID_FOR_INTERNAL_SERVER_ERROR)) {
-      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    } else {
-      try {
-        List<FundType> types = getFundTypesByIds(Collections.singletonList(id));
-        if (types.isEmpty()) {
-          serverResponse(ctx, 404, APPLICATION_JSON, id);
-        } else {
-          serverResponse(ctx, 200, APPLICATION_JSON, JsonObject.mapFrom(types.get(0)).encodePrettily());
-        }
-      } catch (Exception e) {
-        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-      }
+  private JsonObject getEntries(TestEntities testEntity, List<String> ids, boolean isCollection) {
+    switch (testEntity) {
+    case BUDGET:
+      return getBudgetsByIds(ids, isCollection);
+    case FUND:
+      return getFundsByIds(ids, isCollection);
+    case FUND_TYPE:
+      return getFundTypesByIds(ids, isCollection);
+    default:
+      throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
     }
   }
 

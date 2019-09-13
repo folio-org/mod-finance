@@ -1,5 +1,6 @@
 package org.folio.rest.helper;
 
+import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
@@ -33,7 +34,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<FundTypesCollection> getFundTypes(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUND_TYPES_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
-      .thenApply(json -> json.mapTo(FundTypesCollection.class));
+      .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundTypesCollection.class)));
   }
 
   public CompletableFuture<FundType> getFundType(String id) {
@@ -56,7 +57,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<FundsCollection> getFunds(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUNDS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
-      .thenApply(json -> json.mapTo(FundsCollection.class));
+      .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundsCollection.class)));
   }
 
   public CompletableFuture<Fund> getFund(String id) {

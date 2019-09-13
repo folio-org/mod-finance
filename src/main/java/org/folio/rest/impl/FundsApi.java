@@ -21,7 +21,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 
-public class FinanceFundsImpl implements FinanceFunds, FinanceFundTypes {
+public class FundsApi implements FinanceFunds, FinanceFundTypes {
 
   private static final String FUNDS_LOCATION_PREFIX = getEndpoint(FinanceFunds.class) + "/%s";
   private static final String FUND_TYPES_LOCATION_PREFIX = getEndpoint(FinanceFundTypes.class) + "/%s";
