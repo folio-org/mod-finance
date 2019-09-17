@@ -23,8 +23,8 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
     super(okapiHeaders, ctx, lang);
   }
 
-  public CompletableFuture<GroupFundFiscalYear> createGroupFundFiscalYear(GroupFundFiscalYear GroupFundFiscalYear) {
-    return handleCreateRequest(resourcesPath(GROUP_FUND_FISCAL_YEARS), GroupFundFiscalYear).thenApply(GroupFundFiscalYear::withId);
+  public CompletableFuture<GroupFundFiscalYear> createGroupFundFiscalYear(GroupFundFiscalYear groupFundFiscalYear) {
+    return handleCreateRequest(resourcesPath(GROUP_FUND_FISCAL_YEARS), groupFundFiscalYear).thenApply(groupFundFiscalYear::withId);
   }
 
   public CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYears(int limit, int offset, String query) {
