@@ -20,7 +20,8 @@ import io.vertx.core.json.JsonObject;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  EntitiesCrudBasicsTest.class
+  EntitiesCrudBasicsTest.class,
+  GroupFundFiscalYearTest.class
 })
 public class ApiTestSuite {
 

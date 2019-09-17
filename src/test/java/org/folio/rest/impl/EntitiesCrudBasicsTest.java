@@ -46,7 +46,11 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @Parameterized.Parameters(name = "{index}:{0}")
   public static TestEntities[] data() {
-    return TestEntities.values();
+    return new TestEntities[] {
+      TestEntities.BUDGET,
+      TestEntities.FUND,
+      TestEntities.FUND_TYPE
+    };
   }
 
   @Test

@@ -14,6 +14,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.Assert.fail;
 
@@ -55,6 +56,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import one.util.streamex.StreamEx;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
 public class MockServer {
 
@@ -137,6 +140,8 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, Fund.class, TestEntities.FUND.name()));
     router.route(HttpMethod.POST, resourcesPath(FUND_TYPES))
       .handler(ctx -> handlePostEntry(ctx, FundType.class, TestEntities.FUND_TYPE.name()));
+    router.route(HttpMethod.POST, resourcesPath(GROUP_FUND_FISCAL_YEARS))
+      .handler(ctx -> handlePostEntry(ctx, GroupFundFiscalYear.class, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -144,6 +149,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND));
     router.route(HttpMethod.GET, resourcesPath(FUND_TYPES))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND_TYPE));
+    router.route(HttpMethod.GET, resourcesPath(GROUP_FUND_FISCAL_YEARS))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -158,6 +165,8 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND_TYPE.name()));
+    router.route(HttpMethod.DELETE, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
 
     router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.BUDGET.name()));
@@ -304,6 +313,34 @@ public class MockServer {
     return JsonObject.mapFrom(record);
   }
 
+  private JsonObject getGroupFundFiscalYearsByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<GroupFundFiscalYear>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.GROUP_FUND_FISCAL_YEAR.getPathToFileWithData())).mapTo(GroupFundFiscalYearCollection.class)
+          .getGroupFundFiscalYears();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    List<GroupFundFiscalYear> groupFundFiscalYears = getMockEntries(TestEntities.GROUP_FUND_FISCAL_YEAR.name(), GroupFundFiscalYear.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      groupFundFiscalYears.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new GroupFundFiscalYearCollection().withGroupFundFiscalYears(groupFundFiscalYears).withTotalRecords(groupFundFiscalYears.size());
+    } else if (!groupFundFiscalYears.isEmpty()) {
+      record = groupFundFiscalYears.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+
   private JsonObject getCollectionOfRecords(TestEntities testEntity, List<String> ids) {
     return getEntries(testEntity, ids, true);
   }
@@ -320,6 +357,8 @@ public class MockServer {
       return getFundsByIds(ids, isCollection);
     case FUND_TYPE:
       return getFundTypesByIds(ids, isCollection);
+    case GROUP_FUND_FISCAL_YEAR:
+      return getGroupFundFiscalYearsByIds(ids, isCollection);
     default:
       throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
     }
