@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.GroupFundFiscalYearHelper;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
@@ -21,6 +22,7 @@ public class GroupFundFiscalYearApi implements FinanceGroupFundFiscalYears {
   private static final String GROUP_FUND_FISCAL_YEAR_LOCATION_PREFIX = getEndpoint(FinanceGroupFundFiscalYears.class) + "/%s";
 
   @Override
+  @Validate
   public void postFinanceGroupFundFiscalYears(String lang, GroupFundFiscalYear entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
@@ -33,6 +35,7 @@ public class GroupFundFiscalYearApi implements FinanceGroupFundFiscalYears {
   }
 
   @Override
+  @Validate
   public void getFinanceGroupFundFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
@@ -44,6 +47,7 @@ public class GroupFundFiscalYearApi implements FinanceGroupFundFiscalYears {
   }
 
   @Override
+  @Validate
   public void deleteFinanceGroupFundFiscalYearsById(String id, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
