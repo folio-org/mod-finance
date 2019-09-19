@@ -44,7 +44,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
 
   /**
-   * Test entities excepting GROUP_FUND_FISCAL_YEAR
+   * Test entities except for GROUP_FUND_FISCAL_YEAR
    *
    * @return stream of test entities
    */
