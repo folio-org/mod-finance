@@ -1,0 +1,74 @@
+#%RAML 1.0
+
+title: Finance group fund fiscal year
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Group Fund Fiscal Year API
+    content: This documents the API calls that can be made to manage group-fund-fiscal-years
+
+types:
+  groupFundFiscalYear: !include acq-models/mod-finance/schemas/group_fund_fiscal_year.json
+  groupFundFiscalYearCollection: !include acq-models/mod-finance/schemas/group_fund_fiscal_year_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+
+/finance/group-fund-fiscal-years:
+  displayName: Finance group fund fiscal year
+  description: Finance group fund fiscal year APIs
+  type:
+    collection:
+      schemaCollection: groupFundFiscalYearCollection
+      schemaItem: groupFundFiscalYear
+      exampleCollection: !include acq-models/mod-finance/examples/group_fund_fiscal_year_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/group_fund_fiscal_year.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example fundId", example: "[\"fundId\", \"6e2fbba3-d557-4480-bca3-b6f5c645de04\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a group fund fiscal year
+        type: UUID
+    delete:
+      is: [validate, language]
+      displayName: Budget
+      description: Delete a group fund fiscal year
+      responses:
+        204:
+         description: "Item deleted successfully"
+        404:
+          description: "Item with a given ID not found"
+          body:
+            text/plain:
+              example: |
+                "group fund fiscal year not found"
+        400:
+          description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
+          body:
+            text/plain:
+              example: |
+                "unable to delete group fund fiscal year -- constraint violation"
+        500:
+          description: "Internal server error, e.g. due to misconfiguration"
+          body:
+            text/plain:
+              example: "Internal server error, contact administrator"
+

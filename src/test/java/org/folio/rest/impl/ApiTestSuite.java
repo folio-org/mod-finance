@@ -8,20 +8,19 @@ import java.util.concurrent.TimeoutException;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.MockServer;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
+import org.junit.platform.runner.JUnitPlatform;
+
 
 import io.restassured.RestAssured;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.junit.runner.RunWith;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses({
-  EntitiesCrudBasicsTest.class
-})
+@RunWith(JUnitPlatform.class)
 public class ApiTestSuite {
 
   private static final int okapiPort = NetworkUtils.nextFreePort();
@@ -30,7 +29,7 @@ public class ApiTestSuite {
   private static Vertx vertx;
   private static boolean initialised;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() throws InterruptedException, ExecutionException, TimeoutException {
     if (vertx == null) {
       vertx = Vertx.vertx();
@@ -60,7 +59,7 @@ public class ApiTestSuite {
     initialised = true;
   }
 
-  @AfterClass
+  @AfterAll
   public static void after() {
     mockServer.close();
     vertx.close();
@@ -71,4 +70,7 @@ public class ApiTestSuite {
     return !initialised;
   }
 
+  @Nested
+  class EntitiesCrudTestNested extends EntitiesCrudBasicsTest {
+  }
 }

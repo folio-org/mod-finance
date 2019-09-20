@@ -17,9 +17,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 import org.folio.rest.util.MockServer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
@@ -27,6 +24,9 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 public class ApiTestBase {
 
@@ -50,7 +50,7 @@ public class ApiTestBase {
 
   private static boolean runningOnOwn;
 
-  @BeforeClass
+  @BeforeAll
   public static void before() throws InterruptedException, ExecutionException, TimeoutException {
     if(ApiTestSuite.isNotInitialised()) {
       logger.info("Running test on own, initialising suite manually");
@@ -59,7 +59,7 @@ public class ApiTestBase {
     }
   }
 
-  @AfterClass
+  @AfterAll
   public static void after() {
     if(runningOnOwn) {
       logger.info("Running test on own, un-initialising suite manually");
@@ -67,7 +67,7 @@ public class ApiTestBase {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setUp() {
     clearServiceInteractions();
   }
