@@ -405,7 +405,8 @@
         "finance.ledgers.item.post",
         "finance.ledgers.item.get",
         "finance.ledgers.item.put",
-        "finance.ledgers.item.delete"
+        "finance.ledgers.item.delete",
+        "finance.group-fund-fiscal-years.collection.get"
       ]
     },
     {
