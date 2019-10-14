@@ -12,6 +12,7 @@ documentation:
 types:
   ledger: !include acq-models/mod-finance/schemas/ledger.json
   ledgersCollection: !include acq-models/mod-finance/schemas/ledger_collection.json
+  groupFundFiscalYearCollection: !include acq-models/mod-finance/schemas/group_fund_fiscal_year_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -26,6 +27,7 @@ traits:
 resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
+  get-only: !include raml-util/rtypes/get-only.raml
 
 /finance/ledgers:
   displayName: Finance ledger
@@ -56,3 +58,16 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/ledger.sample
     put:
       is: [validate]
+    /groups:
+      displayName: Finance group fund fiscal year
+      description: Get groups for a fiscalYear
+      type:
+        get-only:
+          schema: groupFundFiscalYearCollection
+          exampleCollection: !include acq-models/mod-finance/examples/group_fund_fiscal_year_collection.sample
+      get:
+        description: Get list of groups
+        is: [
+          pageable,
+          searchable: {description: "with valid searchable fields: for example fundId", example: "[\"fundId\", \"6e2fbba3-d557-4480-bca3-b6f5c645de04\", \"=\"]"}
+        ]

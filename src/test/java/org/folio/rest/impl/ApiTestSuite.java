@@ -73,4 +73,8 @@ public class ApiTestSuite {
   @Nested
   class EntitiesCrudTestNested extends EntitiesCrudBasicsTest {
   }
+
+  @Nested
+  class LedgersApiTestNested extends LedgersApiTest {
+  }
 }
