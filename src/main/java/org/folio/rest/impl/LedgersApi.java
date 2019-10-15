@@ -51,7 +51,6 @@ public class LedgersApi implements FinanceLedgers {
   @Override
   public void putFinanceLedgersById(String id, String lang, Ledger entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
-
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
 
     // Set id if this is available only in path
@@ -72,9 +71,7 @@ public class LedgersApi implements FinanceLedgers {
   @Override
   public void getFinanceLedgersById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
-
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
-
     helper.getLedger(id)
       .thenAccept(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
@@ -84,9 +81,7 @@ public class LedgersApi implements FinanceLedgers {
   @Override
   public void deleteFinanceLedgersById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
-
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
-
     helper.deleteLedger(id)
       .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
@@ -94,11 +89,11 @@ public class LedgersApi implements FinanceLedgers {
 
   @Override
   @Validate
-  public void getFinanceLedgersGroupsById(String id, int offset, int limit, String query, String lang,
-      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceLedgersGroupsById(String id, String query, String lang, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     GroupFundFiscalYearHelper helper = new GroupFundFiscalYearHelper(okapiHeaders, vertxContext, lang);
 
-    helper.getGroupFundFiscalYears(limit, offset, getGroupsByLedgerIdQuery(id, query))
+    helper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, getGroupsByLedgerIdQuery(id, query))
       .thenAccept(groupFundFiscalYears -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(groupFundFiscalYears))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
