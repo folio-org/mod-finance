@@ -1,0 +1,60 @@
+#%RAML 1.0
+
+title: Finance fiscal year
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Fiscal year API
+    content: This documents the API calls that can be made to manage fiscal-years
+
+types:
+  fiscalYear: !include acq-models/mod-finance/schemas/fiscal_year.json
+  fiscalYearsCollection: !include acq-models/mod-finance/schemas/fiscal_year_collection.json
+  groupFundFiscalYearCollection: !include acq-models/mod-finance/schemas/group_fund_fiscal_year_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+  collection-item: !include raml-util/rtypes/item-collection.raml
+  get-only: !include raml-util/rtypes/get-only.raml
+
+/finance/fiscal-years:
+  displayName: Finance fiscal year
+  description: Finance fiscal year APIs
+  type:
+    collection:
+      schemaCollection: fiscalYearsCollection
+      schemaItem: fiscalYear
+      exampleCollection: !include acq-models/mod-finance/examples/fiscal_year_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a fiscal year
+        type: UUID
+    displayName: Fiscal year
+    description: Get, Delete or Update a specific fiscal year
+    type:
+      collection-item:
+        schema: fiscalYear
+        exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample
+    put:
+      is: [validate]
