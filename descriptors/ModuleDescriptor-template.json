@@ -141,6 +141,52 @@
       ]
     },
     {
+      "id": "finance.fiscal-years",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fiscal-years",
+          "permissionsRequired": ["finance.fiscal-years.collection.get"],
+          "modulePermissions": [
+            "finance-storage.fiscal-years.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/fiscal-years",
+          "permissionsRequired": ["finance.fiscal-years.item.post"],
+          "modulePermissions": [
+            "finance-storage.fiscal-years.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fiscal-years/{id}",
+          "permissionsRequired": ["finance.fiscal-years.item.get"],
+          "modulePermissions": [
+            "finance-storage.fiscal-years.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/fiscal-years/{id}",
+          "permissionsRequired": ["finance.fiscal-years.item.put"],
+          "modulePermissions": [
+            "finance-storage.fiscal-years.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/fiscal-years/{id}",
+          "permissionsRequired": ["finance.fiscal-years.item.delete"],
+          "modulePermissions": [
+            "finance-storage.fiscal-years.item.delete"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.group-fund-fiscal-years",
       "version": "1.0",
       "handlers": [
@@ -194,6 +240,10 @@
     {
       "id": "finance-storage.funds",
       "version": "2.0"
+    },
+    {
+      "id": "finance-storage.fiscal-years",
+      "version": "1.0"
     },
     {
       "id": "finance-storage.groups",
@@ -314,6 +364,44 @@
       "visible": false
     },
     {
+      "permissionName": "finance.fiscal-years.collection.get",
+      "displayName": "Finances - get finance fiscal-years collection",
+      "description": "Get finance fiscal years collection"
+    },
+    {
+      "permissionName": "finance.fiscal-years.item.get",
+      "displayName": "Finances - get individual finance fiscal year from storage",
+      "description": "Get individual finance fiscal year"
+    },
+    {
+      "permissionName": "finance.fiscal-years.item.post",
+      "displayName": "Finances - create finance fiscal-years",
+      "description": "Create finance fiscal year"
+    },
+    {
+      "permissionName": "finance.fiscal-years.item.put",
+      "displayName": "Finances - modify finance fiscal year",
+      "description": "Modify finance fiscal year"
+    },
+    {
+      "permissionName": "finance.fiscal-years.item.delete",
+      "displayName": "Finances - delete finance fiscal year",
+      "description": "Delete finance fiscal year"
+    },
+    {
+      "permissionName": "finance.fiscal-years.all",
+      "displayName": "Finance fiscal years - all permissions",
+      "description": "Entire set of permissions needed to use the Finance fiscal years interface",
+      "subPermissions": [
+        "finance.fiscal-years.collection.get",
+        "finance.fiscal-years.item.get",
+        "finance.fiscal-years.item.post",
+        "finance.fiscal-years.item.put",
+        "finance.fiscal-years.item.delete"
+      ],
+      "visible": false
+    },
+    {
       "permissionName": "finance.group-fund-fiscal-years.collection.get",
       "displayName": "Finances - get finance group fund fiscal years collection",
       "description": "Get finance group fund fiscal years collection"
@@ -347,6 +435,7 @@
         "finance.budgets.all",
         "finance.fund-types.all",
         "finance.funds.all",
+        "finance.fiscal-years.all",
         "finance.group-fund-fiscal-years.all"
       ],
       "visible": false
