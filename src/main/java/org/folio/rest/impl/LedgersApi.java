@@ -87,26 +87,6 @@ public class LedgersApi implements FinanceLedgers {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
-  @Override
-  @Validate
-  public void getFinanceLedgersGroupsById(String id, String query, String lang, Map<String, String> okapiHeaders,
-      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupFundFiscalYearHelper helper = new GroupFundFiscalYearHelper(okapiHeaders, vertxContext, lang);
-
-    helper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, getGroupsByLedgerIdQuery(id, query))
-      .thenAccept(groupFundFiscalYears -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(groupFundFiscalYears))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
-  }
-
-  private String getGroupsByLedgerIdQuery(String id, String query) {
-    String queryByLedgerId = "ledger.id==" + id;
-    if (isEmpty(query)) {
-      return queryByLedgerId;
-    } else {
-      return query + "&query=" + queryByLedgerId;
-    }
-  }
-
   private Void handleErrorResponse(Handler<AsyncResult<Response>> handler, AbstractHelper helper, Throwable t) {
     handler.handle(succeededFuture(helper.buildErrorResponse(t)));
     return null;

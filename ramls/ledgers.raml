@@ -58,15 +58,3 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/ledger.sample
     put:
       is: [validate]
-    /groups:
-      displayName: Finance group fund fiscal year
-      description: Get groups for a fiscalYear
-      type:
-        get-only:
-          schema: groupFundFiscalYearCollection
-          exampleCollection: !include acq-models/mod-finance/examples/group_fund_fiscal_year_collection.sample
-      get:
-        description: Get list of groups
-        is: [
-          searchable: {description: "with valid searchable fields: for example fundId", example: "[\"fundId\", \"6e2fbba3-d557-4480-bca3-b6f5c645de04\", \"=\"]"}
-        ]

@@ -213,14 +213,6 @@
           "modulePermissions": [
             "finance-storage.ledgers.item.delete"
           ]
-        },
-        {
-          "methods": ["GET"],
-          "pathPattern": "/finance/ledgers/{id}/groups",
-          "permissionsRequired": ["finance.group-fund-fiscal-years.collection.get"],
-          "modulePermissions": [
-            "finance-storage.group-fund-fiscal-years.collection.get"
-          ]
         }
       ]
     },
@@ -405,8 +397,7 @@
         "finance.ledgers.item.post",
         "finance.ledgers.item.get",
         "finance.ledgers.item.put",
-        "finance.ledgers.item.delete",
-        "finance.group-fund-fiscal-years.collection.get"
+        "finance.ledgers.item.delete"
       ]
     },
     {
