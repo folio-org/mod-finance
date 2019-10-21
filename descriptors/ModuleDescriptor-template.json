@@ -217,6 +217,52 @@
       ]
     },
     {
+      "id": "finance.ledgers",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledgers",
+          "permissionsRequired": ["finance.ledgers.collection.get"],
+          "modulePermissions": [
+            "finance-storage.ledgers.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/ledgers",
+          "permissionsRequired": ["finance.ledgers.item.post"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledgers/{id}",
+          "permissionsRequired": ["finance.ledgers.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/ledgers/{id}",
+          "permissionsRequired": ["finance.ledgers.item.put"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/ledgers/{id}",
+          "permissionsRequired": ["finance.ledgers.item.delete"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.delete"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -247,6 +293,10 @@
     },
     {
       "id": "finance-storage.groups",
+      "version": "1.0"
+    },
+    {
+      "id": "finance-storage.ledgers",
       "version": "1.0"
     }
   ],
@@ -291,27 +341,27 @@
     {
       "permissionName" : "finance.fund-types.collection.get",
       "displayName" : "Fund types - get the collection of fund types",
-      "description" : "Get collection of budgets"
+      "description" : "Get collection of fund types"
     },
     {
       "permissionName" : "finance.fund-types.item.post",
       "displayName" : "Fund types - create a new fund type",
-      "description" : "Create a new budget"
+      "description" : "Create a new fund type"
     },
     {
       "permissionName" : "finance.fund-types.item.get",
       "displayName" : "Fund types - get an existing fund type",
-      "description" : "Fetch a budget"
+      "description" : "Fetch a fund type"
     },
     {
       "permissionName" : "finance.fund-types.item.put",
       "displayName" : "Fund types - modify an existing fund type",
-      "description" : "Update a budget"
+      "description" : "Update a fund type"
     },
     {
       "permissionName" : "finance.fund-types.item.delete",
       "displayName" : "Fund types - delete an existing fund type",
-      "description" : "Delete a budget"
+      "description" : "Delete a fund type"
     },
     {
       "permissionName" : "finance.fund-types.all",
@@ -402,6 +452,43 @@
       "visible": false
     },
     {
+      "permissionName" : "finance.ledgers.collection.get",
+      "displayName" : "Ledgers - get the collection of ledgers",
+      "description" : "Get collection of ledgers"
+    },
+    {
+      "permissionName" : "finance.ledgers.item.post",
+      "displayName" : "Ledgers - create a new ledger",
+      "description" : "Create a new ledger"
+    },
+    {
+      "permissionName" : "finance.ledgers.item.get",
+      "displayName" : "Ledgers - get an existing ledger",
+      "description" : "Fetch a ledger"
+    },
+    {
+      "permissionName" : "finance.ledgers.item.put",
+      "displayName" : "Ledgers - modify an existing ledger",
+      "description" : "Update a ledger"
+    },
+    {
+      "permissionName" : "finance.ledgers.item.delete",
+      "displayName" : "Ledgers - delete an existing ledger",
+      "description" : "Delete a ledger"
+    },
+    {
+      "permissionName" : "finance.ledgers.all",
+      "displayName" : "All ledger permissions",
+      "description" : "All permissions for the ledger APIs",
+      "subPermissions" : [
+        "finance.ledgers.collection.get",
+        "finance.ledgers.item.post",
+        "finance.ledgers.item.get",
+        "finance.ledgers.item.put",
+        "finance.ledgers.item.delete"
+      ]
+    },
+    {
       "permissionName": "finance.group-fund-fiscal-years.collection.get",
       "displayName": "Finances - get finance group fund fiscal years collection",
       "description": "Get finance group fund fiscal years collection"
@@ -435,8 +522,9 @@
         "finance.budgets.all",
         "finance.fund-types.all",
         "finance.funds.all",
-        "finance.fiscal-years.all",
-        "finance.group-fund-fiscal-years.all"
+        "finance.group-fund-fiscal-years.all",
+        "finance.ledgers.all"
+        "finance.fiscal-years.all"
       ],
       "visible": false
     }
