@@ -14,6 +14,7 @@ public class ResourcePathResolver {
   public static final String FUNDS = "funds";
   public static final String FUND_TYPES = "fundTypes";
   public static final String GROUP_FUND_FISCAL_YEARS = "groupFundFiscalYears";
+  public static final String FISCAL_YEARS = "fiscalYears";
   public static final String LEDGERS = "ledgers";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
@@ -25,6 +26,7 @@ public class ResourcePathResolver {
     apis.put(FUNDS, "/finance-storage/funds");
     apis.put(FUND_TYPES, "/finance-storage/fund-types");
     apis.put(GROUP_FUND_FISCAL_YEARS, "/finance-storage/group-fund-fiscal-years");
+    apis.put(FISCAL_YEARS, "/finance-storage/fiscal-years");
     apis.put(LEDGERS, "/finance-storage/ledgers");
 
     SUB_OBJECT_COLLECTION_APIS = Collections.unmodifiableMap(apis);

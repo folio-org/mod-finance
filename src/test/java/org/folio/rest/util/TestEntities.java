@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
+import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
@@ -25,6 +27,7 @@ public enum TestEntities {
   FUND(getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE(getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
   GROUP_FUND_FISCAL_YEAR(getEndpoint(FinanceGroupFundFiscalYears.class), GroupFundFiscalYear.class, "mockdata/group-fund-fiscal-years/group_fund_fiscal_years.json", "groupFundFiscalYears[0]", "allocated", 10000, 1),
+  FISCAL_YEAR(getEndpoint(FinanceFiscalYears.class), FiscalYear.class, "mockdata/fiscal-years/fiscal_years.json", "fiscalYears[0]", "code", "FY20", 1),
   LEDGER(getEndpoint(FinanceLedgers.class), Ledger.class, "mockdata/ledgers/ledgers.json", "ledgers[0]", "ledgerStatus", "Active", 1);
 
   TestEntities(String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
