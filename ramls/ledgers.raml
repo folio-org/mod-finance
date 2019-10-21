@@ -1,0 +1,60 @@
+#%RAML 1.0
+
+title: Finance ledger
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Ledger API
+    content: This documents the API calls that can be made to manage ledgers
+
+types:
+  ledger: !include acq-models/mod-finance/schemas/ledger.json
+  ledgersCollection: !include acq-models/mod-finance/schemas/ledger_collection.json
+  groupFundFiscalYearCollection: !include acq-models/mod-finance/schemas/group_fund_fiscal_year_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection.raml
+  collection-item: !include raml-util/rtypes/item-collection.raml
+  get-only: !include raml-util/rtypes/get-only.raml
+
+/finance/ledgers:
+  displayName: Finance ledger
+  description: Finance ledger APIs
+  type:
+    collection:
+      schemaCollection: ledgersCollection
+      schemaItem: ledger
+      exampleCollection: !include acq-models/mod-finance/examples/ledger_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/ledger.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a ledger
+        type: UUID
+    displayName: Ledger
+    description: Get, Delete or Update a specific ledger
+    type:
+      collection-item:
+        schema: ledger
+        exampleItem: !include acq-models/mod-finance/examples/ledger.sample
+    put:
+      is: [validate]
