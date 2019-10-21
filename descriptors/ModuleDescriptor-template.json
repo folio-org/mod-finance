@@ -523,7 +523,7 @@
         "finance.fund-types.all",
         "finance.funds.all",
         "finance.group-fund-fiscal-years.all",
-        "finance.ledgers.all"
+        "finance.ledgers.all",
         "finance.fiscal-years.all"
       ],
       "visible": false
