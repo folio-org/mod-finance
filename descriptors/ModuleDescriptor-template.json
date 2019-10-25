@@ -111,7 +111,9 @@
           "pathPattern": "/finance/funds",
           "permissionsRequired": ["finance.funds.item.post"],
           "modulePermissions": [
-            "finance-storage.funds.item.post"
+            "finance-storage.funds.item.post",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.group-fund-fiscal-years.item.post"
           ]
         },
         {

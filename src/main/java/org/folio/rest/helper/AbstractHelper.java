@@ -51,11 +51,16 @@ public abstract class AbstractHelper {
   protected final Map<String, String> okapiHeaders;
   private final Errors processingErrors = new Errors();
 
-  AbstractHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
-    this.httpClient = getHttpClient(okapiHeaders);
+
+  AbstractHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    this.httpClient = httpClient;
     this.okapiHeaders = okapiHeaders;
     this.ctx = ctx;
     this.lang = lang;
+  }
+
+  AbstractHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
+    this(getHttpClient(okapiHeaders), okapiHeaders, ctx, lang);
   }
 
   public static HttpClientInterface getHttpClient(Map<String, String> okapiHeaders) {

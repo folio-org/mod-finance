@@ -5,7 +5,8 @@ import org.folio.rest.jaxrs.model.Error;
 public enum ErrorCodes {
 
   GENERIC_ERROR_CODE("genericError", "Generic error"),
-  MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY("idMismatch", "Mismatch between id in path and request body");
+  MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY("idMismatch", "Mismatch between id in path and request body"),
+  FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Can not find current fiscal year for specified ledger");
 
   private final String code;
   private final String description;

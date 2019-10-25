@@ -9,6 +9,7 @@ import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.impl.ApiTestBase.BAD_QUERY;
 import static org.folio.rest.impl.ApiTestBase.ID_DOES_NOT_EXIST;
 import static org.folio.rest.impl.ApiTestBase.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
 import static org.folio.rest.impl.ApiTestBase.getMockData;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
@@ -44,6 +45,10 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.LedgersCollection;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -53,6 +58,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -60,10 +66,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import one.util.streamex.StreamEx;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.LedgersCollection;
 
 public class MockServer {
 
@@ -213,6 +215,10 @@ public class MockServer {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else if (query.contains(BAD_QUERY)) {
       serverResponse(ctx, 400, APPLICATION_JSON, BAD_REQUEST.getReasonPhrase());
+    } else if (query.contains(ID_DOES_NOT_EXIST)) {
+      JsonObject emptyCollection = new JsonObject().put(testEntity.getName(), new JsonArray());
+      emptyCollection.put(TOTAL_RECORDS, 0);
+      serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
     } else {
       try {
 

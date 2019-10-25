@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.FundsHelper;
-import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
@@ -28,15 +28,13 @@ public class FundsApi implements FinanceFunds, FinanceFundTypes {
 
   @Override
   @Validate
-  public void postFinanceFunds(String lang, Fund entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
-      Context ctx) {
+  public void postFinanceFunds(String lang, CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
-
-    helper.createFund(entity)
-      .thenAccept(fund -> handler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FUNDS_LOCATION_PREFIX, fund.getId()), fund))))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    helper.createFund(compositeFund)
+      .thenAccept(fund -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FUNDS_LOCATION_PREFIX, fund.getFund().getId()), fund))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
   @Override
@@ -53,23 +51,21 @@ public class FundsApi implements FinanceFunds, FinanceFundTypes {
 
   @Override
   @Validate
-  public void putFinanceFundsById(String id, String lang, Fund entity, Map<String, String> headers,
-      Handler<AsyncResult<Response>> handler, Context ctx) {
-
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+  public void putFinanceFundsById(String id, String lang, CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
 
     // Set id if this is available only in path
-    if (StringUtils.isEmpty(entity.getId())) {
-      entity.setId(id);
-    } else if (!id.equals(entity.getId())) {
+    if (StringUtils.isEmpty(compositeFund.getFund().getId())) {
+      compositeFund.getFund().setId(id);
+    } else if (!id.equals(compositeFund.getFund().getId())) {
       helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
-      handler.handle(succeededFuture(helper.buildErrorResponse(422)));
+      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
     }
 
-    helper.updateFund(entity)
-      .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    helper.updateFund(compositeFund)
+      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
   @Override

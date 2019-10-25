@@ -5,28 +5,35 @@ import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
 import static org.folio.rest.impl.ApiTestSuite.mockPort;
 import static org.folio.rest.util.HelperUtils.convertToJson;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
 import org.folio.rest.util.MockServer;
+import org.folio.rest.util.TestEntities;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 
 public class ApiTestBase {
 
@@ -77,13 +84,13 @@ public class ApiTestBase {
     MockServer.serverRqQueries.clear();
   }
 
-  void verifyPostResponse(String url, Object body, String expectedContentType, int expectedCode) {
+  Response verifyPostResponse(String url, Object body, String expectedContentType, int expectedCode) {
     Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT, X_OKAPI_TOKEN);
-    verifyPostResponse(url, body, headers, expectedContentType, expectedCode);
+    return verifyPostResponse(url, body, headers, expectedContentType, expectedCode);
   }
 
-  void verifyPostResponse(String url, Object body, Headers headers, String expectedContentType, int expectedCode) {
-    RestAssured
+  Response verifyPostResponse(String url, Object body, Headers headers, String expectedContentType, int expectedCode) {
+    return RestAssured
       .with()
         .header(X_OKAPI_URL)
         .headers(headers)
@@ -94,7 +101,8 @@ public class ApiTestBase {
         .then()
           .log().all()
           .statusCode(expectedCode)
-          .contentType(expectedContentType);
+          .contentType(expectedContentType)
+            .extract().response();
   }
 
   Response verifyPut(String url, Object body, String expectedContentType, int expectedCode) {
@@ -150,6 +158,20 @@ public class ApiTestBase {
           .contentType(expectedContentType)
           .extract()
             .response();
+  }
+
+
+  void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
+    // Verify that record sent to storage is the same as in response
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(1));
+
+    // remove "metadata" before comparing
+    JsonObject entry = rqRsEntries.get(0);
+    entry.remove("metadata");
+    Object recordToStorage = entry.mapTo(testEntity.getClazz());
+
+    assertThat(record.mapTo(testEntity.getClazz()), equalTo(recordToStorage));
   }
 
   Headers prepareHeaders(Header... headers) {
