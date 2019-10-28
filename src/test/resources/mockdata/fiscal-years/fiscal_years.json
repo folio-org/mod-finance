@@ -7,10 +7,11 @@
         "1895e539-8dac-441e-b1f5-aab62b3fde60",
         "47f504bd-0c1b-498e-a2ae-e2f0a0cea273"
       ],
-      "code": "FY20",
+      "code": "FY2019",
       "description": "January 1 - December 30",
       "periodStart": "2020-01-01T00:00:00Z",
-      "periodEnd": "2020-12-30T23:59:59Z"
+      "periodEnd": "2020-12-30T23:59:59Z",
+      "series": "FY"
     }
   ],
   "totalRecords": 1
