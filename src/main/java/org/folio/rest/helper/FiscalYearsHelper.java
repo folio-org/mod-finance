@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 
 import io.vertx.core.Context;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 public class FiscalYearsHelper extends AbstractHelper {
 
@@ -21,6 +22,10 @@ public class FiscalYearsHelper extends AbstractHelper {
 
   public FiscalYearsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public FiscalYearsHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fund) {

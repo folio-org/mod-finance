@@ -14,8 +14,12 @@ import java.util.concurrent.CompletionException;
 import javax.ws.rs.Path;
 
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.joda.time.Duration;
+import org.joda.time.Instant;
+import org.joda.time.Interval;
 
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpMethod;
@@ -101,5 +105,11 @@ public class HelperUtils {
 
   public static String getEndpoint(Class<?> clazz) {
     return clazz.getAnnotation(Path.class).value();
+  }
+
+  public static Duration getFiscalYearDuration(FiscalYear fiscalYearOne) {
+    Instant start = new Instant(fiscalYearOne.getPeriodStart());
+    Instant end = new Instant(fiscalYearOne.getPeriodEnd());
+    return new Interval(start, end).toDuration();
   }
 }

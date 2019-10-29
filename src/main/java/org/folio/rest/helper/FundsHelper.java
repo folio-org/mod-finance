@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.util.HelperUtils;
 import org.joda.time.DateTime;
 
 import io.vertx.core.Context;
@@ -34,7 +35,7 @@ public class FundsHelper extends AbstractHelper {
 
   private static final String GET_FUND_TYPES_BY_QUERY = resourcesPath(FUND_TYPES) + SEARCH_PARAMS;
   private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS) + SEARCH_PARAMS;
-  public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "(ledgerFY.ledgerId==\"%s\") AND ((periodStart<=%s AND periodEnd>%s) OR (periodStart<=%s AND periodEnd>%s)) sortBy periodStart";
+  public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "(series==\"%s\") AND ((periodStart<=%s AND periodEnd>%s) OR (periodStart<=%s AND periodEnd>%s)) sortBy periodStart";
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
@@ -76,15 +77,24 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private CompletableFuture<String> getCurrentFiscalYearId(String ledgerId) {
+
+    return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getLedger(ledgerId)
+      .thenCompose(ledger -> new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang).getFiscalYear(ledger.getFiscalYearOneId()))
+      .thenApply(this::buildCurrentFYEndpoint)
+      .thenCompose(endpoint -> handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+        .thenApply(fiscalYears -> fiscalYears.mapTo(FiscalYearsCollection.class))
+        .thenApply(fiscalYearsCollection -> fiscalYearsCollection.getFiscalYears().stream()
+          .map(FiscalYear::getId).findFirst()
+          .orElseThrow(() -> new HttpException(422, FISCAL_YEARS_NOT_FOUND)))
+      );
+
+  }
+
+  private String buildCurrentFYEndpoint(FiscalYear fiscalYearOne) {
     DateTime now = DateTime.now();
-    DateTime next = now.plusYears(1);
-    String query = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, ledgerId, now, now, next, next);
-    String endpoint = String.format(GET_FISCAL_YEARS_BY_QUERY, 1, 0,  buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
-      .thenApply(fiscalYears -> fiscalYears.mapTo(FiscalYearsCollection.class))
-      .thenApply(fiscalYearsCollection -> fiscalYearsCollection.getFiscalYears().stream()
-        .map(FiscalYear::getId).findFirst()
-        .orElseThrow(() -> new HttpException(422, FISCAL_YEARS_NOT_FOUND)));
+    DateTime next = now.plus(HelperUtils.getFiscalYearDuration(fiscalYearOne));
+    String query = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now, now, next, next);
+    return String.format(GET_FISCAL_YEARS_BY_QUERY, 1, 0, buildQueryParam(query, logger), lang);
   }
 
   private CompletableFuture<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {

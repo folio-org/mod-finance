@@ -210,7 +210,7 @@ public class MockServer {
     logger.info("handleGetCollection got: " + ctx.request().path());
 
     String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
-
+    addServerRqQuery(testEntity.name(), query);
     if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else if (query.contains(BAD_QUERY)) {
@@ -526,6 +526,12 @@ public class MockServer {
     return Optional.ofNullable(entryList.isEmpty()? null: entryList);
   }
 
+  public static void addMockEntry(String objName, JsonObject data) {
+    List<JsonObject> entries = getRqRsEntries(HttpMethod.OTHER, objName);
+    entries.add(data);
+    serverRqRs.put(objName, HttpMethod.OTHER, entries);
+  }
+
   private static void addServerRqRsData(HttpMethod method, String objName, JsonObject data) {
     List<JsonObject> entries = getRqRsEntries(method, objName);
     entries.add(data);
@@ -537,7 +543,7 @@ public class MockServer {
       .add(query);
   }
 
-  static List<String> getQueryParams(String resourceType) {
+  public static List<String> getQueryParams(String resourceType) {
     return serverRqQueries.getOrDefault(resourceType, Collections.emptyList());
   }
 
