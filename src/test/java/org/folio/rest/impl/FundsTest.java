@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -296,7 +297,7 @@ public class FundsTest extends ApiTestBase {
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {
     String query = getQueryParams(FISCAL_YEAR.name()).get(0);
     String now = LocalDate.now().toString();
-    String next = DateTime.now().plus(getFiscalYearDuration(fiscalYearOne)).toLocalDate().toString();
+    String next = LocalDateTime.now().plus(getFiscalYearDuration(fiscalYearOne)).toLocalDate().toString();
     assertThat(query, containsString(fiscalYearOne.getSeries()));
     assertThat(query, containsString(now));
     assertThat(query, containsString(next));

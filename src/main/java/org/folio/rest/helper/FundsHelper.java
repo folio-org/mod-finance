@@ -10,6 +10,7 @@ import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +27,6 @@ import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.util.HelperUtils;
-import org.joda.time.DateTime;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
@@ -91,8 +91,8 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private String buildCurrentFYEndpoint(FiscalYear fiscalYearOne) {
-    DateTime now = DateTime.now();
-    DateTime next = now.plus(HelperUtils.getFiscalYearDuration(fiscalYearOne));
+    Instant now = Instant.now();
+    Instant next = now.plus(HelperUtils.getFiscalYearDuration(fiscalYearOne));
     String query = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now, now, next, next);
     return String.format(GET_FISCAL_YEARS_BY_QUERY, 1, 0, buildQueryParam(query, logger), lang);
   }

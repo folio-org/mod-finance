@@ -7,6 +7,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -17,9 +19,6 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
-import org.joda.time.Interval;
 
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpMethod;
@@ -108,8 +107,8 @@ public class HelperUtils {
   }
 
   public static Duration getFiscalYearDuration(FiscalYear fiscalYearOne) {
-    Instant start = new Instant(fiscalYearOne.getPeriodStart());
-    Instant end = new Instant(fiscalYearOne.getPeriodEnd());
-    return new Interval(start, end).toDuration();
+    Instant start = fiscalYearOne.getPeriodStart().toInstant();
+    Instant end = fiscalYearOne.getPeriodEnd().toInstant();
+    return Duration.between(start, end);
   }
 }
