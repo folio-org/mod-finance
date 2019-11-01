@@ -136,7 +136,7 @@ public class FundsHelper extends AbstractHelper {
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
       .thenCompose(compositeFund -> getCurrentFiscalYearId(compositeFund.getFund()
         .getLedgerId())
-          .thenCompose(currentFYId -> isEmpty(currentFYId) ? VertxCompletableFuture.completedFuture(null)
+          .thenCompose(currentFYId -> isEmpty(currentFYId) ? CompletableFuture.completedFuture(null)
               : getGroupIdsThatFundBelongs(id, currentFYId))
           .thenApply(compositeFund::withGroupIds));
   }
