@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static java.time.temporal.ChronoUnit.DAYS;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -22,8 +23,10 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +39,6 @@ import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.core.IsEqual;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.http.Headers;
@@ -106,8 +108,8 @@ public class FundsTest extends ApiTestBase {
 
     FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
     fiscalYearOne.setId(ledger.getFiscalYearOneId());
-    fiscalYearOne.setPeriodStart(DateTime.now().minusDays(1).toDate());
-    fiscalYearOne.setPeriodEnd(DateTime.now().plusDays(1).toDate());
+    fiscalYearOne.setPeriodStart(Date.from(Instant.now().minus(1, DAYS)));
+    fiscalYearOne.setPeriodEnd(Date.from(Instant.now().plus(1, DAYS)));
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
     verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
