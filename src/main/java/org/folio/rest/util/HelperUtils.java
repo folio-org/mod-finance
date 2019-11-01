@@ -7,6 +7,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -14,6 +16,7 @@ import java.util.concurrent.CompletionException;
 import javax.ws.rs.Path;
 
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
@@ -101,5 +104,11 @@ public class HelperUtils {
 
   public static String getEndpoint(Class<?> clazz) {
     return clazz.getAnnotation(Path.class).value();
+  }
+
+  public static Duration getFiscalYearDuration(FiscalYear fiscalYearOne) {
+    Instant start = fiscalYearOne.getPeriodStart().toInstant();
+    Instant end = fiscalYearOne.getPeriodEnd().toInstant();
+    return Duration.between(start, end);
   }
 }

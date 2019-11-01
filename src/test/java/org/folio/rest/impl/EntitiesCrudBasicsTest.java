@@ -20,14 +20,14 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.util.ErrorCodes;
-import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.restassured.http.Headers;
 import io.vertx.core.http.HttpMethod;
@@ -35,13 +35,19 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
 public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
+
+  /**
+   * Test entities except for FUND
+   *
+   * @return stream of test entities
+   */
+  static Stream<TestEntities> getTestEntities() {
+    return Arrays.stream(TestEntities.values()).filter(e -> !e.equals(TestEntities.FUND));
+  }
 
   /**
    * Test entities except for GROUP_FUND_FISCAL_YEAR
@@ -49,7 +55,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesExceptGroupFundFiscalYear() {
-    return Arrays.stream(TestEntities.values()).filter(e -> !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR));
+    return getTestEntities().filter(e -> !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR));
   }
 
   @ParameterizedTest
@@ -128,7 +134,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(TestEntities.class)
+  @MethodSource("getTestEntities")
   public void testPostRecord(TestEntities testEntity) {
     logger.info("=== Test create {} record ===", testEntity.name());
 
@@ -138,7 +144,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(TestEntities.class)
+  @MethodSource("getTestEntities")
   public void testPostRecordServerError(TestEntities testEntity) {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
 
@@ -197,7 +203,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(TestEntities.class)
+  @MethodSource("getTestEntities")
   public void testDeleteRecord(TestEntities testEntity) {
     logger.info("=== Test delete {} record ===", testEntity.name());
 
@@ -205,7 +211,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(TestEntities.class)
+  @MethodSource("getTestEntities")
   public void testDeleteRecordServerError(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Internal Server Error ===", testEntity.name());
 
@@ -214,7 +220,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(TestEntities.class)
+  @MethodSource("getTestEntities")
   public void testDeleteRecordNotFound(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Not Found ===", testEntity.name());
 
@@ -222,16 +228,4 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
       .as(Errors.class);
   }
 
-  private void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
-    // Verify that record sent to storage is the same as in response
-    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
-    assertThat(rqRsEntries, hasSize(1));
-
-    // remove "metadata" before comparing
-    JsonObject entry = rqRsEntries.get(0);
-    entry.remove("metadata");
-    Object recordToStorage = entry.mapTo(testEntity.getClazz());
-
-    assertThat(record.mapTo(testEntity.getClazz()), equalTo(recordToStorage));
-  }
 }

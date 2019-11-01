@@ -10,7 +10,7 @@ documentation:
     content: This documents the API calls that can be made to manage funds
 
 types:
-  fund: !include acq-models/mod-finance/schemas/fund.json
+  compositeFund: !include acq-models/mod-finance/schemas/composite_fund.json
   fundsCollection: !include acq-models/mod-finance/schemas/fund_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
@@ -24,8 +24,8 @@ traits:
   searchable: !include raml-util/traits/searchable.raml
 
 resourceTypes:
-  collection: !include raml-util/rtypes/collection.raml
-  collection-item: !include raml-util/rtypes/item-collection.raml
+  collection: !include raml-util/rtypes/collection-with-json-response.raml
+  collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
 
 /finance/funds:
   displayName: Finance fund
@@ -33,9 +33,9 @@ resourceTypes:
   type:
     collection:
       schemaCollection: fundsCollection
-      schemaItem: fund
+      schemaItem: compositeFund
       exampleCollection: !include acq-models/mod-finance/examples/fund_collection.sample
-      exampleItem: !include acq-models/mod-finance/examples/fund.sample
+      exampleItem: !include acq-models/mod-finance/examples/composite_fund.sample
   post:
     is: [validate]
   get:
@@ -52,7 +52,7 @@ resourceTypes:
     description: Get, Delete or Update a specific fund
     type:
       collection-item:
-        schema: fund
-        exampleItem: !include acq-models/mod-finance/examples/fund.sample
+        schema: compositeFund
+        exampleItem: !include acq-models/mod-finance/examples/composite_fund.sample
     put:
       is: [validate]
