@@ -12,13 +12,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.platform.runner.JUnitPlatform;
-
+import org.junit.runner.RunWith;
 
 import io.restassured.RestAssured;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import org.junit.runner.RunWith;
 
 @RunWith(JUnitPlatform.class)
 public class ApiTestSuite {
@@ -74,4 +73,7 @@ public class ApiTestSuite {
   class EntitiesCrudTestNested extends EntitiesCrudBasicsTest {
   }
 
+  @Nested
+  class FundsTestNested extends FundsTest {
+  }
 }

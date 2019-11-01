@@ -3,7 +3,6 @@ package org.folio.rest.helper;
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.handleGetRequest;
-
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -11,16 +10,22 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import io.vertx.core.Context;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 
+import io.vertx.core.Context;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+
 public class FiscalYearsHelper extends AbstractHelper {
 
-  private static final String GET_FISCAL_YEARS_BY_QUERY = resourcesPath(FISCAL_YEARS) + SEARCH_PARAMS;
+  static final String GET_FISCAL_YEARS_BY_QUERY = resourcesPath(FISCAL_YEARS) + SEARCH_PARAMS;
 
   public FiscalYearsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public FiscalYearsHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fund) {

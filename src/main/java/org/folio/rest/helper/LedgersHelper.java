@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.LedgersCollection;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 public class LedgersHelper extends AbstractHelper {
 
@@ -21,6 +22,10 @@ public class LedgersHelper extends AbstractHelper {
 
   public LedgersHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public LedgersHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<Ledger> createLedger(Ledger ledger) {

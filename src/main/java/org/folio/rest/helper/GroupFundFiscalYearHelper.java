@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 import io.vertx.core.Context;
 
@@ -21,6 +22,10 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
 
   public GroupFundFiscalYearHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public GroupFundFiscalYearHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<GroupFundFiscalYear> createGroupFundFiscalYear(GroupFundFiscalYear groupFundFiscalYear) {
