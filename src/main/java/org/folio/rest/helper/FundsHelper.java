@@ -78,7 +78,10 @@ public class FundsHelper extends AbstractHelper {
         .thenApply(aVoid -> compositeFund);
     }
     return handleCreateRequest(resourcesPath(FUNDS), fund)
-      .thenApply(ok -> compositeFund);
+      .thenApply(id -> {
+        fund.setId(id);
+        return compositeFund;
+      });
   }
 
   private CompletableFuture<String> getCurrentFiscalYearId(String ledgerId) {
