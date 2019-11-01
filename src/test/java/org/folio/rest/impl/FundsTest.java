@@ -21,6 +21,7 @@ import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 
 import java.time.Instant;
@@ -83,7 +84,10 @@ public class FundsTest extends ApiTestBase {
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
     CompositeFund record = new CompositeFund().withFund(fundRecord);
-    verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
+    CompositeFund compositeFund = verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(CompositeFund.class);
+
+    assertThat(compositeFund.getFund(), hasProperty(ID));
+
     compareRecordWithSentToStorage(HttpMethod.POST, JsonObject.mapFrom(fundRecord), FUND);
 
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
