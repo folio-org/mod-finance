@@ -56,10 +56,118 @@ public class FundsTest extends ApiTestBase {
 
     logger.info("=== Test Get Composite Fund record by id ===");
 
-    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
+    CompositeFund compositeFund = verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
 
     // Make sure that correct storage endpoint was used
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
+
     assertThat(getRecordById(FUND.name()), hasSize(1));
+    assertThat(compositeFund.getGroupIds(), hasSize(1));
+  }
+
+  @Test
+  public void testGetCompositeFundByIdFiscalYearsNotFound() {
+
+    logger.info("=== Test Get Composite Fund record by id, current Fiscal Year not found ===");
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setSeries(SERIES_DOES_NOT_EXIST);
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    CompositeFund compositeFund = verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+
+    assertThat(getRecordById(FUND.name()), hasSize(1));
+    assertThat(compositeFund.getGroupIds(), hasSize(0));
+  }
+
+  @Test
+  public void testGetCompositeFundByIdLedgerByIdError() {
+
+    logger.info("=== Test Get Composite Fund record by id, get Ledger by id Internal server error ===");
+
+    Fund fund = FUND.getMockObject().mapTo(Fund.class);
+    fund.setLedgerId(ID_FOR_INTERNAL_SERVER_ERROR);
+    addMockEntry(FUND.name(), JsonObject.mapFrom(fund));
+
+    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FUND, 1);
+  }
+
+  @Test
+  public void testGetCompositeFundByIdFiscalYearByIdError() {
+
+    logger.info("=== Test Get Composite Fund record by id, get Fiscal Year by id Internal server error ===");
+
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    ledger.setFiscalYearOneId(ID_FOR_INTERNAL_SERVER_ERROR);
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+
+    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FUND, 1);
+  }
+
+  @Test
+  public void testGetCompositeFundByIdFiscalYearsByQueryError() {
+
+    logger.info("=== Test Get Composite Fund record by id, get Fiscal Years by query Internal server error ===");
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setSeries(SERIES_INTERNAL_SERVER_ERROR);
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FUND, 1);
+  }
+
+  @Test
+  public void testGetCompositeFundByIdGroupFundFyByQueryError() {
+
+    logger.info("=== Test Get Composite Fund record by id, get Fiscal Years by query Internal server error ===");
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setSeries(SERIES_INTERNAL_SERVER_ERROR);
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+
+    verifyRsEntitiesQuantity(HttpMethod.GET, FUND, 1);
   }
 
   @Test
@@ -177,7 +285,7 @@ public class FundsTest extends ApiTestBase {
     addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
 
     FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
-    fiscalYearOne.setSeries(ID_DOES_NOT_EXIST);
+    fiscalYearOne.setSeries(SERIES_DOES_NOT_EXIST);
     fiscalYearOne.setId(ledger.getFiscalYearOneId());
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
@@ -304,7 +412,6 @@ public class FundsTest extends ApiTestBase {
     assertThat(query, containsString(now));
     assertThat(query, containsString(next));
   }
-
 
   private void verifyRsEntitiesQuantity(HttpMethod httpMethod, TestEntities entity, int expectedQuantity) {
     List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(httpMethod, entity.name());
