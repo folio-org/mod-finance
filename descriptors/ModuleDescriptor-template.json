@@ -123,7 +123,11 @@
           "pathPattern": "/finance/funds/{id}",
           "permissionsRequired": ["finance.funds.item.get"],
           "modulePermissions": [
-            "finance-storage.funds.item.get"
+            "finance-storage.funds.item.get",
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.group-fund-fiscal-years.collection.get"
           ]
         },
         {
