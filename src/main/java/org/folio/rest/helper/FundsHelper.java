@@ -3,6 +3,7 @@ package org.folio.rest.helper;
 import static java.util.stream.Collectors.*;
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.handleGetRequest;
@@ -12,6 +13,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +21,6 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -28,6 +29,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.util.HelperUtils;
 
 import io.vertx.core.Context;
@@ -140,6 +142,7 @@ public class FundsHelper extends AbstractHelper {
     return VertxCompletableFuture.allOf(ctx, groupFundFiscalYearIds.stream()
       .map(id -> new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang).deleteGroupFundFiscalYear(id))
       .toArray(CompletableFuture[]::new));
+  }
 
   public CompletableFuture<FundsCollection> getFunds(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUNDS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
@@ -157,14 +160,22 @@ public class FundsHelper extends AbstractHelper {
           .thenApply(compositeFund::withGroupIds));
   }
 
-  private CompletionStage<List<String>> getGroupIdsThatFundBelongs(String fundId, String currentFYId) {
+  private CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId) {
     String query = String.format("fundId==%s AND fiscalYearId==%s", fundId, currentFYId);
-    return getGroupFundFiscalYearHelper().getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
+    return getGroupFundFiscalYearHelper().getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query);
+  }
+
+  private CompletionStage<List<String>> getGroupIdsThatFundBelongs(String fundId, String currentFYId) {
+    return getGroupFundFiscalYearCollection(fundId, currentFYId)
       .thenApply(groupFundFiscalYearCollection -> groupFundFiscalYearCollection.getGroupFundFiscalYears()
         .stream()
         .map(GroupFundFiscalYear::getGroupId)
         .collect(Collectors.toList()));
+  }
 
+  private CompletionStage<List<GroupFundFiscalYear>> getGroupFundFiscalYearsThatFundBelongs(String fundId, String currentFYId) {
+    return getGroupFundFiscalYearCollection(fundId, currentFYId)
+      .thenApply(groupFundFiscalYearCollection -> new ArrayList<>(groupFundFiscalYearCollection.getGroupFundFiscalYears()));
   }
 
   public CompletableFuture<Void> updateFund(CompositeFund compositeFund) {
@@ -177,14 +188,12 @@ public class FundsHelper extends AbstractHelper {
     } else {
       return getCurrentFiscalYearId(fund.getLedgerId())
         .thenCompose(currentFiscalYearId -> {
-          if(StringUtils.isNotEmpty(currentFiscalYearId)) {
-            GroupFundFiscalYearHelper helper = new GroupFundFiscalYearHelper(okapiHeaders, ctx, lang);
-            String query = String.format("fundId==%s AND fiscalYearId==%s", fund.getId(), currentFiscalYearId);
-            return helper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
+          if(isNotEmpty(currentFiscalYearId)) {
+            return getGroupFundFiscalYearsThatFundBelongs(fund.getId(), currentFiscalYearId)
               .thenCompose(groupFundFiscalYearCollection -> {
 
                 Map<String, GroupFundFiscalYear> groupFundFiscalYearFromStorageMap
-                  = groupFundFiscalYearCollection.getGroupFundFiscalYears().stream()
+                  = groupFundFiscalYearCollection.stream()
                   .collect(toMap(GroupFundFiscalYear::getGroupId, groupFundFiscalYear -> groupFundFiscalYear));
 
                 List<GroupFundFiscalYear> groupFundFiscalYearsForCreation
@@ -201,14 +210,15 @@ public class FundsHelper extends AbstractHelper {
                 return assignFundToGroups(groupFundFiscalYearsForCreation)
                   .thenCompose(v -> unassignGroupsForFund(groupFundFiscalYearsForDeletion));
               });
+          } else {
+            throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
           }
-          return CompletableFuture.completedFuture(null);
         }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS, fund.getId(), lang), fund));
     }
   }
 
   public CompletableFuture<Void> deleteFund(String id) {
-    GroupFundFiscalYearHelper helper = new GroupFundFiscalYearHelper(okapiHeaders, ctx, lang);
+    GroupFundFiscalYearHelper helper = getGroupFundFiscalYearHelper();
     String query = String.format("fundId==%s", id);
     return helper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))

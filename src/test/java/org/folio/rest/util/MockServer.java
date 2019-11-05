@@ -556,7 +556,7 @@ public class MockServer {
   }
 
   private List<String> extractIdsFromQuery(String fieldName, String relation, String query) {
-    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?(.+)\\).*").matcher(query);
+    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "?(.+).*").matcher(query);
     if (matcher.find()) {
       return StreamEx.split(matcher.group(1), " or ").toList();
     } else {
