@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
+
 public class HelperUtils {
 
   public static final String ID = "id";
