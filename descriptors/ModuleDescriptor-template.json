@@ -135,7 +135,12 @@
           "pathPattern": "/finance/funds/{id}",
           "permissionsRequired": ["finance.funds.item.put"],
           "modulePermissions": [
-            "finance-storage.funds.item.put"
+            "finance-storage.funds.item.put",
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.group-fund-fiscal-years.item.post",
+            "finance-storage.group-fund-fiscal-years.item.delete"
           ]
         },
         {
@@ -143,7 +148,9 @@
           "pathPattern": "/finance/funds/{id}",
           "permissionsRequired": ["finance.funds.item.delete"],
           "modulePermissions": [
-            "finance-storage.funds.item.delete"
+            "finance-storage.funds.item.delete",
+            "finance-storage.group-fund-fiscal-years.collection.get",
+            "finance-storage.group-fund-fiscal-years.item.delete"
           ]
         }
       ]
