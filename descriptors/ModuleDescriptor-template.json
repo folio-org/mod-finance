@@ -267,6 +267,52 @@
       ]
     },
     {
+      "id": "finance.groups",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/groups",
+          "permissionsRequired": ["finance.groups.collection.get"],
+          "modulePermissions": [
+            "finance-storage.groups.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/groups",
+          "permissionsRequired": ["finance.groups.item.post"],
+          "modulePermissions": [
+            "finance-storage.groups.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/groups/{id}",
+          "permissionsRequired": ["finance.groups.item.get"],
+          "modulePermissions": [
+            "finance-storage.groups.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/groups/{id}",
+          "permissionsRequired": ["finance.groups.item.put"],
+          "modulePermissions": [
+            "finance-storage.groups.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/groups/{id}",
+          "permissionsRequired": ["finance.groups.item.delete"],
+          "modulePermissions": [
+            "finance-storage.groups.item.delete"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -302,6 +348,10 @@
     {
       "id": "finance-storage.ledgers",
       "version": "1.0"
+    },
+    {
+     "id": "finance-storage.groups",
+      "version":"1.0"
     }
   ],
   "permissionSets": [
@@ -493,6 +543,43 @@
       ]
     },
     {
+      "permissionName" : "finance.groups.collection.get",
+      "displayName" : "Groups - get the collection of groups",
+      "description" : "Get collection of groups"
+    },
+    {
+      "permissionName" : "finance.groups.item.post",
+      "displayName" : "Groups - create a new group",
+      "description" : "Create a new group"
+    },
+    {
+      "permissionName" : "finance.groups.item.get",
+      "displayName" : "Groups - get an existing group",
+      "description" : "Fetch a group"
+    },
+    {
+      "permissionName" : "finance.groups.item.put",
+      "displayName" : "Groups - modify an existing group",
+      "description" : "Update a group"
+    },
+    {
+      "permissionName" : "finance.groups.item.delete",
+      "displayName" : "Groups - delete an existing group",
+      "description" : "Delete a group"
+    },
+    {
+      "permissionName" : "finance.groups.all",
+      "displayName" : "All group permissions",
+      "description" : "All permissions for the group APIs",
+      "subPermissions" : [
+        "finance.groups.collection.get",
+        "finance.groups.item.post",
+        "finance.groups.item.get",
+        "finance.groups.item.put",
+        "finance.groups.item.delete"
+      ]
+    },
+    {
       "permissionName": "finance.group-fund-fiscal-years.collection.get",
       "displayName": "Finances - get finance group fund fiscal years collection",
       "description": "Get finance group fund fiscal years collection"
@@ -528,7 +615,8 @@
         "finance.funds.all",
         "finance.group-fund-fiscal-years.all",
         "finance.ledgers.all",
-        "finance.fiscal-years.all"
+        "finance.fiscal-years.all",
+        "finance.groups.all"
       ],
       "visible": false
     }
