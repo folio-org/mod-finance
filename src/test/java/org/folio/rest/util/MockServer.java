@@ -16,6 +16,7 @@ import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
+import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -45,8 +46,10 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+import org.folio.rest.jaxrs.model.GroupsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 
@@ -154,6 +157,8 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, GroupFundFiscalYear.class, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.POST, resourcesPath(LEDGERS))
       .handler(ctx -> handlePostEntry(ctx, Ledger.class, TestEntities.LEDGER.name()));
+    router.route(HttpMethod.POST, resourcesPath(GROUPS))
+      .handler(ctx -> handlePostEntry(ctx, Group.class, TestEntities.GROUP.name()));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -167,6 +172,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(LEDGERS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
+    router.route(HttpMethod.GET, resourcesPath(GROUPS))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -178,6 +185,8 @@ public class MockServer {
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND_TYPE));
     router.route(HttpMethod.GET, resourceByIdPath(LEDGERS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.LEDGER));
+    router.route(HttpMethod.GET, resourceByIdPath(GROUPS))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.GROUP));
 
     router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.BUDGET.name()));
@@ -191,6 +200,8 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(LEDGERS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.LEDGER.name()));
+    router.route(HttpMethod.DELETE, resourceByIdPath(GROUPS))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP.name()));
 
     router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.BUDGET.name()));
@@ -202,6 +213,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND_TYPE.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(LEDGERS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
 
     return router;
   }
@@ -400,6 +413,35 @@ public class MockServer {
     return JsonObject.mapFrom(record);
   }
 
+
+  private JsonObject getGroupByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<Group>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.GROUP.getPathToFileWithData())).mapTo(GroupsCollection.class)
+          .getGroups();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    List<Group> groups = getMockEntries(TestEntities.GROUP.name(), Group.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      groups.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new GroupsCollection().withGroups(groups).withTotalRecords(groups.size());
+    } else if (!groups.isEmpty()) {
+      record = groups.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+
   private JsonObject getGroupFundFiscalYearsByIds(List<String> ids, boolean isCollection) {
     Supplier<List<GroupFundFiscalYear>> getFromFile = () -> {
       try {
@@ -450,6 +492,8 @@ public class MockServer {
       return getGroupFundFiscalYearsByIds(ids, isCollection);
     case LEDGER:
       return getLedgersByIds(ids, isCollection);
+    case GROUP:
+      return getGroupByIds(ids, isCollection);
     default:
       throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
     }
