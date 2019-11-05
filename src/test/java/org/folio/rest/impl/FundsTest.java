@@ -16,6 +16,7 @@ import static org.folio.rest.util.MockServer.getQueryParams;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,6 +36,7 @@ import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
@@ -52,6 +54,8 @@ public class FundsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(FundsTest.class);
   public static final String FUND_FIELD_NAME = "fund";
+  public static final String GROUP_ID_FIELD_NAME = "groupId";
+  public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
 
   @Test
   public void testGetCompositeFundById() {
@@ -337,28 +341,6 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithoutGroupIds() {
-    logger.info("=== Test update Composite Fund record ===");
-
-    JsonObject body = FUND.getMockObject();
-
-    body.put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
-    JsonObject expected = JsonObject.mapFrom(body);
-
-    String id = (String) body.remove(ID);
-    CompositeFund compositeFund = new CompositeFund().withFund(body.mapTo(Fund.class));
-
-    verifyPut(FUND.getEndpointWithId(id), compositeFund, "", NO_CONTENT.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
-
-    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
-    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 0);
-    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 0);
-    verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
-    verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
-  }
-
-  @Test
   public void testUpdateRecordWithGroupIds() {
     logger.info("=== Test update Composite Fund record ===");
 
@@ -373,8 +355,12 @@ public class FundsTest extends ApiTestBase {
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
     CompositeFund record = new CompositeFund().withFund(fund);
-    record.getGroupIds().add(UUID.randomUUID().toString());
-    record.getGroupIds().add(UUID.randomUUID().toString());
+
+    Group group = new Group();
+    group.setId(GROUP_ID);
+    addMockEntry(GROUP.name(), JsonObject.mapFrom(group));
+
+    record.getGroupIds().add(group.getId());
 
     JsonObject body = JsonObject.mapFrom(record);
 
@@ -391,8 +377,52 @@ public class FundsTest extends ApiTestBase {
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
-    verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 2);
-    verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 1);
+
+    List<JsonObject> createdGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR.name());
+    assertThat(createdGroupFundFiscalYears, hasSize(1));
+    assertThat(createdGroupFundFiscalYears.get(0).getString(GROUP_ID_FIELD_NAME), equalTo(GROUP_ID));
+
+    List<JsonObject> deletedGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR.name());
+    assertThat(deletedGroupFundFiscalYears, hasSize(1));
+    assertThat(deletedGroupFundFiscalYears.get(0).getString(ID), equalTo(GROUP_FUND_FISCAL_YEAR.getMockObject().getString(GROUP_ID_FIELD_NAME)));
+
+  }
+
+  @Test
+  public void testUpdateRecordWithGroupIdsGroupNotFound() {
+    logger.info("=== Test update Composite Fund record - Croup Not Found ===");
+
+    Fund fund = FUND.getMockObject().mapTo(Fund.class);
+
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    ledger.setId(fund.getLedgerId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setId(ledger.getFiscalYearOneId());
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    CompositeFund record = new CompositeFund().withFund(fund);
+
+    Group group = new Group();
+    group.setId(UUID.randomUUID().toString());
+
+    record.getGroupIds().add(group.getId());
+
+    JsonObject body = JsonObject.mapFrom(record);
+
+    body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
+
+    String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
+    verifyPut(FUND.getEndpointWithId(id), body, "", 422);
+
+    verifyCurrentFYQuery(fiscalYearOne);
+
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
+    verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
+    verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
 
   }
 

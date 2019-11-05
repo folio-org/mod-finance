@@ -1,17 +1,17 @@
 #%RAML 1.0
 
-title: Finance fiscal year
+title: Finance group
 version: v1
 protocols: [ HTTP, HTTPS ]
 baseUri: https://github.com/folio-org/mod-finance
 
 documentation:
-  - title: Fiscal year API
-    content: This documents the API calls that can be made to manage fiscal-years
+  - title: Group API
+    content: This documents the API calls that can be made to manage groups
 
 types:
-  fiscalYear: !include acq-models/mod-finance/schemas/fiscal_year.json
-  fiscalYearsCollection: !include acq-models/mod-finance/schemas/fiscal_year_collection.json
+  group: !include acq-models/mod-finance/schemas/group.json
+  groupsCollection: !include acq-models/mod-finance/schemas/group_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -26,17 +26,16 @@ traits:
 resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
-  get-only: !include raml-util/rtypes/get-only.raml
 
-/finance/fiscal-years:
-  displayName: Finance fiscal year
-  description: Finance fiscal year APIs
+/finance/groups:
+  displayName: Finance groups
+  description: Finance groups APIs
   type:
     collection:
-      schemaCollection: fiscalYearsCollection
-      schemaItem: fiscalYear
-      exampleCollection: !include acq-models/mod-finance/examples/fiscal_year_collection.sample
-      exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample
+      schemaCollection: groupsCollection
+      schemaItem: group
+      exampleCollection: !include acq-models/mod-finance/examples/group_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/group.sample
   post:
     is: [validate]
   get:
@@ -47,13 +46,13 @@ resourceTypes:
   /{id}:
     uriParameters:
       id:
-        description: The UUID of a fiscal year
+        description: The UUID of a group
         type: UUID
-    displayName: Fiscal year
-    description: Get, Delete or Update a specific fiscal year
+    displayName: Group
+    description: Get, Delete or Update a specific group
     type:
       collection-item:
-        schema: fiscalYear
-        exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample
+        schema: group
+        exampleItem: !include acq-models/mod-finance/examples/group.sample
     put:
       is: [validate]

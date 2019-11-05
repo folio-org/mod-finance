@@ -1,6 +1,7 @@
 package org.folio.rest.util;
 
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -9,12 +10,15 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import javax.ws.rs.Path;
 
+import one.util.streamex.StreamEx;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.tools.client.Response;
@@ -111,5 +115,38 @@ public class HelperUtils {
     Instant start = fiscalYearOne.getPeriodStart().toInstant();
     Instant end = fiscalYearOne.getPeriodEnd().toInstant();
     return Duration.between(start, end);
+  }
+
+  /**
+   * Transform list of id's to CQL query using 'or' operation
+   * @param ids list of id's
+   * @return String representing CQL query to get records by id's
+   */
+  public static String convertIdsToCqlQuery(Collection<String> ids) {
+    return convertIdsToCqlQuery(ids, ID, true);
+  }
+
+  /**
+   * Transform list of values for some property to CQL query using 'or' operation
+   * @param values list of field values
+   * @param fieldName the property name to search by
+   * @param strictMatch indicates whether strict match mode (i.e. ==) should be used or not (i.e. =)
+   * @return String representing CQL query to get records by some property values
+   */
+  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
+    String prefix = fieldName + (strictMatch ? "==(" : "=(");
+    return StreamEx.of(values).joining(" or ", prefix, ")");
+  }
+
+  /**
+   * This method returns the set difference of B and A - the set of elements in B but not in A
+   * @param a set A
+   * @param b set B
+   * @return the relative complement of A in B
+   */
+  public static List<String> getSetDifference(Collection<String> a, Collection<String> b) {
+    return b.stream()
+      .filter(item -> !a.contains(item))
+      .collect(toList());
   }
 }
