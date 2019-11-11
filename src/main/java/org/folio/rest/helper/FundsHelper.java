@@ -208,6 +208,8 @@ public class FundsHelper extends AbstractHelper {
                   }
                 });
             });
+        } else if(groupIds.isEmpty()) {
+          return VertxCompletableFuture.completedFuture(null);
         } else {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
