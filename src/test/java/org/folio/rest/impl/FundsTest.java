@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -159,10 +160,13 @@ public class FundsTest extends ApiTestBase {
   @Test
   public void testGetCompositeFundByIdGroupFundFyByQueryError() {
 
-    logger.info("=== Test Get Composite Fund record by id, get Fiscal Years by query Internal server error ===");
+    logger.info("=== Test Get Composite Fund record by id, get Group Fund Fiscal Year by query Internal server error ===");
+
+    FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYear.setId(ID_FOR_INTERNAL_SERVER_ERROR);
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYear));
 
     FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
-    fiscalYearOne.setSeries(SERIES_INTERNAL_SERVER_ERROR);
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
     verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
@@ -171,7 +175,7 @@ public class FundsTest extends ApiTestBase {
 
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
 
-    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, FUND, 1);
   }
@@ -390,7 +394,7 @@ public class FundsTest extends ApiTestBase {
 
   @Test
   public void testUpdateRecordWithGroupIdsGroupNotFound() {
-    logger.info("=== Test update Composite Fund record - Croup Not Found ===");
+    logger.info("=== Test update Composite Fund record - Group Not Found ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
 
@@ -548,8 +552,8 @@ public class FundsTest extends ApiTestBase {
 
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {
     String query = getQueryParams(FISCAL_YEAR.name()).get(0);
-    String now = LocalDate.now().toString();
-    String next = LocalDateTime.now().plus(getFiscalYearDuration(fiscalYearOne)).toLocalDate().toString();
+    String now = LocalDate.now(Clock.systemUTC()).toString();
+    String next = LocalDateTime.now(Clock.systemUTC()).plus(getFiscalYearDuration(fiscalYearOne)).toLocalDate().toString();
     assertThat(query, containsString(fiscalYearOne.getSeries()));
     assertThat(query, containsString(now));
     assertThat(query, containsString(next));
