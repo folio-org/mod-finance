@@ -225,7 +225,7 @@ public class FundsHelper extends AbstractHelper {
     String query = String.format("fundId==%s", id);
     return groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))
-      .thenApply(ids -> ids.stream().map(groupFundFiscalYearHelper::deleteGroupFundFiscalYear).toArray(CompletableFuture[]::new))
+      .thenApply(this::unassignGroupsForFund)
       .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS, id, lang)));
   }
 
