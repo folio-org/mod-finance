@@ -56,6 +56,7 @@ public class FundsTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(FundsTest.class);
   public static final String FUND_FIELD_NAME = "fund";
   public static final String GROUP_ID_FIELD_NAME = "groupId";
+  public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";
   public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
 
   @Test
@@ -388,7 +389,7 @@ public class FundsTest extends ApiTestBase {
 
     List<JsonObject> deletedGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR.name());
     assertThat(deletedGroupFundFiscalYears, hasSize(1));
-    assertThat(deletedGroupFundFiscalYears.get(0).getString(ID), equalTo(GROUP_FUND_FISCAL_YEAR.getMockObject().getString(GROUP_ID_FIELD_NAME)));
+    assertThat(GROUP_FUND_FISCAL_YEAR.getMockObject().getString(GROUP_ID_FIELD_NAME), equalTo(GROUP_ID_FOR_DELETION));
 
   }
 

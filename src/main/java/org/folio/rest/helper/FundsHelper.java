@@ -198,11 +198,16 @@ public class FundsHelper extends AbstractHelper {
             .thenCompose(groupFundFiscalYearCollection -> {
               List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).toList();
               List<String> groupIdsForCreation = getSetDifference(groupIdsFromStorage, groupIds);
+              List<String> groupIdsForDeletion = getSetDifference(groupIds, groupIdsFromStorage);
+              List<String> groupFundFiscalYearForDeletionIds = groupFundFiscalYearCollection.stream()
+                .filter(item -> groupIdsForDeletion.contains(item.getGroupId()))
+                .map(GroupFundFiscalYear::getId)
+                .collect(toList());
               return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
                 .thenCompose(collection -> {
                   if(collection.getTotalRecords() == groupIdsForCreation.size()) {
                     return assignFundToGroups(buildGroupFundFiscalYears(compositeFund, currentFiscalYearId, groupIdsForCreation))
-                      .thenCompose(v -> unassignGroupsForFund(getSetDifference(groupIds, groupIdsFromStorage)));
+                      .thenCompose(v -> unassignGroupsForFund(groupFundFiscalYearForDeletionIds));
                   } else {
                     throw new HttpException(422, GROUP_NOT_FOUND);
                   }
