@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.GroupsCollection;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 public class GroupsHelper extends AbstractHelper {
 
@@ -22,6 +23,10 @@ public class GroupsHelper extends AbstractHelper {
 
   public GroupsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public GroupsHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<Group> createGroup(Group group) {

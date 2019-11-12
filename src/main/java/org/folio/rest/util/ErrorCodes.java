@@ -6,7 +6,8 @@ public enum ErrorCodes {
 
   GENERIC_ERROR_CODE("genericError", "Generic error"),
   MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY("idMismatch", "Mismatch between id in path and request body"),
-  FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Cannot find current fiscal year for specified ledger");
+  FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Cannot find current fiscal year for specified ledger"),
+  GROUP_NOT_FOUND("groupNotFound", "Cannot find group");
 
   private final String code;
   private final String description;
