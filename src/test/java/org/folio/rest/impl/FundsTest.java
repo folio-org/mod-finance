@@ -456,10 +456,6 @@ public class FundsTest extends ApiTestBase {
 
     CompositeFund record = new CompositeFund().withFund(fund);
 
-    Group group = new Group();
-    group.setId(GROUP_ID);
-    addMockEntry(GROUP.name(), JsonObject.mapFrom(group));
-
     JsonObject body = JsonObject.mapFrom(record);
 
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
