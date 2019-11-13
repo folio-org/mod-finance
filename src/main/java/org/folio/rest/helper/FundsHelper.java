@@ -19,8 +19,10 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -216,7 +218,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<Void> updateFund(CompositeFund compositeFund) {
 
     Fund fund = compositeFund.getFund();
-    List<String> groupIds = compositeFund.getGroupIds();
+    Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
 
     return getCurrentFiscalYearId(fund.getLedgerId())
       .thenCompose(currentFiscalYearId -> {

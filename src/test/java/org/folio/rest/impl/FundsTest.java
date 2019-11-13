@@ -441,7 +441,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithUnssignGroupIds() {
+  public void testUpdateRecordWithUnassignGroupIds() {
     logger.info("=== Test update Composite Fund record - Unassign Group ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
