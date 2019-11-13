@@ -346,8 +346,8 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithGroupIds() {
-    logger.info("=== Test update Composite Fund record ===");
+  public void testUpdateRecordWithAssignUnassignGroupIds() {
+    logger.info("=== Test update Composite Fund record - assign and unassign group ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
 
@@ -386,6 +386,97 @@ public class FundsTest extends ApiTestBase {
     List<JsonObject> createdGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR.name());
     assertThat(createdGroupFundFiscalYears, hasSize(1));
     assertThat(createdGroupFundFiscalYears.get(0).getString(GROUP_ID_FIELD_NAME), equalTo(GROUP_ID));
+
+    List<JsonObject> deletedGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR.name());
+    assertThat(deletedGroupFundFiscalYears, hasSize(1));
+    assertThat(GROUP_FUND_FISCAL_YEAR.getMockObject().getString(GROUP_ID_FIELD_NAME), equalTo(GROUP_ID_FOR_DELETION));
+
+  }
+
+  @Test
+  public void testUpdateRecordWithAssignGroupIds() {
+    logger.info("=== Test update Composite Fund record - Assign Group ===");
+
+    Fund fund = FUND.getMockObject().mapTo(Fund.class);
+
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    ledger.setId(fund.getLedgerId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setId(ledger.getFiscalYearOneId());
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    CompositeFund record = new CompositeFund().withFund(fund);
+
+    Group group = new Group();
+    group.setId(GROUP_ID);
+    addMockEntry(GROUP.name(), JsonObject.mapFrom(group));
+
+    record.getGroupIds().add(group.getId());
+    record.getGroupIds().add(GROUP_ID_FOR_DELETION);
+
+    JsonObject body = JsonObject.mapFrom(record);
+
+    body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
+
+    String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
+    verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
+
+    JsonObject expected = JsonObject.mapFrom(body).getJsonObject(FUND_FIELD_NAME);
+    compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
+
+    verifyCurrentFYQuery(fiscalYearOne);
+
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
+
+    List<JsonObject> createdGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR.name());
+    assertThat(createdGroupFundFiscalYears, hasSize(1));
+    assertThat(createdGroupFundFiscalYears.get(0).getString(GROUP_ID_FIELD_NAME), equalTo(GROUP_ID));
+
+    verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
+
+  }
+
+  @Test
+  public void testUpdateRecordWithUnssignGroupIds() {
+    logger.info("=== Test update Composite Fund record - Unassign Group ===");
+
+    Fund fund = FUND.getMockObject().mapTo(Fund.class);
+
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    ledger.setId(fund.getLedgerId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+
+    FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setId(ledger.getFiscalYearOneId());
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    CompositeFund record = new CompositeFund().withFund(fund);
+
+    Group group = new Group();
+    group.setId(GROUP_ID);
+    addMockEntry(GROUP.name(), JsonObject.mapFrom(group));
+
+    JsonObject body = JsonObject.mapFrom(record);
+
+    body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
+
+    String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
+    verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
+
+    JsonObject expected = JsonObject.mapFrom(body).getJsonObject(FUND_FIELD_NAME);
+    compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
+
+    verifyCurrentFYQuery(fiscalYearOne);
+
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
+
+    verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
 
     List<JsonObject> deletedGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR.name());
     assertThat(deletedGroupFundFiscalYears, hasSize(1));
