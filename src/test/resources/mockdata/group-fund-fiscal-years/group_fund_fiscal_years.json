@@ -4,10 +4,7 @@
       "id": "44cebc14-3061-4608-897a-e63c90a2fa60",
       "groupId": "f33ed99b-852a-4f90-9891-5efe0feab165",
       "fiscalYearId": "ac2164c7-ba3d-1bc2-a12c-e35ceccbfaf2",
-      "fundId": "6e2fbba3-d557-4480-bca3-b6f5c645de04",
-      "allocated": 100000.00,
-      "available": 60000.00,
-      "unavailable": 40000.00
+      "fundId": "6e2fbba3-d557-4480-bca3-b6f5c645de04"
     }
   ],
   "totalRecords": 1
