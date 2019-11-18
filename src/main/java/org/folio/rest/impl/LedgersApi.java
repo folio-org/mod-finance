@@ -11,7 +11,6 @@ import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.AbstractHelper;
-import org.folio.rest.helper.GroupFundFiscalYearHelper;
 import org.folio.rest.helper.LedgersHelper;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
