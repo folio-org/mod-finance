@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.TestEntities;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -57,6 +58,17 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   static Stream<TestEntities> getTestEntitiesExceptTransactionTypes() {
     return getTestEntities().filter(e -> !e.equals(TestEntities.TRANSACTIONS_ALLOCATION)
         && !e.equals(TestEntities.TRANSACTIONS_TRANSFER) && !e.equals(TestEntities.TRANSACTIONS_ENCUMBRANCE));
+  }
+
+  /**
+   * Test entities only for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER, TRANSACTIONS_ENCUMBRANCE
+   *
+   * @return stream of test entities
+   */
+  static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
+    return getTestEntities().filter(e -> !e.equals(TestEntities.TRANSACTIONS)
+        && !e.equals(TestEntities.GROUP) && !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR) && !e.equals(TestEntities.FUND_TYPE) && !e.equals(TestEntities.LEDGER)
+        && !e.equals(TestEntities.FISCAL_YEAR) && !e.equals(TestEntities.BUDGET));
   }
 
   /**
@@ -175,6 +187,29 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject record = testEntity.getMockObject();
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
     compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity);
+  }
+
+  @ParameterizedTest
+  @MethodSource("getTestEntitiesForOnlyTransactionTypes")
+  public void testPostRecordForUnprocessibleEntity(TestEntities testEntity) {
+    logger.info("=== Test create {} record ===", testEntity.name());
+
+    JsonObject record = testEntity.getMockObject();
+    Transaction t = record.mapTo(Transaction.class);
+    // set invalid transactionType
+    if (t.getTransactionType()
+      .equals(Transaction.TransactionType.ALLOCATION)) {
+      t.setTransactionType(Transaction.TransactionType.ENCUMBRANCE);
+    } else if (t.getTransactionType()
+      .equals(Transaction.TransactionType.ENCUMBRANCE)) {
+      t.setTransactionType(Transaction.TransactionType.TRANSFER);
+    } else if (t.getTransactionType()
+      .equals(Transaction.TransactionType.TRANSFER)) {
+      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
+    }
+    record = JsonObject.mapFrom(t);
+    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
+    verifyRecordNotSentToStorage(HttpMethod.POST, record, testEntity);
   }
 
   @ParameterizedTest
