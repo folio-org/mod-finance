@@ -61,17 +61,6 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   /**
-   * Test entities only for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER, TRANSACTIONS_ENCUMBRANCE
-   *
-   * @return stream of test entities
-   */
-  static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
-    return getTestEntities().filter(e -> !e.equals(TestEntities.TRANSACTIONS)
-        && !e.equals(TestEntities.GROUP) && !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR) && !e.equals(TestEntities.FUND_TYPE) && !e.equals(TestEntities.LEDGER)
-        && !e.equals(TestEntities.FISCAL_YEAR) && !e.equals(TestEntities.BUDGET));
-  }
-
-  /**
    * Test entities except for all TransactionTypes, GROUP_FUND_FISCAL_YEAR
    *
    * @return stream of test entities
@@ -101,6 +90,17 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntitiesExceptAllTransactions() {
     return getTestEntitiesExceptTransactionTypes().filter(e -> !e.equals(TestEntities.TRANSACTIONS));
+  }
+
+  /**
+   * Test entities only for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER, TRANSACTIONS_ENCUMBRANCE
+   *
+   * @return stream of test entities
+   */
+  static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
+    return Arrays
+      .asList(TestEntities.TRANSACTIONS_ALLOCATION, TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER)
+      .stream();
   }
 
   @ParameterizedTest
@@ -192,7 +192,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   @ParameterizedTest
   @MethodSource("getTestEntitiesForOnlyTransactionTypes")
   public void testPostRecordForUnprocessibleEntity(TestEntities testEntity) {
-    logger.info("=== Test create {} record ===", testEntity.name());
+    logger.info("=== Test create {} record - Unprocessible entity ===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
     Transaction t = record.mapTo(Transaction.class);
