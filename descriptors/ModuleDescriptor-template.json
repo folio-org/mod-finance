@@ -372,6 +372,20 @@
       ]
     },
     {
+    "id": "finance.order-transaction-summaries",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/order-transaction-summaries",
+          "permissionsRequired": ["finance.order-transaction-summaries.item.post"],
+          "modulePermissions": [
+            "finance-storage.order-transaction-summaries.item.post"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -414,6 +428,10 @@
     },
     {
      "id": "finance-storage.transactions",
+      "version":"1.0"
+    },
+    {
+     "id": "finance-storage.order-transaction-summaries",
       "version":"1.0"
     }
   ],
@@ -704,6 +722,11 @@
         "finance.transactions.collection.get",
         "finance.transactions.item.get"
       ]
+    },
+    {
+      "permissionName" : "finance.order-transaction-summaries.item.post",
+      "displayName" : "Finances - Post Order transaction Summaries",
+      "description" : "Post Order Transaction Summary"
     },
     {
       "permissionName": "finance.all",
