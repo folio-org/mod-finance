@@ -1,0 +1,94 @@
+#%RAML 1.0
+title: "mod-finance"
+baseUri: https://github.com/folio-org/mod-finance
+version: v1
+
+documentation:
+  - title: mod-finance (Transactions)
+    content: <b>CRUD APIs used to manage transactions.</b>
+
+types:
+  errors: !include raml-util/schemas/errors.schema
+  transaction: !include acq-models/mod-finance/schemas/transaction.json
+  transaction-collection: !include acq-models/mod-finance/schemas/transaction_collection.json
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+  language: !include raml-util/traits/language.raml
+  validate: !include raml-util/traits/validation.raml
+
+resourceTypes:
+  post-with-204: !include rtypes/post-json-201.raml
+  get-only: !include raml-util/rtypes/get-only.raml
+  collection-item-get: !include raml-util/rtypes/item-collection-get.raml
+
+/finance:
+  /allocations:
+    displayName: Create a transaction allocation
+    description: Create an allocation
+    type:
+      post-with-204:
+        requestSchema: transaction
+        responseSchema: transaction
+        requestExample: !include acq-models/mod-finance/examples/transaction_allocation.sample
+        responseExample: !include acq-models/mod-finance/examples/transaction_allocation.sample
+    is: [validate]
+    post:
+      description: Create an allocation by transaction
+
+  /transfers:
+    displayName: Create a transaction transfer
+    description: Create a transfer
+    type:
+      post-with-204:
+        requestSchema: transaction
+        responseSchema: transaction
+        requestExample: !include acq-models/mod-finance/examples/transaction_transfer.sample
+        responseExample: !include acq-models/mod-finance/examples/transaction_transfer.sample
+    is: [validate]
+    post:
+      description: Create a transfer by transaction
+      
+  /encumbrances:
+    displayName: Create a transaction encumbrance
+    description: Create a encumbrance
+    type:
+      post-with-204:
+        requestSchema: transaction
+        responseSchema: transaction
+        requestExample: !include acq-models/mod-finance/examples/transaction_encumbrance.sample
+        responseExample: !include acq-models/mod-finance/examples/transaction_encumbrance.sample
+    is: [validate]
+    post:
+      description: Create an encumbrance by transaction
+
+  /transactions:
+    displayName: Transactions
+    description: Transaction collection
+    type:
+      get-only:
+        schema: transaction-collection
+        exampleCollection: !include acq-models/mod-finance/schemas/transaction_collection.json
+    get:
+      is: [
+        searchable: {description: "with valid searchable fields: for example currency = USD", example: "currency=USD"},
+        pageable
+      ]
+      responses:
+        401:
+          description: "Not authorized to perform requested action"
+          body:
+            text/plain:
+              example: |
+                "unable to list instances -- unauthorized"
+    /{id}:
+      displayName: Transaction instance
+      description: Get a specific Transaction instance
+      type:
+        collection-item-get:
+          schema: transaction
+          exampleItem: !include acq-models/mod-finance/schemas/transaction.json

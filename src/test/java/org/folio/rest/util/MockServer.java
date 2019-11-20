@@ -19,6 +19,7 @@ import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
+import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.Assert.fail;
 
@@ -52,6 +53,8 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.jaxrs.model.GroupsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.TransactionCollection;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -159,6 +162,8 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, Ledger.class, TestEntities.LEDGER.name()));
     router.route(HttpMethod.POST, resourcesPath(GROUPS))
       .handler(ctx -> handlePostEntry(ctx, Group.class, TestEntities.GROUP.name()));
+    router.route(HttpMethod.POST, resourcesPath(TRANSACTIONS))
+      .handler(ctx -> handleTransactionPostEntry(ctx, Transaction.class));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -174,6 +179,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
+    router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -187,6 +194,8 @@ public class MockServer {
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.LEDGER));
     router.route(HttpMethod.GET, resourceByIdPath(GROUPS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.GROUP));
+    router.route(HttpMethod.GET, resourceByIdPath(TRANSACTIONS))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.TRANSACTIONS));
 
     router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.BUDGET.name()));
@@ -276,6 +285,35 @@ public class MockServer {
     }
   }
 
+  private JsonObject getTransactionsByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<Transaction>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.TRANSACTIONS.getPathToFileWithData())).mapTo(TransactionCollection.class)
+          .getTransactions();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    List<Transaction> records = getMockEntries(TestEntities.TRANSACTIONS.name(), Transaction.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      records.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new TransactionCollection().withTransactions(records)
+        .withTotalRecords(records.size());
+    } else if (!records.isEmpty()) {
+      record = records.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+  
   private JsonObject getBudgetsByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Budget>> getFromFile = () -> {
       try {
@@ -494,6 +532,8 @@ public class MockServer {
       return getLedgersByIds(ids, isCollection);
     case GROUP:
       return getGroupByIds(ids, isCollection);
+    case TRANSACTIONS:
+      return getTransactionsByIds(ids, isCollection);
     default:
       throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
     }
@@ -503,6 +543,34 @@ public class MockServer {
     return resourcesPath(field) + ID_PATH_PARAM;
   }
 
+  private <T> void handleTransactionPostEntry(RoutingContext ctx, Class<T> tClass) {
+    logger.info("got: " + ctx.getBodyAsString());
+
+    String tenant = ctx.request()
+      .getHeader(OKAPI_HEADER_TENANT);
+    if (ERROR_TENANT.equals(tenant)) {
+      serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else {
+      JsonObject body = ctx.getBodyAsJson();
+      if (body.getString(ID) == null) {
+        body.put(ID, UUID.randomUUID()
+          .toString());
+      }
+      T entry = body.mapTo(tClass);
+      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+      if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name(), body);
+      } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_TRANSFER.name(), body);
+      } else if (t.getTransactionType() == Transaction.TransactionType.ENCUMBRANCE) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ENCUMBRANCE.name(), body);
+      }
+
+      serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry)
+        .encodePrettily());
+    }
+  }
+  
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {
     logger.info("got: " + ctx.getBodyAsString());
 

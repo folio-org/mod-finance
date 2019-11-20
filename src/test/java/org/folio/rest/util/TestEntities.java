@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
@@ -20,6 +21,7 @@ import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
+import org.folio.rest.jaxrs.resource.Finance;
 import org.folio.rest.tools.parser.JsonPathParser;
 
 import io.vertx.core.json.JsonObject;
@@ -31,7 +33,11 @@ public enum TestEntities {
   GROUP_FUND_FISCAL_YEAR("groupFundFiscalYears", getEndpoint(FinanceGroupFundFiscalYears.class), GroupFundFiscalYear.class, "mockdata/group-fund-fiscal-years/group_fund_fiscal_years.json", "groupFundFiscalYears[0]", "allocated", 10000, 1),
   FISCAL_YEAR("fiscalYears", getEndpoint(FinanceFiscalYears.class), FiscalYear.class, "mockdata/fiscal-years/fiscal_years.json", "fiscalYears[0]", "code", "FY2020", 1),
   LEDGER("ledgers", getEndpoint(FinanceLedgers.class), Ledger.class, "mockdata/ledgers/ledgers.json", "ledgers[0]", "ledgerStatus", "Active", 1),
-  GROUP("groups", getEndpoint(FinanceGroups.class), Group.class, "mockdata/groups/groups.json", "groups[0]", "status", "Frozen", 1);
+  GROUP("groups", getEndpoint(FinanceGroups.class), Group.class, "mockdata/groups/groups.json", "groups[0]", "status", "Frozen", 1),
+  TRANSACTIONS("Transaction", getEndpoint(Finance.class) + "/transactions", Transaction.class, "mockdata/transactions/transactions.json", "transactions[0]", "amount", 25, 1),
+  TRANSACTIONS_ALLOCATION("Allocation", getEndpoint(Finance.class) + "/allocations", Transaction.class, "mockdata/transactions/allocations.json", "allocations[0]", "amount", 25, 1),
+  TRANSACTIONS_TRANSFER("Transfer", getEndpoint(Finance.class) + "/transfers", Transaction.class, "mockdata/transactions/transfers.json", "transfers[0]", "amount", 25, 1),
+  TRANSACTIONS_ENCUMBRANCE("Encumbrance", getEndpoint(Finance.class) + "/encumbrances", Transaction.class, "mockdata/transactions/encumbrances.json", "encumbrances[0]", "amount", 25, 1);
 
   TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {

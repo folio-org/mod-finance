@@ -17,6 +17,7 @@ public class ResourcePathResolver {
   public static final String FISCAL_YEARS = "fiscalYears";
   public static final String LEDGERS = "ledgers";
   public static final String GROUPS = "groups";
+  public static final String TRANSACTIONS = "transactions";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
@@ -30,6 +31,7 @@ public class ResourcePathResolver {
     apis.put(FISCAL_YEARS, "/finance-storage/fiscal-years");
     apis.put(LEDGERS, "/finance-storage/ledgers");
     apis.put(GROUPS, "/finance-storage/groups");
+    apis.put(TRANSACTIONS, "/finance-storage/transactions");
 
     SUB_OBJECT_COLLECTION_APIS = Collections.unmodifiableMap(apis);
     SUB_OBJECT_ITEM_APIS = Collections.unmodifiableMap(
