@@ -23,8 +23,8 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
     helper.createOrderTransactionSummary(entity)
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(type -> asyncResultHandler.handle(succeededFuture(
+          helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, type.getId()), type))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
