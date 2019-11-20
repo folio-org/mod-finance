@@ -28,8 +28,7 @@ public class TransactionsApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
-    if (allocation.getTransactionType()
-      .compareTo(Transaction.TransactionType.ALLOCATION) != 0) {
+    if (allocation.getTransactionType() != Transaction.TransactionType.ALLOCATION) {
       helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
       asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
@@ -46,8 +45,7 @@ public class TransactionsApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
-    if (transfer.getTransactionType()
-      .compareTo(Transaction.TransactionType.TRANSFER) != 0) {
+    if (transfer.getTransactionType() != Transaction.TransactionType.TRANSFER) {
       helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
       asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
@@ -64,8 +62,7 @@ public class TransactionsApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
-    if (encumbrance.getTransactionType()
-      .compareTo(Transaction.TransactionType.ENCUMBRANCE) != 0) {
+    if (encumbrance.getTransactionType() != Transaction.TransactionType.ENCUMBRANCE) {
       helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
       asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
