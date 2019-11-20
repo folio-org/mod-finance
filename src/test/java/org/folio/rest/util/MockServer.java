@@ -558,14 +558,11 @@ public class MockServer {
       }
       T entry = body.mapTo(tClass);
       Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
-      if (t.getTransactionType()
-        .equals(Transaction.TransactionType.ALLOCATION)) {
+      if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name(), body);
-      } else if (t.getTransactionType()
-        .equals(Transaction.TransactionType.TRANSFER)) {
+      } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_TRANSFER.name(), body);
-      } else if (t.getTransactionType()
-        .equals(Transaction.TransactionType.ENCUMBRANCE)) {
+      } else if (t.getTransactionType() == Transaction.TransactionType.ENCUMBRANCE) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ENCUMBRANCE.name(), body);
       }
 
