@@ -8,7 +8,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.MockServer.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.hamcrest.CoreMatchers.notNullValue;

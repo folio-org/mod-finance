@@ -14,10 +14,15 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 
 import io.vertx.core.Context;
+import io.vertx.core.json.JsonObject;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.rest.util.HelperUtils;
 
 public class FiscalYearsHelper extends AbstractHelper {
 
+  private static final String CURRENCY = "currency";
+  private static final String LOCALE_SETTINGS = "localeSettings";
+  private static final String DEFAULT_LOCALE = "{\"locale\":\"en-US\",\"timezone\":\"America/New_York\",\"currency\":\"USD\"}";
   static final String GET_FISCAL_YEARS_BY_QUERY = resourcesPath(FISCAL_YEARS) + SEARCH_PARAMS;
 
   public FiscalYearsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
@@ -28,8 +33,15 @@ public class FiscalYearsHelper extends AbstractHelper {
     super(httpClient, okapiHeaders, ctx, lang);
   }
 
-  public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fund) {
-    return handleCreateRequest(resourcesPath(FISCAL_YEARS), fund).thenApply(fund::withId);
+  public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fiscalYear) {
+    return HelperUtils.getConfigurationEntries(okapiHeaders, ctx, logger)
+      .thenCompose(locale -> {
+        // Initially the config will not have any locale, the same default values used here are hardcoded in tenant Settings
+        fiscalYear.setCurrency(new JsonObject(
+            locale.getString(LOCALE_SETTINGS, DEFAULT_LOCALE))
+              .getString(CURRENCY));
+        return handleCreateRequest(resourcesPath(FISCAL_YEARS), fiscalYear).thenApply(fiscalYear::withId);
+      });
   }
 
   public CompletableFuture<FiscalYearsCollection> getFiscalYears(int limit, int offset, String query) {
@@ -43,8 +55,15 @@ public class FiscalYearsHelper extends AbstractHelper {
       .thenApply(json -> json.mapTo(FiscalYear.class));
   }
 
-  public CompletableFuture<Void> updateFiscalYear(FiscalYear fund) {
-    return handleUpdateRequest(resourceByIdPath(FISCAL_YEARS, fund.getId(), lang), fund);
+  public CompletableFuture<Void> updateFiscalYear(FiscalYear fiscalYear) {
+    return HelperUtils.getConfigurationEntries(okapiHeaders, ctx, logger)
+      .thenCompose(locale -> {
+        fiscalYear.setCurrency(new JsonObject(
+            locale.getString(LOCALE_SETTINGS, DEFAULT_LOCALE))
+              .getString(CURRENCY));
+        return handleUpdateRequest(resourceByIdPath(FISCAL_YEARS, fiscalYear.getId(), lang), fiscalYear);
+      });
+
   }
 
   public CompletableFuture<Void> deleteFiscalYear(String id) {

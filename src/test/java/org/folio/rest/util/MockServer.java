@@ -11,6 +11,10 @@ import static org.folio.rest.impl.ApiTestBase.ID_DOES_NOT_EXIST;
 import static org.folio.rest.impl.ApiTestBase.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
 import static org.folio.rest.impl.ApiTestBase.getMockData;
+import static org.folio.rest.impl.ApiTestBase.ERROR_TENANT;
+import static org.folio.rest.impl.ApiTestBase.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
+import static org.folio.rest.impl.ApiTestBase.EMPTY_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
@@ -39,6 +43,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.impl.ApiTestBase;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -59,7 +64,6 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
-import io.restassured.http.Header;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -76,12 +80,9 @@ import one.util.streamex.StreamEx;
 public class MockServer {
 
   private static final Logger logger = LoggerFactory.getLogger(MockServer.class);
-
   private static final String QUERY = "query";
-  private static final String ERROR_TENANT = "error_tenant";
   private static final String ID_PATH_PARAM = "/:" + ID;
-
-  public static final Header ERROR_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, ERROR_TENANT);
+  static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
 
   private final int port;
   private final Vertx vertx;
@@ -181,6 +182,7 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
+    router.get("/configurations/entries").handler(this::handleConfigurationModuleResponse);
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -313,7 +315,7 @@ public class MockServer {
 
     return JsonObject.mapFrom(record);
   }
-  
+
   private JsonObject getBudgetsByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Budget>> getFromFile = () -> {
       try {
@@ -570,7 +572,7 @@ public class MockServer {
         .encodePrettily());
     }
   }
-  
+
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {
     logger.info("got: " + ctx.getBodyAsString());
 
@@ -610,7 +612,6 @@ public class MockServer {
   private void handlePutGenericSubObj(RoutingContext ctx, String subObj) {
     logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path());
     String id = ctx.request().getParam(ID);
-
     addServerRqRsData(HttpMethod.PUT, subObj, ctx.getBodyAsJson());
 
     if (ID_DOES_NOT_EXIST.equals(id)) {
@@ -674,5 +675,22 @@ public class MockServer {
     } else {
       return Collections.emptyList();
     }
+  }
+
+  private void handleConfigurationModuleResponse(RoutingContext ctx) {
+    try {
+      String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
+      String fileName = StringUtils.EMPTY;
+      if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
+        fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
+      }else if (X_OKAPI_TENANT.getValue().equals(tenant)) {
+        fileName = "config_localeSEK";
+      }
+
+      serverResponse(ctx, 200, APPLICATION_JSON, ApiTestBase.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));
+    } catch (IOException e) {
+      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    }
+
   }
 }

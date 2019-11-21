@@ -30,7 +30,7 @@
 
   <properties>
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
-    <raml-module-builder.version>28.0.0</raml-module-builder.version>
+    <raml-module-builder.version>29.0.1</raml-module-builder.version>
     <vertx.version>3.5.4</vertx.version>
     <junit.version>4.12</junit.version>
     <rest-assured.version>4.0.0</rest-assured.version>
@@ -38,6 +38,7 @@
     <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo</jsonschema2pojo_output_dir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <mod-configuration-client.version>5.1.0</mod-configuration-client.version>
   </properties>
 
   <dependencyManagement>
@@ -90,6 +91,11 @@
       <groupId>one.util</groupId>
       <artifactId>streamex</artifactId>
       <version>0.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.folio</groupId>
+      <artifactId>mod-configuration-client</artifactId>
+      <version>${mod-configuration-client.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
