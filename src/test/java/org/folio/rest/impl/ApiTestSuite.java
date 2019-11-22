@@ -76,4 +76,8 @@ public class ApiTestSuite {
   @Nested
   class FundsTestNested extends FundsTest {
   }
+
+  @Nested
+  class GroupFiscalYearSummariesTestNested extends GroupFiscalYearSummariesTest {
+  }
 }
