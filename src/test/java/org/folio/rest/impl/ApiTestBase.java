@@ -7,7 +7,7 @@ import static org.folio.rest.impl.ApiTestSuite.mockPort;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -173,6 +173,26 @@ public class ApiTestBase {
     assertThat(rqRsEntries, hasSize(0));
   }
 
+  /**
+   * Compare the record returned with the record that was sent in request, properties to be ignored from comparision can be added
+   * @param method
+   * @param record
+   * @param testEntity
+   * @param ignoreProperties - Properties that will be ignored from comparison
+   */
+  void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity, String ignoreProperties) {
+    // Verify that record sent to storage is the same as in response
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(1));
+
+    // remove "metadata" before comparing
+    JsonObject entry = rqRsEntries.get(0);
+    entry.remove("metadata");
+    Object recordToStorage = entry.mapTo(testEntity.getClazz());
+
+    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
+  }
+
   void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
     // Verify that record sent to storage is the same as in response
     List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
@@ -183,7 +203,7 @@ public class ApiTestBase {
     entry.remove("metadata");
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
 
-    assertThat(record.mapTo(testEntity.getClazz()), equalTo(recordToStorage));
+    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz())));
   }
 
   Headers prepareHeaders(Header... headers) {

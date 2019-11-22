@@ -185,7 +185,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject record = testEntity.getMockObject();
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity);
+    compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity, testEntity.getIgnoreProperties());
   }
 
   @ParameterizedTest
@@ -229,7 +229,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject expected = JsonObject.mapFrom(body);
 
     verifyPut(testEntity.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.PUT, expected, testEntity);
+    compareRecordWithSentToStorage(HttpMethod.PUT, expected, testEntity, testEntity.getIgnoreProperties());
   }
 
   @ParameterizedTest

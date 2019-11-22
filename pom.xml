@@ -65,6 +65,12 @@
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
       <version>${raml-module-builder.version}</version>
+      <exclusions>
+    <exclusion>
+    	<groupId>org.hamcrest</groupId>
+    	<artifactId>hamcrest-all</artifactId>
+    </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -106,7 +112,13 @@
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-runner</artifactId>
       <scope>test</scope>
-    </dependency>
+      <exclusions>
+         <exclusion>
+            <groupId>org.hamcrest</groupId>
+             <artifactId>hamcrest-core</artifactId>
+         </exclusion>
+      </exclusions>
+    </dependency>  
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
