@@ -37,4 +37,9 @@ public class TransactionsHelper extends AbstractHelper {
     return handleGetRequest(resourceByIdPath(TRANSACTIONS, id, lang), httpClient, ctx, okapiHeaders, logger)
       .thenApply(json -> json.mapTo(Transaction.class));
   }
+
+  public CompletableFuture<Void> updateTransaction(Transaction transaction) {
+    return handleUpdateRequest(resourceByIdPath(TRANSACTIONS, transaction.getId(), lang), transaction);
+  }
+
 }

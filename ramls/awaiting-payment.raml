@@ -1,0 +1,60 @@
+#%RAML 1.0
+
+title: Awaiting payment
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Awaiting payment API
+    content: This documents the API calls that move money from encumbered to awaitingPayment
+
+types:
+  awaitingPayment: !include acq-models/mod-finance/schemas/awaiting_payment.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+
+/finance/awaiting-payment:
+  displayName: Finance fund
+  description: Finance fund APIs
+  is: [language]
+  post:
+    description: Move money from encumbered to awaitingPayment
+    is: [validate]
+    body:
+      application/json:
+        type: awaitingPayment
+        example:
+          strict: false
+          value: !include acq-models/mod-finance/examples/awaiting_payment.sample
+    responses:
+      201:
+        description: "Returns a newly created item, with server-controlled fields like 'id' populated"
+        headers:
+          Location:
+            description: URI to the created awaiting payment item
+        body:
+          application/json:
+            example: !include acq-models/mod-finance/examples/awaiting_payment.sample
+      400:
+        description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
+        body:
+          text/plain:
+            example: |
+              "unable to process awaiting payment -- malformed JSON at 13:3"
+      401:
+        description: "Not authorized to perform requested action"
+        body:
+          text/plain:
+            example: "unable to create awaiting payment -- unauthorized"
+      500:
+        description: "Internal server error, e.g. due to misconfiguration"
+        body:
+          text/plain:
+            example: "Internal server error, contact administrator"
