@@ -19,41 +19,17 @@ traits:
   language: !include raml-util/traits/language.raml
 
 resourceTypes:
-  collection: !include raml-util/rtypes/collection.raml
-  collection-item: !include raml-util/rtypes/item-collection.raml
+  post-with-201: !include rtypes/post-json-201.raml
 
 /finance/order-transaction-summaries:
-  post:
-    description: Create a new order transaction summary.
-    body:
-      application/json:
-        type: order-transaction-summary
-        example:
-          strict: false
-          value: !include acq-models/mod-finance/examples/order_transaction_summary.sample
-    responses:
-      201:
-        description: "Returns a newly created item, with server-controlled fields like 'id' populated"
-        headers:
-          Location:
-            description: URI to the created order transaction summary item
-        body:
-          application/json:
-            example: !include acq-models/mod-finance/examples/order_transaction_summary.sample
-      400:
-        description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
-        body:
-          text/plain:
-            example: |
-              "unable to add order transaction summary -- malformed JSON at 13:3"
-      401:
-        description: "Not authorized to perform requested action"
-        body:
-          text/plain:
-            example: "unable to create order transaction summary record -- unauthorized"
-      500:
-        description: "Internal server error, e.g. due to misconfiguration"
-        body:
-          text/plain:
-            example: "Internal server error, contact administrator"
-  is: [validate, language]
+    displayName: Create a transaction allocation
+    description: Create a new order transaction summary
+    type:
+      post-with-201:
+        requestSchema: order-transaction-summary
+        responseSchema: order-transaction-summary
+        requestExample: !include acq-models/mod-finance/examples/order_transaction_summary.sample
+        responseExample: !include acq-models/mod-finance/examples/order_transaction_summary.sample
+    is: [validate]
+    post:
+      description: Create a new order transaction summary, for an order with number of transactions(encumbrances)

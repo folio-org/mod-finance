@@ -186,9 +186,6 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     logger.info("=== Test create {} record ===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
-    if(testEntity.equals(TestEntities.ORDER_TRANSACTION_SUMMARY)) {
-      record = new JsonObject(getMockData(testEntity.getPathToFileWithData()));
-    }
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
     compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity);
   }
