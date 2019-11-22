@@ -326,6 +326,52 @@
       ]
     },
     {
+      "id": "finance.transactions",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/allocations",
+          "permissionsRequired": ["finance.allocations.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/encumbrances",
+          "permissionsRequired": ["finance.encumbrances.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/transfers",
+          "permissionsRequired": ["finance.transfers.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/transactions",
+          "permissionsRequired": ["finance.transactions.collection.get"],
+          "modulePermissions": [
+            "finance-storage.transactions.collection.get"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/transactions/{id}",
+          "permissionsRequired": ["finance.transactions.item.get"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.group-fiscal-year-summaries",
       "version": "1.0",
       "handlers": [
@@ -379,6 +425,10 @@
     },
     {
      "id": "finance-storage.groups",
+      "version":"1.0"
+    },
+    {
+     "id": "finance-storage.transactions",
       "version":"1.0"
     }
   ],
@@ -634,6 +684,43 @@
       "visible": false
     },
     {
+      "permissionName" : "finance.allocations.item.post",
+      "displayName" : "Allocations - create a new transaction of type allocation",
+      "description" : "Create a new allocation"
+    },
+    {
+      "permissionName" : "finance.encumbrances.item.post",
+      "displayName" : "Encumbrances - create a new transaction of type encumbrance",
+      "description" : "Create a new encumbrance"
+    },
+    {
+      "permissionName" : "finance.transfers.item.post",
+      "displayName" : "Transfers - create a new transaction of type transfer",
+      "description" : "Create a new transfer"
+    },
+    {
+      "permissionName": "finance.transactions.collection.get",
+      "displayName": "Finances - Get finance transaction collection",
+      "description": "Get finance transaction collection"
+    },
+    {
+      "permissionName": "finance.transactions.item.get",
+      "displayName": "Finances - get an existing transaction",
+      "description": "Get an existing transaction"
+    },
+    {
+      "permissionName" : "finance.transactions.all",
+      "displayName" : "All transactions permissions",
+      "description" : "All permissions for the transaction APIs",
+      "subPermissions" : [
+        "finance.allocations.item.post",
+        "finance.encumbrances.item.post",
+        "finance.transfers.item.post",
+        "finance.transactions.collection.get",
+        "finance.transactions.item.get"
+      ]
+    },
+    {
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
       "displayName": "Finances - get group fiscal year summaries",
       "description": "Get group fiscal year summaries collection"
@@ -650,6 +737,7 @@
         "finance.ledgers.all",
         "finance.fiscal-years.all",
         "finance.groups.all",
+        "finance.transactions.all",
         "finance.group-fiscal-year-summaries.collection.get"
       ],
       "visible": false

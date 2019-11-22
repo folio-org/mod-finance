@@ -162,6 +162,11 @@ public class ApiTestBase {
             .response();
   }
 
+  void verifyRecordNotSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
+    // Verify that record not sent to storage
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(0));
+  }
 
   void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
     // Verify that record sent to storage is the same as in response

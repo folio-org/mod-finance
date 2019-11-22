@@ -19,8 +19,10 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
@@ -186,10 +188,37 @@ public class FundsHelper extends AbstractHelper {
       .thenApply(groupFundFiscalYearCollection -> new ArrayList<>(groupFundFiscalYearCollection.getGroupFundFiscalYears()));
   }
 
+  private List<String> groupFundFiscalYearIdsForDeletion(List<GroupFundFiscalYear> groupFundFiscalYearCollection, List<String> groupIdsForDeletion) {
+    return groupFundFiscalYearCollection.stream().filter(item -> groupIdsForDeletion.contains(item.getGroupId())).map(GroupFundFiscalYear::getId).collect(toList());
+  }
+
+  private CompletionStage<Void> createGroupFundFiscalYears(CompositeFund compositeFund, String currentFiscalYearId, List<String> groupIdsForCreation) {
+    if(CollectionUtils.isNotEmpty(groupIdsForCreation)) {
+      return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
+        .thenCompose(collection -> {
+          if(collection.getTotalRecords() == groupIdsForCreation.size()) {
+            return assignFundToGroups(buildGroupFundFiscalYears(compositeFund, currentFiscalYearId, groupIdsForCreation));
+          } else {
+            throw new HttpException(422, GROUP_NOT_FOUND);
+          }
+        });
+    } else {
+      return VertxCompletableFuture.completedFuture(null);
+    }
+  }
+
+  private CompletionStage<Void> deleteGroupFundFiscalYears(List<String> groupFundFiscalYearForDeletionIds) {
+    if(CollectionUtils.isNotEmpty(groupFundFiscalYearForDeletionIds)) {
+      return unassignGroupsForFund(groupFundFiscalYearForDeletionIds);
+    } else {
+      return VertxCompletableFuture.completedFuture(null);
+    }
+  }
+
   public CompletableFuture<Void> updateFund(CompositeFund compositeFund) {
 
     Fund fund = compositeFund.getFund();
-    List<String> groupIds = compositeFund.getGroupIds();
+    Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
 
     return getCurrentFiscalYearId(fund.getLedgerId())
       .thenCompose(currentFiscalYearId -> {
@@ -197,21 +226,8 @@ public class FundsHelper extends AbstractHelper {
           return getGroupFundFiscalYearsThatFundBelongs(fund.getId(), currentFiscalYearId)
             .thenCompose(groupFundFiscalYearCollection -> {
               List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).toList();
-              List<String> groupIdsForCreation = getSetDifference(groupIdsFromStorage, groupIds);
-              return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
-                .thenCompose(collection -> {
-                  if(collection.getTotalRecords() == groupIdsForCreation.size()) {
-                    List<String> groupIdsForDeletion = getSetDifference(groupIds, groupIdsFromStorage);
-                    List<String> groupFundFiscalYearForDeletionIds = groupFundFiscalYearCollection.stream()
-                      .filter(item -> groupIdsForDeletion.contains(item.getGroupId()))
-                      .map(GroupFundFiscalYear::getId)
-                      .collect(toList());
-                    return assignFundToGroups(buildGroupFundFiscalYears(compositeFund, currentFiscalYearId, groupIdsForCreation))
-                      .thenCompose(v -> unassignGroupsForFund(groupFundFiscalYearForDeletionIds));
-                  } else {
-                    throw new HttpException(422, GROUP_NOT_FOUND);
-                  }
-                });
+              return createGroupFundFiscalYears(compositeFund, currentFiscalYearId, getSetDifference(groupIdsFromStorage, groupIds))
+                .thenCompose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(groupFundFiscalYearCollection, getSetDifference(groupIds, groupIdsFromStorage))));
             });
         } else if(groupIds.isEmpty()) {
           return VertxCompletableFuture.completedFuture(null);
