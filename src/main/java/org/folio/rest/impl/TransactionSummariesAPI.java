@@ -8,6 +8,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import java.util.Map;
 import javax.ws.rs.core.Response;
+import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.TransactionSummariesHelper;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
@@ -19,6 +20,7 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
 
 
   @Override
+  @Validate
   public void postFinanceOrderTransactionSummaries(String lang, OrderTransactionSummary entity, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
