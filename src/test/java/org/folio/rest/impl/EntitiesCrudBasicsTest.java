@@ -23,12 +23,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-
+import javax.ws.rs.core.Response;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.TestEntities;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.restassured.http.Headers;
@@ -217,9 +218,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     Headers headers = prepareHeaders(X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
     JsonObject record = testEntity.getMockObject();
-    if(testEntity.equals(TestEntities.ORDER_TRANSACTION_SUMMARY)) {
-      record = new JsonObject(getMockData(testEntity.getPathToFileWithData()));
-    }
+
     verifyPostResponse(testEntity.getEndpoint(), record, headers, APPLICATION_JSON,
         INTERNAL_SERVER_ERROR.getStatusCode());
   }
@@ -298,5 +297,15 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     verifyDeleteResponse(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
       .as(Errors.class);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
+  public void testPostRecordMinimum(TestEntities testEntity) throws IOException {
+    logger.info("=== Test create {} record ===", testEntity.name());
+
+    JsonObject record = testEntity.getMockObject();
+    record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
+    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
 }
