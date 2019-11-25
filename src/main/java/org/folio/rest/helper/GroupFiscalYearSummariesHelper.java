@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 import io.vertx.core.Context;
+import org.apache.commons.lang3.ObjectUtils;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
@@ -32,7 +33,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(int limit, int offset, String query) {
-    return budgetsHelper.getBudgets(limit, offset, query)
+    return budgetsHelper.getBudgets(Integer.MAX_VALUE, 0, query)
       .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(limit, offset, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
 
         Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets().stream()
@@ -42,7 +43,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
         List<GroupFiscalYearSummary> summaries = groupFundFiscalYearCollection.getGroupFundFiscalYears().stream()
           .collect(
-            groupingBy(GroupFundFiscalYear::getFundId,
+            groupingBy(GroupFundFiscalYear::getGroupId,
               groupingBy(GroupFundFiscalYear::getFiscalYearId,
                 mapping(map(fundIdFiscalYearIdBudgetsMap),
                   reducing(reduce())
@@ -88,7 +89,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   private GroupFiscalYearSummary buildGroupFiscalYearSummary(String fiscalYearId, String groupId, List<Budget> budgets) {
     GroupFiscalYearSummary summary = buildDefaultGroupFiscalYearSummary(fiscalYearId, groupId);
     for(Budget budget : budgets) {
-      updateGroupFiscalYearSummary(summary, budget.getAllocated(), budget.getAvailable(), budget.getUnavailable());
+      updateGroupFiscalYearSummary(summary, getZeroIfNull(budget.getAllocated()), getZeroIfNull(budget.getAvailable()), getZeroIfNull(budget.getUnavailable()));
     }
     return summary;
   }
@@ -101,6 +102,10 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
   private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId, String fiscalYearId) {
     return Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)) && Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId).get(fiscalYearId));
+  }
+
+  private double getZeroIfNull(Double value) {
+    return ObjectUtils.defaultIfNull(value, 0).doubleValue();
   }
 
 }

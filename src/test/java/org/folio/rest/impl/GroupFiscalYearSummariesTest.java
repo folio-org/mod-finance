@@ -31,10 +31,10 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(GroupFiscalYearSummariesTest.class);
 
   @Test
-  public void testGetGroupFiscalYearSummariesCollection() {
-    logger.info("=== Test Get Group Fiscal Year Summaries Collection ===");
+  public void testSummariesCollectionDifferentGroupAndFiscalYear() {
+    logger.info("=== Test Get Group Fiscal Year Summaries Collection - different Group and Fiscal Year Ids ===");
 
-    GroupFundFiscalYear firstGroupFundFiscalYear = buildGroupFundFiscalYear();
+    GroupFundFiscalYear firstGroupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(firstGroupFundFiscalYear));
 
     Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100, 50, 0);
@@ -42,7 +42,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(firstBudget));
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(secondBudget));
 
-    GroupFundFiscalYear secondGroupFundFiscalYear = buildGroupFundFiscalYear();
+    GroupFundFiscalYear secondGroupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
 
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(secondGroupFundFiscalYear));
     Budget thirdBudget = buildBudget(secondGroupFundFiscalYear.getFundId(), secondGroupFundFiscalYear.getFiscalYearId(), 999, 0, 999);
@@ -62,6 +62,37 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
   }
 
   @Test
+  public void testSummariesCollectionSameGroupAndFiscalYear() {
+    logger.info("=== Test Get Group Fiscal Year Summaries Collection - the same Group and Fiscal Year Ids ===");
+
+    String groupId = UUID.randomUUID().toString();
+    String fiscalYearId = UUID.randomUUID().toString();
+
+    GroupFundFiscalYear firstGroupFundFiscalYear = buildGroupFundFiscalYear(groupId, fiscalYearId);
+    addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(firstGroupFundFiscalYear));
+
+    Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100, 50, 0);
+    addMockEntry(BUDGET.name(), JsonObject.mapFrom(firstBudget));
+
+    GroupFundFiscalYear secondGroupFundFiscalYear = buildGroupFundFiscalYear(groupId, fiscalYearId);
+
+    addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(secondGroupFundFiscalYear));
+    Budget secondBudget = buildBudget(secondGroupFundFiscalYear.getFundId(), secondGroupFundFiscalYear.getFiscalYearId(), 400, 450, 500);
+    addMockEntry(BUDGET.name(), JsonObject.mapFrom(secondBudget));
+
+    GroupFiscalYearSummaryCollection response = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+
+    List<GroupFiscalYearSummary> actualSummaries = response.getGroupFiscalYearSummaries();
+    assertThat(actualSummaries, hasSize(1));
+    assertThat(response.getTotalRecords(), is(1));
+
+    Map<String, List<GroupFiscalYearSummary>> actualSummariesMap = actualSummaries.stream().collect(Collectors.groupingBy(GroupFiscalYearSummary::getGroupId));
+
+    validateData(firstGroupFundFiscalYear, actualSummariesMap, firstBudget.getAllocated() + secondBudget.getAllocated(), firstBudget.getAvailable() + secondBudget.getAvailable(), firstBudget.getUnavailable() + secondBudget.getUnavailable());
+
+  }
+
+  @Test
   public void testGetCollectionGffyNotFound() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Group Fund Fiscal Years Not Found ===");
 
@@ -73,7 +104,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
   @Test
   public void testGetCollectionBudgetNotFound() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Budgets Not Found ===");
-    GroupFundFiscalYear groupFundFiscalYear = buildGroupFundFiscalYear();
+    GroupFundFiscalYear groupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(groupFundFiscalYear));
     GroupFiscalYearSummaryCollection collection = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + buildQueryParam("id==(" + groupFundFiscalYear.getId() +")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
 
@@ -86,11 +117,11 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
     assertThat(summary.getUnavailable(), is(0d));
   }
 
-  private GroupFundFiscalYear buildGroupFundFiscalYear() {
+  private GroupFundFiscalYear buildGroupFundFiscalYear(String groupId, String fiscalYearId) {
     return new GroupFundFiscalYear()
       .withId(UUID.randomUUID().toString())
-      .withGroupId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString())
+      .withGroupId(groupId)
+      .withFiscalYearId(fiscalYearId)
       .withFundId(UUID.randomUUID().toString());
   }
 
