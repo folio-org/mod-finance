@@ -61,6 +61,7 @@ import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
+import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -166,6 +167,8 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, Group.class, TestEntities.GROUP.name()));
     router.route(HttpMethod.POST, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleTransactionPostEntry(ctx, Transaction.class));
+    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES))
+    .handler(ctx -> handlePostEntry(ctx, OrderTransactionSummary.class, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));

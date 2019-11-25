@@ -9,6 +9,7 @@ public enum ErrorCodes {
   FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Cannot find current fiscal year for specified ledger"),
   GROUP_NOT_FOUND("groupNotFound", "Cannot find group"),
   INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
+  INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1"),
   CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch curreny from Locale");
 
   private final String code;
