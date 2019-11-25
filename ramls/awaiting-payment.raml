@@ -34,14 +34,8 @@ traits:
           strict: false
           value: !include acq-models/mod-finance/examples/awaiting_payment.sample
     responses:
-      201:
-        description: "Returns a newly created item, with server-controlled fields like 'id' populated"
-        headers:
-          Location:
-            description: URI to the created awaiting payment item
-        body:
-          application/json:
-            example: !include acq-models/mod-finance/examples/awaiting_payment.sample
+      204:
+        description: "Money moved successfully"
       400:
         description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
         body:

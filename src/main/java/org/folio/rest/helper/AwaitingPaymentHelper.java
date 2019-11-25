@@ -1,33 +1,25 @@
 package org.folio.rest.helper;
 
-import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import org.folio.rest.jaxrs.model.AwaitingPayment;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.rest.util.MoneyUtils;
 
 import io.vertx.core.Context;
 
 public class AwaitingPaymentHelper extends AbstractHelper {
-
-  private static final String GET_TRANSACTIONS_BY_QUERY = resourcesPath(TRANSACTIONS) + SEARCH_PARAMS;
 
   public AwaitingPaymentHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
   }
 
   /**
-   * Get the {@link Transaction} (encumbrance) from storage Update the encumbered / awaiting payment amounts, Call PUT in the
-   * storage module
+   * Get the {@link Transaction} (encumbrance) from storage and update the encumbered / awaiting payment amounts
    *
    * @param awaitingPayment {@link AwaitingPayment} object
-   * @return {@link AwaitingPayment} with PO line id as a key and value is map with piece id as a
+   * @return {@link CompletableFuture<Void>} returns empty result
    */
   public CompletableFuture<Void> moveToAwaitingPayment(AwaitingPayment awaitingPayment) {
     String query = "paymentEncumbranceId==" + awaitingPayment.getEncumbranceId();
@@ -35,13 +27,19 @@ public class AwaitingPaymentHelper extends AbstractHelper {
     TransactionsHelper transactionsHelper = new TransactionsHelper(okapiHeaders, ctx, lang);
 
     return transactionsHelper.getTransactions(1, 0, query)
-      .thenApply(tr -> modifyTransaction(tr.getTransactions().get(0)))
+      .thenApply(tr -> modifyTransaction(tr.getTransactions().get(0), awaitingPayment.getAmountAwaitingPayment()))
       .thenCompose(transactionsHelper::updateTransaction);
   }
 
-  private Transaction modifyTransaction(Transaction transaction) {
-    transaction.getEncumbrance().set()
-      return transaction;
-  }
+  private Transaction modifyTransaction(Transaction transaction, Double amountAwaitingPayment) {
+    Double currentAwaitingPaymentAmount = transaction.getEncumbrance().getAmountAwaitingPayment();
+    Double currentAmountExpended = transaction.getEncumbrance().getAmountExpended();
+    String currency = transaction.getCurrency();
 
+    transaction.getEncumbrance()
+      .setAmountAwaitingPayment(MoneyUtils.sumValues(currentAwaitingPaymentAmount, amountAwaitingPayment, currency).doubleValue());
+    transaction.getEncumbrance()
+      .setAmountExpended(MoneyUtils.subtractValues(currentAmountExpended, amountAwaitingPayment, currency).doubleValue());
+    return transaction;
+  }
 }
