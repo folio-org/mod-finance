@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.ws.rs.core.Response;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
@@ -301,8 +300,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
-  public void testPostRecordMinimum(TestEntities testEntity) throws IOException {
-    logger.info("=== Test create {} record ===", testEntity.name());
+  public void testPostRecordMinimumValidation(TestEntities testEntity) {
+    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
