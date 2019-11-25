@@ -15,6 +15,7 @@ import static org.folio.rest.impl.ApiTestBase.ERROR_TENANT;
 import static org.folio.rest.impl.ApiTestBase.BASE_MOCK_DATA_PATH;
 import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.impl.ApiTestBase.INVALID_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
@@ -186,7 +187,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
-    router.get(resourcesPath(CONFIGURATIONS)).handler(this::handleConfigurationModuleResponse);
+    router.route(HttpMethod.GET, resourcesPath(CONFIGURATIONS))
+      .handler(this::handleConfigurationModuleResponse);
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -684,12 +686,13 @@ public class MockServer {
   private void handleConfigurationModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
-      String id = ctx.getBodyAsJson().getString("id");
       String fileName = StringUtils.EMPTY;
       if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
       } else if (X_OKAPI_TENANT.getValue().equals(tenant)) {
-        fileName = id.equals(ID_FOR_INTERNAL_SERVER_ERROR) ? "invalid_config" : "config_localeSEK";
+        fileName = "config_localeSEK";
+      } else if (INVALID_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
+        fileName = "invalid_config";
       }
 
       serverResponse(ctx, 200, APPLICATION_JSON, ApiTestBase.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));

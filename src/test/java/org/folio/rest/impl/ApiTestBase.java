@@ -45,6 +45,7 @@ public class ApiTestBase {
   static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkaWt1X2FkbWluIiwidXNlcl9pZCI6ImQyYzQ1MTU2LTA2OGItNWU4Yy04YWM0LWZmMDBhZGY5NmFlNyIsImlhdCI6MTU3NDM1MDA0MSwidGVuYW50IjoiZGlrdSJ9.Csw8X_2rssows0T9a3duslnOrewdyiPcK-ZzbdmRLkI");
   public static final Header X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, FINANCE_TENANT);
   public static final Header EMPTY_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "EmptyConfig");
+  public static final Header INVALID_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "InvalidConfig");
   public static final Header ERROR_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, ERROR_TENANT);
 
   public static final String BAD_QUERY = "unprocessableQuery";

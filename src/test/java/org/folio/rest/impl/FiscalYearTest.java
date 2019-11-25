@@ -99,8 +99,9 @@ public class FiscalYearTest extends ApiTestBase {
   public void testPostFiscalYearWithInvalidConfig() {
     logger.info("=== Test create FiscalYear with currency not present in config===");
 
-    Errors errors = verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject()
-      .put("id", ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    Headers headers = prepareHeaders(X_OKAPI_URL, INVALID_CONFIG_X_OKAPI_TENANT, X_OKAPI_TOKEN);
+
+    Errors errors = verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject(), headers, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     assertThat(errors.getErrors()
       .get(0)
