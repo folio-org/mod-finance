@@ -224,6 +224,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
 
     return router;
   }
@@ -313,7 +315,7 @@ public class MockServer {
 
     return JsonObject.mapFrom(record);
   }
-  
+
   private JsonObject getBudgetsByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Budget>> getFromFile = () -> {
       try {
@@ -570,7 +572,7 @@ public class MockServer {
         .encodePrettily());
     }
   }
-  
+
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {
     logger.info("got: " + ctx.getBodyAsString());
 
@@ -668,7 +670,7 @@ public class MockServer {
   }
 
   private List<String> extractIdsFromQuery(String fieldName, String relation, String query) {
-    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?(.+)\\).*").matcher(query);
+    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "(\\S[^)]+).*").matcher(query);
     if (matcher.find()) {
       return StreamEx.split(matcher.group(1), " or ").toList();
     } else {

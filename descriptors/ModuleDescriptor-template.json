@@ -372,6 +372,21 @@
       ]
     },
     {
+      "id": "finance.awaiting-payment",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/awaiting-payment",
+          "permissionsRequired": ["finance.awaiting-payment.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.collection.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -706,6 +721,12 @@
       ]
     },
     {
+      "permissionName" :  "finance.awaiting-payment.item.post",
+      "displayName" : "Move money from encumbered to awaiting payment",
+      "description" : "Move money from encumbered to awaiting payment"
+    },
+
+    {
       "permissionName": "finance.all",
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
@@ -717,7 +738,8 @@
         "finance.ledgers.all",
         "finance.fiscal-years.all",
         "finance.groups.all",
-        "finance.transactions.all"
+        "finance.transactions.all",
+        "finance.awaiting-payment.item.post"
       ],
       "visible": false
     }

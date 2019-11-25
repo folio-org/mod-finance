@@ -22,7 +22,7 @@ public class AwaitingPaymentHelper extends AbstractHelper {
    * @return {@link CompletableFuture<Void>} returns empty result
    */
   public CompletableFuture<Void> moveToAwaitingPayment(AwaitingPayment awaitingPayment) {
-    String query = "paymentEncumbranceId==" + awaitingPayment.getEncumbranceId();
+    String query = "id==" + awaitingPayment.getEncumbranceId();
 
     TransactionsHelper transactionsHelper = new TransactionsHelper(okapiHeaders, ctx, lang);
 
@@ -37,9 +37,9 @@ public class AwaitingPaymentHelper extends AbstractHelper {
     String currency = transaction.getCurrency();
 
     transaction.getEncumbrance()
-      .setAmountAwaitingPayment(MoneyUtils.sumValues(currentAwaitingPaymentAmount, amountAwaitingPayment, currency).doubleValue());
+      .setAmountAwaitingPayment(MoneyUtils.sumDoubleValues(currentAwaitingPaymentAmount, amountAwaitingPayment, currency));
     transaction.getEncumbrance()
-      .setAmountExpended(MoneyUtils.subtractValues(currentAmountExpended, amountAwaitingPayment, currency).doubleValue());
+      .setAmountExpended(MoneyUtils.subtractDoubleValues(currentAmountExpended, amountAwaitingPayment, currency));
     return transaction;
   }
 }
