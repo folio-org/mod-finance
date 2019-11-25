@@ -8,6 +8,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.restassured.http.Headers;
@@ -19,6 +20,7 @@ import io.vertx.core.logging.LoggerFactory;
 import java.util.List;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +62,6 @@ public class FiscalYearTest extends ApiTestBase {
     logger.info("=== Test update FiscalYear with Currency record populated===");
 
     JsonObject body = FISCAL_YEAR.getMockObject();
-
     verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
 
     List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
@@ -92,6 +93,18 @@ public class FiscalYearTest extends ApiTestBase {
 
     verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body.toString(), headers, "",
         INTERNAL_SERVER_ERROR.getStatusCode());
+  }
+
+  @Test
+  public void testPostFiscalYearWithInvalidConfig() {
+    logger.info("=== Test create FiscalYear with currency not present in config===");
+
+    Errors errors = verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject()
+      .put("id", ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+
+    assertThat(errors.getErrors()
+      .get(0)
+      .getCode(), equalTo(ErrorCodes.CURRENCY_NOT_FOUND.getCode()));
   }
 
 }

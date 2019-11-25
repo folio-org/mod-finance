@@ -24,6 +24,7 @@ import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
+import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.Assert.fail;
 
@@ -182,7 +183,7 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
-    router.get("/configurations/entries").handler(this::handleConfigurationModuleResponse);
+    router.get(resourcesPath(CONFIGURATIONS)).handler(this::handleConfigurationModuleResponse);
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -680,11 +681,12 @@ public class MockServer {
   private void handleConfigurationModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
+      String id = ctx.getBodyAsJson().getString("id");
       String fileName = StringUtils.EMPTY;
       if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
-      }else if (X_OKAPI_TENANT.getValue().equals(tenant)) {
-        fileName = "config_localeSEK";
+      } else if (X_OKAPI_TENANT.getValue().equals(tenant)) {
+        fileName = id.equals(ID_FOR_INTERNAL_SERVER_ERROR) ? "invalid_config" : "config_localeSEK";
       }
 
       serverResponse(ctx, 200, APPLICATION_JSON, ApiTestBase.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));

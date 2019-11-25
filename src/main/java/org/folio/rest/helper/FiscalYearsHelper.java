@@ -8,14 +8,16 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 
 import io.vertx.core.Context;
 import io.vertx.core.json.JsonObject;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 
 public class FiscalYearsHelper extends AbstractHelper {
@@ -37,11 +39,16 @@ public class FiscalYearsHelper extends AbstractHelper {
     return HelperUtils.getConfigurationEntries(okapiHeaders, ctx, logger)
       .thenCompose(locale -> {
         // Initially the config will not have any locale, the same default values used here are hardcoded in tenant Settings
-        fiscalYear.setCurrency(new JsonObject(
-            locale.getString(LOCALE_SETTINGS, DEFAULT_LOCALE))
-              .getString(CURRENCY));
+        String currency = getCurrency(locale);
+        fiscalYear.setCurrency(currency);
         return handleCreateRequest(resourcesPath(FISCAL_YEARS), fiscalYear).thenApply(fiscalYear::withId);
       });
+  }
+
+  private String getCurrency(JsonObject locale) {
+    return Optional.ofNullable(locale.getString(LOCALE_SETTINGS, DEFAULT_LOCALE))
+        .map(settings -> new JsonObject(settings).getString(CURRENCY))
+        .orElseThrow(() -> new HttpException(500, ErrorCodes.CURRENCY_NOT_FOUND));
   }
 
   public CompletableFuture<FiscalYearsCollection> getFiscalYears(int limit, int offset, String query) {
@@ -58,9 +65,8 @@ public class FiscalYearsHelper extends AbstractHelper {
   public CompletableFuture<Void> updateFiscalYear(FiscalYear fiscalYear) {
     return HelperUtils.getConfigurationEntries(okapiHeaders, ctx, logger)
       .thenCompose(locale -> {
-        fiscalYear.setCurrency(new JsonObject(
-            locale.getString(LOCALE_SETTINGS, DEFAULT_LOCALE))
-              .getString(CURRENCY));
+        String currency = getCurrency(locale);
+        fiscalYear.setCurrency(currency);
         return handleUpdateRequest(resourceByIdPath(FISCAL_YEARS, fiscalYear.getId(), lang), fiscalYear);
       });
 
