@@ -8,7 +8,8 @@ public enum ErrorCodes {
   MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY("idMismatch", "Mismatch between id in path and request body"),
   FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Cannot find current fiscal year for specified ledger"),
   GROUP_NOT_FOUND("groupNotFound", "Cannot find group"),
-  INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type");
+  INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
+  INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1");
 
   private final String code;
   private final String description;
