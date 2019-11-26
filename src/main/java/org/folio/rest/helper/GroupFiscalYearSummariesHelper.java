@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 import io.vertx.core.Context;
-import org.apache.commons.lang3.ObjectUtils;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
@@ -101,9 +100,9 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   }
 
   private void updateGroupFiscalYearSummary(GroupFiscalYearSummary summary, double allocated, double available, double unavailable) {
-    summary.setAllocated(new BigDecimal(summary.getAllocated()).add(new BigDecimal(allocated)).doubleValue());
-    summary.setAvailable(new BigDecimal(summary.getAvailable()).add(new BigDecimal(available)).doubleValue());
-    summary.setUnavailable(new BigDecimal(summary.getUnavailable()).add(new BigDecimal(unavailable)).doubleValue());
+    summary.setAllocated(BigDecimal.valueOf(summary.getAllocated()).add(BigDecimal.valueOf(allocated)).doubleValue());
+    summary.setAvailable(BigDecimal.valueOf(summary.getAvailable()).add(BigDecimal.valueOf(available)).doubleValue());
+    summary.setUnavailable(BigDecimal.valueOf(summary.getUnavailable()).add(BigDecimal.valueOf(unavailable)).doubleValue());
   }
 
   private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId, String fiscalYearId) {
