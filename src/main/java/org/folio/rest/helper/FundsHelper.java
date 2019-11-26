@@ -203,7 +203,7 @@ public class FundsHelper extends AbstractHelper {
           }
         });
     } else {
-      return VertxCompletableFuture.completedFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
   }
 
@@ -211,7 +211,7 @@ public class FundsHelper extends AbstractHelper {
     if(CollectionUtils.isNotEmpty(groupFundFiscalYearForDeletionIds)) {
       return unassignGroupsForFund(groupFundFiscalYearForDeletionIds);
     } else {
-      return VertxCompletableFuture.completedFuture(null);
+      return CompletableFuture.completedFuture(null);
     }
   }
 
@@ -230,7 +230,7 @@ public class FundsHelper extends AbstractHelper {
                 .thenCompose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(groupFundFiscalYearCollection, getSetDifference(groupIds, groupIdsFromStorage))));
             });
         } else if(groupIds.isEmpty()) {
-          return VertxCompletableFuture.completedFuture(null);
+          return CompletableFuture.completedFuture(null);
         } else {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
