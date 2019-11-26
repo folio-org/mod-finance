@@ -13,6 +13,7 @@ import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,9 +101,9 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   }
 
   private void updateGroupFiscalYearSummary(GroupFiscalYearSummary summary, double allocated, double available, double unavailable) {
-    summary.setAllocated(summary.getAllocated() + allocated);
-    summary.setAvailable(summary.getAvailable() + available);
-    summary.setUnavailable(summary.getUnavailable() + unavailable);
+    summary.setAllocated(new BigDecimal(summary.getAllocated()).add(new BigDecimal(allocated)).doubleValue());
+    summary.setAvailable(new BigDecimal(summary.getAvailable()).add(new BigDecimal(available)).doubleValue());
+    summary.setUnavailable(new BigDecimal(summary.getUnavailable()).add(new BigDecimal(unavailable)).doubleValue());
   }
 
   private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId, String fiscalYearId) {

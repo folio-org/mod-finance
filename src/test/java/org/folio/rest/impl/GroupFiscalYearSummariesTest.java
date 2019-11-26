@@ -38,7 +38,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(firstGroupFundFiscalYear));
 
     Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100d, 50d, 0d);
-    Budget secondBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), null, 50d, 100d);
+    Budget secondBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), null, 50.1111111111d, 100d);
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(firstBudget));
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(secondBudget));
 
@@ -56,7 +56,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
 
     Map<String, List<GroupFiscalYearSummary>> actualSummariesMap = actualSummaries.stream().collect(Collectors.groupingBy(GroupFiscalYearSummary::getGroupId));
 
-    validateData(firstGroupFundFiscalYear, actualSummariesMap, 100d, 100d, 100d);
+    validateData(firstGroupFundFiscalYear, actualSummariesMap, 100d, 100.1111111111d, 100d);
     validateData(secondGroupFundFiscalYear, actualSummariesMap, 999d, 0d, 999d);
 
   }
