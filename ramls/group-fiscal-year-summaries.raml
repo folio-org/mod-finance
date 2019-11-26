@@ -1,0 +1,34 @@
+#%RAML 1.0
+
+title: Finance group fiscal year summary
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Group Fiscal Year Summary API
+    content: This documents the API calls that can be made to manage group-fiscal-year-summaries
+
+types:
+  groupFiscalYearSummaryCollection: !include acq-models/mod-finance/schemas/group_fiscal_year_summary_collection.json
+
+traits:
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection-get: !include raml-util/rtypes/collection-get.raml
+
+/finance/group-fiscal-year-summaries:
+  displayName: Finance group fiscal year summaries
+  description: Finance group fiscal year summaries APIs
+  type:
+    collection-get:
+      schemaCollection: groupFiscalYearSummaryCollection
+      exampleCollection: !include acq-models/mod-finance/examples/group_fiscal_year_summary_collection.sample
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example fund.ledgerId", example: "[\"fund.ledgerId\", \"6e2fbba3-d557-4480-bca3-b6f5c645de04\", \"=\"]"}
+    ]

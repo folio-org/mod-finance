@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 public class BudgetsHelper extends AbstractHelper {
 
@@ -21,6 +22,10 @@ public class BudgetsHelper extends AbstractHelper {
 
   public BudgetsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
+  }
+
+  public BudgetsHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    super(httpClient, okapiHeaders, ctx, lang);
   }
 
   public CompletableFuture<Budget> createBudget(Budget budget) {
