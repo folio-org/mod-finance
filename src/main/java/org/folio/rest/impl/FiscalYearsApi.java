@@ -29,12 +29,11 @@ public class FiscalYearsApi implements FinanceFiscalYears {
   public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
+    String code = fiscalYear.getCode();
 
-    // series should always be present
-    if (isEmpty(fiscalYear.getSeries())) {
-      String code = fiscalYear.getCode();
-      fiscalYear.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
-    }
+    // series should always be calculated
+    fiscalYear.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+
     helper.createFiscalYear(fiscalYear)
       .thenAccept(fy -> handler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FISCAL_YEARS_LOCATION_PREFIX, fy.getId()), fy))))
@@ -57,6 +56,7 @@ public class FiscalYearsApi implements FinanceFiscalYears {
   public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
+    String code = fiscalYearRequest.getCode();
 
     // Set id if this is available only in path
     if (isEmpty(fiscalYearRequest.getId())) {
@@ -67,11 +67,8 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       return;
     }
 
-    // series should always be present
-    if (isEmpty(fiscalYearRequest.getSeries())) {
-      String code = fiscalYearRequest.getCode();
-      fiscalYearRequest.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
-    }
+    // series should always be calculated
+    fiscalYearRequest.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
 
     helper.updateFiscalYear(fiscalYearRequest)
       .thenAccept(fiscalYear -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
