@@ -11,6 +11,7 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
 import java.util.List;
 import java.util.Map;
@@ -41,16 +42,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
             groupingBy(Budget::getFiscalYearId, toList()))
           );
 
-        List<GroupFiscalYearSummary> summaries = groupFundFiscalYearCollection.getGroupFundFiscalYears().stream()
-          .collect(
-            groupingBy(GroupFundFiscalYear::getGroupId,
-              groupingBy(GroupFundFiscalYear::getFiscalYearId,
-                mapping(map(fundIdFiscalYearIdBudgetsMap),
-                  reducing(reduce())
-                )
-              )
-            )
-          )
+        List<GroupFiscalYearSummary> summaries = groupSummariesByGroupIdAndFiscalYearId(groupFundFiscalYearCollection, fundIdFiscalYearIdBudgetsMap)
           .values().stream()
           .flatMap(summary -> summary.values().stream())
           .filter(Optional::isPresent)
@@ -59,6 +51,19 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
         return new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
       });
+  }
+
+  private Map<String, Map<String, Optional<GroupFiscalYearSummary>>> groupSummariesByGroupIdAndFiscalYearId(GroupFundFiscalYearCollection groupFundFiscalYearCollection, Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap) {
+    return groupFundFiscalYearCollection.getGroupFundFiscalYears().stream()
+      .collect(
+        groupingBy(GroupFundFiscalYear::getGroupId,
+          groupingBy(GroupFundFiscalYear::getFiscalYearId,
+            mapping(map(fundIdFiscalYearIdBudgetsMap),
+              reducing(reduce())
+            )
+          )
+        )
+      );
   }
 
   private Function<GroupFundFiscalYear, GroupFiscalYearSummary> map(Map<String, Map<String, List<Budget>>>  fundIdFiscalYearIdBudgetMap) {
@@ -89,7 +94,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   private GroupFiscalYearSummary buildGroupFiscalYearSummary(String fiscalYearId, String groupId, List<Budget> budgets) {
     GroupFiscalYearSummary summary = buildDefaultGroupFiscalYearSummary(fiscalYearId, groupId);
     for(Budget budget : budgets) {
-      updateGroupFiscalYearSummary(summary, getZeroIfNull(budget.getAllocated()), getZeroIfNull(budget.getAvailable()), getZeroIfNull(budget.getUnavailable()));
+      updateGroupFiscalYearSummary(summary, budget.getAllocated(), budget.getAvailable(), budget.getUnavailable());
     }
     return summary;
   }
@@ -102,10 +107,6 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
   private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId, String fiscalYearId) {
     return Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)) && Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId).get(fiscalYearId));
-  }
-
-  private double getZeroIfNull(Double value) {
-    return ObjectUtils.defaultIfNull(value, 0).doubleValue();
   }
 
 }
