@@ -1,0 +1,35 @@
+#%RAML 1.0
+
+title: Finance Transaction Summaries
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Transaction Summaries API
+    content: This documents the API calls that can be made to create Transaction summaries for Orders and Invoices
+
+types:
+  order-transaction-summary: !include acq-models/mod-finance/schemas/order_transaction_summary.json
+  errors: !include raml-util/schemas/errors.schema
+  
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+
+resourceTypes:
+  post-with-201: !include rtypes/post-json-201.raml
+
+/finance/order-transaction-summaries:
+    displayName: Create a transaction allocation
+    description: Create a new order transaction summary
+    type:
+      post-with-201:
+        requestSchema: order-transaction-summary
+        responseSchema: order-transaction-summary
+        requestExample: !include acq-models/mod-finance/examples/order_transaction_summary.sample
+        responseExample: !include acq-models/mod-finance/examples/order_transaction_summary.sample
+    is: [validate]
+    post:
+      description: Create a new order transaction summary, for an order with number of transactions(encumbrances)

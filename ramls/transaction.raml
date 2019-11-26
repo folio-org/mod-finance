@@ -22,7 +22,7 @@ traits:
   validate: !include raml-util/traits/validation.raml
 
 resourceTypes:
-  post-with-204: !include rtypes/post-json-201.raml
+  post-with-201: !include rtypes/post-json-201.raml
   get-only: !include raml-util/rtypes/get-only.raml
   collection-item-get: !include raml-util/rtypes/item-collection-get.raml
 
@@ -31,7 +31,7 @@ resourceTypes:
     displayName: Create a transaction allocation
     description: Create an allocation
     type:
-      post-with-204:
+      post-with-201:
         requestSchema: transaction
         responseSchema: transaction
         requestExample: !include acq-models/mod-finance/examples/transaction_allocation.sample
@@ -44,7 +44,7 @@ resourceTypes:
     displayName: Create a transaction transfer
     description: Create a transfer
     type:
-      post-with-204:
+      post-with-201:
         requestSchema: transaction
         responseSchema: transaction
         requestExample: !include acq-models/mod-finance/examples/transaction_transfer.sample
@@ -57,7 +57,7 @@ resourceTypes:
     displayName: Create a transaction encumbrance
     description: Create a encumbrance
     type:
-      post-with-204:
+      post-with-201:
         requestSchema: transaction
         responseSchema: transaction
         requestExample: !include acq-models/mod-finance/examples/transaction_encumbrance.sample

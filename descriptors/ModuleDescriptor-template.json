@@ -372,6 +372,20 @@
       ]
     },
     {
+    "id": "finance.order-transaction-summaries",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/order-transaction-summaries",
+          "permissionsRequired": ["finance.order-transaction-summaries.item.post"],
+          "modulePermissions": [
+            "finance-storage.order-transaction-summaries.item.post"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.awaiting-payment",
       "version": "1.0",
       "handlers": [
@@ -429,6 +443,10 @@
     },
     {
      "id": "finance-storage.transactions",
+      "version":"1.0"
+    },
+    {
+     "id": "finance-storage.order-transaction-summaries",
       "version":"1.0"
     }
   ],
@@ -726,6 +744,11 @@
       "description" : "Move money from encumbered to awaiting payment"
     },
 
+    {
+      "permissionName" : "finance.order-transaction-summaries.item.post",
+      "displayName" : "Finances - Post Order transaction Summaries",
+      "description" : "Post Order Transaction Summary"
+    },
     {
       "permissionName": "finance.all",
       "displayName": "Finance module - all permissions",
