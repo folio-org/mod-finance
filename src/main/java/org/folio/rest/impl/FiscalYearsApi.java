@@ -4,13 +4,13 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.FiscalYearsHelper;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
@@ -95,8 +95,4 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
-  private Void handleErrorResponse(Handler<AsyncResult<Response>> handler, AbstractHelper helper, Throwable t) {
-    handler.handle(succeededFuture(helper.buildErrorResponse(t)));
-    return null;
-  }
 }

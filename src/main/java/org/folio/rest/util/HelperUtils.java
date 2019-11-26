@@ -1,5 +1,6 @@
 package org.folio.rest.util;
 
+import static io.vertx.core.Future.succeededFuture;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -18,8 +19,11 @@ import java.util.concurrent.CompletionException;
 
 import javax.ws.rs.Path;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import one.util.streamex.StreamEx;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
@@ -148,5 +152,10 @@ public class HelperUtils {
     return b.stream()
       .filter(item -> !a.contains(item))
       .collect(toList());
+  }
+
+  public static Void handleErrorResponse(Handler<AsyncResult<javax.ws.rs.core.Response>> handler, AbstractHelper helper, Throwable t) {
+    handler.handle(succeededFuture(helper.buildErrorResponse(t)));
+    return null;
   }
 }
