@@ -743,7 +743,6 @@
       "displayName" : "Move money from encumbered to awaiting payment",
       "description" : "Move money from encumbered to awaiting payment"
     },
-
     {
       "permissionName" : "finance.order-transaction-summaries.item.post",
       "displayName" : "Finances - Post Order transaction Summaries",
@@ -762,7 +761,8 @@
         "finance.fiscal-years.all",
         "finance.groups.all",
         "finance.transactions.all",
-        "finance.awaiting-payment.item.post"
+        "finance.awaiting-payment.item.post",
+        "finance.order-transaction-summaries.item.post"
       ],
       "visible": false
     }
