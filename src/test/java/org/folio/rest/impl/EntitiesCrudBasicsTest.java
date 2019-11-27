@@ -11,6 +11,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
+import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -124,6 +125,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     body.putNull("series");
 
     verifyPut(TestEntities.FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+    assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
   }
 
   @ParameterizedTest
