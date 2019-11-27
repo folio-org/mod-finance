@@ -83,6 +83,5 @@ public class ApiTestSuite {
 
   @Nested
   class CurrentFiscalYearTestNested extends CurrentFiscalYearTest {
-
   }
 }

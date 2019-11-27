@@ -1,7 +1,17 @@
 package org.folio.rest.impl;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
+import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import io.vertx.core.json.JsonObject;
-import org.folio.rest.jaxrs.model.Errors;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
@@ -11,20 +21,15 @@ import org.junit.jupiter.api.Test;
 import java.util.Date;
 import java.util.UUID;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
-import static org.folio.rest.util.MockServer.addMockEntry;
-import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
-import static org.folio.rest.util.TestEntities.LEDGER;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 public class CurrentFiscalYearTest extends ApiTestBase {
 
+  private static final Logger logger = LoggerFactory.getLogger(CurrentFiscalYearTest.class);
+
   @Test
   public void testOneFiscalYear() {
+
+    logger.info("=== Test Get Current Fiscal Year - One Fiscal Year ===");
 
     FiscalYear year = new FiscalYear().withId(UUID.randomUUID().toString());
 
@@ -39,6 +44,8 @@ public class CurrentFiscalYearTest extends ApiTestBase {
 
   @Test
   public void testTwoOverlappedFiscalYears() {
+
+    logger.info("=== Test Get Current Fiscal Year - Two Overlapped Fiscal Years ===");
 
     FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
     firstYear.setPeriodEnd(new Date());
@@ -59,6 +66,8 @@ public class CurrentFiscalYearTest extends ApiTestBase {
   @Test
   public void testTwoNonOverlappedFiscalYears() {
 
+    logger.info("=== Test Get Current Fiscal Year - Two Non-Overlapped Fiscal Years ===");
+
     FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
     firstYear.setPeriodEnd(new Date());
 
@@ -78,6 +87,8 @@ public class CurrentFiscalYearTest extends ApiTestBase {
   @Test
   public void testFiscalYearNotFound() {
 
+    logger.info("=== Test Get Current Fiscal Year - Fiscal Year Not Found ===");
+
     FiscalYear year = new FiscalYear().withId(UUID.randomUUID().toString());
     year.setSeries(SERIES_DOES_NOT_EXIST);
 
@@ -87,7 +98,6 @@ public class CurrentFiscalYearTest extends ApiTestBase {
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(year));
 
     verifyGet(getCurrentFiscalYearEndpoint(ledgerId), APPLICATION_JSON, NOT_FOUND.getStatusCode());
-
   }
 
   @Test

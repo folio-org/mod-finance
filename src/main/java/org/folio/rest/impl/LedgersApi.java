@@ -89,6 +89,7 @@ public class LedgersApi implements FinanceLedgers {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
+  @Validate
   @Override
   public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
     FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
