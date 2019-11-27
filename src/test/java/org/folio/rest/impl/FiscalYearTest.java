@@ -81,8 +81,8 @@ public class FiscalYearTest extends ApiTestBase {
     List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
     assertThat(rqRsPostFund.get(0)
       .getString("currency"), notNullValue());
-    assertEquals(rqRsPostFund.get(0)
-      .getString("currency"), "USD");
+    assertEquals("USD", rqRsPostFund.get(0)
+      .getString("currency"));
   }
 
   @Test
