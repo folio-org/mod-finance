@@ -7,7 +7,7 @@ import static org.folio.rest.impl.ApiTestSuite.mockPort;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,12 +37,17 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class ApiTestBase {
 
+  private static final String FINANCE_TENANT = "financeimpltest";
+  public static final String ERROR_TENANT = "error_tenant";
   public static final String OKAPI_URL = "X-Okapi-Url";
   static final String VALID_UUID = "8d3881f6-dd93-46f0-b29d-1c36bdb5c9f9";
   static final String VALID_OKAPI_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX2FkbWluIiwidXNlcl9pZCI6ImQ5ZDk1ODJlLTY2YWQtNWJkMC1iM2NiLTdkYjIwZTc1MzljYyIsImlhdCI6MTU3NDgxMTgzMCwidGVuYW50Ijoic3VwZXJ0ZW5hbnQifQ.wN7g6iBVw1czV2lBdZySQHpX-dKcK35Wc0f3mFvKEOs";
   static final Header X_OKAPI_URL = new Header(OKAPI_URL, "http://localhost:" + mockPort);
+  public static final Header X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, FINANCE_TENANT);
+  public static final Header EMPTY_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "EmptyConfig");
+  public static final Header INVALID_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "InvalidConfig");
+  public static final Header ERROR_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, ERROR_TENANT);
   static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, VALID_OKAPI_TOKEN);
-  public static final Header X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "financeimpltest");
   public static final String BAD_QUERY = "unprocessableQuery";
   public static final String ID_DOES_NOT_EXIST = "d25498e7-3ae6-45fe-9612-ec99e2700d2f";
   public static final String SERIES_DOES_NOT_EXIST = ID_DOES_NOT_EXIST;
@@ -169,6 +174,26 @@ public class ApiTestBase {
     assertThat(rqRsEntries, hasSize(0));
   }
 
+  /**
+   * Compare the record returned with the record that was sent in request, properties to be ignored from comparision can be added
+   * @param method
+   * @param record
+   * @param testEntity
+   * @param ignoreProperties - Properties that will be ignored from comparison
+   */
+  void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity, String ignoreProperties) {
+    // Verify that record sent to storage is the same as in response
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(1));
+
+    // remove "metadata" before comparing
+    JsonObject entry = rqRsEntries.get(0);
+    entry.remove("metadata");
+    Object recordToStorage = entry.mapTo(testEntity.getClazz());
+
+    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
+  }
+
   void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
     // Verify that record sent to storage is the same as in response
     List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
@@ -179,7 +204,7 @@ public class ApiTestBase {
     entry.remove("metadata");
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
 
-    assertThat(record.mapTo(testEntity.getClazz()), equalTo(recordToStorage));
+    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz())));
   }
 
   Headers prepareHeaders(Header... headers) {

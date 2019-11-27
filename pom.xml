@@ -38,6 +38,7 @@
     <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo</jsonschema2pojo_output_dir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <mod-configuration-client.version>5.1.0</mod-configuration-client.version>
   </properties>
 
   <dependencyManagement>
@@ -64,6 +65,12 @@
       <groupId>org.folio</groupId>
       <artifactId>domain-models-runtime</artifactId>
       <version>${raml-module-builder.version}</version>
+      <exclusions>
+    <exclusion>
+    	<groupId>org.hamcrest</groupId>
+    	<artifactId>hamcrest-all</artifactId>
+    </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -92,6 +99,11 @@
       <version>0.7.0</version>
     </dependency>
     <dependency>
+      <groupId>org.folio</groupId>
+      <artifactId>mod-configuration-client</artifactId>
+      <version>${mod-configuration-client.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
@@ -100,7 +112,13 @@
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-runner</artifactId>
       <scope>test</scope>
-    </dependency>
+      <exclusions>
+         <exclusion>
+            <groupId>org.hamcrest</groupId>
+             <artifactId>hamcrest-core</artifactId>
+         </exclusion>
+      </exclusions>
+    </dependency>  
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>

@@ -33,7 +33,7 @@ public enum TestEntities {
   FUND("funds", getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE("fundTypes", getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
   GROUP_FUND_FISCAL_YEAR("groupFundFiscalYears", getEndpoint(FinanceGroupFundFiscalYears.class), GroupFundFiscalYear.class, "mockdata/group-fund-fiscal-years/group_fund_fiscal_years.json", "groupFundFiscalYears[0]", "allocated", 10000, 1),
-  FISCAL_YEAR("fiscalYears", getEndpoint(FinanceFiscalYears.class), FiscalYear.class, "mockdata/fiscal-years/fiscal_years.json", "fiscalYears[0]", "code", "FY2020", 1),
+  FISCAL_YEAR("fiscalYears", getEndpoint(FinanceFiscalYears.class), FiscalYear.class, "mockdata/fiscal-years/fiscal_years.json", "fiscalYears[0]", "code", "FY2020", 1, "currency"),
   LEDGER("ledgers", getEndpoint(FinanceLedgers.class), Ledger.class, "mockdata/ledgers/ledgers.json", "ledgers[0]", "ledgerStatus", "Active", 1),
   GROUP("groups", getEndpoint(FinanceGroups.class), Group.class, "mockdata/groups/groups.json", "groups[0]", "status", "Frozen", 1),
   TRANSACTIONS("Transaction", getEndpoint(Finance.class) + "/transactions", Transaction.class, "mockdata/transactions/transactions.json", "transactions[0]", "amount", 25, 1),
@@ -54,12 +54,26 @@ public enum TestEntities {
     this.collectionQuantity = collectionQuantity;
   }
 
+  TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+      Object updatedFieldValue, int collectionQuantity, String ignoreProperties) {
+    this.name = name;
+    this.endpoint = endpoint;
+    this.clazz = clazz;
+    this.jsonPathToObject = jsonPathToSample;
+    this.pathToFileWithData = pathToSamples;
+    this.updatedFieldName = updatedFieldName;
+    this.updatedFieldValue = updatedFieldValue;
+    this.collectionQuantity = collectionQuantity;
+    this.ignoreProperties = ignoreProperties;
+  }
+
   private final String name;
   private int collectionQuantity;
   private String endpoint;
   private String jsonPathToObject;
   private String pathToFileWithData;
   private String updatedFieldName;
+  private String ignoreProperties;
   private Object updatedFieldValue;
   private Class clazz;
 
@@ -116,5 +130,13 @@ public enum TestEntities {
 
   public String getName() {
     return name;
+  }
+
+  public String getIgnoreProperties() {
+    return ignoreProperties;
+  }
+
+  public void setIgnoreProperties(String ignoreProperties) {
+    this.ignoreProperties = ignoreProperties;
   }
 }
