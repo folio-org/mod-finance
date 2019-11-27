@@ -93,8 +93,8 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
-  private FiscalYear getFYearWithSeries(FiscalYear fiscalYear) {
+  private void getFYearWithSeries(FiscalYear fiscalYear) {
     String code = fiscalYear.getCode();
-    return fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+    fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
   }
 }
