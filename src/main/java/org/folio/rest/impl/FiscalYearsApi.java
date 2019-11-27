@@ -22,13 +22,18 @@ import io.vertx.core.Handler;
 public class FiscalYearsApi implements FinanceFiscalYears {
 
   private static final String FISCAL_YEARS_LOCATION_PREFIX = getEndpoint(FinanceFiscalYears.class) + "/%s";
+  private static final int FISCAL_YEAR_LENGTH = 4;
 
   @Validate
   @Override
-  public void postFinanceFiscalYears(String lang, FiscalYear entity, Map<String, String> headers,
+  public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
-    helper.createFiscalYear(entity)
+
+    // series should always be calculated
+    setFYearWithSeries(fiscalYear);
+
+    helper.createFiscalYear(fiscalYear)
       .thenAccept(fy -> handler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FISCAL_YEARS_LOCATION_PREFIX, fy.getId()), fy))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
@@ -47,20 +52,23 @@ public class FiscalYearsApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void putFinanceFiscalYearsById(String id, String lang, FiscalYear entity, Map<String, String> headers,
+  public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
 
     // Set id if this is available only in path
-    if (isEmpty(entity.getId())) {
-      entity.setId(id);
-    } else if (!id.equals(entity.getId())) {
+    if (isEmpty(fiscalYearRequest.getId())) {
+      fiscalYearRequest.setId(id);
+    } else if (!id.equals(fiscalYearRequest.getId())) {
       helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
       handler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
     }
 
-    helper.updateFiscalYear(entity)
+    // series should always be calculated
+    setFYearWithSeries(fiscalYearRequest);
+
+    helper.updateFiscalYear(fiscalYearRequest)
       .thenAccept(fiscalYear -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
@@ -85,4 +93,8 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
+  private void setFYearWithSeries(FiscalYear fiscalYear) {
+    String code = fiscalYear.getCode();
+    fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+  }
 }

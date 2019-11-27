@@ -39,8 +39,9 @@ public class ApiTestBase {
 
   public static final String OKAPI_URL = "X-Okapi-Url";
   static final String VALID_UUID = "8d3881f6-dd93-46f0-b29d-1c36bdb5c9f9";
+  static final String VALID_OKAPI_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0aW5nX2FkbWluIiwidXNlcl9pZCI6ImQ5ZDk1ODJlLTY2YWQtNWJkMC1iM2NiLTdkYjIwZTc1MzljYyIsImlhdCI6MTU3NDgxMTgzMCwidGVuYW50Ijoic3VwZXJ0ZW5hbnQifQ.wN7g6iBVw1czV2lBdZySQHpX-dKcK35Wc0f3mFvKEOs";
   static final Header X_OKAPI_URL = new Header(OKAPI_URL, "http://localhost:" + mockPort);
-  static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, "eyJhbGciOiJIUzI1NiJ9");
+  static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, VALID_OKAPI_TOKEN);
   public static final Header X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "financeimpltest");
   public static final String BAD_QUERY = "unprocessableQuery";
   public static final String ID_DOES_NOT_EXIST = "d25498e7-3ae6-45fe-9612-ec99e2700d2f";
