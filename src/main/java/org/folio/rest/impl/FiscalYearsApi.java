@@ -29,10 +29,9 @@ public class FiscalYearsApi implements FinanceFiscalYears {
   public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
-    String code = fiscalYear.getCode();
 
     // series should always be calculated
-    fiscalYear.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+    getFYearWithSeries(fiscalYear);
 
     helper.createFiscalYear(fiscalYear)
       .thenAccept(fy -> handler
@@ -56,7 +55,6 @@ public class FiscalYearsApi implements FinanceFiscalYears {
   public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
-    String code = fiscalYearRequest.getCode();
 
     // Set id if this is available only in path
     if (isEmpty(fiscalYearRequest.getId())) {
@@ -68,7 +66,7 @@ public class FiscalYearsApi implements FinanceFiscalYears {
     }
 
     // series should always be calculated
-    fiscalYearRequest.setSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+    getFYearWithSeries(fiscalYearRequest);
 
     helper.updateFiscalYear(fiscalYearRequest)
       .thenAccept(fiscalYear -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
@@ -95,4 +93,8 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
+  private FiscalYear getFYearWithSeries(FiscalYear fiscalYear) {
+    String code = fiscalYear.getCode();
+    return fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
+  }
 }
