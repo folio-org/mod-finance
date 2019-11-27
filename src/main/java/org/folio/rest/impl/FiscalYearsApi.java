@@ -31,7 +31,7 @@ public class FiscalYearsApi implements FinanceFiscalYears {
     FiscalYearsHelper helper = new FiscalYearsHelper(headers, ctx, lang);
 
     // series should always be calculated
-    getFYearWithSeries(fiscalYear);
+    setFYearWithSeries(fiscalYear);
 
     helper.createFiscalYear(fiscalYear)
       .thenAccept(fy -> handler
@@ -66,7 +66,7 @@ public class FiscalYearsApi implements FinanceFiscalYears {
     }
 
     // series should always be calculated
-    getFYearWithSeries(fiscalYearRequest);
+    setFYearWithSeries(fiscalYearRequest);
 
     helper.updateFiscalYear(fiscalYearRequest)
       .thenAccept(fiscalYear -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
@@ -93,7 +93,7 @@ public class FiscalYearsApi implements FinanceFiscalYears {
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
-  private void getFYearWithSeries(FiscalYear fiscalYear) {
+  private void setFYearWithSeries(FiscalYear fiscalYear) {
     String code = fiscalYear.getCode();
     fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
   }
