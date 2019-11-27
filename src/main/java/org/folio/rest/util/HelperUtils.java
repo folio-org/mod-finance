@@ -203,6 +203,7 @@ public class HelperUtils {
       future.completeExceptionally(e);
     }
     return future;
+  }
 
   public static Void handleErrorResponse(Handler<AsyncResult<javax.ws.rs.core.Response>> handler, AbstractHelper helper, Throwable t) {
     handler.handle(succeededFuture(helper.buildErrorResponse(t)));

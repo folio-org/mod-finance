@@ -28,7 +28,7 @@ public class FiscalYearTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(FiscalYearTest.class);
 
   @Test
-  public void testPostFiscalYearWithCurreny() {
+  public void testPostFiscalYearWithCurrency() {
     logger.info("=== Test create FiscalYear with Currency record populated===");
 
     Response response = verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject(), APPLICATION_JSON,
@@ -58,7 +58,7 @@ public class FiscalYearTest extends ApiTestBase {
   }
 
   @Test
-  public void testPutFiscalYearWithCurreny() {
+  public void testPutFiscalYearWithCurrency() {
     logger.info("=== Test update FiscalYear with Currency record populated===");
 
     JsonObject body = FISCAL_YEAR.getMockObject();
