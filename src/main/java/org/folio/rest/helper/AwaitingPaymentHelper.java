@@ -22,12 +22,10 @@ public class AwaitingPaymentHelper extends AbstractHelper {
    * @return {@link CompletableFuture<Void>} returns empty result
    */
   public CompletableFuture<Void> moveToAwaitingPayment(AwaitingPayment awaitingPayment) {
-    String query = "id==" + awaitingPayment.getEncumbranceId();
-
     TransactionsHelper transactionsHelper = new TransactionsHelper(okapiHeaders, ctx, lang);
 
-    return transactionsHelper.getTransactions(1, 0, query)
-      .thenApply(tr -> modifyTransaction(tr.getTransactions().get(0), awaitingPayment.getAmountAwaitingPayment()))
+    return transactionsHelper.getTransaction(awaitingPayment.getEncumbranceId())
+      .thenApply(tr -> modifyTransaction(tr, awaitingPayment.getAmountAwaitingPayment()))
       .thenCompose(transactionsHelper::updateTransaction);
   }
 
