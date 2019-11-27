@@ -401,6 +401,21 @@
       ]
     },
     {
+      "id": "finance.group-fiscal-year-summaries",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/group-fiscal-year-summaries",
+          "permissionsRequired": ["finance.group-fiscal-year-summaries.collection.get"],
+          "modulePermissions": [
+            "finance-storage.budgets.collection.get",
+            "finance-storage.group-fund-fiscal-years.collection.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -744,6 +759,11 @@
       "description" : "Move money from encumbered to awaiting payment"
     },
     {
+      "permissionName": "finance.group-fiscal-year-summaries.collection.get",
+      "displayName": "Finances - get group fiscal year summaries",
+      "description": "Get group fiscal year summaries collection"
+    },
+    {
       "permissionName" : "finance.order-transaction-summaries.item.post",
       "displayName" : "Finances - Post Order transaction Summaries",
       "description" : "Post Order Transaction Summary"
@@ -762,6 +782,7 @@
         "finance.groups.all",
         "finance.transactions.all",
         "finance.awaiting-payment.item.post",
+        "finance.group-fiscal-year-summaries.collection.get",
         "finance.order-transaction-summaries.item.post"
       ],
       "visible": false
@@ -778,7 +799,7 @@
     },
     "env": [
       { "name": "JAVA_OPTIONS",
-        "value": "-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+        "value": "-XX:MaxRAMPercentage=66.0"
       }
     ]
   }

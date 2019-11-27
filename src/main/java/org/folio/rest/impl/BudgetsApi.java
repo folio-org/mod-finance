@@ -3,6 +3,7 @@ package org.folio.rest.impl;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
 
@@ -10,7 +11,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.BudgetsHelper;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
@@ -96,8 +96,4 @@ public class BudgetsApi implements FinanceBudgets {
 
   }
 
-  private Void handleErrorResponse(Handler<AsyncResult<Response>> handler, AbstractHelper helper, Throwable t) {
-    handler.handle(succeededFuture(helper.buildErrorResponse(t)));
-    return null;
-  }
 }
