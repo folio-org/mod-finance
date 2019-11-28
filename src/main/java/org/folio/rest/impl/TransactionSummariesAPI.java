@@ -2,6 +2,7 @@ package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -9,7 +10,6 @@ import io.vertx.core.Handler;
 import java.util.Map;
 import javax.ws.rs.core.Response;
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.TransactionSummariesHelper;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
@@ -30,9 +30,5 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
-  private Void handleErrorResponse(Handler<AsyncResult<Response>> handler, AbstractHelper helper, Throwable t) {
-    handler.handle(succeededFuture(helper.buildErrorResponse(t)));
-    return null;
-  }
 }
 
