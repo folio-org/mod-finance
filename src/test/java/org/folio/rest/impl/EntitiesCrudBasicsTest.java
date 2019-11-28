@@ -8,9 +8,9 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.MockServer.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
+import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -24,9 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.TestEntities;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -102,6 +104,27 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
     return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY));
+  }
+
+  @Test
+  public void testPostRecordEmptySeriesFY() throws IOException {
+    logger.info("=== Test create {} record empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
+    JsonObject record = TestEntities.FISCAL_YEAR.getMockObject();
+    record.putNull("series");
+    
+    FiscalYear fiscalYear = verifyPostResponse(TestEntities.FISCAL_YEAR.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(FiscalYear.class);
+    assertThat(fiscalYear.getSeries(), is(notNullValue()));
+  }
+
+  @Test
+  public void testUpdateRecordEmptySeriesFY() {
+    logger.info("=== Test update {} record with empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
+
+    JsonObject body = TestEntities.FISCAL_YEAR.getMockObject();
+    body.putNull("series");
+
+    verifyPut(TestEntities.FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+    assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
   }
 
   @ParameterizedTest
@@ -187,7 +210,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject record = testEntity.getMockObject();
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity);
+    compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity, testEntity.getIgnoreProperties());
   }
 
   @ParameterizedTest
@@ -233,7 +256,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject expected = JsonObject.mapFrom(body);
 
     verifyPut(testEntity.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
-    compareRecordWithSentToStorage(HttpMethod.PUT, expected, testEntity);
+    compareRecordWithSentToStorage(HttpMethod.PUT, expected, testEntity, testEntity.getIgnoreProperties());
   }
 
   @ParameterizedTest

@@ -174,7 +174,8 @@
           "pathPattern": "/finance/fiscal-years",
           "permissionsRequired": ["finance.fiscal-years.item.post"],
           "modulePermissions": [
-            "finance-storage.fiscal-years.item.post"
+            "finance-storage.fiscal-years.item.post",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -190,7 +191,8 @@
           "pathPattern": "/finance/fiscal-years/{id}",
           "permissionsRequired": ["finance.fiscal-years.item.put"],
           "modulePermissions": [
-            "finance-storage.fiscal-years.item.put"
+            "finance-storage.fiscal-years.item.put",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -452,6 +454,10 @@
     {
      "id": "finance-storage.transactions",
       "version":"1.0"
+    },
+    {
+     "id": "configuration",
+      "version":"2.0"
     },
     {
      "id": "finance-storage.order-transaction-summaries",
