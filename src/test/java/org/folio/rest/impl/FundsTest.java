@@ -27,6 +27,7 @@ import static org.hamcrest.Matchers.hasSize;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -161,12 +162,19 @@ public class FundsTest extends ApiTestBase {
 
     logger.info("=== Test Get Composite Fund record by id, get Group Fund Fiscal Year by query Internal server error ===");
 
+    LocalDateTime now = LocalDateTime.now();
+
     FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    fiscalYearOne.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
     FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
     fiscalYear.setId(ID_FOR_INTERNAL_SERVER_ERROR);
-    fiscalYear.setPeriodEnd(Date.from(fiscalYearOne.getPeriodStart().toInstant().plusSeconds(1000)));
+    fiscalYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(5)));
+    fiscalYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYear));
 
     verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);

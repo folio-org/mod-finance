@@ -17,6 +17,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -101,13 +102,13 @@ public class FundsHelper extends AbstractHelper {
 
   public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId) {
     FiscalYearsHelper fiscalYearsHelper = new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang);
-    return getTwoFirstFiscalYears(ledgerId, fiscalYearsHelper)
-      .thenApply(twoFirstFiscalYears -> {
-        if(CollectionUtils.isNotEmpty(twoFirstFiscalYears)) {
-          if(twoFirstFiscalYears.size() > 1 && isOverlapped(twoFirstFiscalYears.get(0), twoFirstFiscalYears.get(1))) {
-            return twoFirstFiscalYears.get(1);
+    return getFirstTwoFiscalYears(ledgerId, fiscalYearsHelper)
+      .thenApply(firstTwoFiscalYears -> {
+        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
+          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
+            return firstTwoFiscalYears.get(1);
           } else {
-            return twoFirstFiscalYears.get(0);
+            return firstTwoFiscalYears.get(0);
           }
         } else {
           return null;
@@ -115,11 +116,14 @@ public class FundsHelper extends AbstractHelper {
       });
   }
 
-  private boolean isOverlapped(FiscalYear first, FiscalYear second) {
-    return first.getPeriodEnd().after(second.getPeriodStart());
+  private boolean isOverlapped(FiscalYear firstYear, FiscalYear secondYear) {
+    Date now = new Date();
+    return firstYear.getPeriodStart().before(now) && firstYear.getPeriodEnd().after(now)
+      && secondYear.getPeriodStart().before(now) && secondYear.getPeriodEnd().after(now)
+      && firstYear.getPeriodEnd().after(secondYear.getPeriodStart());
   }
 
-  private CompletableFuture<List<FiscalYear>> getTwoFirstFiscalYears(String ledgerId, FiscalYearsHelper fiscalYearsHelper) {
+  private CompletableFuture<List<FiscalYear>> getFirstTwoFiscalYears(String ledgerId, FiscalYearsHelper fiscalYearsHelper) {
     return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getLedger(ledgerId)
       .thenCompose(ledger -> fiscalYearsHelper.getFiscalYear(ledger.getFiscalYearOneId()))
       .thenApply(this::buildCurrentFYQuery)

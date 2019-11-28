@@ -18,7 +18,7 @@ import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.util.HelperUtils;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -47,11 +47,15 @@ public class CurrentFiscalYearTest extends ApiTestBase {
 
     logger.info("=== Test Get Current Fiscal Year - Two Overlapped Fiscal Years ===");
 
+    LocalDateTime now = LocalDateTime.now();
+
     FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
-    firstYear.setPeriodEnd(new Date());
+    firstYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    firstYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
 
     FiscalYear secondYear = new FiscalYear().withId(UUID.randomUUID().toString());
-    secondYear.setPeriodStart(Date.from(firstYear.getPeriodEnd().toInstant().minusSeconds(1000)));
+    secondYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(5)));
+    secondYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
 
     String ledgerId = UUID.randomUUID().toString();
     Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstYear.getId());
@@ -68,11 +72,15 @@ public class CurrentFiscalYearTest extends ApiTestBase {
 
     logger.info("=== Test Get Current Fiscal Year - Two Non-Overlapped Fiscal Years ===");
 
+    LocalDateTime now = LocalDateTime.now();
+
     FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
-    firstYear.setPeriodEnd(new Date());
+    firstYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    firstYear.setPeriodEnd(convertLocalDateTimeToDate(now));
 
     FiscalYear secondYear = new FiscalYear().withId(UUID.randomUUID().toString());
-    secondYear.setPeriodStart(Date.from(firstYear.getPeriodEnd().toInstant().plusSeconds(1000)));
+    secondYear.setPeriodStart(convertLocalDateTimeToDate(now.plusDays(10)));
+    secondYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(20)));
 
     String ledgerId = UUID.randomUUID().toString();
     Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstYear.getId());
