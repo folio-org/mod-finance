@@ -11,6 +11,7 @@ documentation:
 
 types:
   ledger: !include acq-models/mod-finance/schemas/ledger.json
+  fiscal_year: !include acq-models/mod-finance/schemas/fiscal_year.json
   ledgersCollection: !include acq-models/mod-finance/schemas/ledger_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
@@ -26,7 +27,7 @@ traits:
 resourceTypes:
   collection: !include raml-util/rtypes/collection.raml
   collection-item: !include raml-util/rtypes/item-collection.raml
-  get-only: !include raml-util/rtypes/get-only.raml
+  item-collection-get: !include raml-util/rtypes/item-collection-get.raml
 
 /finance/ledgers:
   displayName: Finance ledger
@@ -57,3 +58,10 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/ledger.sample
     put:
       is: [validate]
+    /current-fiscal-year:
+      displayName: Current fiscal year
+      description: Get current fiscal year for a specific ledger
+      type:
+        item-collection-get:
+          schema: fiscal_year
+          exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample

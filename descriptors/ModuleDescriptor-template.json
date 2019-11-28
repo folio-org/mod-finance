@@ -278,6 +278,16 @@
           "modulePermissions": [
             "finance-storage.ledgers.item.delete"
           ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledgers/{id}/current-fiscal-year",
+          "permissionsRequired": ["finance.ledgers.current-fiscal-year.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get"
+          ]
         }
       ]
     },
@@ -633,6 +643,11 @@
       "description" : "Delete a ledger"
     },
     {
+      "permissionName" : "finance.ledgers.current-fiscal-year.item.get",
+      "displayName" : "Ledgers - get a current fiscal year for a specific ledger",
+      "description" : "Get a current fiscal year"
+    },
+    {
       "permissionName" : "finance.ledgers.all",
       "displayName" : "All ledger permissions",
       "description" : "All permissions for the ledger APIs",
@@ -641,7 +656,8 @@
         "finance.ledgers.item.post",
         "finance.ledgers.item.get",
         "finance.ledgers.item.put",
-        "finance.ledgers.item.delete"
+        "finance.ledgers.item.delete",
+        "finance.ledgers.current-fiscal-year.item.get"
       ]
     },
     {

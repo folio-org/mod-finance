@@ -3,13 +3,13 @@ package org.folio.rest.impl;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.resource.Finance;
@@ -93,8 +93,4 @@ public class TransactionsApi implements Finance {
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
-  private Void handleErrorResponse(Handler<AsyncResult<Response>> handler, AbstractHelper helper, Throwable t) {
-    handler.handle(succeededFuture(helper.buildErrorResponse(t)));
-    return null;
-  }
 }
