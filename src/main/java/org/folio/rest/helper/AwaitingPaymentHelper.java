@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.jaxrs.model.AwaitingPayment;
+import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
 
@@ -25,19 +26,18 @@ public class AwaitingPaymentHelper extends AbstractHelper {
     TransactionsHelper transactionsHelper = new TransactionsHelper(okapiHeaders, ctx, lang);
 
     return transactionsHelper.getTransaction(awaitingPayment.getEncumbranceId())
-      .thenApply(tr -> modifyTransaction(tr, awaitingPayment.getAmountAwaitingPayment()))
+      .thenApply(tr -> modifyTransaction(tr, awaitingPayment))
       .thenCompose(transactionsHelper::updateTransaction);
   }
 
-  private Transaction modifyTransaction(Transaction transaction, Double amountAwaitingPayment) {
+  private Transaction modifyTransaction(Transaction transaction, AwaitingPayment awaitingPayment) {
     Double currentAwaitingPaymentAmount = transaction.getEncumbrance().getAmountAwaitingPayment();
-    Double currentAmountExpended = transaction.getEncumbrance().getAmountExpended();
     String currency = transaction.getCurrency();
 
     transaction.getEncumbrance()
-      .setAmountAwaitingPayment(MoneyUtils.sumDoubleValues(currentAwaitingPaymentAmount, amountAwaitingPayment, currency));
-    transaction.getEncumbrance()
-      .setAmountExpended(MoneyUtils.subtractDoubleValues(currentAmountExpended, amountAwaitingPayment, currency));
+      .setAmountAwaitingPayment(MoneyUtils.sumDoubleValues(currentAwaitingPaymentAmount, awaitingPayment.getAmountAwaitingPayment(), currency));
+
+    transaction.getEncumbrance().setStatus(awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
     return transaction;
   }
 }

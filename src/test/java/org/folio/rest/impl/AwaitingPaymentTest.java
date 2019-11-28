@@ -6,11 +6,12 @@ import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import java.io.IOException;
 
 import org.folio.rest.jaxrs.model.AwaitingPayment;
+import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.MoneyUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.http.HttpMethod;
@@ -36,13 +37,11 @@ class AwaitingPaymentTest extends ApiTestBase {
 
     Double amount = awaitingPayment.getAmountAwaitingPayment();
     Double currentAwaitingPayment = transaction.getEncumbrance().getAmountAwaitingPayment();
-    Double currentExpended = transaction.getEncumbrance().getAmountExpended();
 
     Double updatedAwaitingPayment = updatedTransaction.getEncumbrance().getAmountAwaitingPayment();
-    Double updatedExpended = updatedTransaction.getEncumbrance().getAmountExpended();
 
-    Assert.assertEquals(updatedAwaitingPayment,MoneyUtils.sumDoubleValues(currentAwaitingPayment, amount, transaction.getCurrency()), 2);
-    Assert.assertEquals(updatedExpended, MoneyUtils.subtractDoubleValues(currentExpended, amount, transaction.getCurrency()), 2);
+    Assertions.assertEquals(updatedAwaitingPayment, MoneyUtils.sumDoubleValues(currentAwaitingPayment, amount, transaction.getCurrency()), 2);
+    Assertions.assertEquals(updatedTransaction.getEncumbrance().getStatus(), awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
   }
 
   private Transaction getTransactionMockById(String id) throws IOException {
