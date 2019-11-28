@@ -1,6 +1,7 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
 
@@ -24,9 +25,6 @@ public class AwaitingPaymentApi implements FinanceAwaitingPayment {
     AwaitingPaymentHelper helper = new AwaitingPaymentHelper(okapiHeaders, vertxContext, lang);
     helper.moveToAwaitingPayment(awaitingPayment)
       .thenAccept(v -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(t -> {
-        handler.handle(succeededFuture(helper.buildErrorResponse(t)));
-        return null;
-      });
+      .exceptionally(t -> handleErrorResponse(handler, helper, t));
   }
 }
