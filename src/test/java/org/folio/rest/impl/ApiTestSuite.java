@@ -82,6 +82,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class FiscalYearTestNested extends FiscalYearTest {
+  }
+
+  @Nested
   class GroupFiscalYearSummariesTestNested extends GroupFiscalYearSummariesTest {
   }
 }
