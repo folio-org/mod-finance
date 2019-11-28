@@ -284,6 +284,7 @@
           "pathPattern": "/finance/ledgers/{id}/current-fiscal-year",
           "permissionsRequired": ["finance.ledgers.current-fiscal-year.item.get"],
           "modulePermissions": [
+            "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.collection.get"
           ]
         }
