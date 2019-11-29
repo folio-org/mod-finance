@@ -14,6 +14,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -228,5 +231,11 @@ public class ApiTestBase {
         return sb.toString();
       }
     }
+  }
+
+  static Date convertLocalDateTimeToDate(LocalDateTime dateToConvert) {
+    return Date
+      .from(dateToConvert.atZone(ZoneId.systemDefault())
+        .toInstant());
   }
 }
