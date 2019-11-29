@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.AwaitingPaymentHelper;
+import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.model.AwaitingPayment;
 import org.folio.rest.jaxrs.resource.FinanceAwaitingPayment;
 
@@ -22,7 +22,7 @@ public class AwaitingPaymentApi implements FinanceAwaitingPayment {
   @Validate
   public void postFinanceAwaitingPayment(String lang, AwaitingPayment awaitingPayment, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> handler, Context vertxContext) {
-    AwaitingPaymentHelper helper = new AwaitingPaymentHelper(okapiHeaders, vertxContext, lang);
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
     helper.moveToAwaitingPayment(awaitingPayment)
       .thenAccept(v -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
       .exceptionally(t -> handleErrorResponse(handler, helper, t));

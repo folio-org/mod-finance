@@ -397,7 +397,7 @@
           "permissionsRequired": ["finance.awaiting-payment.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.put",
-            "finance-storage.transactions.collection.get"
+            "finance-storage.transactions.item.get"
           ]
         }
       ]
