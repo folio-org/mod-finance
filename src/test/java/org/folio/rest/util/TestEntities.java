@@ -36,7 +36,7 @@ public enum TestEntities {
   FISCAL_YEAR("fiscalYears", getEndpoint(FinanceFiscalYears.class), FiscalYear.class, "mockdata/fiscal-years/fiscal_years.json", "fiscalYears[0]", "code", "FY2020", 1, "currency"),
   LEDGER("ledgers", getEndpoint(FinanceLedgers.class), Ledger.class, "mockdata/ledgers/ledgers.json", "ledgers[0]", "ledgerStatus", "Active", 1),
   GROUP("groups", getEndpoint(FinanceGroups.class), Group.class, "mockdata/groups/groups.json", "groups[0]", "status", "Frozen", 1),
-  TRANSACTIONS("Transaction", getEndpoint(Finance.class) + "/transactions", Transaction.class, "mockdata/transactions/transactions.json", "transactions[0]", "amount", 25, 1),
+  TRANSACTIONS("Transaction", getEndpoint(Finance.class) + "/transactions", Transaction.class, "mockdata/transactions/transactions.json", "transactions[0]", "amount", 25, 2),
   TRANSACTIONS_ALLOCATION("Allocation", getEndpoint(Finance.class) + "/allocations", Transaction.class, "mockdata/transactions/allocations.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_TRANSFER("Transfer", getEndpoint(Finance.class) + "/transfers", Transaction.class, "mockdata/transactions/transfers.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_ENCUMBRANCE("Encumbrance", getEndpoint(Finance.class) + "/encumbrances", Transaction.class, "mockdata/transactions/encumbrances.json", "transactions[0]", "amount", 25, 1),

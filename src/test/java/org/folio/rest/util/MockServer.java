@@ -102,7 +102,7 @@ public class MockServer {
     // Setup Mock Server...
     HttpServer server = vertx.createHttpServer();
     CompletableFuture<HttpServer> deploymentComplete = new CompletableFuture<>();
-    server.requestHandler(defineRoutes()::accept).listen(port, result -> {
+    server.requestHandler(defineRoutes()).listen(port, result -> {
       if(result.succeeded()) {
         deploymentComplete.complete(result.result());
       }
@@ -232,6 +232,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
 
     return router;
   }
@@ -675,7 +677,7 @@ public class MockServer {
   }
 
   private List<String> extractIdsFromQuery(String fieldName, String relation, String query) {
-    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?(.+)\\).*").matcher(query);
+    Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?([^)]+).*").matcher(query);
     if (matcher.find()) {
       return StreamEx.split(matcher.group(1), " or ").toList();
     } else {
