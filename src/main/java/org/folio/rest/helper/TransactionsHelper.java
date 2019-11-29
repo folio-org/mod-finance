@@ -52,11 +52,9 @@ public class TransactionsHelper extends AbstractHelper {
    * @return {@link CompletableFuture<Void>} returns empty result
    */
   public CompletableFuture<Void> moveToAwaitingPayment(AwaitingPayment awaitingPayment) {
-    TransactionsHelper transactionsHelper = new TransactionsHelper(okapiHeaders, ctx, lang);
-
-    return transactionsHelper.getTransaction(awaitingPayment.getEncumbranceId())
+    return getTransaction(awaitingPayment.getEncumbranceId())
       .thenApply(tr -> modifyTransaction(tr, awaitingPayment))
-      .thenCompose(transactionsHelper::updateTransaction);
+      .thenCompose(this::updateTransaction);
   }
 
   private Transaction modifyTransaction(Transaction transaction, AwaitingPayment awaitingPayment) {
