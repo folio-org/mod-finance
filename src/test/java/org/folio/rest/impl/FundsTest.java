@@ -9,7 +9,6 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.HelperUtils.getFiscalYearDuration;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getQueryParams;
 import static org.folio.rest.util.MockServer.getRecordById;
@@ -162,12 +161,20 @@ public class FundsTest extends ApiTestBase {
 
     logger.info("=== Test Get Composite Fund record by id, get Group Fund Fiscal Year by query Internal server error ===");
 
-    FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
-    fiscalYear.setId(ID_FOR_INTERNAL_SERVER_ERROR);
-    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYear));
+    LocalDateTime now = LocalDateTime.now();
 
     FiscalYear fiscalYearOne = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYearOne.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    fiscalYearOne.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
+
+    FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYear.setId(ID_FOR_INTERNAL_SERVER_ERROR);
+    fiscalYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(5)));
+    fiscalYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYear));
 
     verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
@@ -640,10 +647,8 @@ public class FundsTest extends ApiTestBase {
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {
     String query = getQueryParams(FISCAL_YEAR.name()).get(0);
     String now = LocalDate.now(Clock.systemUTC()).toString();
-    String next = LocalDateTime.now(Clock.systemUTC()).plus(getFiscalYearDuration(fiscalYearOne)).toLocalDate().toString();
     assertThat(query, containsString(fiscalYearOne.getSeries()));
     assertThat(query, containsString(now));
-    assertThat(query, containsString(next));
   }
 
   private void verifyRsEntitiesQuantity(HttpMethod httpMethod, TestEntities entity, int expectedQuantity) {

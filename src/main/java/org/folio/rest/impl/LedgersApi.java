@@ -7,10 +7,13 @@ import static org.folio.rest.util.HelperUtils.getEndpoint;
 import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
+import java.util.Objects;
 
 import javax.ws.rs.core.Response;
 
+import org.folio.HttpStatus;
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.helper.FundsHelper;
 import org.folio.rest.helper.LedgersHelper;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
@@ -83,6 +86,21 @@ public class LedgersApi implements FinanceLedgers {
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
     helper.deleteLedger(id)
       .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+  }
+
+  @Validate
+  @Override
+  public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
+    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
+    helper.getCurrentFiscalYear(ledgerId)
+      .thenAccept(currentFiscalYear -> {
+        if(Objects.nonNull(currentFiscalYear)) {
+          handler.handle(succeededFuture(helper.buildOkResponse(currentFiscalYear)));
+        } else {
+          handler.handle(succeededFuture(helper.buildErrorResponse(HttpStatus.HTTP_NOT_FOUND.toInt())));
+        }
+      })
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
 
