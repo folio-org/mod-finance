@@ -140,6 +140,7 @@
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.groups.collection.get",
+            "finance-storage.budgets.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.post",
             "finance-storage.group-fund-fiscal-years.item.delete"

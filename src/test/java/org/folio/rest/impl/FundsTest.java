@@ -12,6 +12,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getQueryParams;
 import static org.folio.rest.util.MockServer.getRecordById;
+import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
@@ -387,6 +388,7 @@ public class FundsTest extends ApiTestBase {
 
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
 
     List<JsonObject> createdGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR.name());
@@ -436,6 +438,7 @@ public class FundsTest extends ApiTestBase {
 
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
 
     List<JsonObject> createdGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR.name());
@@ -478,6 +481,7 @@ public class FundsTest extends ApiTestBase {
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
 
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
 
     List<JsonObject> deletedGroupFundFiscalYears = MockServer.getRqRsEntries(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR.name());
@@ -519,6 +523,7 @@ public class FundsTest extends ApiTestBase {
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
     verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -553,6 +558,7 @@ public class FundsTest extends ApiTestBase {
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
     verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -579,6 +585,7 @@ public class FundsTest extends ApiTestBase {
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 0);
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);
+    verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
     verifyRsEntitiesQuantity(HttpMethod.DELETE, GROUP_FUND_FISCAL_YEAR, 0);
 
   }

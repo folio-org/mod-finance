@@ -29,6 +29,7 @@ import java.util.concurrent.CompletionStage;
 import one.util.streamex.StreamEx;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
@@ -49,11 +50,13 @@ public class FundsHelper extends AbstractHelper {
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>%s sortBy periodStart";
 
   private GroupsHelper groupsHelper;
+  private BudgetsHelper budgetsHelper;
   private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
     groupsHelper = new GroupsHelper(httpClient, okapiHeaders, ctx, lang);
+    budgetsHelper = new BudgetsHelper(httpClient, okapiHeaders, ctx, lang);
     groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
   }
 
@@ -143,18 +146,19 @@ public class FundsHelper extends AbstractHelper {
       .toArray(CompletableFuture[]::new));
   }
 
-  private List<GroupFundFiscalYear> buildGroupFundFiscalYears(CompositeFund compositeFund, String fiscalYearId, List<String> groupIds) {
+  private List<GroupFundFiscalYear> buildGroupFundFiscalYears(CompositeFund compositeFund, String budgetId, String fiscalYearId, List<String> groupIds) {
     return StreamEx.of(groupIds)
-      .map(groupId -> buildGroupFundFiscalYear(compositeFund, fiscalYearId, groupId))
+      .map(groupId -> buildGroupFundFiscalYear(compositeFund, budgetId, fiscalYearId, groupId))
       .toList();
   }
 
   private List<GroupFundFiscalYear> buildGroupFundFiscalYears(CompositeFund compositeFund, String fiscalYearId) {
-    return buildGroupFundFiscalYears(compositeFund, fiscalYearId, compositeFund.getGroupIds());
+    return buildGroupFundFiscalYears(compositeFund, null, fiscalYearId, compositeFund.getGroupIds());
   }
 
-  private GroupFundFiscalYear buildGroupFundFiscalYear(CompositeFund compositeFund, String fiscalYearId, String groupId) {
+  private GroupFundFiscalYear buildGroupFundFiscalYear(CompositeFund compositeFund, String budgetId, String fiscalYearId, String groupId) {
     return new GroupFundFiscalYear().withGroupId(groupId)
+      .withBudgetId(budgetId)
       .withFundId(compositeFund.getFund().getId())
       .withFiscalYearId(fiscalYearId);
   }
@@ -212,9 +216,17 @@ public class FundsHelper extends AbstractHelper {
   private CompletionStage<Void> createGroupFundFiscalYears(CompositeFund compositeFund, String currentFiscalYearId, List<String> groupIdsForCreation) {
     if(CollectionUtils.isNotEmpty(groupIdsForCreation)) {
       return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
-        .thenCompose(collection -> {
-          if(collection.getTotalRecords() == groupIdsForCreation.size()) {
-            return assignFundToGroups(buildGroupFundFiscalYears(compositeFund, currentFiscalYearId, groupIdsForCreation));
+        .thenCompose(groupsCollection -> {
+          if(groupsCollection.getTotalRecords() == groupIdsForCreation.size()) {
+            return budgetsHelper.getBudgets(1, 0, getBudgetsCollectionQuery(currentFiscalYearId, compositeFund.getFund().getId()))
+                .thenCompose(budgetsCollection -> {
+                  List<Budget> budgets = budgetsCollection.getBudgets();
+                  String budgetId = null;
+                  if(!budgets.isEmpty()) {
+                    budgetId = budgets.get(0).getId();
+                  }
+                  return assignFundToGroups(buildGroupFundFiscalYears(compositeFund, budgetId, currentFiscalYearId, groupIdsForCreation));
+                });
           } else {
             throw new HttpException(422, GROUP_NOT_FOUND);
           }
@@ -253,6 +265,10 @@ public class FundsHelper extends AbstractHelper {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
       }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS, fund.getId(), lang), fund));
+  }
+
+  private String getBudgetsCollectionQuery(String currentFiscalYearId, String fundId) {
+    return String.format("fundId=%s AND fiscalYearId=%s", fundId, currentFiscalYearId);
   }
 
   public CompletableFuture<Void> deleteFund(String id) {
