@@ -44,9 +44,7 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Void> updateBudgetIdForGroupFundFiscalYears(Budget budget) {
-    String query = "fundId==" + budget.getFundId() + " AND fiscalYearId==" + budget.getFiscalYearId();
-
-    return getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
+    return getGroupFundFiscalYearCollection(budget.getFundId(), budget.getFiscalYearId())
       .thenCompose(gfFys -> processGroupFundFyUpdate(budget, gfFys));
   }
 
@@ -56,6 +54,11 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
       .map(gffy -> handleUpdateRequest(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, gffy.getId(), lang), gffy.withBudgetId(budget.getId())))
       .toArray(CompletableFuture[]::new);
     return CompletableFuture.allOf(futures);
+  }
+
+  CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId) {
+    String query = String.format("fundId==%s AND fiscalYearId==%s", fundId, currentFYId);
+    return this.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query);
   }
 
 }
