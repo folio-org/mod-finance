@@ -38,7 +38,6 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
@@ -191,13 +190,8 @@ public class FundsHelper extends AbstractHelper {
       .toArray(CompletableFuture[]::new));
   }
 
-  private CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId) {
-    String query = String.format("fundId==%s AND fiscalYearId==%s", fundId, currentFYId);
-    return groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query);
-  }
-
   private CompletionStage<List<String>> getGroupIdsThatFundBelongs(String fundId, String currentFYId) {
-    return getGroupFundFiscalYearCollection(fundId, currentFYId)
+    return groupFundFiscalYearHelper.getGroupFundFiscalYearCollection(fundId, currentFYId)
       .thenApply(groupFundFiscalYearCollection -> groupFundFiscalYearCollection.getGroupFundFiscalYears()
         .stream()
         .map(GroupFundFiscalYear::getGroupId)
@@ -205,7 +199,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private CompletionStage<List<GroupFundFiscalYear>> getGroupFundFiscalYearsThatFundBelongs(String fundId, String currentFYId) {
-    return getGroupFundFiscalYearCollection(fundId, currentFYId)
+    return groupFundFiscalYearHelper.getGroupFundFiscalYearCollection(fundId, currentFYId)
       .thenApply(groupFundFiscalYearCollection -> new ArrayList<>(groupFundFiscalYearCollection.getGroupFundFiscalYears()));
   }
 

@@ -10,6 +10,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
@@ -41,4 +42,23 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
   public CompletableFuture<Void> deleteGroupFundFiscalYear(String id) {
     return handleDeleteRequest(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, id, lang));
   }
+
+  public CompletableFuture<Void> updateBudgetIdForGroupFundFiscalYears(Budget budget) {
+    return getGroupFundFiscalYearCollection(budget.getFundId(), budget.getFiscalYearId())
+      .thenCompose(gfFys -> processGroupFundFyUpdate(budget, gfFys));
+  }
+
+  private CompletableFuture<Void> processGroupFundFyUpdate(Budget budget, GroupFundFiscalYearCollection gffyCollection) {
+    CompletableFuture[] futures = gffyCollection.getGroupFundFiscalYears()
+      .stream()
+      .map(gffy -> handleUpdateRequest(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, gffy.getId(), lang), gffy.withBudgetId(budget.getId())))
+      .toArray(CompletableFuture[]::new);
+    return CompletableFuture.allOf(futures);
+  }
+
+  CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId) {
+    String query = String.format("fundId==%s AND fiscalYearId==%s", fundId, currentFYId);
+    return this.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query);
+  }
+
 }

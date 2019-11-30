@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.BudgetsHelper;
+import org.folio.rest.helper.GroupFundFiscalYearHelper;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
 
@@ -28,11 +29,13 @@ public class BudgetsApi implements FinanceBudgets {
   public void postFinanceBudgets(String lang, Budget entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
     BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    GroupFundFiscalYearHelper groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(headers, ctx, lang);
     helper.createBudget(entity)
-      .thenAccept(type -> handler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, type.getId()), type))))
+      .thenCompose(createdBudget -> groupFundFiscalYearHelper.updateBudgetIdForGroupFundFiscalYears(createdBudget)
+        .thenApply(v -> createdBudget))
+      .thenAccept(createdBudget -> handler.handle(
+          succeededFuture(helper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
-
   }
 
   @Validate

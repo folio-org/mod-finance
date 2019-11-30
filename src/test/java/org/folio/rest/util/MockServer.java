@@ -232,6 +232,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
 
