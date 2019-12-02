@@ -15,7 +15,7 @@ import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.folio.rest.util.HelperUtils.verifyAndExtractBody;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +31,6 @@ import org.folio.rest.tools.utils.TenantTool;
 import org.folio.rest.util.HelperUtils;
 
 import io.vertx.core.Context;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -53,6 +52,7 @@ public abstract class AbstractHelper {
 
 
   AbstractHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+    setDefaultHeaders(httpClient);
     this.httpClient = httpClient;
     this.okapiHeaders = okapiHeaders;
     this.ctx = ctx;
@@ -60,16 +60,30 @@ public abstract class AbstractHelper {
   }
 
   AbstractHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
-    this(getHttpClient(okapiHeaders), okapiHeaders, ctx, lang);
+    this.httpClient = getHttpClient(okapiHeaders, true);
+    this.okapiHeaders = okapiHeaders;
+    this.ctx = ctx;
+    this.lang = lang;
   }
 
-  public static HttpClientInterface getHttpClient(Map<String, String> okapiHeaders) {
+  protected AbstractHelper(Context ctx) {
+    this.httpClient = null;
+    this.okapiHeaders = null;
+    this.lang = null;
+    this.ctx = ctx;
+  }
+
+
+  public static HttpClientInterface getHttpClient(Map<String, String> okapiHeaders, boolean setDefaultHeaders) {
     final String okapiURL = okapiHeaders.getOrDefault(OKAPI_URL, "");
     final String tenantId = TenantTool.calculateTenantId(okapiHeaders.get(OKAPI_HEADER_TENANT));
 
     HttpClientInterface httpClient = HttpClientFactory.getHttpClient(okapiURL, tenantId);
 
-    setDefaultHeaders(httpClient);
+    // Some requests do not have body and in happy flow do not produce response body. The Accept header is required for calls to storage
+    if (setDefaultHeaders) {
+      setDefaultHeaders(httpClient);
+    }
     return httpClient;
   }
 
@@ -77,9 +91,7 @@ public abstract class AbstractHelper {
    * Some requests do not have body and might not produce response body. The Accept header is required for calls to storage
    */
   private static void setDefaultHeaders(HttpClientInterface httpClient) {
-    Map<String, String> customHeader = new HashMap<>();
-    customHeader.put(HttpHeaders.ACCEPT.toString(), APPLICATION_JSON + ", " + TEXT_PLAIN);
-    httpClient.setDefaultHeaders(customHeader);
+    httpClient.setDefaultHeaders(Collections.singletonMap("Accept", APPLICATION_JSON + ", " + TEXT_PLAIN));
   }
 
   public void closeHttpClient() {
