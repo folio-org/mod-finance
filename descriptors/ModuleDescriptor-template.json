@@ -445,7 +445,7 @@
   "requires": [
     {
       "id": "finance-storage.budgets",
-      "version": "1.0"
+      "version": "2.0"
     },
     {
       "id": "finance-storage.fund-types",
@@ -453,11 +453,11 @@
     },
     {
       "id": "finance-storage.funds",
-      "version": "2.0"
+      "version": "3.0"
     },
     {
       "id": "finance-storage.fiscal-years",
-      "version": "1.0"
+      "version": "2.0"
     },
     {
       "id": "finance-storage.groups",
@@ -465,7 +465,7 @@
     },
     {
       "id": "finance-storage.ledgers",
-      "version": "1.0"
+      "version": "2.0"
     },
     {
      "id": "finance-storage.groups",
@@ -473,7 +473,7 @@
     },
     {
      "id": "finance-storage.transactions",
-      "version":"1.0"
+      "version":"2.0"
     },
     {
      "id": "configuration",
