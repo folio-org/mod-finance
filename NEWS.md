@@ -6,6 +6,7 @@ The primary focus of this release was to update the finance API according to sig
 ### Stories
 * [MODFIN-99](https://issues.folio.org/browse/MODFIN-99) Update groupFundFiscalYear when fund is updated
 * [MODFIN-97](https://issues.folio.org/browse/MODFIN-97) Update groupFundFiscalYear when budget is created
+* [MODFIN-95](https://issues.folio.org/browse/MODFIN-95) Use JVM features to manage container memory
 * [MODFIN-94](https://issues.folio.org/browse/MODFIN-94) Add series field while creating a FiscalYear
 * [MODFIN-93](https://issues.folio.org/browse/MODFIN-93) Create an API to fetch the current FY for a ledger
 * [MODFIN-88](https://issues.folio.org/browse/MODFIN-88) Create order_transaction_summaries API
