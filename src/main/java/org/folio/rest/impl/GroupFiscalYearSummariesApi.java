@@ -18,9 +18,9 @@ public class GroupFiscalYearSummariesApi implements FinanceGroupFiscalYearSummar
 
   @Override
   @Validate
-  public void getFinanceGroupFiscalYearSummaries(int offset, int limit, String query, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context ctx) {
+  public void getFinanceGroupFiscalYearSummaries(String query, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context ctx) {
     GroupFiscalYearSummariesHelper helper = new GroupFiscalYearSummariesHelper(headers, ctx, lang);
-    helper.getGroupFiscalYearSummaries(limit, offset, query)
+    helper.getGroupFiscalYearSummaries(query)
       .thenAccept(groupFundFiscalYearSummaries -> handler.handle(succeededFuture(helper.buildOkResponse(groupFundFiscalYearSummaries))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }

@@ -14,7 +14,6 @@ types:
 
 traits:
   language: !include raml-util/traits/language.raml
-  pageable:  !include raml-util/traits/pageable.raml
   searchable: !include raml-util/traits/searchable.raml
 
 resourceTypes:
@@ -29,6 +28,5 @@ resourceTypes:
       exampleCollection: !include acq-models/mod-finance/examples/group_fiscal_year_summary_collection.sample
   get:
     is: [
-      pageable,
       searchable: {description: "with valid searchable fields: for example fund.ledgerId", example: "[\"fund.ledgerId\", \"6e2fbba3-d557-4480-bca3-b6f5c645de04\", \"=\"]"}
     ]
