@@ -33,9 +33,9 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
     groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
   }
 
-  public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(int limit, int offset, String query) {
+  public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query) {
     return budgetsHelper.getBudgets(Integer.MAX_VALUE, 0, query)
-      .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(limit, offset, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
+      .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
 
         Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets().stream()
           .collect(groupingBy(Budget::getFundId,
