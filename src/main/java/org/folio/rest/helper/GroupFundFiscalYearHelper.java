@@ -2,7 +2,6 @@ package org.folio.rest.helper;
 
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -35,7 +34,7 @@ public class GroupFundFiscalYearHelper extends AbstractHelper {
 
   public CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYears(int limit, int offset, String query) {
     String endpoint = String.format(GET_GROUP_FUND_FISCAL_YEARS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(GroupFundFiscalYearCollection.class)));
   }
 

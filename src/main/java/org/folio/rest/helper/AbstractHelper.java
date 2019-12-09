@@ -1,5 +1,6 @@
 package org.folio.rest.helper;
 
+import static java.util.Objects.nonNull;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -205,6 +206,36 @@ public abstract class AbstractHelper {
 
     return future;
   }
+
+
+  public CompletableFuture<JsonObject> handleGetRequest(String endpoint) {
+    CompletableFuture<JsonObject> future = new VertxCompletableFuture<>(ctx);
+    try {
+      logger.info(CALLING_ENDPOINT_MSG, HttpMethod.GET, endpoint);
+
+      httpClient.request(HttpMethod.GET, endpoint, okapiHeaders)
+        .thenApply(response -> {
+          logger.debug("Validating response for GET {}", endpoint);
+          return verifyAndExtractBody(response);
+        })
+        .thenAccept(body -> {
+          if (logger.isInfoEnabled()) {
+            logger.info("The response body for GET {}: {}", endpoint, nonNull(body) ? body.encodePrettily() : null);
+          }
+          future.complete(body);
+        })
+        .exceptionally(t -> {
+          logger.error(EXCEPTION_CALLING_ENDPOINT_MSG, t, HttpMethod.GET, endpoint);
+          future.completeExceptionally(t);
+          return null;
+        });
+    } catch (Exception e) {
+      logger.error(EXCEPTION_CALLING_ENDPOINT_MSG, e, HttpMethod.GET, endpoint);
+      future.completeExceptionally(e);
+    }
+    return future;
+  }
+
 
   private String verifyAndExtractRecordId(org.folio.rest.tools.client.Response response) {
     logger.debug("Validating received response");
