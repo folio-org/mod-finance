@@ -9,6 +9,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -17,6 +18,7 @@ import org.folio.rest.jaxrs.model.Transaction.Source;
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.rest.util.ErrorCodes;
 
 public class BudgetsHelper extends AbstractHelper {
 
@@ -35,7 +37,10 @@ public class BudgetsHelper extends AbstractHelper {
     budget.setAllocated(0.0);
     return handleCreateRequest(resourcesPath(BUDGETS), budget).thenCompose(budgetId -> {
       if (allocatedValue > 0.0) {
-        return createAllocationTransaction(budget.withAllocated(allocatedValue)).thenApply(v -> budget.withId(budgetId));
+        return createAllocationTransaction(budget.withAllocated(allocatedValue)).thenApply(v -> budget.withId(budgetId))
+          .exceptionally(e -> {
+            throw new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED);
+          });
       }
       return CompletableFuture.completedFuture(budget.withId(budgetId));
     });
