@@ -143,29 +143,28 @@ public class ApiTestBase {
   }
 
   Response verifyGet(String url, Headers headers, String expectedContentType, int expectedCode) {
-    return verifyGet(RestAssured.with()
-      .headers(headers), url, expectedContentType, expectedCode);
+    final RequestSpecification specification = RestAssured.with()
+      .headers(headers);
+    return verifyGet(specification, url, expectedContentType, expectedCode);
   }
 
   Response verifyGetWithParam(String url, String expectedContentType, int expectedCode, String paramName, String paramValue) {
     Headers headers = prepareHeaders(X_OKAPI_URL, X_OKAPI_TENANT);
-    return verifyGet(RestAssured.with()
+    RequestSpecification specification = RestAssured.with()
       .headers(headers)
-      .queryParam(paramName, paramValue),
-      url,
-      expectedContentType,
-      expectedCode);
+      .queryParam(paramName, paramValue);
+    return verifyGet(specification, url, expectedContentType, expectedCode);
   }
 
   Response verifyGet(RequestSpecification requestSpecification, String url, String expectedContentType, int expectedCode) {
     return requestSpecification
       .get(url)
-      .then()
-      .log().all()
-      .statusCode(expectedCode)
-      .contentType(expectedContentType)
-      .extract()
-      .response();
+        .then()
+          .log().all()
+          .statusCode(expectedCode)
+          .contentType(expectedContentType)
+            .extract()
+              .response();
   }
 
   Response verifyDeleteResponse(String url, String expectedContentType, int expectedCode) {

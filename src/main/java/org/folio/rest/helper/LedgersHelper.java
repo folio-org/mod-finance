@@ -1,7 +1,7 @@
 package org.folio.rest.helper;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static org.codehaus.plexus.util.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.LEDGER_FY_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.handleGetRequest;
