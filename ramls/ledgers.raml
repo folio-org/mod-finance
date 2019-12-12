@@ -58,6 +58,11 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/ledger.sample
     put:
       is: [validate]
+    get:
+      queryParameters:
+        fiscalYear:
+          description: The UUID of a fiscal year
+          type: UUID
     /current-fiscal-year:
       displayName: Current fiscal year
       description: Get current fiscal year for a specific ledger

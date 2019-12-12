@@ -10,7 +10,8 @@ public enum ErrorCodes {
   GROUP_NOT_FOUND("groupNotFound", "Cannot find group"),
   INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
   INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1"),
-  CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch currency from Locale");
+  CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch currency from Locale"),
+  LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year");
 
   private final String code;
   private final String description;
