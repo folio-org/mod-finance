@@ -1,0 +1,13 @@
+{
+  "ledgerFY": [
+    {
+      "ledgerId": "133a7916-f05e-4df4-8f7f-09eb2a7076d1",
+      "fiscalYearId": "ac2164c7-ba3d-1bc2-a12c-e35ceccbfaf2",
+      "allocated": 2000,
+      "available": 1000,
+      "unavailable": 1000,
+      "currency": "USD"
+    }
+  ],
+  "totalRecords": 1
+}

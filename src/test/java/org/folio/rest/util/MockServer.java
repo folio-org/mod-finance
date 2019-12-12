@@ -7,25 +7,26 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.impl.ApiTestBase.BAD_QUERY;
+import static org.folio.rest.impl.ApiTestBase.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.impl.ApiTestBase.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.impl.ApiTestBase.ERROR_TENANT;
 import static org.folio.rest.impl.ApiTestBase.ID_DOES_NOT_EXIST;
 import static org.folio.rest.impl.ApiTestBase.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
-import static org.folio.rest.impl.ApiTestBase.getMockData;
-import static org.folio.rest.impl.ApiTestBase.ERROR_TENANT;
-import static org.folio.rest.impl.ApiTestBase.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
-import static org.folio.rest.impl.ApiTestBase.EMPTY_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
+import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
+import static org.folio.rest.impl.ApiTestBase.getMockData;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
+import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
-import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.Assert.fail;
 
@@ -45,6 +46,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.acq.model.finance.LedgerFY;
+import org.folio.rest.acq.model.finance.LedgerFYCollection;
 import org.folio.rest.impl.ApiTestBase;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -60,9 +63,9 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.jaxrs.model.GroupsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
-import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -86,6 +89,7 @@ public class MockServer {
   private static final String QUERY = "query";
   private static final String ID_PATH_PARAM = "/:" + ID;
   static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
+  private static final String LEDGER_FYS_MOCK_PATH = BASE_MOCK_DATA_PATH + "ledger-fiscal-year/ledger-fiscal-years.json";
 
   private final int port;
   private final Vertx vertx;
@@ -183,6 +187,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(LEDGERS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
+    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS))
+      .handler(this::handleGetLedgerFyCollection);
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
@@ -238,6 +244,43 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
 
     return router;
+  }
+
+  private void handleGetLedgerFyCollection(RoutingContext ctx) {
+    String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
+    addServerRqQuery(LEDGER_FYS, query);
+    if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
+      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else if (query.contains(BAD_QUERY)) {
+      serverResponse(ctx, 400, APPLICATION_JSON, BAD_REQUEST.getReasonPhrase());
+    } else if (query.contains(ID_DOES_NOT_EXIST)) {
+      LedgerFYCollection emptyCollection = new LedgerFYCollection();
+      emptyCollection.setTotalRecords(0);
+      serverResponse(ctx,200, APPLICATION_JSON, JsonObject.mapFrom(emptyCollection).encodePrettily());
+    }
+    try {
+      Supplier<List<LedgerFY>> getFromFile = () -> {
+        try {
+          return new JsonObject(getMockData(LEDGER_FYS_MOCK_PATH)).mapTo(LedgerFYCollection.class)
+            .getLedgerFY();
+        } catch (IOException e) {
+          return Collections.emptyList();
+        }
+      };
+      LedgerFYCollection ledgerFYCollection = new LedgerFYCollection();
+      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS, LedgerFY.class).orElseGet(getFromFile);
+
+      ledgerFYCollection.setTotalRecords(ledgerFYs.size());
+      ledgerFYCollection.setLedgerFY(ledgerFYs);
+      JsonObject responseRecord = JsonObject.mapFrom(ledgerFYCollection);
+      addServerRqRsData(HttpMethod.GET, LEDGER_FYS, responseRecord);
+      ctx.response()
+        .setStatusCode(200)
+        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+        .end(responseRecord.encodePrettily());
+    } catch (Exception e) {
+      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    }
   }
 
   private void handleGetCollection(RoutingContext ctx, TestEntities testEntity) {

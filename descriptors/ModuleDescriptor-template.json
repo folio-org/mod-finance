@@ -263,7 +263,8 @@
           "pathPattern": "/finance/ledgers/{id}",
           "permissionsRequired": ["finance.ledgers.item.get"],
           "modulePermissions": [
-            "finance-storage.ledgers.item.get"
+            "finance-storage.ledgers.item.get",
+            "finance-storage.ledgersFY.collection.get"
           ]
         },
         {
