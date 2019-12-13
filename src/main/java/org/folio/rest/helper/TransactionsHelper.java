@@ -1,5 +1,7 @@
 package org.folio.rest.helper;
 
+import static org.folio.rest.util.ErrorCodes.BUDGET_IS_INACTIVE;
+import static org.folio.rest.util.ErrorCodes.FUND_CANNOT_BE_PAID;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
@@ -9,14 +11,16 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.AwaitingPayment;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
+import org.folio.rest.util.MoneyUtils;
 
 import io.vertx.core.Context;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
-import org.folio.rest.util.MoneyUtils;
 
 public class TransactionsHelper extends AbstractHelper {
 
@@ -66,6 +70,28 @@ public class TransactionsHelper extends AbstractHelper {
 
     transaction.getEncumbrance().setStatus(awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
     return transaction;
+  }
+
+  public CompletableFuture<Transaction> createEncumbrance(Transaction encumbrance) {
+    return checkEncumbranceRestrictions(encumbrance)
+      .thenCompose(v -> createTransaction(encumbrance));
+  }
+
+  public CompletableFuture<Void> checkEncumbranceRestrictions(Transaction encumbrance) {
+    String query = "fund.id==" + encumbrance.getFromFundId() + " AND fiscalYear.id==" + encumbrance.getFiscalYearId();
+    return new BudgetsHelper(httpClient, okapiHeaders, ctx, lang).getSingleBudgetByQuery(query)
+      .thenCompose(budget -> {
+        if (budget.getBudgetStatus() == Budget.BudgetStatus.ACTIVE) {
+          return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getSingleLedgerByQuery(query)
+            .thenAccept(ledger -> {
+              if (ledger.getRestrictEncumbrance() && budget.getAllowableEncumbrance() != null && (encumbrance.getAmount() > budget.getAvailable())) {
+                throw new HttpException(422, FUND_CANNOT_BE_PAID);
+              }
+            });
+        } else {
+          throw new HttpException(422, BUDGET_IS_INACTIVE);
+        }
+      });
   }
 
 }

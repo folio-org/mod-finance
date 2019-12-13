@@ -6,6 +6,7 @@ import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +37,14 @@ public class BudgetsHelper extends AbstractHelper {
     String endpoint = String.format(GET_BUDGETS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
       .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(BudgetsCollection.class)));
+  }
+
+  public CompletableFuture<List<Budget>> getBudgetList(int limit, int offset, String query) {
+    return getBudgets(limit, offset, query).thenApply(BudgetsCollection::getBudgets);
+  }
+
+  public CompletableFuture<Budget> getSingleBudgetByQuery(String query) {
+    return getBudgetList(1, 0, query).thenApply(budgets-> budgets.get(0));
   }
 
   public CompletableFuture<Budget> getBudget(String id) {

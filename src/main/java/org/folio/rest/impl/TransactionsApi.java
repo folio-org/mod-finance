@@ -34,8 +34,8 @@ public class TransactionsApi implements Finance {
       return;
     }
     helper.createTransaction(allocation)
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(tx -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, tx.getId()), tx))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
@@ -51,8 +51,8 @@ public class TransactionsApi implements Finance {
       return;
     }
     helper.createTransaction(transfer)
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(tx -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, tx.getId()), tx))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
@@ -67,9 +67,9 @@ public class TransactionsApi implements Finance {
       asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
     }
-    helper.createTransaction(encumbrance)
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+    helper.createEncumbrance(encumbrance)
+      .thenAccept(tx -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, tx.getId()), tx))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
@@ -79,7 +79,7 @@ public class TransactionsApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
     helper.getTransactions(limit, offset, query)
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(types))))
+      .thenAccept(txCollection -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(txCollection))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
@@ -89,7 +89,7 @@ public class TransactionsApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
     helper.getTransaction(id)
-      .thenAccept(type -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(type))))
+      .thenAccept(tx -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(tx))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 

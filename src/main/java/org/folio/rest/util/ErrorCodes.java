@@ -11,7 +11,9 @@ public enum ErrorCodes {
   INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
   INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1"),
   CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch currency from Locale"),
-  LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year");
+  LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year"),
+  FUND_CANNOT_BE_PAID("fundCanNotBePaid", "Fund cannot be paid due to restrictions"),
+  BUDGET_IS_INACTIVE("budgetIsInactive", "Cannot create encumbrance from the not active budget");
 
   private final String code;
   private final String description;

@@ -10,6 +10,7 @@ import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,6 +48,14 @@ public class LedgersHelper extends AbstractHelper {
     String endpoint = String.format(GET_LEDGERS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
       .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(LedgersCollection.class)));
+  }
+
+  public CompletableFuture<List<Ledger>> getLedgerList(int limit, int offset, String query) {
+    return getLedgers(limit, offset, query).thenApply(LedgersCollection::getLedgers);
+  }
+
+  public CompletableFuture<Ledger> getSingleLedgerByQuery(String query) {
+    return getLedgerList(1, 0, query).thenApply(ledgers -> ledgers.get(0));
   }
 
   public CompletableFuture<Ledger> getLedgerWithSummary(String ledgerId, String fiscalYearId) {
