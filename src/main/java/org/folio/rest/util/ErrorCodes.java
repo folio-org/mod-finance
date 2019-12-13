@@ -11,7 +11,8 @@ public enum ErrorCodes {
   INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
   INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1"),
   CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch currency from Locale"),
-  ALLOCATION_TRANSFER_FAILED("failedAllocationTransaction", "Failed to create allocation transaction for a budget");
+  ALLOCATION_TRANSFER_FAILED("failedAllocationTransaction", "Failed to create allocation transaction for a budget"),
+  LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year");
 
   private final String code;
   private final String description;

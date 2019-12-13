@@ -88,4 +88,8 @@ public class ApiTestSuite {
   @Nested
   class GroupFiscalYearSummariesTestNested extends GroupFiscalYearSummariesTest {
   }
+
+  @Nested
+  class LedgerSummaryTestNested extends LedgerSummaryTest {
+  }
 }

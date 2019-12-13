@@ -71,10 +71,10 @@ public class LedgersApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void getFinanceLedgersById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceLedgersById(String ledgerId, String fiscalYearId, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
-    helper.getLedger(id)
+    helper.getLedgerWithSummary(ledgerId, fiscalYearId)
       .thenAccept(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }

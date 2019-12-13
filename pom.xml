@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-finance</artifactId>
@@ -29,12 +31,14 @@
   </ciManagement>
 
   <properties>
-    <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
+    <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas
+    </jsonschema_paths>
     <raml-module-builder.version>29.0.1</raml-module-builder.version>
     <vertx.version>3.8.1</vertx.version>
     <rest-assured.version>4.1.1</rest-assured.version>
     <generated_sources_dir>${project.build.directory}/generated-sources</generated_sources_dir>
-    <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo</jsonschema2pojo_output_dir>
+    <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo
+    </jsonschema2pojo_output_dir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <mod-configuration-client.version>5.1.0</mod-configuration-client.version>
@@ -117,7 +121,7 @@
              <artifactId>hamcrest-core</artifactId>
          </exclusion>
       </exclusions>
-    </dependency>  
+    </dependency>
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
@@ -162,7 +166,9 @@
         <version>2.22.2</version>
         <configuration>
           <systemPropertyVariables>
-            <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.Log4j2LogDelegateFactory</vertx.logger-delegate-factory-class-name>
+            <vertx.logger-delegate-factory-class-name>
+              io.vertx.core.logging.Log4j2LogDelegateFactory
+            </vertx.logger-delegate-factory-class-name>
           </systemPropertyVariables>
           <excludes>
             <exclude>org/folio/rest/impl/**Test.class</exclude>
@@ -180,7 +186,20 @@
         <configuration>
           <includes>*.json</includes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
+          <generateBuilders>true</generateBuilders>
         </configuration>
+        <executions>
+          <execution>
+            <id>mod-finance</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${basedir}/ramls/acq-models/mod-finance/schemas</sourceDirectory>
+              <targetPackage>org.folio.rest.acq.model.finance</targetPackage>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -351,11 +370,14 @@
               <fileSets>
                 <fileSet>
                   <sourceFile>${project.build.directory}/ModuleDescriptor-template.json</sourceFile>
-                  <destinationFile>${project.build.directory}/ModuleDescriptor.json</destinationFile>
+                  <destinationFile>${project.build.directory}/ModuleDescriptor.json
+                  </destinationFile>
                 </fileSet>
                 <fileSet>
-                  <sourceFile>${project.build.directory}/DeploymentDescriptor-template.json</sourceFile>
-                  <destinationFile>${project.build.directory}/DeploymentDescriptor.json</destinationFile>
+                  <sourceFile>${project.build.directory}/DeploymentDescriptor-template.json
+                  </sourceFile>
+                  <destinationFile>${project.build.directory}/DeploymentDescriptor.json
+                  </destinationFile>
                 </fileSet>
               </fileSets>
             </configuration>
@@ -376,8 +398,9 @@
             </goals>
             <configuration>
               <target>
-                <replaceregexp match="baseUri:.+$" replace="baseUri: http://localhost:{http.port}" byline="true">
-                  <fileset dir="${basedir}/target/classes/apidocs/raml" includes="**/*.raml" />
+                <replaceregexp match="baseUri:.+$" replace="baseUri: http://localhost:{http.port}"
+                               byline="true">
+                  <fileset dir="${basedir}/target/classes/apidocs/raml" includes="**/*.raml"/>
                 </replaceregexp>
               </target>
             </configuration>
@@ -396,7 +419,8 @@
             </goals>
             <configuration>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <Main-Class>org.folio.rest.RestLauncher</Main-Class>
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
@@ -417,7 +441,7 @@
                   </excludes>
                 </filter>
               </filters>
-              <artifactSet />
+              <artifactSet/>
               <outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
             </configuration>
           </execution>
