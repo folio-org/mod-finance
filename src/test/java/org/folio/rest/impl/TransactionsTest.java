@@ -2,12 +2,15 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.ErrorCodes.BUDGET_IS_INACTIVE;
+import static org.folio.rest.util.ErrorCodes.FUND_CANNOT_BE_PAID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ENCUMBRANCE;
 
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,6 +37,29 @@ public class TransactionsTest extends ApiTestBase {
     Errors errors = verifyPostResponse(TRANSACTIONS_ENCUMBRANCE.getEndpoint(), transaction, APPLICATION_JSON, 422).as(Errors.class);
 
     Assertions.assertEquals(errors.getErrors().get(0).getCode(), BUDGET_IS_INACTIVE.getCode());
+  }
+
+  @Test
+  public void testCreateTransactionWithRestrictedLedger() {
+
+    logger.info("=== Test Get Composite Fund record by id, current Fiscal Year not found ===");
+
+    // prepare ledger with restriction
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    ledger.setRestrictEncumbrance(true);
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+
+
+    // prepare budget with no available funds
+    Budget budget = BUDGET.getMockObject().mapTo(Budget.class);
+    budget.setAvailable(0d);
+    addMockEntry(BUDGET.name(), JsonObject.mapFrom(budget));
+
+    Transaction transaction = TRANSACTIONS_ENCUMBRANCE.getMockObject().mapTo(Transaction.class);
+
+    Errors errors = verifyPostResponse(TRANSACTIONS_ENCUMBRANCE.getEndpoint(), transaction, APPLICATION_JSON, 422).as(Errors.class);
+
+    Assertions.assertEquals(errors.getErrors().get(0).getCode(), FUND_CANNOT_BE_PAID.getCode());
   }
 
 }
