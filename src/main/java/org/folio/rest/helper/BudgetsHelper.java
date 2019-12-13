@@ -34,9 +34,9 @@ public class BudgetsHelper extends AbstractHelper {
 
   public CompletableFuture<Budget> createBudget(Budget budget) {
     double allocatedValue = budget.getAllocated();
-    budget.setAllocated(0.0);
+    budget.setAllocated(0d);
     return handleCreateRequest(resourcesPath(BUDGETS), budget).thenCompose(budgetId -> {
-      if (allocatedValue > 0.0) {
+      if (allocatedValue > 0d) {
         return createAllocationTransaction(budget.withAllocated(allocatedValue)).thenApply(v -> budget.withId(budgetId))
           .exceptionally(e -> {
             throw new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED);
