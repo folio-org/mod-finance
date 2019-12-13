@@ -2,7 +2,6 @@ package org.folio.rest.helper;
 
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -53,12 +52,12 @@ public class FiscalYearsHelper extends AbstractHelper {
 
   public CompletableFuture<FiscalYearsCollection> getFiscalYears(int limit, int offset, String query) {
     String endpoint = String.format(GET_FISCAL_YEARS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FiscalYearsCollection.class)));
   }
 
   public CompletableFuture<FiscalYear> getFiscalYear(String id) {
-    return handleGetRequest(resourceByIdPath(FISCAL_YEARS, id, lang), httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(resourceByIdPath(FISCAL_YEARS, id, lang))
       .thenApply(json -> json.mapTo(FiscalYear.class));
   }
 

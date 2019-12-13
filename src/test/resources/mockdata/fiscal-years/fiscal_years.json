@@ -8,6 +8,7 @@
         "47f504bd-0c1b-498e-a2ae-e2f0a0cea273"
       ],
       "code": "FY2019",
+      "currency": "USD",
       "description": "January 1 - December 30",
       "periodStart": "2020-01-01T00:00:00Z",
       "periodEnd": "2020-12-30T23:59:59Z",

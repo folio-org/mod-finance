@@ -8,7 +8,6 @@ import static org.folio.rest.util.ErrorCodes.GROUP_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.HelperUtils.getSetDifference;
-import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
@@ -65,12 +64,12 @@ public class FundsHelper extends AbstractHelper {
 
   public CompletableFuture<FundTypesCollection> getFundTypes(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUND_TYPES_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundTypesCollection.class)));
   }
 
   public CompletableFuture<FundType> getFundType(String id) {
-    return handleGetRequest(resourceByIdPath(FUND_TYPES, id, lang), httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(resourceByIdPath(FUND_TYPES, id, lang))
       .thenApply(json -> json.mapTo(FundType.class));
   }
 
@@ -164,12 +163,12 @@ public class FundsHelper extends AbstractHelper {
 
   public CompletableFuture<FundsCollection> getFunds(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUNDS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundsCollection.class)));
   }
 
   public CompletableFuture<CompositeFund> getFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS, id, lang), httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
       .thenCompose(compositeFund -> getCurrentFiscalYear(compositeFund.getFund()
         .getLedgerId())

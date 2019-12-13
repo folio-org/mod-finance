@@ -4,7 +4,6 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.LEDGER_FY_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
@@ -45,7 +44,7 @@ public class LedgersHelper extends AbstractHelper {
 
   public CompletableFuture<LedgersCollection> getLedgers(int limit, int offset, String query) {
     String endpoint = String.format(GET_LEDGERS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(LedgersCollection.class)));
   }
 
@@ -62,7 +61,7 @@ public class LedgersHelper extends AbstractHelper {
   private CompletableFuture<LedgerFY> getLedgerFY(String ledgerId, String fiscalYearId) {
     String query = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, fiscalYearId);
     String endpoint = String.format(GET_LEDGERSFY_BY_QUERY, 1, 0, HelperUtils.buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenApply(entries -> {
         LedgerFYCollection ledgerFYs = entries.mapTo(LedgerFYCollection.class);
         if (CollectionUtils.isNotEmpty(ledgerFYs.getLedgerFY())) {
@@ -79,7 +78,7 @@ public class LedgersHelper extends AbstractHelper {
   }
 
   CompletableFuture<Ledger> getLedger(String id) {
-    return handleGetRequest(resourceByIdPath(LEDGERS, id, lang), httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(resourceByIdPath(LEDGERS, id, lang))
       .thenApply(json -> json.mapTo(Ledger.class));
   }
 

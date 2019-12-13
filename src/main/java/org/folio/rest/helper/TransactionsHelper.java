@@ -1,7 +1,6 @@
 package org.folio.rest.helper;
 
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.HelperUtils.handleGetRequest;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -32,12 +31,12 @@ public class TransactionsHelper extends AbstractHelper {
 
   public CompletableFuture<TransactionCollection> getTransactions(int limit, int offset, String query) {
     String endpoint = String.format(GET_TRANSACTIONS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint, httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(endpoint)
       .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(TransactionCollection.class)));
   }
 
   public CompletableFuture<Transaction> getTransaction(String id) {
-    return handleGetRequest(resourceByIdPath(TRANSACTIONS, id, lang), httpClient, ctx, okapiHeaders, logger)
+    return handleGetRequest(resourceByIdPath(TRANSACTIONS, id, lang))
       .thenApply(json -> json.mapTo(Transaction.class));
   }
 

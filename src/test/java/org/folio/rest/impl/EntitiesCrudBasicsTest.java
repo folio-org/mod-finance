@@ -10,7 +10,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
-import static org.folio.rest.util.MockServer.getRqRsEntries;
+import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -23,23 +23,30 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
+import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.restassured.http.Headers;
+import io.restassured.response.Response;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
@@ -104,27 +111,6 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
     return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY));
-  }
-
-  @Test
-  public void testPostRecordEmptySeriesFY() throws IOException {
-    logger.info("=== Test create {} record empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
-    JsonObject record = TestEntities.FISCAL_YEAR.getMockObject();
-    record.putNull("series");
-    
-    FiscalYear fiscalYear = verifyPostResponse(TestEntities.FISCAL_YEAR.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(FiscalYear.class);
-    assertThat(fiscalYear.getSeries(), is(notNullValue()));
-  }
-
-  @Test
-  public void testUpdateRecordEmptySeriesFY() {
-    logger.info("=== Test update {} record with empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
-
-    JsonObject body = TestEntities.FISCAL_YEAR.getMockObject();
-    body.putNull("series");
-
-    verifyPut(TestEntities.FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
-    assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
   }
 
   @ParameterizedTest
@@ -330,4 +316,20 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
+
+  @Test
+  @Order(1)
+  public void testPostBudgetWithAllocated() {
+    logger.info("=== Test create Budget with allocation transaction created===");
+
+    Response response = verifyPostResponse(BUDGET.getEndpoint(), BUDGET.getMockObject(), APPLICATION_JSON, CREATED.getStatusCode());
+    assertThat(response.getBody()
+      .as(Budget.class)
+      .getAllocated(), Matchers.greaterThan(0.0));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name()), hasSize(1));
+
+    verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
+  }
+
+
 }
