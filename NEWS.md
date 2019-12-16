@@ -1,5 +1,12 @@
 ## 1.1.0 - Unreleased
 
+## 1.0.1 - Released
+Bugfix release to fix group-fiscal-year-summaries API and ledger totals calculation
+
+### Bug Fixes
+* [MODFIN-102](https://issues.folio.org/browse/MODFIN-102) GET /finance/group-fiscal-year-summaries pagination bug
+* [MODFIN-98](https://issues.folio.org/browse/MODFIN-98) Ledger not displaying correct allocated total
+
 ## 1.0.0 - Released
 The primary focus of this release was to update the finance API according to significantly updated schemas.
 
