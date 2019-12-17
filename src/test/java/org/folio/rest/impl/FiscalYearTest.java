@@ -8,11 +8,12 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,7 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +35,7 @@ import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.rest.util.MockServer;
+import org.folio.rest.util.TestEntities;
 import org.junit.jupiter.api.Test;
 
 public class FiscalYearTest extends ApiTestBase {
@@ -205,6 +207,27 @@ public class FiscalYearTest extends ApiTestBase {
   @Test
   public void testGetFiscalYearLedgerNotFound() {
     verifyGet(getCurrentFiscalYearEndpoint(UUID.randomUUID().toString()), APPLICATION_JSON, NOT_FOUND.getStatusCode());
+  }
+
+  @Test
+  public void testPostRecordEmptySeriesFY() throws IOException {
+    logger.info("=== Test create {} record empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
+    JsonObject record = TestEntities.FISCAL_YEAR.getMockObject();
+    record.putNull("series");
+
+    FiscalYear fiscalYear = verifyPostResponse(TestEntities.FISCAL_YEAR.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(FiscalYear.class);
+    assertThat(fiscalYear.getSeries(), is(notNullValue()));
+  }
+
+  @Test
+  public void testUpdateRecordEmptySeriesFY() {
+    logger.info("=== Test update {} record with empty series for FY and it should calculate series ===", TestEntities.FISCAL_YEAR);
+
+    JsonObject body = TestEntities.FISCAL_YEAR.getMockObject();
+    body.putNull("series");
+
+    verifyPut(TestEntities.FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+    assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
   }
 
   private String getCurrentFiscalYearEndpoint(String ledgerId) {

@@ -29,7 +29,7 @@ import org.folio.rest.tools.parser.JsonPathParser;
 import io.vertx.core.json.JsonObject;
 
 public enum TestEntities {
-  BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1),
+  BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),
   FUND("funds", getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE("fundTypes", getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
   GROUP_FUND_FISCAL_YEAR("groupFundFiscalYears", getEndpoint(FinanceGroupFundFiscalYears.class), GroupFundFiscalYear.class, "mockdata/group-fund-fiscal-years/group_fund_fiscal_years.json", "groupFundFiscalYears[0]", "allocated", 10000, 1),

@@ -77,34 +77,6 @@ public class HelperUtils {
     return isEmpty(query) ? EMPTY : "&query=" + encodeQuery(query, logger);
   }
 
-  public static CompletableFuture<JsonObject> handleGetRequest(String endpoint, HttpClientInterface httpClient, Context ctx,
-      Map<String, String> okapiHeaders, Logger logger) {
-    CompletableFuture<JsonObject> future = new VertxCompletableFuture<>(ctx);
-    try {
-      logger.info(CALLING_ENDPOINT_MSG, HttpMethod.GET, endpoint);
-
-      httpClient.request(HttpMethod.GET, endpoint, okapiHeaders)
-        .thenApply(response -> {
-          logger.debug("Validating response for GET {}", endpoint);
-          return verifyAndExtractBody(response);
-        })
-        .thenAccept(body -> {
-          if (logger.isInfoEnabled()) {
-            logger.info("The response body for GET {}: {}", endpoint, nonNull(body) ? body.encodePrettily() : null);
-          }
-          future.complete(body);
-        })
-        .exceptionally(t -> {
-          logger.error(EXCEPTION_CALLING_ENDPOINT_MSG, t, HttpMethod.GET, endpoint);
-          future.completeExceptionally(t);
-          return null;
-        });
-    } catch (Exception e) {
-      logger.error(EXCEPTION_CALLING_ENDPOINT_MSG, e, HttpMethod.GET, endpoint);
-      future.completeExceptionally(e);
-    }
-    return future;
-  }
 
   public static void verifyResponse(Response response) {
     if (!Response.isSuccess(response.getCode())) {
