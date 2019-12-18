@@ -25,10 +25,10 @@ public class MoneyUtils {
   }
 
   public static Double multiplyDoubleValues(Double d1, Double d2, String currency) {
-    return subtractValues(d1, d2, currency).doubleValue();
+    return Money.of(d1, currency).multiply(d2).getNumber().doubleValue();
   }
 
   public static Double divideDoubleValues(Double d1, Double d2, String currency) {
-    return subtractValues(d1, d2, currency).doubleValue();
+    return Money.of(d1, currency).divide(d2).getNumber().doubleValue();
   }
 }
