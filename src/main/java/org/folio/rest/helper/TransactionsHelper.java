@@ -3,6 +3,8 @@ package org.folio.rest.helper;
 import static org.folio.rest.util.ErrorCodes.BUDGET_IS_INACTIVE;
 import static org.folio.rest.util.ErrorCodes.FUND_CANNOT_BE_PAID;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
+import static org.folio.rest.util.MoneyUtils.divideDoubleValues;
+import static org.folio.rest.util.MoneyUtils.multiplyDoubleValues;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -14,6 +16,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.AwaitingPayment;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Encumbrance;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.folio.rest.util.MoneyUtils;
@@ -77,20 +80,30 @@ public class TransactionsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Void> checkEncumbranceRestrictions(Transaction encumbrance) {
-    String query = "fund.id==" + encumbrance.getFromFundId() + " AND fiscalYear.id==" + encumbrance.getFiscalYearId();
-    return new BudgetsHelper(httpClient, okapiHeaders, ctx, lang).getSingleBudgetByQuery(query)
+    String budgetQuery = "fundId==" + encumbrance.getFromFundId() + " AND fiscalYearId==" + encumbrance.getFiscalYearId();
+    return new BudgetsHelper(httpClient, okapiHeaders, ctx, lang).getSingleBudgetByQuery(budgetQuery)
       .thenCompose(budget -> {
         if (budget.getBudgetStatus() == Budget.BudgetStatus.ACTIVE) {
-          return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getSingleLedgerByQuery(query)
-            .thenAccept(ledger -> {
-              if (ledger.getRestrictEncumbrance() && budget.getAllowableEncumbrance() != null && (encumbrance.getAmount() > budget.getAvailable())) {
-                throw new HttpException(422, FUND_CANNOT_BE_PAID);
-              }
-            });
+          String ledgerQuery = "fund.id==" + encumbrance.getFromFundId() + " AND fiscalYear.id==" + encumbrance.getFiscalYearId();
+          return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getSingleLedgerByQuery(ledgerQuery)
+            .thenAccept(ledger -> checkLedgerEncumbranceRestrictions(encumbrance, budget, ledger));
         } else {
           throw new HttpException(422, BUDGET_IS_INACTIVE);
         }
       });
+  }
+
+  private void checkLedgerEncumbranceRestrictions(Transaction encumbrance, Budget budget, Ledger ledger) {
+    if (ledger.getRestrictEncumbrance() && budget.getAllowableEncumbrance() != null) {
+      Double availableForEncumbrance = getBudgetAvailableForEncumbrance(budget.getAvailable(), budget.getAllowableEncumbrance(), encumbrance.getCurrency());
+      if (encumbrance.getAmount() > availableForEncumbrance) {
+        throw new HttpException(422, FUND_CANNOT_BE_PAID);
+      }
+    }
+  }
+
+  private Double getBudgetAvailableForEncumbrance(Double budgetAvailable, Double encumbranceAvailable, String currency) {
+    return divideDoubleValues(multiplyDoubleValues(budgetAvailable, encumbranceAvailable, currency), 100d, currency);
   }
 
 }

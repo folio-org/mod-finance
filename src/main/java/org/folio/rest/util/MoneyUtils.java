@@ -23,4 +23,12 @@ public class MoneyUtils {
   public static Double subtractDoubleValues(Double d1, Double d2, String currency) {
     return subtractValues(d1, d2, currency).doubleValue();
   }
+
+  public static Double multiplyDoubleValues(Double d1, Double d2, String currency) {
+    return subtractValues(d1, d2, currency).doubleValue();
+  }
+
+  public static Double divideDoubleValues(Double d1, Double d2, String currency) {
+    return subtractValues(d1, d2, currency).doubleValue();
+  }
 }
