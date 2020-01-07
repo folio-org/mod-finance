@@ -1,7 +1,7 @@
-## 1.2.0 - Released
+## 1.2.0 - Unreleased
 
 ## 1.1.0 - Released
-This release contains changes to the schema in ledger adding fields restrictEncumbrance,restrictExpenditures
+This release contains changes to the schema in ledger adding fields restrictEncumbrance, restrictExpenditures
 
 [Full Changelog](https://github.com/folio-org/mod-finance/compare/v1.0.1...v1.1.0)
 
