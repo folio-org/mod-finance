@@ -7,10 +7,13 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -22,9 +25,14 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
+
+import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
@@ -331,5 +339,65 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
   }
 
+  @Test
+  public void testGetLedgersCollectionWithFiscalYear() {
+    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) ===");
+
+    String fiscalYearId = UUID.randomUUID().toString();
+    double allocated = 10.0d, available = 6.0d, unavailable = 4.0d;
+
+    int i = 0, numOfLedgers = 2;
+
+    while(i++ < numOfLedgers) {
+      Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
+      LedgerFY ledgerFY = new LedgerFY().withFiscalYearId(fiscalYearId).withLedgerId(ledger.getId())
+        .withAllocated(allocated)
+        .withAvailable(available)
+        .withUnavailable(unavailable);
+      MockServer.addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+      MockServer.addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFY));
+    }
+
+    LedgersCollection response = verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear", fiscalYearId).as(LedgersCollection.class);
+
+    // Validate response
+    assertThat(response.getTotalRecords(), is(numOfLedgers));
+    assertThat(response.getLedgers(), hasSize(numOfLedgers));
+
+    // Validate summary population
+    for(Ledger ledger : response.getLedgers()) {
+      assertThat(ledger.getAllocated(), is(allocated));
+      assertThat(ledger.getAvailable(), is(available));
+      assertThat(ledger.getUnavailable(), is(unavailable));
+    }
+
+    // Validate actual requests
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER.name()), hasSize(1));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS), hasSize(1));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers));
+
+  }
+
+  @Test
+  public void testGetLedgersCollectionWithFiscalYearBadQuery() {
+    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Bad Request error ===");
+
+    String query = buildQueryParam(BAD_QUERY);
+    Errors errors = verifyGetWithParam(TestEntities.LEDGER.getEndpoint() + query, APPLICATION_JSON, BAD_REQUEST.getStatusCode(), "fiscalYear", UUID.randomUUID().toString()).as(Errors.class);
+    assertThat(errors.getErrors(), hasSize(1));
+    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
+    assertThat(errors.getErrors().get(0).getMessage(), is("Bad Request"));
+  }
+
+  @Test
+  public void testGetLedgersCollectionWithFiscalYearInternalServerError() {
+    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Internal Server Error ===");
+
+    String query = buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);
+    Errors errors = verifyGet(TestEntities.LEDGER.getEndpoint() + query, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    assertThat(errors.getErrors(), hasSize(1));
+    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
+    assertThat(errors.getErrors().get(0).getMessage(), is("Internal Server Error"));
+  }
 
 }
