@@ -51,7 +51,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
   private static final List<TestEntities> transactionEntities = Arrays.asList(TestEntities.TRANSACTIONS_ALLOCATION,
-      TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER, TestEntities.ORDER_TRANSACTION_SUMMARY);
+      TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
 
   /**
    * Test entities except for FUND
@@ -110,7 +110,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
-    return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY));
+    return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY) && !e.equals(TestEntities.INVOICE_TRANSACTION_SUMMARY));
   }
 
   @ParameterizedTest

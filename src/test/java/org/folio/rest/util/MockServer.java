@@ -61,6 +61,7 @@ import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.jaxrs.model.GroupsCollection;
+import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
@@ -174,6 +175,8 @@ public class MockServer {
       .handler(ctx -> handleTransactionPostEntry(ctx, Transaction.class));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES))
     .handler(ctx -> handlePostEntry(ctx, OrderTransactionSummary.class, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
+    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES))
+    .handler(ctx -> handlePostEntry(ctx, InvoiceTransactionSummary.class, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
