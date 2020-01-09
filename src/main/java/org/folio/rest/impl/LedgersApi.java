@@ -66,7 +66,7 @@ public class LedgersApi implements FinanceLedgers {
           return new LedgersCollection().withLedgers(ledgers).withTotalRecords(ledgers.size());
         })
         .thenAccept(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
-        .exceptionally(fail -> handleErrorResponse(handler, helper, fail));;
+        .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
     }
   }
 
