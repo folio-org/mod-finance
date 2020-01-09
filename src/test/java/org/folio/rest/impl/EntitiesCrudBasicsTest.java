@@ -347,11 +347,9 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     double allocated = 10.0d, available = 6.0d, unavailable = 4.0d;
 
     int i = 0, numOfLedgers = 2;
-    String lastLedgerId = null;
 
     while(i++ < numOfLedgers) {
-      lastLedgerId =  UUID.randomUUID().toString();
-      Ledger ledger = new Ledger().withId(lastLedgerId);
+      Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
       LedgerFY ledgerFY = new LedgerFY().withFiscalYearId(fiscalYearId).withLedgerId(ledger.getId())
         .withAllocated(allocated)
         .withAvailable(available)
@@ -359,11 +357,6 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
       MockServer.addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
       MockServer.addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFY));
     }
-
-    LedgerFY ledgerFYWithAnotherLedgerId = new LedgerFY().withFiscalYearId(fiscalYearId).withLedgerId(UUID.randomUUID().toString());
-    LedgerFY ledgerFYWithAnotherFiscalYearId = new LedgerFY().withFiscalYearId(UUID.randomUUID().toString()).withLedgerId(lastLedgerId);
-    MockServer.addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFYWithAnotherLedgerId));
-    MockServer.addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFYWithAnotherFiscalYearId));
 
     LedgersCollection response = verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear", fiscalYearId).as(LedgersCollection.class);
 
@@ -381,7 +374,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     // Validate actual requests
     assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER.name()), hasSize(1));
     assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS), hasSize(1));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers + 2));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers));
 
   }
 
