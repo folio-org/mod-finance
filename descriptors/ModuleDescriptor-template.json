@@ -247,7 +247,8 @@
           "pathPattern": "/finance/ledgers",
           "permissionsRequired": ["finance.ledgers.collection.get"],
           "modulePermissions": [
-            "finance-storage.ledgers.collection.get"
+            "finance-storage.ledgers.collection.get",
+            "finance-storage.ledgersFY.collection.get"
           ]
         },
         {

@@ -57,7 +57,6 @@ public class LedgersApi implements FinanceLedgers {
       helper.getLedgers(limit, offset, query)
         .thenCombine(helper.getLedgerFYsByFiscalYearId(fiscalYear), (ledgerCollection, ledgerFYCollection) -> {
           Map<String, LedgerFY> ledgerFYGroupedByLedgerId = StreamEx.of(ledgerFYCollection.getLedgerFY())
-            .filter(ledgerFY -> ledgerFY.getFiscalYearId().equals(fiscalYear))
             .toMap(LedgerFY::getLedgerId, value -> value);
           List<Ledger> ledgers = StreamEx.of(ledgerCollection.getLedgers())
             .filter(ledger -> ledgerFYGroupedByLedgerId.containsKey(ledger.getId()))
