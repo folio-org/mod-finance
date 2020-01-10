@@ -622,6 +622,10 @@ public class MockServer {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_TRANSFER.name(), body);
       } else if (t.getTransactionType() == Transaction.TransactionType.ENCUMBRANCE) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ENCUMBRANCE.name(), body);
+      } else if (t.getTransactionType() == Transaction.TransactionType.PAYMENT) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_PAYMENT.name(), body);
+      } else if (t.getTransactionType() == Transaction.TransactionType.CREDIT) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_CREDIT.name(), body);
       }
 
       serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry)

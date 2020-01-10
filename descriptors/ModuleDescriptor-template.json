@@ -370,6 +370,22 @@
           ]
         },
         {
+          "methods": ["POST"],
+          "pathPattern": "/finance/payments",
+          "permissionsRequired": ["finance.payments.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/credits",
+          "permissionsRequired": ["finance.credits.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
           "methods": ["GET"],
           "pathPattern": "/finance/transactions",
           "permissionsRequired": ["finance.transactions.collection.get"],
@@ -776,6 +792,16 @@
       "description" : "Create a new transfer"
     },
     {
+      "permissionName" : "finance.payments.item.post",
+      "displayName" : "Payments - create a new transaction of type payment",
+      "description" : "Create a new payment"
+    },
+    {
+      "permissionName" : "finance.credits.item.post",
+      "displayName" : "Credits - create a new transaction of type credit",
+      "description" : "Create a new credit"
+    },
+    {
       "permissionName": "finance.transactions.collection.get",
       "displayName": "Finances - Get finance transaction collection",
       "description": "Get finance transaction collection"
@@ -793,6 +819,8 @@
         "finance.allocations.item.post",
         "finance.encumbrances.item.post",
         "finance.transfers.item.post",
+        "finance.payments.item.post",
+        "finance.credits.item.post",
         "finance.transactions.collection.get",
         "finance.transactions.item.get"
       ]
