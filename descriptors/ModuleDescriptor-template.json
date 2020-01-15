@@ -418,6 +418,21 @@
       ]
     },
     {
+      "id": "finance.release-encumbrance",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/release-encumbrance/{id}",
+          "permissionsRequired": ["finance.release-encumbrance.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.get",
+            "finance-storage.transactions.item.put"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.group-fiscal-year-summaries",
       "version": "1.1",
       "handlers": [
@@ -786,6 +801,11 @@
       "description" : "Move money from encumbered to awaiting payment"
     },
     {
+      "permissionName" :  "finance.release-encumbrance.item.post",
+      "displayName" : "Release encumbrance",
+      "description" : "Release any remaining money encumbered back to the budget's available pool"
+    },
+    {
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
       "displayName": "Finances - get group fiscal year summaries",
       "description": "Get group fiscal year summaries collection"
@@ -809,6 +829,7 @@
         "finance.groups.all",
         "finance.transactions.all",
         "finance.awaiting-payment.item.post",
+        "finance.release-encumbrance.item.post",
         "finance.group-fiscal-year-summaries.collection.get",
         "finance.order-transaction-summaries.item.post"
       ],
