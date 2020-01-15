@@ -45,6 +45,13 @@ resourceTypes:
       pageable,
       searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"}
     ]
+    queryParameters:
+      fiscalYear:
+        description: Skip over a number of elements by specifying an offset value for the query
+        type: UUID
+        required: false
+        example: "3defdcde-3002-41d3-a31c-1fb88288f872"
+        default: null
   /{id}:
     uriParameters:
       id:

@@ -24,10 +24,12 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.client.ConfigurationsClient;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.tools.client.Response;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
@@ -131,6 +133,19 @@ public class HelperUtils {
     return b.stream()
       .filter(item -> !a.contains(item))
       .collect(toList());
+  }
+
+  /**
+   * This method populates financial data (allocated, available, unavailable) from LedgerFY to Ledger
+   * @param ledger initial Ledger
+   * @param ledgerFY LedgerFY
+   * @return transformed Ledger with financial information from LedgerFY
+   */
+  public static Ledger populateDataFromLedgerFY(Ledger ledger, LedgerFY ledgerFY) {
+    ledger.setAllocated(ledgerFY.getAllocated());
+    ledger.setAvailable(ledgerFY.getAvailable());
+    ledger.setUnavailable(ledgerFY.getUnavailable());
+    return ledger;
   }
 
 

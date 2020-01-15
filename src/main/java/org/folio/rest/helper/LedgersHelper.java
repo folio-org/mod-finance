@@ -29,6 +29,7 @@ public class LedgersHelper extends AbstractHelper {
   private static final String GET_LEDGERS_BY_QUERY = resourcesPath(LEDGERS) + SEARCH_PARAMS;
   private static final String GET_LEDGERSFY_BY_QUERY = resourcesPath(LEDGER_FYS) + SEARCH_PARAMS;
   public static final String LEDGER_ID_AND_FISCAL_YEAR_ID = "ledgerId==%s AND fiscalYearId==%s";
+  public static final String FISCAL_YEAR_ID = "fiscalYearId==%s";
 
   public LedgersHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
@@ -69,6 +70,13 @@ public class LedgersHelper extends AbstractHelper {
         }
         throw new HttpException(BAD_REQUEST.getStatusCode(), LEDGER_FY_NOT_FOUND);
       });
+  }
+
+  public CompletableFuture<LedgerFYCollection> getLedgerFYsByFiscalYearId(String fiscalYearId) {
+    String query = String.format(FISCAL_YEAR_ID, fiscalYearId);
+    String endpoint = String.format(GET_LEDGERSFY_BY_QUERY, Integer.MAX_VALUE, 0, HelperUtils.buildQueryParam(query, logger), lang);
+    return handleGetRequest(endpoint)
+      .thenApply(entries -> entries.mapTo(LedgerFYCollection.class));
   }
 
   private Ledger getLedgerWithTotals(LedgerFY ledgerFY, Ledger ledger) {

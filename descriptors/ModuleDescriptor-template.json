@@ -240,14 +240,15 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.2",
+      "version": "1.3",
       "handlers": [
         {
           "methods": ["GET"],
           "pathPattern": "/finance/ledgers",
           "permissionsRequired": ["finance.ledgers.collection.get"],
           "modulePermissions": [
-            "finance-storage.ledgers.collection.get"
+            "finance-storage.ledgers.collection.get",
+            "finance-storage.ledgersFY.collection.get"
           ]
         },
         {

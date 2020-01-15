@@ -5,17 +5,22 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 import static org.folio.rest.util.HelperUtils.handleErrorResponse;
+import static org.folio.rest.util.HelperUtils.populateDataFromLedgerFY;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.ws.rs.core.Response;
 
+import one.util.streamex.StreamEx;
 import org.folio.HttpStatus;
+import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.FundsHelper;
 import org.folio.rest.helper.LedgersHelper;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
 
 import io.vertx.core.AsyncResult;
@@ -39,14 +44,29 @@ public class LedgersApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void getFinanceLedgers(int offset, int limit, String query, String lang, Map<String, String> headers,
-      Handler<AsyncResult<Response>> handler, Context ctx) {
+  public void getFinanceLedgers(String fiscalYear, int offset, int limit, String query, String lang, Map<String, String> headers,
+     Handler<AsyncResult<Response>> handler, Context ctx) {
 
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
 
-    helper.getLedgers(limit, offset, query)
-      .thenAccept(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    if(Objects.isNull(fiscalYear)) {
+      helper.getLedgers(limit, offset, query)
+        .thenAccept(ledgersCollection -> handler.handle(succeededFuture(helper.buildOkResponse(ledgersCollection))))
+        .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    } else {
+      helper.getLedgers(limit, offset, query)
+        .thenCombine(helper.getLedgerFYsByFiscalYearId(fiscalYear), (ledgerCollection, ledgerFYCollection) -> {
+          Map<String, LedgerFY> ledgerFYGroupedByLedgerId = StreamEx.of(ledgerFYCollection.getLedgerFY())
+            .toMap(LedgerFY::getLedgerId, value -> value);
+          List<Ledger> ledgers = StreamEx.of(ledgerCollection.getLedgers())
+            .filter(ledger -> ledgerFYGroupedByLedgerId.containsKey(ledger.getId()))
+            .map(ledger -> populateDataFromLedgerFY(ledger, ledgerFYGroupedByLedgerId.get(ledger.getId())))
+            .toList();
+          return new LedgersCollection().withLedgers(ledgers).withTotalRecords(ledgers.size());
+        })
+        .thenAccept(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
+        .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    }
   }
 
   @Validate
