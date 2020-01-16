@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
+import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
@@ -23,6 +24,7 @@ import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
+import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.Finance;
 import org.folio.rest.tools.parser.JsonPathParser;
 
@@ -40,7 +42,10 @@ public enum TestEntities {
   TRANSACTIONS_ALLOCATION("Allocation", getEndpoint(Finance.class) + "/allocations", Transaction.class, "mockdata/transactions/allocations.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_TRANSFER("Transfer", getEndpoint(Finance.class) + "/transfers", Transaction.class, "mockdata/transactions/transfers.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_ENCUMBRANCE("Encumbrance", getEndpoint(Finance.class) + "/encumbrances", Transaction.class, "mockdata/transactions/encumbrances.json", "transactions[0]", "amount", 25, 1),
-  ORDER_TRANSACTION_SUMMARY("orderTransactionSummary", getEndpoint(FinanceOrderTransactionSummaries.class), OrderTransactionSummary.class, "mockdata/transaction-summaries/order_transaction_summary.json", "", "numTransactions", 0, 1);
+  TRANSACTIONS_PAYMENT("Payment", getEndpoint(Finance.class) + "/payments", Transaction.class, "mockdata/transactions/payments.json", "transactions[0]", "amount", 25, 1),
+  TRANSACTIONS_CREDIT("Credit", getEndpoint(Finance.class) + "/credits", Transaction.class, "mockdata/transactions/credits.json", "transactions[0]", "amount", 25, 1),
+  ORDER_TRANSACTION_SUMMARY("orderTransactionSummary", getEndpoint(FinanceOrderTransactionSummaries.class), OrderTransactionSummary.class, "mockdata/transaction-summaries/order_transaction_summary.json", "", "numTransactions", 0, 1),
+  INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", 0, 1);
 
   TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {

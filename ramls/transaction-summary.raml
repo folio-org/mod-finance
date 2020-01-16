@@ -11,6 +11,7 @@ documentation:
 
 types:
   order-transaction-summary: !include acq-models/mod-finance/schemas/order_transaction_summary.json
+  invoice-transaction-summary: !include acq-models/mod-finance/schemas/invoice_transaction_summary.json
   errors: !include raml-util/schemas/errors.schema
   
 
@@ -33,3 +34,16 @@ resourceTypes:
     is: [validate]
     post:
       description: Create a new order transaction summary, for an order with number of transactions(encumbrances)
+      
+/finance/invoice-transaction-summaries:
+    displayName: Create a transaction allocation
+    description: Create a new invoice transaction summary
+    type:
+      post-with-201:
+        requestSchema: invoice-transaction-summary
+        responseSchema: invoice-transaction-summary
+        requestExample: !include acq-models/mod-finance/examples/invoice_transaction_summary.sample
+        responseExample: !include acq-models/mod-finance/examples/invoice_transaction_summary.sample
+    is: [validate]
+    post:
+      description: Create a new invoice transaction summary, for an order with number of transactions(encumbrances) and number of payment credits

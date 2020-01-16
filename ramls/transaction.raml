@@ -66,6 +66,32 @@ resourceTypes:
     post:
       description: Create an encumbrance by transaction
 
+  /payments:
+    displayName: Create a transaction payment
+    description: Create a payment
+    type:
+      post-with-201:
+        requestSchema: transaction
+        responseSchema: transaction
+        requestExample: !include acq-models/mod-finance/examples/transaction_payment.sample
+        responseExample: !include acq-models/mod-finance/examples/transaction_payment.sample
+    is: [validate]
+    post:
+      description: Create a payment by transaction
+
+  /credits:
+    displayName: Create a transaction credit
+    description: Create a credit
+    type:
+      post-with-201:
+        requestSchema: transaction
+        responseSchema: transaction
+        requestExample: !include acq-models/mod-finance/examples/transaction_credit.sample
+        responseExample: !include acq-models/mod-finance/examples/transaction_credit.sample
+    is: [validate]
+    post:
+      description: Create a credit by transaction
+
   /transactions:
     displayName: Transactions
     description: Transaction collection

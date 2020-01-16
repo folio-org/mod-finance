@@ -59,7 +59,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
   private static final List<TestEntities> transactionEntities = Arrays.asList(TestEntities.TRANSACTIONS_ALLOCATION,
-      TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER, TestEntities.ORDER_TRANSACTION_SUMMARY);
+      TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
 
   /**
    * Test entities except for FUND
@@ -118,7 +118,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
-    return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY));
+    return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY) && !e.equals(TestEntities.INVOICE_TRANSACTION_SUMMARY));
   }
 
   @ParameterizedTest
@@ -221,6 +221,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
       t.setTransactionType(Transaction.TransactionType.TRANSFER);
     } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
       t.setTransactionType(Transaction.TransactionType.ALLOCATION);
+    } else if (t.getTransactionType() == Transaction.TransactionType.PAYMENT) {
+      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
+    } else if (t.getTransactionType() == Transaction.TransactionType.CREDIT) {
+      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
     }
     record = JsonObject.mapFrom(t);
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
@@ -316,7 +320,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
+  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY","INVOICE_TRANSACTION_SUMMARY"})
   public void testPostRecordMinimumValidation(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
@@ -324,7 +328,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
-
+  
   @Test
   @Order(1)
   public void testPostBudgetWithAllocated() {

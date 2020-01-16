@@ -93,4 +93,37 @@ public class TransactionsApi implements Finance {
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
+  @Validate
+  @Override
+  public void postFinancePayments(String lang, Transaction payment, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+
+    if (payment.getTransactionType() != Transaction.TransactionType.PAYMENT) {
+      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
+      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+      return;
+    }
+    helper.createTransaction(payment)
+      .thenAccept(type -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
+  @Validate
+  @Override
+  public void postFinanceCredits(String lang, Transaction credit, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+
+    if (credit.getTransactionType() != Transaction.TransactionType.CREDIT) {
+      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
+      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+      return;
+    }
+    helper.createTransaction(credit)
+      .thenAccept(type -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
 }
