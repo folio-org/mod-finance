@@ -5,6 +5,9 @@ import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMA
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import io.vertx.core.Context;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -21,21 +24,25 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateTransactionCount(orderSummary, null))
+    return VertxCompletableFuture.runAsync(ctx, () -> validateTransactionCount(Arrays.asList(orderSummary.getNumTransactions())))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary))
       .thenApply(orderSummary::withId);
   }
 
   public CompletableFuture<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateTransactionCount(null, invoiceSummary))
+    return VertxCompletableFuture
+      .runAsync(ctx,
+          () -> validateTransactionCount(
+              Arrays.asList(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumEncumbrances())))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary))
       .thenApply(invoiceSummary::withId);
   }
 
-  private void validateTransactionCount(OrderTransactionSummary orderSummary, InvoiceTransactionSummary invoiceSummary) {
-    if ((orderSummary != null && orderSummary.getNumTransactions() < 1)
-        || (invoiceSummary != null && (invoiceSummary.getNumEncumbrances() < 1 || invoiceSummary.getNumPaymentsCredits() < 1))) {
-      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_TRANSACTION_COUNT));
+  private void validateTransactionCount(List<Integer> summaryDetailCounts) {
+    for (Integer count : summaryDetailCounts) {
+      if (count < 1) {
+        throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_TRANSACTION_COUNT));
+      }
     }
   }
 }

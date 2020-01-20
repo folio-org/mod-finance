@@ -215,16 +215,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject record = testEntity.getMockObject();
     Transaction t = record.mapTo(Transaction.class);
     // set invalid transactionType
-    if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
-      t.setTransactionType(Transaction.TransactionType.ENCUMBRANCE);
-    } else if (t.getTransactionType() == Transaction.TransactionType.ENCUMBRANCE) {
+    if (t.getTransactionType() != Transaction.TransactionType.ALLOCATION) {
+      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
+    } else {
       t.setTransactionType(Transaction.TransactionType.TRANSFER);
-    } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
-      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
-    } else if (t.getTransactionType() == Transaction.TransactionType.PAYMENT) {
-      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
-    } else if (t.getTransactionType() == Transaction.TransactionType.CREDIT) {
-      t.setTransactionType(Transaction.TransactionType.ALLOCATION);
     }
     record = JsonObject.mapFrom(t);
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);

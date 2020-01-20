@@ -27,8 +27,8 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
     helper.createOrderTransactionSummary(entity)
-      .thenAccept(type -> asyncResultHandler.handle(succeededFuture(
-          helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(orderTxSummary -> asyncResultHandler.handle(succeededFuture(
+          helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, orderTxSummary.getId()), orderTxSummary))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
@@ -38,9 +38,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
     helper.createInvoiceTransactionSummary(entity)
-      .thenAccept(type -> asyncResultHandler.handle(succeededFuture(helper.buildResponseWithLocation(String.format(INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(invoiceTxSummary -> asyncResultHandler.handle(succeededFuture(helper
+        .buildResponseWithLocation(String.format(INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX, invoiceTxSummary.getId()), invoiceTxSummary))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
-
 }
 
