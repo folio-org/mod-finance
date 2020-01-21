@@ -84,11 +84,7 @@ class EncumbrancesTest extends ApiTestBase {
     releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
-    Errors errors = verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", BAD_REQUEST.getStatusCode()).then()
-      .extract()
-      .as(Errors.class);
-
-    assertEquals("Transaction 5c9f769c-5fe2-4a6e-95fa-021f0d8834a0 already released", errors.getErrors().get(0).getMessage());
+    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
 
   }
 
