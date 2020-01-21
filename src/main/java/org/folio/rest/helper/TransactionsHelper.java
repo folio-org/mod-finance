@@ -8,6 +8,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.AwaitingPayment;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -65,6 +66,26 @@ public class TransactionsHelper extends AbstractHelper {
 
     transaction.getEncumbrance().setStatus(awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
     return transaction;
+  }
+
+  private void validateTransactionType(Transaction transaction, Transaction.TransactionType type) {
+    if (transaction.getTransactionType() != type) {
+      logger.info("Transaction {} type mismatch. {} expected", transaction.getId(), type) ;
+      throw new HttpException(400, String.format("Transaction type mismatch. %s expected", type));
+    }
+  }
+
+  public CompletableFuture<Void> releaseTransaction(Transaction transaction) {
+    logger.info("Start releasing transaction {}", transaction.getId()) ;
+
+    validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
+
+    if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
+    return updateTransaction(transaction);
   }
 
 }

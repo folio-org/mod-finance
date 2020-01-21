@@ -78,7 +78,7 @@ public class ApiTestSuite {
   }
 
   @Nested
-  class AwaitingPaymentTestNested extends AwaitingPaymentTest {
+  class EncumbranceTestNested extends EncumbrancesTest {
   }
 
   @Nested

@@ -1,7 +1,6 @@
 package org.folio.rest.util;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -31,10 +30,8 @@ import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.tools.client.Response;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 import io.vertx.core.Context;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
