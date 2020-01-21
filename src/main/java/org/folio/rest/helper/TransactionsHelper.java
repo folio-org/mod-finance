@@ -74,8 +74,8 @@ public class TransactionsHelper extends AbstractHelper {
       throw new HttpException(400, String.format("Transaction type mismatch. %s expected", type));
     }
     if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
-      logger.info("Transaction {} already released", transaction.getId(), type) ;
-      throw new HttpException(400, String.format("Transaction %s already released", type));
+      logger.info("Transaction {} already released", transaction.getId(), transaction.getId()) ;
+      throw new HttpException(400, String.format("Transaction %s already released", transaction.getId()));
     }
   }
 
