@@ -80,10 +80,11 @@ public class TransactionsHelper extends AbstractHelper {
 
     validateReleasingEncumbrance(transaction, Transaction.TransactionType.ENCUMBRANCE);
 
-    transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
       return CompletableFuture.completedFuture(null);
     }
+
+    transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     return updateTransaction(transaction);
   }
 
