@@ -77,7 +77,7 @@ class EncumbrancesTest extends ApiTestBase {
 
   @Test
   void testPostReleasedEncumbrance() throws IOException {
-    logger.info("=== Test POST Release non Encumbrance transaction ===");
+    logger.info("=== Test POST Released Encumbrance transaction ===");
 
     String transactionID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
     Transaction releasedEncumbrance = new JsonObject(getMockData("mockdata/transactions/encumbrances.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
@@ -85,6 +85,16 @@ class EncumbrancesTest extends ApiTestBase {
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
     verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
+
+  }
+
+  @Test
+  void testPostEncumbranceInvalidId() throws IOException {
+    logger.info("=== Test POST release encumbrance bad ID ===");
+
+    String transactionID = "bad-encumbrance-id";
+
+    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
 
   }
 

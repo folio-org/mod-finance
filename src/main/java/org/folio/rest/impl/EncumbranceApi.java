@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.resource.FinanceReleaseEncumbranceId;
 
@@ -17,6 +18,7 @@ import io.vertx.core.Handler;
 public class EncumbranceApi implements FinanceReleaseEncumbranceId {
 
   @Override
+  @Validate
   public void postFinanceReleaseEncumbranceById(String id, String lang, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
