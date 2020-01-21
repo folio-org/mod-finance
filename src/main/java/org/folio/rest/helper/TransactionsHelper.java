@@ -68,7 +68,7 @@ public class TransactionsHelper extends AbstractHelper {
     return transaction;
   }
 
-  private void validateReleasingEncumbrance(Transaction transaction, Transaction.TransactionType type) {
+  private void validateTransactionType(Transaction transaction, Transaction.TransactionType type) {
     if (transaction.getTransactionType() != type) {
       logger.info("Transaction {} type mismatch. {} expected", transaction.getId(), type) ;
       throw new HttpException(400, String.format("Transaction type mismatch. %s expected", type));
@@ -78,7 +78,7 @@ public class TransactionsHelper extends AbstractHelper {
   public CompletableFuture<Void> releaseTransaction(Transaction transaction) {
     logger.info("Start releasing transaction {}", transaction.getId()) ;
 
-    validateReleasingEncumbrance(transaction, Transaction.TransactionType.ENCUMBRANCE);
+    validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
 
     if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
       return CompletableFuture.completedFuture(null);
