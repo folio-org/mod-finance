@@ -385,6 +385,24 @@
           "modulePermissions": [
             "finance-storage.transactions.item.get"
           ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/release-encumbrance/{id}",
+          "permissionsRequired": ["finance.release-encumbrance.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.get",
+            "finance-storage.transactions.item.put"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/awaiting-payment",
+          "permissionsRequired": ["finance.awaiting-payment.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.get"
+          ]
         }
       ]
     },
@@ -398,21 +416,6 @@
           "permissionsRequired": ["finance.order-transaction-summaries.item.post"],
           "modulePermissions": [
             "finance-storage.order-transaction-summaries.item.post"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "finance.awaiting-payment",
-      "version": "1.0",
-      "handlers": [
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/awaiting-payment",
-          "permissionsRequired": ["finance.awaiting-payment.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put",
-            "finance-storage.transactions.item.get"
           ]
         }
       ]
@@ -777,13 +780,20 @@
         "finance.encumbrances.item.post",
         "finance.transfers.item.post",
         "finance.transactions.collection.get",
-        "finance.transactions.item.get"
+        "finance.transactions.item.get",
+        "finance.awaiting-payment.item.post",
+        "finance.release-encumbrance.item.post"
       ]
     },
     {
       "permissionName" :  "finance.awaiting-payment.item.post",
       "displayName" : "Move money from encumbered to awaiting payment",
       "description" : "Move money from encumbered to awaiting payment"
+    },
+    {
+      "permissionName" :  "finance.release-encumbrance.item.post",
+      "displayName" : "Release encumbrance",
+      "description" : "Release any remaining money encumbered back to the budget's available pool"
     },
     {
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
@@ -808,7 +818,6 @@
         "finance.fiscal-years.all",
         "finance.groups.all",
         "finance.transactions.all",
-        "finance.awaiting-payment.item.post",
         "finance.group-fiscal-year-summaries.collection.get",
         "finance.order-transaction-summaries.item.post"
       ],

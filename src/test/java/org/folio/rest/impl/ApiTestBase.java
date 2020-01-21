@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -102,13 +103,14 @@ public class ApiTestBase {
   }
 
   Response verifyPostResponse(String url, Object body, Headers headers, String expectedContentType, int expectedCode) {
+    body = Objects.isNull(body) ? "" : convertToJson(body).encodePrettily();
     return RestAssured
       .with()
         .header(X_OKAPI_URL)
         .headers(headers)
         .header(X_OKAPI_TOKEN)
         .contentType(APPLICATION_JSON)
-        .body(convertToJson(body).encodePrettily())
+        .body(body)
       .post(url)
         .then()
           .log().all()
