@@ -29,9 +29,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (allocation.getTransactionType() != Transaction.TransactionType.ALLOCATION) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleError(helper, asyncResultHandler);
     }
     helper.createTransaction(allocation)
       .thenAccept(type -> asyncResultHandler
@@ -46,9 +44,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (transfer.getTransactionType() != Transaction.TransactionType.TRANSFER) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleError(helper, asyncResultHandler);
     }
     helper.createTransaction(transfer)
       .thenAccept(type -> asyncResultHandler
@@ -63,9 +59,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (encumbrance.getTransactionType() != Transaction.TransactionType.ENCUMBRANCE) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleError(helper, asyncResultHandler);
     }
     helper.createTransaction(encumbrance)
       .thenAccept(type -> asyncResultHandler
@@ -100,9 +94,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (payment.getTransactionType() != Transaction.TransactionType.PAYMENT) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleError(helper, asyncResultHandler);
     }
     helper.createTransaction(payment)
       .thenAccept(type -> asyncResultHandler
@@ -117,13 +109,17 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (credit.getTransactionType() != Transaction.TransactionType.CREDIT) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleError(helper, asyncResultHandler);
     }
     helper.createTransaction(credit)
       .thenAccept(type -> asyncResultHandler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
+  public void handleError(TransactionsHelper helper, Handler<AsyncResult<Response>> asyncResultHandler) {
+    helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
+    asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+    return;
   }
 }
