@@ -6,6 +6,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
+import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -27,6 +28,7 @@ import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.client.ConfigurationsClient;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
+import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.tools.client.Response;
@@ -193,5 +195,10 @@ public class HelperUtils {
     handler.handle(succeededFuture(helper.buildErrorResponse(t)));
     return null;
 
+  }
+
+  public static void handleTransactionError(TransactionsHelper helper, Handler<AsyncResult<javax.ws.rs.core.Response>> asyncResultHandler) {
+    helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
+    asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
   }
 }
