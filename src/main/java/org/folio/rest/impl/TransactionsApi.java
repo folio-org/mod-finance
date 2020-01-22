@@ -120,6 +120,5 @@ public class TransactionsApi implements Finance {
   public void handleError(TransactionsHelper helper, Handler<AsyncResult<Response>> asyncResultHandler) {
     helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
     asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-    return;
   }
 }
