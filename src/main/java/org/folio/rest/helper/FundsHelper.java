@@ -14,6 +14,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -45,7 +46,7 @@ public class FundsHelper extends AbstractHelper {
 
   private static final String GET_FUND_TYPES_BY_QUERY = resourcesPath(FUND_TYPES) + SEARCH_PARAMS;
   private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS) + SEARCH_PARAMS;
-  public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>%s sortBy periodStart";
+  public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
   private GroupsHelper groupsHelper;
   private BudgetsHelper budgetsHelper;
@@ -133,7 +134,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private String buildCurrentFYQuery(FiscalYear fiscalYearOne) {
-    Instant now = Instant.now();
+    Instant now = Instant.now().truncatedTo(ChronoUnit.DAYS);
     return String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
   }
 
