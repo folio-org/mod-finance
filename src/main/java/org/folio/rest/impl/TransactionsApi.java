@@ -1,9 +1,9 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
-import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 import static org.folio.rest.util.HelperUtils.handleErrorResponse;
+import static org.folio.rest.util.HelperUtils.handleTransactionError;
 
 import java.util.Map;
 
@@ -29,9 +29,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (allocation.getTransactionType() != Transaction.TransactionType.ALLOCATION) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleTransactionError(helper, asyncResultHandler);
     }
     helper.createTransaction(allocation)
       .thenAccept(type -> asyncResultHandler
@@ -46,9 +44,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (transfer.getTransactionType() != Transaction.TransactionType.TRANSFER) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleTransactionError(helper, asyncResultHandler);
     }
     helper.createTransaction(transfer)
       .thenAccept(type -> asyncResultHandler
@@ -63,9 +59,7 @@ public class TransactionsApi implements Finance {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
 
     if (encumbrance.getTransactionType() != Transaction.TransactionType.ENCUMBRANCE) {
-      helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-      return;
+      handleTransactionError(helper, asyncResultHandler);
     }
     helper.createTransaction(encumbrance)
       .thenAccept(type -> asyncResultHandler
@@ -93,4 +87,33 @@ public class TransactionsApi implements Finance {
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
+  @Validate
+  @Override
+  public void postFinancePayments(String lang, Transaction payment, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+
+    if (payment.getTransactionType() != Transaction.TransactionType.PAYMENT) {
+      handleTransactionError(helper, asyncResultHandler);
+    }
+    helper.createTransaction(payment)
+      .thenAccept(type -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
+  @Validate
+  @Override
+  public void postFinanceCredits(String lang, Transaction credit, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+
+    if (credit.getTransactionType() != Transaction.TransactionType.CREDIT) {
+      handleTransactionError(helper, asyncResultHandler);
+    }
+    helper.createTransaction(credit)
+      .thenAccept(type -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
 }
