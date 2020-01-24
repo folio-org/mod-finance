@@ -37,7 +37,7 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   private void validateTransactionCount(Integer summaryCounts) {
-    if (summaryCounts < 1) {
+    if (summaryCounts < 0) {
       throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_TRANSACTION_COUNT));
     }
   }
