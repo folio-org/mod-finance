@@ -22,23 +22,35 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateTransactionCount(orderSummary.getNumTransactions()))
+    return VertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary))
       .thenApply(orderSummary::withId);
   }
 
   public CompletableFuture<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> {
-      validateTransactionCount(invoiceSummary.getNumPaymentsCredits());
-      validateTransactionCount(invoiceSummary.getNumEncumbrances());
-    })
+    return VertxCompletableFuture
+      .runAsync(ctx,
+          () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumEncumbrances()))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary))
       .thenApply(invoiceSummary::withId);
   }
 
-  private void validateTransactionCount(Integer summaryCounts) {
-    if (summaryCounts < 0) {
-      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_TRANSACTION_COUNT));
+  /**
+   * There has to be atleast 1 transaction that needs to be updated upon invoice approval otherwise throw an exception
+   */
+  private void validateOrderTransactionCount(Integer numTransactions) {
+    if (numTransactions <= 0) {
+      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_ORDER_TRANSACTION_COUNT));
+    }
+  }
+
+  /**
+   * There has to be atleast 1 payment/credits, otherwise no point in having an invoice. Also, it is possible that there are no
+   * encumbrances related to an invoice upon approval. If not, throw an exception
+   */
+  private void validateInvoiceTransactionCount(Integer numPaymentsCredits, Integer numEncumbrances) {
+    if (numPaymentsCredits <= 0 || numEncumbrances < 0) {
+      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_INVOICE_TRANSACTION_COUNT));
     }
   }
 }

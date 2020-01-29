@@ -9,7 +9,9 @@ public enum ErrorCodes {
   FISCAL_YEARS_NOT_FOUND("fiscalYearsNotFound", "Cannot find current fiscal year for specified ledger"),
   GROUP_NOT_FOUND("groupNotFound", "Cannot find group"),
   INVALID_TRANSACTION_TYPE("invalidTransactionType", "Invalid transaction type"),
-  INVALID_TRANSACTION_COUNT("invalidTransactionCount", "Number of transactions have to be greater than or equal to 1"),
+  INVALID_INVOICE_TRANSACTION_COUNT("invalidInvoiceTransactionCount",
+      "Number of numPaymentsCredits transactions have to be greater than 1 and numEncumbrances have to greater than or equal to 0"),
+  INVALID_ORDER_TRANSACTION_COUNT("invalidOrderTransactionCount", "Number of order transactions have to be greater than 0"),
   CURRENCY_NOT_FOUND("currencyNotFound", "Failed to fetch currency from Locale"),
   ALLOCATION_TRANSFER_FAILED("failedAllocationTransaction", "Failed to create allocation transaction for a budget"),
   LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year");
