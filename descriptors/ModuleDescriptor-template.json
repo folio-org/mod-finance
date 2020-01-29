@@ -21,7 +21,8 @@
           "modulePermissions": [
             "finance-storage.budgets.item.post",
             "finance-storage.group-fund-fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.item.put"
+            "finance-storage.group-fund-fiscal-years.item.put",
+            "finance-storage.transactions.item.post"
           ]
         },
         {
