@@ -28,14 +28,14 @@ public class BudgetsApi implements FinanceBudgets {
   @Override
   public void postFinanceBudgets(String lang, Budget entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
-    BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
     GroupFundFiscalYearHelper groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(headers, ctx, lang);
-    helper.createBudget(entity)
+    budgetsHelper.createBudget(entity)
       .thenCompose(createdBudget -> groupFundFiscalYearHelper.updateBudgetIdForGroupFundFiscalYears(createdBudget)
         .thenApply(v -> createdBudget))
       .thenAccept(createdBudget -> handler.handle(
-          succeededFuture(helper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+          succeededFuture(budgetsHelper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
+      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
   }
 
   @Validate
@@ -43,33 +43,38 @@ public class BudgetsApi implements FinanceBudgets {
   public void getFinanceBudgets(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
-    helper.getBudgets(limit, offset, query)
-      .thenAccept(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    budgetsHelper.getBudgets(limit, offset, query)
+      .thenAccept(budgets -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budgets))))
+      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
   @Validate
   @Override
-  public void putFinanceBudgetsById(String id, String lang, Budget entity, Map<String, String> headers,
+  public void putFinanceBudgetsById(String id, String lang, Budget budget, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
     // Set id if this is available only in path
-    if (StringUtils.isEmpty(entity.getId())) {
-      entity.setId(id);
-    } else if (!id.equals(entity.getId())) {
-      helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
-      handler.handle(succeededFuture(helper.buildErrorResponse(422)));
+    if (StringUtils.isEmpty(budget.getId())) {
+      budget.setId(id);
+    } else if (!id.equals(budget.getId())) {
+      budgetsHelper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
+      handler.handle(succeededFuture(budgetsHelper.buildErrorResponse(422)));
       return;
     }
 
-    helper.updateBudget(entity)
-      .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    if (budgetsHelper.newAllowableAmountsExceeded(budget)){
+      handler.handle(succeededFuture(budgetsHelper.buildErrorResponse(422)));
+      return;
+    }
+
+    budgetsHelper.updateBudget(budget)
+      .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
@@ -78,11 +83,11 @@ public class BudgetsApi implements FinanceBudgets {
   public void getFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
-    helper.getBudget(id)
-      .thenAccept(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    budgetsHelper.getBudget(id)
+      .thenAccept(budget -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budget))))
+      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
@@ -91,11 +96,11 @@ public class BudgetsApi implements FinanceBudgets {
   public void deleteFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    BudgetsHelper helper = new BudgetsHelper(headers, ctx, lang);
+    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
-    helper.deleteBudget(id)
-      .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
+    budgetsHelper.deleteBudget(id)
+      .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
