@@ -90,7 +90,7 @@ public class BudgetsHelper extends AbstractHelper {
         this.addProcessingError(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
     }
-    if (budget.getAllowableEncumbrance() != null) {
+    if (budget.getAllowableExpenditure() != null) {
       BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure()).movePointLeft(2);
       if (allocated.multiply(newAllowableExpenditure).compareTo(expenditures.add(awaitingPayment)) < 0) {
         this.addProcessingError(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());
