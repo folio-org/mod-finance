@@ -86,7 +86,7 @@ public class BudgetsHelper extends AbstractHelper {
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
     if (budget.getAllowableEncumbrance() != null) {
       BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
-      if (allocated.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment)) < 0) {
+      if (allocated.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
         this.addProcessingError(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
     }
