@@ -1,5 +1,7 @@
 package org.folio.rest.helper;
 
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
@@ -7,6 +9,7 @@ import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.folio.rest.exception.HttpException;
@@ -74,5 +77,25 @@ public class BudgetsHelper extends AbstractHelper {
 
   public CompletableFuture<Void> deleteBudget(String id) {
     return handleDeleteRequest(resourceByIdPath(BUDGETS, id, lang));
+  }
+
+  public boolean newAllowableAmountsExceeded(Budget budget) {
+    BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
+    BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
+    BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
+    BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
+    if (budget.getAllowableEncumbrance() != null) {
+      BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
+      if (allocated.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
+        this.addProcessingError(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
+      }
+    }
+    if (budget.getAllowableExpenditure() != null) {
+      BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure()).movePointLeft(2);
+      if (allocated.multiply(newAllowableExpenditure).compareTo(expenditures.add(awaitingPayment)) < 0) {
+        this.addProcessingError(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());
+      }
+    }
+    return !getProcessingErrors().getErrors().isEmpty();
   }
 }

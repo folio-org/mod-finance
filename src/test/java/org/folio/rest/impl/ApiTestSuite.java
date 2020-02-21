@@ -78,6 +78,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class BudgetsTestNested extends BudgetsTest {
+  }
+
+  @Nested
   class EncumbranceTestNested extends EncumbrancesTest {
   }
 
