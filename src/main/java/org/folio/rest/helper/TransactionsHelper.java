@@ -65,6 +65,8 @@ public class TransactionsHelper extends AbstractHelper {
       .setAmountAwaitingPayment(MoneyUtils.sumDoubleValues(currentAwaitingPaymentAmount, awaitingPayment.getAmountAwaitingPayment(), currency));
 
     transaction.getEncumbrance().setStatus(awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
+    transaction.setSourceInvoiceId(awaitingPayment.getInvoiceId());
+    transaction.setSourceInvoiceLineId(awaitingPayment.getInvoiceLineId());
     return transaction;
   }
 

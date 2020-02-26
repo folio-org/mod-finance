@@ -6,6 +6,7 @@ import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
 import static org.folio.rest.impl.ApiTestSuite.mockPort;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
@@ -208,8 +209,7 @@ public class ApiTestBase {
     JsonObject entry = rqRsEntries.get(0);
     entry.remove("metadata");
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
-
-    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
+    assertThat(recordToStorage, org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
   }
 
   void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
@@ -222,7 +222,7 @@ public class ApiTestBase {
     entry.remove("metadata");
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
 
-    assertThat(recordToStorage, samePropertyValuesAs(record.mapTo(testEntity.getClazz())));
+    assertThat(recordToStorage, equalTo(record.mapTo(testEntity.getClazz())));
   }
 
   Headers prepareHeaders(Header... headers) {
