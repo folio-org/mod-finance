@@ -12,6 +12,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -51,12 +52,12 @@ public class BudgetsHelper extends AbstractHelper {
 
   private CompletableFuture<Void> createAllocationTransaction(Budget budget) {
     Transaction transaction = new Transaction().withAmount(budget.getAllocated())
-        .withFiscalYearId(budget.getFiscalYearId()).withToFundId(budget.getFundId())
-        .withTransactionType(Transaction.TransactionType.ALLOCATION).withSource(Source.USER);
+      .withFiscalYearId(budget.getFiscalYearId()).withToFundId(budget.getFundId())
+      .withTransactionType(Transaction.TransactionType.ALLOCATION).withSource(Source.USER);
 
     return handleGetRequest(resourceByIdPath(FISCAL_YEARS, budget.getFiscalYearId(), lang)).
-        thenApply(json -> json.mapTo(FiscalYear.class)).thenAccept(fy ->
-        handleCreateRequest(resourcesPath(TRANSACTIONS), transaction.withCurrency(fy.getCurrency())));
+      thenApply(json -> json.mapTo(FiscalYear.class)).thenAccept(fy ->
+      handleCreateRequest(resourcesPath(TRANSACTIONS), transaction.withCurrency(fy.getCurrency())));
 
   }
 
@@ -84,15 +85,24 @@ public class BudgetsHelper extends AbstractHelper {
     BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
+    BigDecimal available = BigDecimal.valueOf(budget.getAvailable());
+    BigDecimal unavailable = BigDecimal.valueOf(budget.getUnavailable());
+
+    //[remaining amount we can encumber] = (allocated * allowableEncumbered) - (encumbered + awaitingPayment + expended)
     if (budget.getAllowableEncumbrance() != null) {
       BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
       if (allocated.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
         this.addProcessingError(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
     }
+    //[amount we can expend] = (allocated * allowableExpenditure) - (allocated - (unavailable + available)) - (awaitingPayment + expended)
     if (budget.getAllowableExpenditure() != null) {
-      BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure()).movePointLeft(2);
-      if (allocated.multiply(newAllowableExpenditure).compareTo(expenditures.add(awaitingPayment)) < 0) {
+      BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure())
+        .movePointLeft(2);
+      if (allocated.multiply(newAllowableExpenditure)
+        .subtract(allocated.subtract(available.add(unavailable)))
+        .subtract(expenditures.add(awaitingPayment))
+        .compareTo(BigDecimal.ZERO) < 0) {
         this.addProcessingError(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());
       }
     }
