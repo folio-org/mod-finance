@@ -45,6 +45,8 @@ class EncumbrancesTest extends ApiTestBase {
 
     assertEquals(updatedAwaitingPayment, MoneyUtils.sumDoubleValues(currentAwaitingPayment, amount, transaction.getCurrency()), 2);
     assertEquals(updatedTransaction.getEncumbrance().getStatus(), awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
+    assertEquals(awaitingPayment.getInvoiceId(), updatedTransaction.getSourceInvoiceId());
+    assertEquals(awaitingPayment.getInvoiceLineId(), updatedTransaction.getSourceInvoiceLineId());
   }
 
   @Test
