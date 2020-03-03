@@ -45,10 +45,12 @@ class EncumbrancesTest extends ApiTestBase {
 
     assertEquals(updatedAwaitingPayment, MoneyUtils.sumDoubleValues(currentAwaitingPayment, amount, transaction.getCurrency()), 2);
     assertEquals(updatedTransaction.getEncumbrance().getStatus(), awaitingPayment.getReleaseEncumbrance() ? Encumbrance.Status.RELEASED : Encumbrance.Status.UNRELEASED);
+    assertEquals(awaitingPayment.getInvoiceId(), updatedTransaction.getSourceInvoiceId());
+    assertEquals(awaitingPayment.getInvoiceLineId(), updatedTransaction.getSourceInvoiceLineId());
   }
 
   @Test
-  void testPostReleaseEncumbrance() throws IOException {
+  void testPostReleaseEncumbrance() {
     logger.info("=== Test POST Release Encumbrance ===");
 
     String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
@@ -89,7 +91,7 @@ class EncumbrancesTest extends ApiTestBase {
   }
 
   @Test
-  void testPostEncumbranceInvalidId() throws IOException {
+  void testPostEncumbranceInvalidId() {
     logger.info("=== Test POST release encumbrance bad ID ===");
 
     String transactionID = "bad-encumbrance-id";
