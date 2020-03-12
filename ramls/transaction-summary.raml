@@ -1,7 +1,7 @@
 #%RAML 1.0
 
 title: Finance Transaction Summaries
-version: v1
+version: v1.1
 protocols: [ HTTP, HTTPS ]
 baseUri: https://github.com/folio-org/mod-finance
 
@@ -13,7 +13,7 @@ types:
   order-transaction-summary: !include acq-models/mod-finance/schemas/order_transaction_summary.json
   invoice-transaction-summary: !include acq-models/mod-finance/schemas/invoice_transaction_summary.json
   errors: !include raml-util/schemas/errors.schema
-  
+
 
 traits:
   validate: !include raml-util/traits/validation.raml
@@ -34,7 +34,7 @@ resourceTypes:
     is: [validate]
     post:
       description: Create a new order transaction summary, for an order with number of transactions(encumbrances)
-      
+
 /finance/invoice-transaction-summaries:
     displayName: Create a transaction allocation
     description: Create a new invoice transaction summary
