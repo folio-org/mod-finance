@@ -1,5 +1,22 @@
-## 1.2.0 - Unreleased
+## 2.1.0 - Unreleased
 
+## 2.0.0 - Released
+The primary focus of this release was to implement releasing encumbrances and payments\credits API.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v1.1.0...v2.0.0)
+
+### Stories
+*[MODFIN-113](https://issues.folio.org/browse/MODFIN-113) Add invoiceId and invoiceLineId to the awaitingPayment schema
+*[MODFIN-106](https://issues.folio.org/browse/MODFIN-106) Add fiscalYear query arg to GET /finance/ledgers API
+*[MODFIN-99](https://issues.folio.org/browse/MODFIN-99) Update groupFundFiscalYear when fund is updated
+*[MODFIN-86](https://issues.folio.org/browse/MODFIN-86) Restrict adjustment of budget's allowableEncumbrance and allowableExpenditures
+*[MODFIN-83](https://issues.folio.org/browse/MODFIN-83) Create release encumbrance API
+*[MODFIN-71](https://issues.folio.org/browse/MODFIN-71) Create transaction APIs - Payments, Credits
+
+### Bug Fixes
+*[MODFIN-108](https://issues.folio.org/browse/MODFIN-108) Get current fiscal year should include the start and end days in the period
+
+	
 ## 1.1.0 - Released
 This release contains changes to the schema in ledger adding fields restrictEncumbrance, restrictExpenditures
 
