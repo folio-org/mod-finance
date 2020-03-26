@@ -14,8 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import javax.ws.rs.Path;
@@ -81,9 +83,18 @@ public class HelperUtils {
 
   public static void verifyResponse(Response response) {
     if (!Response.isSuccess(response.getCode())) {
-      throw new CompletionException(new HttpException(response.getCode(), response.getError()
-        .getString(ERROR_MESSAGE)));
+      String errorMsg = response.getError().getString(ERROR_MESSAGE);
+      HttpException httpException = getErrorByCode(errorMsg)
+                                            .map(errorCode -> new HttpException(response.getCode(), errorCode))
+                                            .orElse(new HttpException(response.getCode(), errorMsg));
+      throw new CompletionException(httpException);
     }
+  }
+
+  public static Optional<ErrorCodes> getErrorByCode(String errorCode){
+    return EnumSet.allOf(ErrorCodes.class).stream()
+                 .filter(errorCodes -> errorCodes.getCode().equals(errorCode))
+                 .findAny();
   }
 
   public static JsonObject verifyAndExtractBody(Response response) {
