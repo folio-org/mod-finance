@@ -8,8 +8,10 @@ import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDE
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.Errors;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.logging.Logger;
@@ -40,8 +42,12 @@ public class BudgetsTest extends ApiTestBase {
   public void testDeleteShouldFailIfThereAreTransactionBoundedToBudget() {
     logger.info("=== Test Delete of the budget is forbidden, if budget related transactions found ===");
 
-    verifyDeleteResponse(BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
-      .body(containsString(TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR.getCode()));
+    Errors errors = verifyDeleteResponse(BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
+      .extract()
+      .as(Errors.class);
+
+    assertEquals(TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR.getDescription(), errors.getErrors().get(0).getMessage());
+    assertEquals(TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR.getCode(), errors.getErrors().get(0).getCode());
   }
 
   @Test
