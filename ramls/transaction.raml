@@ -108,6 +108,9 @@ resourceTypes:
         401:
           description: "Not authorized to perform requested action"
           body:
+            text/plain:
+              example: |
+                "unable to list instances -- unauthorized"
             application/json:
               example:
                 strict: false
