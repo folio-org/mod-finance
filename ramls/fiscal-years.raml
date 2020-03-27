@@ -24,9 +24,9 @@ traits:
   searchable: !include raml-util/traits/searchable.raml
 
 resourceTypes:
-  collection: !include raml-util/rtypes/collection.raml
-  collection-item: !include raml-util/rtypes/item-collection.raml
-  get-only: !include raml-util/rtypes/get-only.raml
+  collection: !include raml-util/rtypes/collection-with-json-response.raml
+  collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
+  get-only: !include raml-util/rtypes/get-only-with-json-response.raml
 
 /finance/fiscal-years:
   displayName: Finance fiscal year
