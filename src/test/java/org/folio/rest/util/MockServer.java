@@ -16,6 +16,8 @@ import static org.folio.rest.impl.ApiTestBase.INVALID_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
 import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.getMockData;
+import static org.folio.rest.impl.BudgetsTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
+import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
@@ -660,6 +662,8 @@ public class MockServer {
 
     if (ID_DOES_NOT_EXIST.equals(id)) {
       serverResponse(ctx, 404, TEXT_PLAIN, id);
+    } else if (BUDGET_WITH_BOUNDED_TRANSACTION_ID.equals(id) ){
+      serverResponse(ctx, 400, TEXT_PLAIN, TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR.getCode());
     } else if (ID_FOR_INTERNAL_SERVER_ERROR.equals(id)) {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else {
