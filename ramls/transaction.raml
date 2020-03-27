@@ -108,9 +108,10 @@ resourceTypes:
         401:
           description: "Not authorized to perform requested action"
           body:
-            text/plain:
-              example: |
-                "unable to list instances -- unauthorized"
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
     /{id}:
       displayName: Transaction instance
       description: Get a specific Transaction instance
