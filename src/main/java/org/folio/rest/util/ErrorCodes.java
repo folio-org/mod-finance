@@ -16,7 +16,9 @@ public enum ErrorCodes {
   ALLOCATION_TRANSFER_FAILED("failedAllocationTransaction", "Failed to create allocation transaction for a budget"),
   LEDGER_FY_NOT_FOUND("ledgerFYNotFound", "No summary values for the specified fiscal year"),
   ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED("allowableEncumbranceLimitExceeded", "Allowable encumbrance limit exceeded"),
-  ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED("allowableExpenditureLimitExceeded", "Allowable expenditures limit exceeded");
+  ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED("allowableExpenditureLimitExceeded", "Allowable expenditures limit exceeded"),
+  TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR("transactionIsPresentBudgetDeleteError",
+    "Budget related transactions found. Deletion of the budget is forbidden.");
 
   private final String code;
   private final String description;
