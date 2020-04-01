@@ -4,7 +4,7 @@
   "provides": [
     {
       "id": "finance.budgets",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -53,7 +53,7 @@
     },
     {
       "id": "finance.fund-types",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -99,7 +99,7 @@
     },
     {
       "id": "finance.funds",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -163,7 +163,7 @@
     },
     {
       "id": "finance.fiscal-years",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -211,7 +211,7 @@
     },
     {
       "id": "finance.group-fund-fiscal-years",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -241,7 +241,7 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.3",
+      "version": "1.4",
       "handlers": [
         {
           "methods": ["GET"],
@@ -299,7 +299,7 @@
     },
     {
       "id": "finance.groups",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["GET"],
@@ -345,7 +345,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "2.0",
+      "version": "2.1",
       "handlers": [
         {
           "methods": ["POST"],
@@ -425,7 +425,7 @@
     },
     {
     "id": "finance.order-transaction-summaries",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["POST"],
@@ -439,7 +439,7 @@
     },
     {
       "id": "finance.group-fiscal-year-summaries",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -454,7 +454,7 @@
     },
     {
     "id": "finance.invoice-transaction-summaries",
-      "version": "1.0",
+      "version": "1.1",
       "handlers": [
         {
           "methods": ["POST"],

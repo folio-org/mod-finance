@@ -1,4 +1,12 @@
 ## 2.1.0 - Unreleased
+## 2.0.1 - Released
+Bugfix release to fix error message upon budget deletion and fix raml to return json wherever possible
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v2.0.0...v2.0.1)
+
+### Bug Fixes
+* [MODFIN-117](https://issues.folio.org/browse/MODFIN-117) - Return meaningful error message upon failed budget deletion
+* [MODFIN-64](https://issues.folio.org/browse/MODFIN-64) - Fix raml(contract) to return application/json responses wherever possible
 
 ## 2.0.0 - Released
 The primary focus of this release was to implement releasing encumbrances and payments\credits API.
