@@ -37,13 +37,25 @@ traits:
           body:
             text/plain:
               example: "Transaction type is not encumbrance"
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
         404:
           description: "Encumbrance with a given ID not found"
           body:
             text/plain:
               example: "Encumbrance not found"
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
         500:
           description: "Internal server error, e.g. due to misconfiguration"
           body:
             text/plain:
               example: "internal server error, contact administrator"
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample

@@ -42,13 +42,25 @@ traits:
           text/plain:
             example: |
               "unable to process awaiting payment -- malformed JSON at 13:3"
+          application/json:
+            example:
+              strict: false
+              value: !include raml-util/examples/errors.sample
       401:
         description: "Not authorized to perform requested action"
         body:
           text/plain:
             example: "unable to create awaiting payment -- unauthorized"
+          application/json:
+            example:
+              strict: false
+              value: !include raml-util/examples/errors.sample
       500:
         description: "Internal server error, e.g. due to misconfiguration"
         body:
           text/plain:
             example: "Internal server error, contact administrator"
+          application/json:
+            example:
+              strict: false
+              value: !include raml-util/examples/errors.sample

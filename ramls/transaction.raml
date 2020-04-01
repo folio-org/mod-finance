@@ -23,8 +23,8 @@ traits:
 
 resourceTypes:
   post-with-201: !include rtypes/post-json-201.raml
-  get-only: !include raml-util/rtypes/get-only.raml
-  collection-item-get: !include raml-util/rtypes/item-collection-get.raml
+  get-only: !include raml-util/rtypes/get-only-with-json-response.raml
+  collection-item-get: !include raml-util/rtypes/item-collection-get-with-json-response.raml
 
 /finance:
   /allocations:
@@ -111,6 +111,10 @@ resourceTypes:
             text/plain:
               example: |
                 "unable to list instances -- unauthorized"
+            application/json:
+              example:
+                strict: false
+                value: !include raml-util/examples/errors.sample
     /{id}:
       displayName: Transaction instance
       description: Get a specific Transaction instance
