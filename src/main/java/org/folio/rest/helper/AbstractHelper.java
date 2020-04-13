@@ -97,7 +97,7 @@ public abstract class AbstractHelper {
   }
 
   public void closeHttpClient() {
-    if (!Objects.isNull(httpClient)) {
+    if (Objects.nonNull(httpClient)) {
       httpClient.closeClient();
     }
   }
