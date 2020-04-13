@@ -19,7 +19,7 @@ public class ExchangeRateApi implements FinanceExchangeRate {
   @Validate
   public void getFinanceExchangeRate(String from, String to, String lang, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    ExchangeRateHelper helper = new ExchangeRateHelper(okapiHeaders, vertxContext, lang);
+    ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
     helper.getExchangeRate(from, to)
       .thenAccept(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .exceptionally(t -> handleErrorResponse(asyncResultHandler, helper, t));

@@ -6,12 +6,11 @@ import org.folio.rest.exception.HttpException;
 
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ExchangeRateHelper extends AbstractHelper {
-  public ExchangeRateHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
-    super(okapiHeaders, ctx, lang);
+  public ExchangeRateHelper(Context ctx) {
+    super(ctx);
   }
 
   public CompletableFuture<ExchangeRate> getExchangeRate(String from, String to) {
