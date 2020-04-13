@@ -72,7 +72,7 @@ public class ExchangeRateTest extends ApiTestBase {
 
   @Test
   public void getExchangeRateNoRate() {
-    logger.info("=== Test get exchange rate from USD to ALL: NOT_FOUND ===");
+    logger.info("=== Test get exchange rate from USD to ALL : NOT_FOUND ===");
     verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
   }
 }
