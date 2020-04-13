@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class ExchangeRateTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(ExchangeRateTest.class);
 
+  private static final double ONE = 1.0;
   private static final String EXCHANGE_RATE_PATH = "finance/exchange-rate";
   private static final String VALID_REQUEST = "?from=USD&to=EUR";
   private static final String SAME_CURRENCIES = "?from=USD&to=USD";
@@ -20,6 +21,7 @@ public class ExchangeRateTest extends ApiTestBase {
   private static final String MISSING_FROM = "?to=USD";
   private static final String MISSING_TO = "?from=USD";
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
+  private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
 
   @Test
   public void getExchangeRate() {
@@ -35,7 +37,7 @@ public class ExchangeRateTest extends ApiTestBase {
     logger.info("=== Test get exchange rate for same currency codes: Success, exchangeRate=1 ===");
     ExchangeRate exchangeRate = verifyGet(EXCHANGE_RATE_PATH + SAME_CURRENCIES, APPLICATION_JSON, 200).as(ExchangeRate.class);
     assertThat(exchangeRate.getFrom(), equalTo(exchangeRate.getTo()));
-    assertThat("1", equalTo(exchangeRate.getExchangeRate()));
+    assertThat(ONE, equalTo(exchangeRate.getExchangeRate()));
   }
 
   @Test
@@ -66,5 +68,11 @@ public class ExchangeRateTest extends ApiTestBase {
   public void getExchangeRateInvalidCurrencyCode() {
     logger.info("=== Test get exchange rate for invalid currency code: BAD_REQUEST ===");
     verifyGet(EXCHANGE_RATE_PATH + INVALID_CURRENCY, "", 400);
+  }
+
+  @Test
+  public void getExchangeRateNoRate() {
+    logger.info("=== Test get exchange rate from USD to ALL: NOT_FOUND ===");
+    verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
   }
 }
