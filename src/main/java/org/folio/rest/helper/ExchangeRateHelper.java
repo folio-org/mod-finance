@@ -4,7 +4,6 @@ import io.vertx.core.Context;
 import org.folio.rest.acq.model.finance.ExchangeRate;
 import org.folio.rest.exception.HttpException;
 
-import javax.money.MonetaryException;
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
 import java.util.Map;
