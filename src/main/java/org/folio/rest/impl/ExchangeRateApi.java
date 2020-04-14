@@ -7,6 +7,7 @@ import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.ExchangeRateHelper;
 import org.folio.rest.jaxrs.resource.FinanceExchangeRate;
@@ -20,7 +21,7 @@ public class ExchangeRateApi implements FinanceExchangeRate {
   public void getFinanceExchangeRate(String from, String to, String lang, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
-    helper.getExchangeRate(from, to)
+    VertxCompletableFuture.supplyBlockingAsync(vertxContext, () -> helper.getExchangeRate(from, to))
       .thenAccept(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .exceptionally(t -> handleErrorResponse(asyncResultHandler, helper, t));
   }
