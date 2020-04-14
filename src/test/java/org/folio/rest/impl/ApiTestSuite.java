@@ -96,4 +96,8 @@ public class ApiTestSuite {
   @Nested
   class LedgerSummaryTestNested extends LedgerSummaryTest {
   }
+
+  @Nested
+  class ExchangeRateTestNested extends ExchangeRateTest {
+  }
 }
