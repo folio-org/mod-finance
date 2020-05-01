@@ -1,6 +1,5 @@
 package org.folio.rest.helper;
 
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
 import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
