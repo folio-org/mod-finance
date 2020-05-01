@@ -100,22 +100,22 @@ public class TransactionsHelper extends AbstractHelper {
   private CompletableFuture<Transaction> checkRestrictions(Transaction transaction) {
     CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
     switch(transaction.getTransactionType()) {
-    case ALLOCATION:
-    case TRANSFER:
-      if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
-        transaction.getTransactionType().equals(ALLOCATION)) {
+      case ALLOCATION:
+      case TRANSFER:
+        if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
+          transaction.getTransactionType().equals(ALLOCATION)) {
+          future.complete(transaction);
+        } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
+          checkAllocatedIds(transaction)
+            .thenApply(isMatch ->
+              Boolean.TRUE.equals(isMatch) ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
+            .exceptionally(throwable -> future.completeExceptionally(new HttpException(500, ALLOCATION_TRANSFER_FAILED)));
+        } else {
+          future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
+        }
+        break;
+      default:
         future.complete(transaction);
-      } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-        checkAllocatedIds(transaction)
-          .thenApply(isMatch ->
-            Boolean.TRUE.equals(isMatch) ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
-          .exceptionally(throwable -> future.completeExceptionally(new HttpException(500, ALLOCATION_TRANSFER_FAILED)));
-      } else {
-        future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
-      }
-      break;
-    default:
-      future.complete(transaction);
     }
     return future;
   }
