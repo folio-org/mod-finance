@@ -1,5 +1,6 @@
 package org.folio.rest.helper;
 
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
 import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
@@ -100,14 +101,14 @@ public class TransactionsHelper extends AbstractHelper {
     CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
     switch(transaction.getTransactionType()) {
     case ALLOCATION:
-      if (Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) {
-        future.complete(transaction);
-      }
     case TRANSFER:
-      if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
+      if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
+        transaction.getTransactionType().equals(ALLOCATION)) {
+        future.complete(transaction);
+      } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
         checkAllocatedIds(transaction)
           .thenApply(isMatch ->
-            isMatch ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
+            Boolean.TRUE.equals(isMatch) ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
           .exceptionally(throwable -> future.completeExceptionally(new HttpException(500, ALLOCATION_TRANSFER_FAILED)));
       } else {
         future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
