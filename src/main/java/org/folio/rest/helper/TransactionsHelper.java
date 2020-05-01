@@ -101,15 +101,15 @@ public class TransactionsHelper extends AbstractHelper {
     CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
     switch(transaction.getTransactionType()) {
     case ALLOCATION:
+      if (Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) {
+        future.complete(transaction);
+      }
     case TRANSFER:
       if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
         checkAllocatedIds(transaction)
           .thenApply(isMatch ->
             isMatch ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
           .exceptionally(throwable -> future.completeExceptionally(new HttpException(500, ALLOCATION_TRANSFER_FAILED)));
-      } else if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
-        transaction.getTransactionType().equals(ALLOCATION)) {
-        future.complete(transaction);
       } else {
         future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
       }
