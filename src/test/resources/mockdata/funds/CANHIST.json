@@ -1,0 +1,10 @@
+{
+  "id": "68872d8a-bf16-420b-829f-206da38f6c10",
+  "name": "Canadian History",
+  "code": "CANHIST",
+  "externalAccountNo": "114929793941270",
+  "fundStatus": "Active",
+  "description": "WAITING FOR ADMIN APPROVAL; use for Canada once CANLATHIST is inactivated",
+  "ledgerId": "133a7916-f05e-4df4-8f7f-09eb2a7076d1",
+  "allocatedFromIds": ["fb7b70f1-b898-4924-a991-0e4b6312bb5f"]
+}
