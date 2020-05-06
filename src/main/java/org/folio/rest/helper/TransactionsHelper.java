@@ -2,7 +2,6 @@ package org.folio.rest.helper;
 
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
-import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
 import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
@@ -106,10 +105,14 @@ public class TransactionsHelper extends AbstractHelper {
           transaction.getTransactionType().equals(ALLOCATION)) {
           future.complete(transaction);
         } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-          checkAllocatedIds(transaction)
-            .thenApply(isMatch ->
-              Boolean.TRUE.equals(isMatch) ? future.complete(transaction) : future.completeExceptionally(new HttpException(422, ALLOCATION_IDS_MISMATCH)))
-            .exceptionally(throwable -> future.completeExceptionally(new HttpException(500, ALLOCATION_TRANSFER_FAILED)));
+          return checkAllocatedIds(transaction)
+            .thenApply(isMatch -> {
+              if (Boolean.TRUE.equals(isMatch)) {
+                return transaction;
+              } else {
+                throw new HttpException(422, ALLOCATION_IDS_MISMATCH);
+              }
+            });
         } else {
           future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
         }
@@ -123,8 +126,8 @@ public class TransactionsHelper extends AbstractHelper {
   private CompletableFuture<Boolean> checkAllocatedIds(Transaction transaction) {
     FundsHelper fundsHelper = new FundsHelper(okapiHeaders, ctx, lang);
     return fundsHelper.getFund(transaction.getFromFundId())
-      .thenCombine(fundsHelper.getFund(transaction.getToFundId()), (from, to) ->
-        (from.getFund().getAllocatedToIds().isEmpty() || from.getFund().getAllocatedToIds().contains(transaction.getToFundId())) &&
-          (to.getFund().getAllocatedFromIds().isEmpty() || to.getFund().getAllocatedFromIds().contains(transaction.getFromFundId())));
+      .thenCombine(fundsHelper.getFund(transaction.getToFundId()), (fromFund, toFund) ->
+        (fromFund.getAllocatedToIds().isEmpty() || fromFund.getAllocatedToIds().contains(transaction.getToFundId())) &&
+          (toFund.getAllocatedFromIds().isEmpty() || toFund.getAllocatedFromIds().contains(transaction.getFromFundId())));
   }
 }

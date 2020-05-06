@@ -353,11 +353,7 @@
           "permissionsRequired": ["finance.allocations.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.post",
-            "finance-storage.funds.item.get",
-            "finance-storage.ledgers.item.get",
-            "finance-storage.fiscal-years.item.get",
-            "finance-storage.fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.collection.get"
+            "finance-storage.funds.item.get"
           ]
         },
         {
@@ -374,11 +370,7 @@
           "permissionsRequired": ["finance.transfers.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.post",
-            "finance-storage.funds.item.get",
-            "finance-storage.ledgers.item.get",
-            "finance-storage.fiscal-years.item.get",
-            "finance-storage.fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.collection.get"
+            "finance-storage.funds.item.get"
           ]
         },
         {

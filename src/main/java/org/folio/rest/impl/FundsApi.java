@@ -75,7 +75,7 @@ public class FundsApi implements FinanceFunds, FinanceFundTypes {
 
     FundsHelper helper = new FundsHelper(headers, ctx, lang);
 
-    helper.getFund(id)
+    helper.getCompositeFund(id)
       .thenAccept(fund -> handler.handle(succeededFuture(helper.buildOkResponse(fund))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
