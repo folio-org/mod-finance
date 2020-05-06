@@ -101,24 +101,29 @@ public class TransactionsHelper extends AbstractHelper {
     switch(transaction.getTransactionType()) {
       case ALLOCATION:
       case TRANSFER:
-        if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
-          transaction.getTransactionType().equals(ALLOCATION)) {
-          future.complete(transaction);
-        } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-          return checkAllocatedIds(transaction)
-            .thenApply(isMatch -> {
-              if (Boolean.TRUE.equals(isMatch)) {
-                return transaction;
-              } else {
-                throw new HttpException(422, ALLOCATION_IDS_MISMATCH);
-              }
-            });
-        } else {
-          future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
-        }
-        break;
+        return checkAllocationOrTransfer(transaction);
       default:
         future.complete(transaction);
+    }
+    return future;
+  }
+
+  private CompletableFuture<Transaction> checkAllocationOrTransfer(Transaction transaction) {
+    CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
+    if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
+      transaction.getTransactionType().equals(ALLOCATION)) {
+      future.complete(transaction);
+    } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
+      return checkAllocatedIds(transaction)
+        .thenApply(isMatch -> {
+          if (Boolean.TRUE.equals(isMatch)) {
+            return transaction;
+          } else {
+            throw new HttpException(422, ALLOCATION_IDS_MISMATCH);
+          }
+        });
+    } else {
+      future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
     }
     return future;
   }
