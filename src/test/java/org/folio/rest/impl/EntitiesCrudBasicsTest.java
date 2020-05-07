@@ -9,11 +9,15 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_ALLOCATION;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_TRANSFER;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -58,8 +62,8 @@ import io.vertx.core.logging.LoggerFactory;
 public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
-  private static final List<TestEntities> transactionEntities = Arrays.asList(TestEntities.TRANSACTIONS_ALLOCATION,
-      TestEntities.TRANSACTIONS_ENCUMBRANCE, TestEntities.TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
+  private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION,
+      TestEntities.TRANSACTIONS_ENCUMBRANCE, TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
 
   /**
    * Test entities except for FUND
@@ -68,7 +72,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntities() {
     return Arrays.stream(TestEntities.values())
-      .filter(e -> !e.equals(TestEntities.FUND));
+      .filter(e -> !e.equals(FUND));
   }
 
   /**
@@ -201,6 +205,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   @MethodSource("getTestEntitiesWithPostEndpoint")
   public void testPostRecord(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record ===", testEntity.name());
+    if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
+      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
+      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
+    }
 
     JsonObject record = testEntity.getMockObject();
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
@@ -229,6 +237,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   @MethodSource("getTestEntitiesWithPostEndpoint")
   public void testPostRecordServerError(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
+    if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
+      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
+      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
+    }
 
     Headers headers = prepareHeaders(X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
     JsonObject record = testEntity.getMockObject();
@@ -322,7 +334,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
-  
+
   @Test
   @Order(1)
   public void testPostBudgetWithAllocated() {
@@ -332,7 +344,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     assertThat(response.getBody()
       .as(Budget.class)
       .getAllocated(), Matchers.greaterThan(0.0));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name()), hasSize(1));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.POST, TRANSACTIONS_ALLOCATION.name()), hasSize(1));
 
     verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
   }
@@ -352,8 +364,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
         .withAllocated(allocated)
         .withAvailable(available)
         .withUnavailable(unavailable);
-      MockServer.addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
-      MockServer.addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFY));
+      addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+      addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFY));
     }
 
     LedgersCollection response = verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear", fiscalYearId).as(LedgersCollection.class);

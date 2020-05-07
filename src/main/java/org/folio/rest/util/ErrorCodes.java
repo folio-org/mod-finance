@@ -18,7 +18,9 @@ public enum ErrorCodes {
   ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED("allowableEncumbranceLimitExceeded", "Allowable encumbrance limit exceeded"),
   ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED("allowableExpenditureLimitExceeded", "Allowable expenditures limit exceeded"),
   TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR("transactionIsPresentBudgetDeleteError",
-    "Budget related transactions found. Deletion of the budget is forbidden.");
+    "Budget related transactions found. Deletion of the budget is forbidden."),
+  MISSING_FUND_ID("missingFundId", "Missing to/from fund id"),
+  ALLOCATION_IDS_MISMATCH("allowableAllocationIdsMismatch", "Allowable allocation ids mismatch");
 
   private final String code;
   private final String description;

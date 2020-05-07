@@ -352,7 +352,8 @@
           "pathPattern": "/finance/allocations",
           "permissionsRequired": ["finance.allocations.item.post"],
           "modulePermissions": [
-            "finance-storage.transactions.item.post"
+            "finance-storage.transactions.item.post",
+            "finance-storage.funds.item.get"
           ]
         },
         {
@@ -368,7 +369,8 @@
           "pathPattern": "/finance/transfers",
           "permissionsRequired": ["finance.transfers.item.post"],
           "modulePermissions": [
-            "finance-storage.transactions.item.post"
+            "finance-storage.transactions.item.post",
+            "finance-storage.funds.item.get"
           ]
         },
         {

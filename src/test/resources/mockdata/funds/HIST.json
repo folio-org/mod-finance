@@ -1,0 +1,13 @@
+{
+  "id": "fb7b70f1-b898-4924-a991-0e4b6312bb5f",
+  "name": "History",
+  "code": "HIST",
+  "externalAccountNo": "276507594438808",
+  "fundStatus": "Active",
+  "description": "subdivided by geographic regions, to match individual selectors",
+  "ledgerId": "133a7916-f05e-4df4-8f7f-09eb2a7076d1",
+  "allocatedToIds": [
+    "68872d8a-bf16-420b-829f-206da38f6c10",
+    "e6d7e91a-4dbc-4a70-9b38-e000d2fbdc79"
+  ]
+}

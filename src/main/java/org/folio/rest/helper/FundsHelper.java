@@ -168,7 +168,7 @@ public class FundsHelper extends AbstractHelper {
       .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundsCollection.class)));
   }
 
-  public CompletableFuture<CompositeFund> getFund(String id) {
+  public CompletableFuture<CompositeFund> getCompositeFund(String id) {
     return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
       .thenCompose(compositeFund -> getCurrentFiscalYear(compositeFund.getFund()
@@ -176,6 +176,11 @@ public class FundsHelper extends AbstractHelper {
           .thenCompose(currentFY -> Objects.isNull(currentFY) ? CompletableFuture.completedFuture(null)
               : getGroupIdsThatFundBelongs(id, currentFY.getId()))
           .thenApply(compositeFund::withGroupIds));
+  }
+
+  public CompletableFuture<Fund> getFund(String id) {
+    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
+      .thenApply(json -> json.mapTo(Fund.class));
   }
 
   private CompletableFuture<Void> assignFundToGroups(List<GroupFundFiscalYear> groupFundFiscalYears) {

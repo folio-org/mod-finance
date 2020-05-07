@@ -27,7 +27,10 @@ public class TransactionsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Transaction> createTransaction(Transaction transaction) {
-    return handleCreateRequest(resourcesPath(TRANSACTIONS), transaction).thenApply(transaction::withId);
+    TransactionRestrictHelper transactionRestrictHelper = new TransactionRestrictHelper(okapiHeaders,ctx, lang);
+    return transactionRestrictHelper.checkRestrictions(transaction)
+      .thenCompose(res -> handleCreateRequest(resourcesPath(TRANSACTIONS), res)
+      .thenApply(res::withId));
   }
 
   public CompletableFuture<TransactionCollection> getTransactions(int limit, int offset, String query) {
@@ -89,5 +92,4 @@ public class TransactionsHelper extends AbstractHelper {
     transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     return updateTransaction(transaction);
   }
-
 }
