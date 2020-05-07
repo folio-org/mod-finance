@@ -1,15 +1,11 @@
 package org.folio.rest.helper;
 
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
-import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
-import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.exception.HttpException;
@@ -31,7 +27,8 @@ public class TransactionsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Transaction> createTransaction(Transaction transaction) {
-    return checkRestrictions(transaction)
+    TransactionRestrictHelper transactionRestrictHelper = new TransactionRestrictHelper(okapiHeaders,ctx, lang);
+    return transactionRestrictHelper.checkRestrictions(transaction)
       .thenCompose(res -> handleCreateRequest(resourcesPath(TRANSACTIONS), res)
       .thenApply(res::withId));
   }
@@ -94,45 +91,5 @@ public class TransactionsHelper extends AbstractHelper {
 
     transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     return updateTransaction(transaction);
-  }
-
-  private CompletableFuture<Transaction> checkRestrictions(Transaction transaction) {
-    CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
-    switch(transaction.getTransactionType()) {
-      case ALLOCATION:
-      case TRANSFER:
-        return checkAllocationOrTransfer(transaction);
-      default:
-        future.complete(transaction);
-    }
-    return future;
-  }
-
-  private CompletableFuture<Transaction> checkAllocationOrTransfer(Transaction transaction) {
-    CompletableFuture<Transaction> future = new VertxCompletableFuture<>(ctx);
-    if ((Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) &&
-      transaction.getTransactionType().equals(ALLOCATION)) {
-      future.complete(transaction);
-    } else if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-      return checkAllocatedIds(transaction)
-        .thenApply(isMatch -> {
-          if (Boolean.TRUE.equals(isMatch)) {
-            return transaction;
-          } else {
-            throw new HttpException(422, ALLOCATION_IDS_MISMATCH);
-          }
-        });
-    } else {
-      future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
-    }
-    return future;
-  }
-
-  private CompletableFuture<Boolean> checkAllocatedIds(Transaction transaction) {
-    FundsHelper fundsHelper = new FundsHelper(okapiHeaders, ctx, lang);
-    return fundsHelper.getFund(transaction.getFromFundId())
-      .thenCombine(fundsHelper.getFund(transaction.getToFundId()), (fromFund, toFund) ->
-        (fromFund.getAllocatedToIds().isEmpty() || fromFund.getAllocatedToIds().contains(transaction.getToFundId())) &&
-          (toFund.getAllocatedFromIds().isEmpty() || toFund.getAllocatedFromIds().contains(transaction.getFromFundId())));
   }
 }
