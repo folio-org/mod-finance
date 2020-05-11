@@ -104,4 +104,8 @@ public class ApiTestSuite {
   @Nested
   class TransactionTestNested extends TransactionTest {
   }
+
+  @Nested
+  class HelperUtilsTestNested extends HelperUtilsTest {
+  }
 }
