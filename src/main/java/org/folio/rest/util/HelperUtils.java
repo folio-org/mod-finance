@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.ws.rs.Path;
 
 import io.vertx.core.AsyncResult;
@@ -211,5 +213,16 @@ public class HelperUtils {
   public static void handleTransactionError(TransactionsHelper helper, Handler<AsyncResult<javax.ws.rs.core.Response>> asyncResultHandler) {
     helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
     asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+  }
+
+  public static boolean isErrorMessageJson(String errorMessage) {
+    if (!StringUtils.isEmpty(errorMessage)) {
+      Pattern pattern = Pattern.compile("(message).*(code).*(parameters)");
+      Matcher matcher = pattern.matcher(errorMessage);
+      if (matcher.find()) {
+        return matcher.groupCount() == 3;
+      }
+    }
+    return false;
   }
 }

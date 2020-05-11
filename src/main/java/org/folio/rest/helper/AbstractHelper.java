@@ -256,12 +256,15 @@ public abstract class AbstractHelper {
   protected int handleProcessingError(Throwable throwable) {
     final Throwable cause = throwable.getCause();
     logger.error("Exception encountered", cause);
-    final Error error;
+    Error error;
     final int code;
 
     if (cause instanceof HttpException) {
       code = ((HttpException) cause).getCode();
       error = ((HttpException) cause).getError();
+      if (HelperUtils.isErrorMessageJson(error.getMessage())) {
+        error = new JsonObject(error.getMessage()).mapTo(Error.class);
+      }
     } else {
       code = INTERNAL_SERVER_ERROR.getStatusCode();
       error = GENERIC_ERROR_CODE.toError()
