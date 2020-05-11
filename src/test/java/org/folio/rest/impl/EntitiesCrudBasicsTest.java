@@ -349,6 +349,17 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
   }
 
+  @ParameterizedTest
+  @EnumSource(value = TestEntities.class, names = {"GROUP"})
+  public void testPostGroupWhenJsonErrorComeFromStorage(TestEntities testEntity) {
+    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
+
+    JsonObject record = testEntity.getMockObject();
+    record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
+    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 201);
+   // verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 400);
+  }
+
   @Test
   public void testGetLedgersCollectionWithFiscalYear() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) ===");
