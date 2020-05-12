@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.folio.rest.acq.model.finance.LedgerFY;
@@ -42,6 +44,7 @@ import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -347,6 +350,21 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     assertThat(MockServer.getRqRsEntries(HttpMethod.POST, TRANSACTIONS_ALLOCATION.name()), hasSize(1));
 
     verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = TestEntities.class, names = {"GROUP"})
+  public void testPostGroupWhenJsonErrorComeFromStorage(TestEntities testEntity) {
+    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
+
+    JsonObject record = testEntity.getMockObject();
+    record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
+    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 201);
+    Response response = verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 400);
+
+    Pattern pattern = Pattern.compile("(uniqueField.*Error)");
+    Matcher matcher = pattern.matcher(response.getBody().asString());
+    Assert.assertTrue(matcher.find());
   }
 
   @Test

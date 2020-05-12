@@ -641,6 +641,16 @@ public class MockServer {
     String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
       serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else if (!getRqRsEntries(HttpMethod.POST, entryName).isEmpty() && tClass == Group.class){
+      String constraintStorageError = "{\"errors\":[{\"message\":\"Test\",\"code\":\"uniqueFieldGroupNameError\"" +
+        ",\"parameters\":[]}],\"total_records\":1}";
+      List<JsonObject> rqRs = getRqRsEntries(HttpMethod.POST, entryName);
+      JsonObject rsGroup = rqRs.get(0);
+      Group requestEntry = ctx.getBodyAsJson().mapTo(Group.class);
+      Group dbEntry = rsGroup.mapTo(Group.class);
+      if (requestEntry.getId().equals(dbEntry.getId())) {
+        serverResponse(ctx, 400, APPLICATION_JSON, constraintStorageError);
+      }
     } else {
       JsonObject body = ctx.getBodyAsJson();
       if (body.getString(ID) == null) {
