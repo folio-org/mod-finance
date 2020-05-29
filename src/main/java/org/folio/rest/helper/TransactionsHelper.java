@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.DepricatedAwaitingPayment;
+import org.folio.rest.jaxrs.model.DeprecatedAwaitingPayment;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
@@ -51,16 +51,16 @@ public class TransactionsHelper extends AbstractHelper {
   /**
    * Get the {@link Transaction} (encumbrance) from storage and update the encumbered / awaiting payment amounts
    *
-   * @param awaitingPayment {@link DepricatedAwaitingPayment} object
+   * @param awaitingPayment {@link DeprecatedAwaitingPayment} object
    * @return {@link CompletableFuture<Void>} returns empty result
    */
-  public CompletableFuture<Void> moveToAwaitingPayment(DepricatedAwaitingPayment awaitingPayment) {
+  public CompletableFuture<Void> moveToAwaitingPayment(DeprecatedAwaitingPayment awaitingPayment) {
     return getTransaction(awaitingPayment.getEncumbranceId())
       .thenApply(tr -> modifyTransaction(tr, awaitingPayment))
       .thenCompose(this::updateTransaction);
   }
 
-  private Transaction modifyTransaction(Transaction transaction, DepricatedAwaitingPayment awaitingPayment) {
+  private Transaction modifyTransaction(Transaction transaction, DeprecatedAwaitingPayment awaitingPayment) {
     Double currentAwaitingPaymentAmount = transaction.getEncumbrance().getAmountAwaitingPayment();
     String currency = transaction.getCurrency();
 
