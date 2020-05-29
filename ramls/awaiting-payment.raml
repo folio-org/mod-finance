@@ -6,11 +6,11 @@ protocols: [ HTTP, HTTPS ]
 baseUri: https://github.com/folio-org/mod-finance
 
 documentation:
-  - title: Awaiting payment API
-    content: This documents the API calls that move money from encumbered to awaitingPayment
+  - title: Awaiting payment API (Depricated)
+    content: This documents the API calls that move money from encumbered to awaitingPayment (Depricated)
 
 types:
-  awaitingPayment: !include acq-models/mod-finance/schemas/awaiting_payment.json
+  depricatedAwaitingPayment: !include acq-models/mod-finance/schemas/depricated_awaiting_payment.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -29,10 +29,10 @@ traits:
     is: [validate]
     body:
       application/json:
-        type: awaitingPayment
+        type: depricatedAwaitingPayment
         example:
           strict: false
-          value: !include acq-models/mod-finance/examples/awaiting_payment.sample
+          value: !include acq-models/mod-finance/examples/depricated_awaiting_payment.sample
     responses:
       204:
         description: "Money moved successfully"

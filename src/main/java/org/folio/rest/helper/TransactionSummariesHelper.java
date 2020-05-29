@@ -30,7 +30,7 @@ public class TransactionSummariesHelper extends AbstractHelper {
   public CompletableFuture<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
     return VertxCompletableFuture
       .runAsync(ctx,
-          () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumEncumbrances()))
+          () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary))
       .thenApply(invoiceSummary::withId);
   }
