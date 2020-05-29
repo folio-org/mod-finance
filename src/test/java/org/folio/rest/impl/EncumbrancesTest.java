@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
-import org.folio.rest.jaxrs.model.AwaitingPayment;
+import org.folio.rest.jaxrs.model.DeprecatedAwaitingPayment;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -33,7 +33,7 @@ class EncumbrancesTest extends ApiTestBase {
     String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
     Transaction transaction = getTransactionMockById(encumbranceID);
 
-    AwaitingPayment awaitingPayment = new JsonObject(getMockData("mockdata/awating_payment/awaiting_payment_1.json")).mapTo(AwaitingPayment.class);
+    DeprecatedAwaitingPayment awaitingPayment = new JsonObject(getMockData("mockdata/awaiting_payment/awaiting_payment_1.json")).mapTo(DeprecatedAwaitingPayment.class);
     verifyPostResponse("/finance/awaiting-payment", awaitingPayment, "", NO_CONTENT.getStatusCode());
 
     Transaction updatedTransaction = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
