@@ -28,6 +28,7 @@ import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
+import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.Assert.fail;
@@ -247,6 +248,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(ORDER_TRANSACTION_SUMMARIES))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
 
     return router;
   }

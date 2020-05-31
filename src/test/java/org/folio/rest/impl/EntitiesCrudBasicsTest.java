@@ -338,6 +338,17 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
 
+  @ParameterizedTest
+  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
+  void testPutRecordMinimumValidation(TestEntities testEntity) {
+    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
+
+    JsonObject record = testEntity.getMockObject();
+    record.put(testEntity.getUpdatedFieldName(), 4);
+    verifyPut(testEntity.getEndpointWithId(UUID.randomUUID().toString()), record, "", 422);
+    verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
+  }
+
   @Test
   @Order(1)
   public void testPostBudgetWithAllocated() {
