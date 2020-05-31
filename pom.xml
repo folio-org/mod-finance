@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-finance</artifactId>
@@ -66,10 +67,10 @@
       <artifactId>domain-models-runtime</artifactId>
       <version>${raml-module-builder.version}</version>
       <exclusions>
-    <exclusion>
-    	<groupId>org.hamcrest</groupId>
-    	<artifactId>hamcrest-all</artifactId>
-    </exclusion>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-all</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -113,10 +114,10 @@
       <artifactId>junit-platform-runner</artifactId>
       <scope>test</scope>
       <exclusions>
-         <exclusion>
-            <groupId>org.hamcrest</groupId>
-             <artifactId>hamcrest-core</artifactId>
-         </exclusion>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -396,7 +397,7 @@
             <configuration>
               <target>
                 <replaceregexp match="baseUri:.+$" replace="baseUri: http://localhost:{http.port}" byline="true">
-                  <fileset dir="${basedir}/target/classes/apidocs/raml" includes="**/*.raml" />
+                  <fileset dir="${basedir}/target/classes/apidocs/raml" includes="**/*.raml"/>
                 </replaceregexp>
               </target>
             </configuration>
@@ -421,7 +422,7 @@
                     <Main-Verticle>org.folio.rest.RestVerticle</Main-Verticle>
                   </manifestEntries>
                 </transformer>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>javamoney.properties</resource>
                 </transformer>
@@ -440,7 +441,7 @@
                   </excludes>
                 </filter>
               </filters>
-              <artifactSet />
+              <artifactSet/>
               <outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
             </configuration>
           </execution>
