@@ -344,7 +344,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
-    record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
+    record.put(testEntity.getUpdatedFieldName(), 4);
     verifyPut(testEntity.getEndpointWithId(UUID.randomUUID().toString()), record, "", 422);
     verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
   }
