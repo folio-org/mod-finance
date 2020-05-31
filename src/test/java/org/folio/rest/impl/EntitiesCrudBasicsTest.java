@@ -340,7 +340,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
-  public void testPutRecordMinimumValidation(TestEntities testEntity) {
+  void testPutRecordMinimumValidation(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
