@@ -428,7 +428,7 @@
     },
     {
     "id": "finance.order-transaction-summaries",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["POST"],
@@ -436,6 +436,14 @@
           "permissionsRequired": ["finance.order-transaction-summaries.item.post"],
           "modulePermissions": [
             "finance-storage.order-transaction-summaries.item.post"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/order-transaction-summaries/{id}",
+          "permissionsRequired": ["finance.order-transaction-summaries.item.put"],
+          "modulePermissions": [
+            "finance-storage.order-transaction-summaries.item.put"
           ]
         }
       ]
@@ -863,6 +871,11 @@
       "description" : "Post Order Transaction Summary"
     },
     {
+      "permissionName" : "finance.order-transaction-summaries.item.put",
+      "displayName" : "Finances - Put Order transaction Summaries",
+      "description" : "Put Order Transaction Summary"
+    },
+    {
       "permissionName" : "finance.invoice-transaction-summaries.item.post",
       "displayName" : "Finances - Post Invoice transaction Summaries",
       "description" : "Post Invoice Transaction Summary"
@@ -887,6 +900,7 @@
         "finance.transactions.all",
         "finance.group-fiscal-year-summaries.collection.get",
         "finance.order-transaction-summaries.item.post",
+        "finance.order-transaction-summaries.item.put",
         "finance.invoice-transaction-summaries.item.post",
         "finance.exchange-rate.item.get"
       ],
