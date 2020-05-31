@@ -21,6 +21,7 @@ traits:
 
 resourceTypes:
   post-with-201: !include rtypes/post-json-201.raml
+  put-json: !include rtypes/post-put-json.raml
 
 /finance/order-transaction-summaries:
     displayName: Create a transaction allocation
@@ -34,6 +35,18 @@ resourceTypes:
     is: [validate]
     post:
       description: Create a new order transaction summary, for an order with number of transactions(encumbrances)
+
+    /{id}:
+      displayName: Create a transaction allocation
+      description: Create a new order transaction summary
+      type:
+        put-json:
+          schemaItem: order-transaction-summary
+          exampleItem: !include acq-models/mod-finance/examples/order_transaction_summary.sample
+      is: [validate]
+      put:
+        description: Updated order transaction summary, for an order with number of transactions(encumbrances)
+
 
 /finance/invoice-transaction-summaries:
     displayName: Create a transaction allocation

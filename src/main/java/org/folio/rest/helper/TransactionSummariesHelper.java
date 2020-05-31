@@ -2,6 +2,7 @@ package org.folio.rest.helper;
 
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import io.vertx.core.Context;
@@ -9,6 +10,8 @@ import io.vertx.core.Context;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
+
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
@@ -52,5 +55,10 @@ public class TransactionSummariesHelper extends AbstractHelper {
     if (numPaymentsCredits <= 0 || numEncumbrances < 0) {
       throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_INVOICE_TRANSACTION_COUNT));
     }
+  }
+
+  public CompletableFuture<Void> updateOrderTransactionSummary(OrderTransactionSummary orderSummary) {
+    return VertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
+      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId(), lang), orderSummary));
   }
 }
