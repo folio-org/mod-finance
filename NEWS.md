@@ -1,4 +1,21 @@
-## 2.1.0 - Unreleased
+## 3.1.0 - Unreleased
+
+## 3.0.0 - Released
+The primary focus of this release was to implement exchange rate API and bug fixing.
+Also **major versions of APIs** were changed for **finance.transactions** and **finance.invoice-transaction-summaries**
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v2.0.1...v3.0.0)
+
+### Stories
+* [MODFIN-133](https://issues.folio.org/browse/MODFIN-133) - mod-finance: Update to RMB v30.0.1
+* [MODFIN-124](https://issues.folio.org/browse/MODFIN-124) - Securing APIs by default
+* [MODFIN-121](https://issues.folio.org/browse/MODFIN-121) - Return helpful and clear error code, when Group name already exist
+* [MODFIN-111](https://issues.folio.org/browse/MODFIN-111) - Exchange rate API
+
+### Bug Fixes
+* [MODFIN-129](https://issues.folio.org/browse/MODFIN-129) - Mod-finance calls api without requesting permissions for it.
+* [MODFIN-122](https://issues.folio.org/browse/MODFIN-122) - Module started to crash after introducing rate of exchange logic
+
 ## 2.0.1 - Released
 Bugfix release to fix error message upon budget deletion and fix raml to return json wherever possible
 
