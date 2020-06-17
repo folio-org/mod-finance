@@ -1,10 +1,11 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.*;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.MockServer.addMockEntry;
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
-import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.TestEntities.FUND;
 
 import io.vertx.core.json.JsonObject;
