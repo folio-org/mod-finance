@@ -152,7 +152,7 @@ public class TransactionTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateEncumbrance() {
+  void testUpdateEncumbrance() {
     logger.info("=== Test update encumbrance - Success ===");
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
@@ -161,7 +161,7 @@ public class TransactionTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateEncumbranceIdsMismatch() {
+  void testUpdateEncumbranceIdsMismatch() {
     logger.info("=== Test update encumbrance with ids mismatch - Unprocessable entity ===");
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
@@ -170,7 +170,7 @@ public class TransactionTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateNonEncumbranceTransaction() {
+  void testUpdateNonEncumbranceTransaction() {
     logger.info("=== Test update non-encumbrance transaction - Unprocessable entity ===");
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(PAYMENT);
