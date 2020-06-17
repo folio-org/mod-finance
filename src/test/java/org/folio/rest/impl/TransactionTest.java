@@ -157,7 +157,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
     transaction.setId(id);
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpoint() + "/" + id, JsonObject.mapFrom(transaction), "", 204);
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), "", 204);
   }
 
   @Test
@@ -166,7 +166,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
     transaction.setId(UUID.randomUUID().toString());
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpoint() + "/" + id, JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
@@ -175,7 +175,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(PAYMENT);
     transaction.setId(id);
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpoint() + "/" + id, JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {
