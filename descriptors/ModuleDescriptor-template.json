@@ -367,7 +367,7 @@
         },
         {
           "methods": ["PUT"],
-          "pathPattern": "/finance/encumbrances",
+          "pathPattern": "/finance/encumbrances/{id}",
           "permissionsRequired": ["finance.encumbrances.item.put"],
           "modulePermissions": [
             "finance-storage.transactions.item.put"
