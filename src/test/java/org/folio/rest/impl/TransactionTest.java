@@ -2,6 +2,8 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestEntities.FUND;
@@ -12,6 +14,8 @@ import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.TestEntities;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
 
 public class TransactionTest extends ApiTestBase {
   private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class);
@@ -145,6 +149,33 @@ public class TransactionTest extends ApiTestBase {
     logger.info("=== Test allocation missing both FROM and TO fund ids - Unprocessable entity ===");
     Transaction transaction = createTransaction(ALLOCATION);
     verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testUpdateEncumbrance() {
+    logger.info("=== Test update encumbrance - Success ===");
+    String id = UUID.randomUUID().toString();
+    Transaction transaction = createTransaction(ENCUMBRANCE);
+    transaction.setId(id);
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdateEncumbranceIdsMismatch() {
+    logger.info("=== Test update encumbrance with ids mismatch - Unprocessable entity ===");
+    String id = UUID.randomUUID().toString();
+    Transaction transaction = createTransaction(ENCUMBRANCE);
+    transaction.setId(UUID.randomUUID().toString());
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testUpdateNonEncumbranceTransaction() {
+    logger.info("=== Test update non-encumbrance transaction - Unprocessable entity ===");
+    String id = UUID.randomUUID().toString();
+    Transaction transaction = createTransaction(PAYMENT);
+    transaction.setId(id);
+    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {

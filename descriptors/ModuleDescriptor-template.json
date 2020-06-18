@@ -366,6 +366,14 @@
           ]
         },
         {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/encumbrances/{id}",
+          "permissionsRequired": ["finance.encumbrances.item.put"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put"
+          ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/finance/transfers",
           "permissionsRequired": ["finance.transfers.item.post"],
@@ -810,6 +818,11 @@
       "description" : "Create a new encumbrance"
     },
     {
+      "permissionName" : "finance.encumbrances.item.put",
+      "displayName" : "Encumbrances - update transaction of type encumbrance",
+      "description" : "Update an encumbrance"
+    },
+    {
       "permissionName" : "finance.transfers.item.post",
       "displayName" : "Transfers - create a new transaction of type transfer",
       "description" : "Create a new transfer"
@@ -846,6 +859,7 @@
       "subPermissions" : [
         "finance.allocations.item.post",
         "finance.encumbrances.item.post",
+        "finance.encumbrances.item.put",
         "finance.transfers.item.post",
         "finance.payments.item.post",
         "finance.pending-payments.item.post",
