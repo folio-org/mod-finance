@@ -17,6 +17,7 @@ import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ALLOCATION;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_PENDING_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_TRANSFER;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -66,7 +67,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
   private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION,
-      TestEntities.TRANSACTIONS_ENCUMBRANCE, TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
+      TestEntities.TRANSACTIONS_ENCUMBRANCE, TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
 
   /**
    * Test entities except for FUND

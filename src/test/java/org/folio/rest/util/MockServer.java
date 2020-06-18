@@ -629,6 +629,8 @@ public class MockServer {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ENCUMBRANCE.name(), body);
       } else if (t.getTransactionType() == Transaction.TransactionType.PAYMENT) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_PAYMENT.name(), body);
+      } else if (t.getTransactionType() == Transaction.TransactionType.PENDING_PAYMENT) {
+        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_PENDING_PAYMENT.name(), body);
       } else if (t.getTransactionType() == Transaction.TransactionType.CREDIT) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_CREDIT.name(), body);
       }

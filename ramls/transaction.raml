@@ -79,6 +79,19 @@ resourceTypes:
     post:
       description: Create a payment by transaction
 
+  /pending-payments:
+      displayName: Create a transaction pending payment
+      description: Create a pending payment
+      type:
+        post-with-201:
+          requestSchema: transaction
+          responseSchema: transaction
+          requestExample: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
+          responseExample: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
+      is: [validate]
+      post:
+        description: Create a pending payment by transaction
+
   /credits:
     displayName: Create a transaction credit
     description: Create a credit

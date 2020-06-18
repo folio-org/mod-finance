@@ -104,6 +104,21 @@ public class TransactionsApi implements Finance {
 
   @Validate
   @Override
+  public void postFinancePendingPayments(String lang, Transaction pendingPayment, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+
+    if (pendingPayment.getTransactionType() != Transaction.TransactionType.PENDING_PAYMENT) {
+      handleTransactionError(helper, asyncResultHandler);
+    }
+    helper.createTransaction(pendingPayment)
+      .thenAccept(type -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
+  @Validate
+  @Override
   public void postFinanceCredits(String lang, Transaction credit, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
