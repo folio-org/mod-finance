@@ -65,6 +65,14 @@ resourceTypes:
     is: [validate]
     post:
       description: Create an encumbrance by transaction
+    /{id}:
+      displayName: Transaction instance
+      put:
+        is: [language]
+        description: Update a Transaction instance
+        body:
+          application/json:
+            type: transaction
 
   /payments:
     displayName: Create a transaction payment

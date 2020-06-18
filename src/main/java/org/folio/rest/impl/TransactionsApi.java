@@ -1,6 +1,7 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 import static org.folio.rest.util.HelperUtils.handleTransactionError;
@@ -65,6 +66,24 @@ public class TransactionsApi implements Finance {
       .thenAccept(type -> asyncResultHandler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
+  @Validate
+  @Override
+  public void putFinanceEncumbrancesById(String id, String lang, Transaction encumbrance, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionsHelper helper = new TransactionsHelper(okapiHeaders, vertxContext, lang);
+    if (id.equals(encumbrance.getId())) {
+      if (encumbrance.getTransactionType() != Transaction.TransactionType.ENCUMBRANCE) {
+        handleTransactionError(helper, asyncResultHandler);
+      }
+      helper.updateTransaction(encumbrance)
+        .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
+        .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+    } else {
+      helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
+      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+    }
   }
 
   @Validate
