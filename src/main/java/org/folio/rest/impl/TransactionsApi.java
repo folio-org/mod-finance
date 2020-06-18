@@ -112,8 +112,8 @@ public class TransactionsApi implements Finance {
       handleTransactionError(helper, asyncResultHandler);
     }
     helper.createTransaction(pendingPayment)
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .thenAccept(transaction -> asyncResultHandler
+        .handle(succeededFuture(helper.buildResponseWithLocation(String.format(TRANSACTIONS_LOCATION_PREFIX, transaction.getId()), transaction))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
