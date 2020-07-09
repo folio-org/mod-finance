@@ -346,7 +346,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "3.0",
+      "version": "4.0",
       "handlers": [
         {
           "methods": ["POST"],
@@ -392,6 +392,14 @@
         },
         {
           "methods": ["POST"],
+          "pathPattern": "/finance/pending-payments",
+          "permissionsRequired": ["finance.pending-payments.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["POST"],
           "pathPattern": "/finance/credits",
           "permissionsRequired": ["finance.credits.item.post"],
           "modulePermissions": [
@@ -421,15 +429,6 @@
           "modulePermissions": [
             "finance-storage.transactions.item.get",
             "finance-storage.transactions.item.put"
-          ]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/awaiting-payment",
-          "permissionsRequired": ["finance.awaiting-payment.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put",
-            "finance-storage.transactions.item.get"
           ]
         }
       ]
@@ -834,6 +833,11 @@
       "description" : "Create a new payment"
     },
     {
+      "permissionName" : "finance.pending-payments.item.post",
+      "displayName" : "Pending payments - create a new transaction of type pending payment",
+      "description" : "Create a new pending payment"
+    },
+    {
       "permissionName" : "finance.credits.item.post",
       "displayName" : "Credits - create a new transaction of type credit",
       "description" : "Create a new credit"
@@ -858,17 +862,12 @@
         "finance.encumbrances.item.put",
         "finance.transfers.item.post",
         "finance.payments.item.post",
+        "finance.pending-payments.item.post",
         "finance.credits.item.post",
         "finance.transactions.collection.get",
         "finance.transactions.item.get",
-        "finance.awaiting-payment.item.post",
         "finance.release-encumbrance.item.post"
       ]
-    },
-    {
-      "permissionName" :  "finance.awaiting-payment.item.post",
-      "displayName" : "Move money from encumbered to awaiting payment",
-      "description" : "Move money from encumbered to awaiting payment"
     },
     {
       "permissionName" :  "finance.release-encumbrance.item.post",
