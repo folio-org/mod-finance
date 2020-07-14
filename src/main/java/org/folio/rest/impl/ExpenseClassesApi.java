@@ -1,16 +1,20 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_URL;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.resource.FinanceExpenseClasses;
 import org.folio.services.ExpenseClassService;
@@ -34,7 +38,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
   @Validate
   public void postFinanceExpenseClasses(String lang, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.createExpenseClass(entity, vertxContext, okapiHeaders)
-      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildSuccessCreationResponseWithLocation(okapiHeaders.get(OKAPI_URL), resourceByIdPath(EXPENSE_CLASSES_URL, obj.getId()), obj))))
+      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildSuccessCreatуResponseWithLocation(okapiHeaders.get(OKAPI_URL), resourceByIdPath(EXPENSE_CLASSES_URL, obj.getId()), obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
@@ -49,6 +53,12 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
   @Override
   @Validate
   public void putFinanceExpenseClassesById(String id, String lang, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    if (isEmpty(entity.getId())) {
+      entity.setId(id);
+    } else if (!id.equals(entity.getId())) {
+      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new CompletionException(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY)))));
+      return;
+    }
     expenseClassService.updateExpenseClass(id, entity, vertxContext, okapiHeaders)
       .thenAccept(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));

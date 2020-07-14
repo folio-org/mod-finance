@@ -38,7 +38,7 @@ public class BaseApi {
       .build();
   }
 
-  public Response buildSuccessCreationResponseWithLocation(String okapi, String endpoint, Object body) {
+  public Response buildSuccessCreatуResponseWithLocation(String okapi, String endpoint, Object body) {
     try {
       return Response.created(new URI(okapi + endpoint))
         .header(CONTENT_TYPE, APPLICATION_JSON)
