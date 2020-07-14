@@ -14,9 +14,15 @@ import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.EXPENSE_CLASSES;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ALLOCATION;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_CREDIT;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_ENCUMBRANCE;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_PENDING_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_TRANSFER;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -66,8 +72,9 @@ import io.vertx.core.logging.LoggerFactory;
 public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
-  private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION,
-      TestEntities.TRANSACTIONS_ENCUMBRANCE, TRANSACTIONS_TRANSFER, TestEntities.TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT, TestEntities.TRANSACTIONS_CREDIT, TestEntities.ORDER_TRANSACTION_SUMMARY, TestEntities.INVOICE_TRANSACTION_SUMMARY);
+  private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_ENCUMBRANCE
+      , TRANSACTIONS_TRANSFER, TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT
+        , TRANSACTIONS_CREDIT, ORDER_TRANSACTION_SUMMARY, INVOICE_TRANSACTION_SUMMARY);
 
   /**
    * Test entities except for FUND
@@ -126,7 +133,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
-    return transactionEntities.stream().filter(e -> !e.equals(TestEntities.ORDER_TRANSACTION_SUMMARY) && !e.equals(TestEntities.INVOICE_TRANSACTION_SUMMARY));
+    return transactionEntities.stream().filter(e -> !e.equals(ORDER_TRANSACTION_SUMMARY)
+            && !e.equals(INVOICE_TRANSACTION_SUMMARY));
   }
 
   @ParameterizedTest
