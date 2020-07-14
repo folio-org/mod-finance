@@ -4,7 +4,6 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
-import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_URL;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
@@ -38,7 +37,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
   @Validate
   public void postFinanceExpenseClasses(String lang, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.createExpenseClass(entity, vertxContext, okapiHeaders)
-      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildSuccessCreatуResponseWithLocation(okapiHeaders.get(OKAPI_URL), resourceByIdPath(EXPENSE_CLASSES_URL, obj.getId()), obj))))
+      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), resourceByIdPath(EXPENSE_CLASSES_URL, obj.getId()), obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 

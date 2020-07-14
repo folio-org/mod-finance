@@ -5,7 +5,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+import static org.folio.rest.util.HelperUtils.convertToError;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 
@@ -38,7 +37,7 @@ public class BaseApi {
       .build();
   }
 
-  public Response buildSuccessCreatуResponseWithLocation(String okapi, String endpoint, Object body) {
+  public Response buildResponseWithLocation(String okapi, String endpoint, Object body) {
     try {
       return Response.created(new URI(okapi + endpoint))
         .header(CONTENT_TYPE, APPLICATION_JSON)
@@ -76,23 +75,11 @@ public class BaseApi {
   protected int handleProcessingError(Throwable throwable) {
     final Throwable cause = throwable.getCause();
     logger.error("Exception encountered", cause);
-    final Error error;
-    final int code;
-
-    if (cause instanceof HttpException) {
-      code = ((HttpException) cause).getCode();
-      error = ((HttpException) cause).getError();
-    } else {
-      code = INTERNAL_SERVER_ERROR.getStatusCode();
-      error = GENERIC_ERROR_CODE.toError()
-        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
-    }
-
+    final Error error = convertToError(cause);
     if (getErrors().isEmpty()) {
       addProcessingError(error);
     }
-
-    return code;
+    return Integer.parseInt(error.getCode());
   }
 
   public Response buildErrorResponse(Throwable throwable) {
