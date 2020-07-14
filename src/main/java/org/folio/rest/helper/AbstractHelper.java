@@ -5,7 +5,6 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.util.HelperUtils.CALLING_ENDPOINT_MSG;
 import static org.folio.rest.util.HelperUtils.EXCEPTION_CALLING_ENDPOINT_MSG;
@@ -13,6 +12,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.converToError;
 import static org.folio.rest.util.HelperUtils.convertToJson;
+import static org.folio.rest.util.HelperUtils.createResponseBuilder;
 import static org.folio.rest.util.HelperUtils.defineErrorCode;
 import static org.folio.rest.util.HelperUtils.verifyAndExtractBody;
 
@@ -267,17 +267,7 @@ public abstract class AbstractHelper {
   }
 
   public Response buildErrorResponse(int code) {
-    final Response.ResponseBuilder responseBuilder;
-    switch (code) {
-    case 400:
-    case 403:
-    case 404:
-    case 422:
-      responseBuilder = Response.status(code);
-      break;
-    default:
-      responseBuilder = Response.status(INTERNAL_SERVER_ERROR);
-    }
+    final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);
     closeHttpClient();
 
     return responseBuilder.header(CONTENT_TYPE, APPLICATION_JSON)

@@ -237,6 +237,7 @@ public class HelperUtils {
     }
     return INTERNAL_SERVER_ERROR.getStatusCode();
   }
+
   public static Error converToError(Throwable throwable) {
     final Throwable cause = throwable.getCause();
     Error error;
@@ -251,5 +252,21 @@ public class HelperUtils {
         .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
     }
     return error;
+  }
+
+
+  public static javax.ws.rs.core.Response.ResponseBuilder createResponseBuilder(int code) {
+    final javax.ws.rs.core.Response.ResponseBuilder responseBuilder;
+    switch (code) {
+      case 400:
+      case 403:
+      case 404:
+      case 422:
+        responseBuilder = javax.ws.rs.core.Response.status(code);
+        break;
+      default:
+        responseBuilder = javax.ws.rs.core.Response.status(INTERNAL_SERVER_ERROR);
+    }
+    return responseBuilder;
   }
 }

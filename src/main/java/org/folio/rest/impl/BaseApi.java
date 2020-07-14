@@ -4,13 +4,13 @@ import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.HelperUtils.converToError;
+import static org.folio.rest.util.HelperUtils.createResponseBuilder;
 import static org.folio.rest.util.HelperUtils.defineErrorCode;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Collections;
 
 import javax.ws.rs.core.Response;
 
@@ -24,7 +24,6 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class BaseApi {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
-  private final Errors processingErrors = new Errors();
 
   public Response buildOkResponse(Object body) {
     return Response.ok(body, APPLICATION_JSON)
@@ -56,49 +55,13 @@ public class BaseApi {
     return null;
   }
 
-  public List<Error> getErrors() {
-    return processingErrors.getErrors();
-  }
-
-  protected Errors getProcessingErrors() {
-    processingErrors.setTotalRecords(processingErrors.getErrors()
-      .size());
-    return processingErrors;
-  }
-
-  public void addProcessingError(Error error) {
-    processingErrors.getErrors()
-      .add(error);
-  }
-
-  protected int handleProcessingError(Throwable throwable) {
-    logger.error("Exception encountered", throwable.getCause());
-    if (getErrors().isEmpty()) {
-      final Error error = converToError(throwable);
-      addProcessingError(error);
-    }
-    return defineErrorCode(throwable);
-  }
-
   public Response buildErrorResponse(Throwable throwable) {
-    return buildErrorResponse(handleProcessingError(throwable));
-  }
-
-  public Response buildErrorResponse(int code) {
-    final Response.ResponseBuilder responseBuilder;
-    switch (code) {
-      case 400:
-      case 403:
-      case 404:
-      case 422:
-        responseBuilder = Response.status(code);
-        break;
-      default:
-        responseBuilder = Response.status(INTERNAL_SERVER_ERROR);
-    }
-
+    logger.error("Exception encountered", throwable.getCause());
+    final int code = defineErrorCode(throwable);
+    final Error error = converToError(throwable);
+    final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);
     return responseBuilder.header(CONTENT_TYPE, APPLICATION_JSON)
-      .entity(getProcessingErrors())
+      .entity(new Errors().withErrors(Collections.singletonList(error)))
       .build();
   }
 }
