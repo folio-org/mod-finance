@@ -5,7 +5,8 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.HelperUtils.convertToError;
+import static org.folio.rest.util.HelperUtils.converToError;
+import static org.folio.rest.util.HelperUtils.defineErrorCode;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -73,13 +74,12 @@ public class BaseApi {
   }
 
   protected int handleProcessingError(Throwable throwable) {
-    final Throwable cause = throwable.getCause();
-    logger.error("Exception encountered", cause);
-    final Error error = convertToError(cause);
+    logger.error("Exception encountered", throwable.getCause());
     if (getErrors().isEmpty()) {
+      final Error error = converToError(throwable);
       addProcessingError(error);
     }
-    return Integer.parseInt(error.getCode());
+    return defineErrorCode(throwable);
   }
 
   public Response buildErrorResponse(Throwable throwable) {

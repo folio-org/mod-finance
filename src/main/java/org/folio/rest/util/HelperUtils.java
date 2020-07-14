@@ -60,7 +60,6 @@ public class HelperUtils {
 
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
-  private static final String INTERNAL_SERVER_ERROR_CODE = String.valueOf(INTERNAL_SERVER_ERROR.getStatusCode());
 
   private HelperUtils() {
   }
@@ -231,17 +230,25 @@ public class HelperUtils {
     return false;
   }
 
-  public static Error convertToError(Throwable cause) {
-    final Error error;
+  public static int defineErrorCode(Throwable throwable) {
+    final Throwable cause = throwable.getCause();
+    if (cause instanceof HttpException) {
+      return ((HttpException) cause).getCode();
+    }
+    return INTERNAL_SERVER_ERROR.getStatusCode();
+  }
+  public static Error converToError(Throwable throwable) {
+    final Throwable cause = throwable.getCause();
+    Error error;
+
     if (cause instanceof HttpException) {
       error = ((HttpException) cause).getError();
-      if (StringUtils.isEmpty(error.getCode())) {
-        error.withCode(INTERNAL_SERVER_ERROR_CODE);
+      if (HelperUtils.isErrorMessageJson(error.getMessage())) {
+        error = new JsonObject(error.getMessage()).mapTo(Error.class);
       }
     } else {
       error = GENERIC_ERROR_CODE.toError()
-        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage())
-        .withCode(String.valueOf(INTERNAL_SERVER_ERROR_CODE));
+        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
     }
     return error;
   }
