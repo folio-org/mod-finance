@@ -23,8 +23,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 public class BaseApi {
-
-  private static final String ERROR_CAUSE = "cause";
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final Errors processingErrors = new Errors();
 
