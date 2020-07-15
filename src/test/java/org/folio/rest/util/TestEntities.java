@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.function.Supplier;
 
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
@@ -17,6 +18,7 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
+import org.folio.rest.jaxrs.resource.FinanceExpenseClasses;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
@@ -46,7 +48,8 @@ public enum TestEntities {
   TRANSACTIONS_PENDING_PAYMENT("pendingPayment", getEndpoint(Finance.class) + "/pending-payments", Transaction.class, "mockdata/transactions/pending-payments.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_CREDIT("Credit", getEndpoint(Finance.class) + "/credits", Transaction.class, "mockdata/transactions/credits.json", "transactions[0]", "amount", 25, 1),
   ORDER_TRANSACTION_SUMMARY("orderTransactionSummary", getEndpoint(FinanceOrderTransactionSummaries.class), OrderTransactionSummary.class, "mockdata/transaction-summaries/order_transaction_summary.json", "", "numTransactions", 0, 1),
-  INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", -1, 1);
+  INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", -1, 1),
+  EXPENSE_CLASSES("expenseClasses", getEndpoint(FinanceExpenseClasses.class), ExpenseClass.class, "mockdata/expense-classes/expense-classes.json", "expenseClasses[0]", "externalAccountNumberExt", 1, 1);
 
   TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {

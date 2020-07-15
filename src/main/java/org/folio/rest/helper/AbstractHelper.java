@@ -5,14 +5,15 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.HelperUtils.CALLING_ENDPOINT_MSG;
 import static org.folio.rest.util.HelperUtils.EXCEPTION_CALLING_ENDPOINT_MSG;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
+import static org.folio.rest.util.HelperUtils.converToError;
 import static org.folio.rest.util.HelperUtils.convertToJson;
+import static org.folio.rest.util.HelperUtils.createResponseBuilder;
+import static org.folio.rest.util.HelperUtils.defineErrorCode;
 import static org.folio.rest.util.HelperUtils.verifyAndExtractBody;
 
 import java.net.URI;
@@ -24,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.ws.rs.core.Response;
 
-import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.tools.client.HttpClientFactory;
@@ -254,28 +254,12 @@ public abstract class AbstractHelper {
   }
 
   protected int handleProcessingError(Throwable throwable) {
-    final Throwable cause = throwable.getCause();
-    logger.error("Exception encountered", cause);
-    Error error;
-    final int code;
-
-    if (cause instanceof HttpException) {
-      code = ((HttpException) cause).getCode();
-      error = ((HttpException) cause).getError();
-      if (HelperUtils.isErrorMessageJson(error.getMessage())) {
-        error = new JsonObject(error.getMessage()).mapTo(Error.class);
-      }
-    } else {
-      code = INTERNAL_SERVER_ERROR.getStatusCode();
-      error = GENERIC_ERROR_CODE.toError()
-        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
-    }
-
+    logger.error("Exception encountered", throwable.getCause());
     if (getErrors().isEmpty()) {
+      final Error error = converToError(throwable);
       addProcessingError(error);
     }
-
-    return code;
+    return defineErrorCode(throwable);
   }
 
   public Response buildErrorResponse(Throwable throwable) {
@@ -283,17 +267,7 @@ public abstract class AbstractHelper {
   }
 
   public Response buildErrorResponse(int code) {
-    final Response.ResponseBuilder responseBuilder;
-    switch (code) {
-    case 400:
-    case 403:
-    case 404:
-    case 422:
-      responseBuilder = Response.status(code);
-      break;
-    default:
-      responseBuilder = Response.status(INTERNAL_SERVER_ERROR);
-    }
+    final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);
     closeHttpClient();
 
     return responseBuilder.header(CONTENT_TYPE, APPLICATION_JSON)

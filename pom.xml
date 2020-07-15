@@ -39,6 +39,7 @@
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <mod-configuration-client.version>5.1.0</mod-configuration-client.version>
+    <spring.version>5.2.7.RELEASE</spring.version>
   </properties>
 
   <dependencyManagement>
@@ -135,6 +136,22 @@
       <artifactId>moneta</artifactId>
       <version>1.3</version>
       <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.folio</groupId>
+      <artifactId>folio-di-support</artifactId>
+      <version>1.1.0</version>
+      <type>jar</type>
     </dependency>
   </dependencies>
 

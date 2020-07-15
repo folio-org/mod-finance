@@ -496,6 +496,52 @@
       ]
     },
     {
+      "id": "finance.expense-classes",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/expense-classes",
+          "permissionsRequired": ["finance.expense-classes.collection.get"],
+          "modulePermissions": [
+            "finance-storage.expense-classes.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/expense-classes",
+          "permissionsRequired": ["finance.expense-classes.item.post"],
+          "modulePermissions": [
+            "finance-storage.expense-classes.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/expense-classes/{id}",
+          "permissionsRequired": ["finance.expense-classes.item.get"],
+          "modulePermissions": [
+            "finance-storage.expense-classes.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/expense-classes/{id}",
+          "permissionsRequired": ["finance.expense-classes.item.put"],
+          "modulePermissions": [
+            "finance-storage.expense-classes.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/expense-classes/{id}",
+          "permissionsRequired": ["finance.expense-classes.item.delete"],
+          "modulePermissions": [
+            "finance-storage.expense-classes.item.delete"
+          ]
+        }
+      ]
+    },
+    {
       "id": "_jsonSchemas",
       "version": "1.0",
       "interfaceType" : "multiple",
@@ -916,7 +962,46 @@
         "finance.order-transaction-summaries.item.post",
         "finance.order-transaction-summaries.item.put",
         "finance.invoice-transaction-summaries.item.post",
-        "finance.exchange-rate.item.get"
+        "finance.exchange-rate.item.get",
+        "finance.expense-classes.all"
+      ],
+      "visible": false
+    },
+    {
+      "permissionName" : "finance.expense-classes.collection.get",
+      "displayName" : "expense-class-collection get",
+      "description" : "Get a collection of expense-classes"
+    },
+    {
+      "permissionName" : "finance.expense-classes.item.post",
+      "displayName" : "expense-class-item post",
+      "description" : "Create a new expense class"
+    },
+    {
+      "permissionName" : "finance.expense-classes.item.get",
+      "displayName" : "expense-class-item get",
+      "description" : "Fetch an expense class"
+    },
+    {
+      "permissionName" : "finance.expense-classes.item.put",
+      "displayName" : "expense-class-item put",
+      "description" : "Update an expense class"
+    },
+    {
+      "permissionName" : "finance.expense-classes.item.delete",
+      "displayName" : "expense-class-item delete",
+      "description" : "Delete an expense class"
+    },
+    {
+      "permissionName" : "finance.expense-classes.all",
+      "displayName" : "All expense class perms",
+      "description" : "All permissions for the expense class",
+      "subPermissions" : [
+        "finance.expense-classes.collection.get",
+        "finance.expense-classes.item.post",
+        "finance.expense-classes.item.get",
+        "finance.expense-classes.item.put",
+        "finance.expense-classes.item.delete"
       ],
       "visible": false
     }

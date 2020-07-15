@@ -1,0 +1,58 @@
+#%RAML 1.0
+
+title: Finance expense classes
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: Group API
+    content: This documents the API calls that can be made to manage groups
+
+types:
+  expenseClass: !include acq-models/mod-finance/schemas/expense_class.json
+  expenseClassCollection: !include acq-models/mod-finance/schemas/expense_class_collection.json
+  errors: !include raml-util/schemas/errors.schema
+  UUID:
+    type: string
+    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+
+traits:
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+
+resourceTypes:
+  collection: !include raml-util/rtypes/collection-with-json-response.raml
+  collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
+
+/finance/expense-classes:
+  displayName: Finance expense classes
+  description: Finance expense classes APIs
+  type:
+    collection:
+      schemaCollection: expenseClassCollection
+      schemaItem: expenseClass
+      exampleCollection: !include acq-models/mod-finance/examples/expense_class_collection.sample
+      exampleItem: !include acq-models/mod-finance/examples/expense_class.sample
+  post:
+    is: [validate]
+  get:
+    is: [
+      pageable,
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"}
+    ]
+  /{id}:
+    uriParameters:
+      id:
+        description: The UUID of a expense class
+        type: UUID
+    displayName: Expense class
+    description: Get, Delete or Update a specific expense class
+    type:
+      collection-item:
+        schema: expenseClass
+        exampleItem: !include acq-models/mod-finance/examples/expense_class.sample
+    put:
+      is: [validate]
