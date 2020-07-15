@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -10,6 +11,7 @@ import org.folio.rest.jaxrs.model.ExpenseClassCollection;
 import io.vertx.core.Context;
 
 public class ExpenseClassService {
+
   private final ExpenseClassDAO expenseClassDAO;
 
   public ExpenseClassService(ExpenseClassDAO expenseClassDAO) {
@@ -35,5 +37,11 @@ public class ExpenseClassService {
 
   public CompletableFuture<Void> deleteExpenseClass(String id, Context context, Map<String, String> headers) {
     return expenseClassDAO.delete(id, context, headers);
+  }
+
+  public CompletableFuture<List<ExpenseClass>> getExpenseClassesByBudgetId(String budgetId, Context context, Map<String, String> headers) {
+    String query = String.format("budgetExpenseClass.budgetId==%s", budgetId);
+    return expenseClassDAO.get(query,0, Integer.MAX_VALUE, context, headers)
+      .thenApply(ExpenseClassCollection::getExpenseClasses);
   }
 }

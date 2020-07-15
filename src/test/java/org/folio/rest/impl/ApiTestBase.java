@@ -1,14 +1,13 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.ApiTestSuite.mockPort;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
-import static org.folio.rest.impl.ApiTestSuite.mockPort;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.folio.ApiTestSuite;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
 import org.junit.jupiter.api.AfterAll;

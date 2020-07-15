@@ -16,7 +16,7 @@ import static org.folio.rest.impl.ApiTestBase.INVALID_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
 import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
 import static org.folio.rest.impl.ApiTestBase.getMockData;
-import static org.folio.rest.impl.BudgetsTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
+import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;

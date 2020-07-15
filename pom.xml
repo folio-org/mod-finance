@@ -148,6 +148,12 @@
       <version>${spring.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.3.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-di-support</artifactId>
       <version>1.1.0</version>
@@ -199,6 +205,13 @@
         <version>1.0.2</version>
         <configuration>
           <includes>*.json</includes>
+          <excludes>
+            <exclude>budget_expense_class_totals.json</exclude>
+            <exclude>budget_expense_class_totals_collection.json</exclude>
+            <exclude>budget_expense_class.json</exclude>
+            <exclude>budget_expense_class_collection.json</exclude>
+            <exclude>expense_class_status.json</exclude>
+          </excludes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
           <generateBuilders>true</generateBuilders>
         </configuration>

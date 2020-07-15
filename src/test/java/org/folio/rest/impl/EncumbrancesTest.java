@@ -20,7 +20,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-class EncumbrancesTest extends ApiTestBase {
+public class EncumbrancesTest extends ApiTestBase {
 
   private static final Logger logger = LoggerFactory.getLogger(EncumbrancesTest.class);
 
