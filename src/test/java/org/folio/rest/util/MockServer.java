@@ -21,6 +21,7 @@ import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELET
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
+import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
@@ -54,6 +55,8 @@ import org.folio.rest.acq.model.finance.LedgerFYCollection;
 import org.folio.rest.impl.ApiTestBase;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
+import org.folio.rest.jaxrs.model.ExpenseClass;
+import org.folio.rest.jaxrs.model.ExpenseClassCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Fund;
@@ -180,6 +183,8 @@ public class MockServer {
     .handler(ctx -> handlePostEntry(ctx, OrderTransactionSummary.class, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES))
     .handler(ctx -> handlePostEntry(ctx, InvoiceTransactionSummary.class, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
+    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
+      .handler(ctx -> handlePostEntry(ctx, ExpenseClass.class, TestEntities.EXPENSE_CLASSES.name()));
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -201,6 +206,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
     router.route(HttpMethod.GET, resourcesPath(CONFIGURATIONS))
       .handler(this::handleConfigurationModuleResponse);
+    router.route(HttpMethod.GET, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.EXPENSE_CLASSES));
 
     router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
@@ -216,6 +223,8 @@ public class MockServer {
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourceByIdPath(TRANSACTIONS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.TRANSACTIONS));
+    router.route(HttpMethod.GET, resourceByIdPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.EXPENSE_CLASSES));
 
     router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.BUDGET.name()));
@@ -231,6 +240,8 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUPS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP.name()));
+    router.route(HttpMethod.DELETE, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.EXPENSE_CLASSES.name()));
 
     router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.BUDGET.name()));
@@ -250,7 +261,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(ORDER_TRANSACTION_SUMMARIES))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
-
+    router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.EXPENSE_CLASSES.name()));
     return router;
   }
 
@@ -571,6 +583,35 @@ public class MockServer {
     return JsonObject.mapFrom(record);
   }
 
+  private JsonObject getExpenseClassesByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<ExpenseClass>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.EXPENSE_CLASSES.getPathToFileWithData())).mapTo(ExpenseClassCollection.class)
+          .getExpenseClasses();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    List<ExpenseClass> expenseClasses = getMockEntries(TestEntities.EXPENSE_CLASSES.name(), ExpenseClass.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      expenseClasses.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new ExpenseClassCollection().withExpenseClasses(expenseClasses).withTotalRecords(expenseClasses.size());
+    } else if (!expenseClasses.isEmpty()) {
+      record = expenseClasses.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+
+
   private JsonObject getCollectionOfRecords(TestEntities testEntity, List<String> ids) {
     return getEntries(testEntity, ids, true);
   }
@@ -597,6 +638,8 @@ public class MockServer {
       return getGroupByIds(ids, isCollection);
     case TRANSACTIONS:
       return getTransactionsByIds(ids, isCollection);
+    case EXPENSE_CLASSES:
+        return getExpenseClassesByIds(ids, isCollection);
     default:
       throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
     }

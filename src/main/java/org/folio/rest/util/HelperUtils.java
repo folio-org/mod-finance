@@ -2,10 +2,12 @@ package org.folio.rest.util;
 
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 
 import java.io.UnsupportedEncodingException;
@@ -22,29 +24,30 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.ws.rs.Path;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.client.ConfigurationsClient;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.TransactionsHelper;
+import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.tools.client.Response;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import one.util.streamex.StreamEx;
 
 
 public class HelperUtils {
-
   public static final String ID = "id";
   public static final String LANG = "lang";
   public static final String OKAPI_URL = "X-Okapi-Url";
@@ -55,6 +58,7 @@ public class HelperUtils {
   public static final String CONFIG_NAME = "configName";
   public static final String CONFIG_VALUE = "value";
 
+  private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
 
   private HelperUtils() {
@@ -224,5 +228,45 @@ public class HelperUtils {
       }
     }
     return false;
+  }
+
+  public static int defineErrorCode(Throwable throwable) {
+    final Throwable cause = throwable.getCause();
+    if (cause instanceof HttpException) {
+      return ((HttpException) cause).getCode();
+    }
+    return INTERNAL_SERVER_ERROR.getStatusCode();
+  }
+
+  public static Error converToError(Throwable throwable) {
+    final Throwable cause = throwable.getCause();
+    Error error;
+
+    if (cause instanceof HttpException) {
+      error = ((HttpException) cause).getError();
+      if (HelperUtils.isErrorMessageJson(error.getMessage())) {
+        error = new JsonObject(error.getMessage()).mapTo(Error.class);
+      }
+    } else {
+      error = GENERIC_ERROR_CODE.toError()
+        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
+    }
+    return error;
+  }
+
+
+  public static javax.ws.rs.core.Response.ResponseBuilder createResponseBuilder(int code) {
+    final javax.ws.rs.core.Response.ResponseBuilder responseBuilder;
+    switch (code) {
+      case 400:
+      case 403:
+      case 404:
+      case 422:
+        responseBuilder = javax.ws.rs.core.Response.status(code);
+        break;
+      default:
+        responseBuilder = javax.ws.rs.core.Response.status(INTERNAL_SERVER_ERROR);
+    }
+    return responseBuilder;
   }
 }

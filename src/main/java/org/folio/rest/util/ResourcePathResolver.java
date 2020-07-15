@@ -22,10 +22,12 @@ public class ResourcePathResolver {
   public static final String CONFIGURATIONS = "configurations";
   public static final String ORDER_TRANSACTION_SUMMARIES = "orderTransactionSummaries";
   public static final String INVOICE_TRANSACTION_SUMMARIES = "invoiceTransactionSummaries";
+  public static final String EXPENSE_CLASSES_STORAGE_URL = "expenseClassStorageUrl";
+  public static final String EXPENSE_CLASSES_URL = "expenseClassUrl";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
-
+  private static final String LANG_PARAM = "?lang=%s";
   static {
     Map<String, String> apis = new HashMap<>();
     apis.put(BUDGETS, "/finance-storage/budgets");
@@ -40,17 +42,23 @@ public class ResourcePathResolver {
     apis.put(CONFIGURATIONS, "/configurations/entries");
     apis.put(ORDER_TRANSACTION_SUMMARIES, "/finance-storage/order-transaction-summaries");
     apis.put(INVOICE_TRANSACTION_SUMMARIES, "/finance-storage/invoice-transaction-summaries");
+    apis.put(EXPENSE_CLASSES_STORAGE_URL, "/finance-storage/expense-classes");
+    apis.put(EXPENSE_CLASSES_URL, "/finance/expense-classes");
 
     SUB_OBJECT_COLLECTION_APIS = Collections.unmodifiableMap(apis);
     SUB_OBJECT_ITEM_APIS = Collections.unmodifiableMap(
       apis.entrySet()
         .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue() + "/%s?lang=%s"))
+        .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue() + "/%s"))
     );
   }
 
   public static String resourceByIdPath(String field, String id, String lang) {
-    return String.format(SUB_OBJECT_ITEM_APIS.get(field), id, lang);
+    return String.format(SUB_OBJECT_ITEM_APIS.get(field).concat(LANG_PARAM), id, lang);
+  }
+
+  public static String resourceByIdPath(String field, String id) {
+    return String.format(SUB_OBJECT_ITEM_APIS.get(field), id);
   }
 
   public static String resourcesPath(String field) {
