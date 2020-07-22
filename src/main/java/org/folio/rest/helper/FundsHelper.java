@@ -26,8 +26,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-import one.util.streamex.StreamEx;
 import org.apache.commons.collections4.CollectionUtils;
+import org.folio.dao.BudgetDAO;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.CompositeFund;
@@ -38,9 +38,13 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import one.util.streamex.StreamEx;
 
 public class FundsHelper extends AbstractHelper {
 
@@ -48,15 +52,16 @@ public class FundsHelper extends AbstractHelper {
   private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS) + SEARCH_PARAMS;
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
+  @Autowired
+  private BudgetDAO budgetDAO;
   private GroupsHelper groupsHelper;
-  private BudgetsHelper budgetsHelper;
   private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
     groupsHelper = new GroupsHelper(httpClient, okapiHeaders, ctx, lang);
-    budgetsHelper = new BudgetsHelper(httpClient, okapiHeaders, ctx, lang);
     groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public CompletableFuture<FundType> createFundType(FundType fundType) {
@@ -217,7 +222,7 @@ public class FundsHelper extends AbstractHelper {
       return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
         .thenCompose(groupsCollection -> {
           if(groupsCollection.getTotalRecords() == groupIdsForCreation.size()) {
-            return budgetsHelper.getBudgets(1, 0, getBudgetsCollectionQuery(currentFiscalYearId, compositeFund.getFund().getId()))
+            return budgetDAO.get(getBudgetsCollectionQuery(currentFiscalYearId, compositeFund.getFund().getId()), 0, 1, ctx, okapiHeaders)
                 .thenCompose(budgetsCollection -> {
                   List<Budget> budgets = budgetsCollection.getBudgets();
                   String budgetId = null;

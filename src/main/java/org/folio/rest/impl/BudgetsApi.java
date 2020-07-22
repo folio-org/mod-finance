@@ -3,7 +3,6 @@ package org.folio.rest.impl;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
-import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 import java.util.Map;
 
@@ -15,14 +14,26 @@ import org.folio.rest.helper.BudgetsHelper;
 import org.folio.rest.helper.GroupFundFiscalYearHelper;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
+import org.folio.rest.util.HelperUtils;
+import org.folio.services.BudgetExpenseClassTotalsService;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 
-public class BudgetsApi implements FinanceBudgets {
+public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   private static final String BUDGETS_LOCATION_PREFIX = getEndpoint(FinanceBudgets.class) + "/%s";
+
+  @Autowired
+  private BudgetExpenseClassTotalsService budgetExpenseClassTotalsService;
+
+  public BudgetsApi() {
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+  }
 
   @Validate
   @Override
@@ -35,7 +46,7 @@ public class BudgetsApi implements FinanceBudgets {
         .thenApply(v -> createdBudget))
       .thenAccept(createdBudget -> handler.handle(
           succeededFuture(budgetsHelper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
-      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
+      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
   }
 
   @Validate
@@ -45,9 +56,9 @@ public class BudgetsApi implements FinanceBudgets {
 
     BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
-    budgetsHelper.getBudgets(limit, offset, query)
+    budgetsHelper.getBudgets(query, offset, limit)
       .thenAccept(budgets -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budgets))))
-      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
+      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
@@ -74,7 +85,7 @@ public class BudgetsApi implements FinanceBudgets {
 
     budgetsHelper.updateBudget(budget)
       .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
+      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
@@ -87,7 +98,7 @@ public class BudgetsApi implements FinanceBudgets {
 
     budgetsHelper.getBudget(id)
       .thenAccept(budget -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budget))))
-      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
+      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
 
   }
 
@@ -100,8 +111,15 @@ public class BudgetsApi implements FinanceBudgets {
 
     budgetsHelper.deleteBudget(id)
       .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
+      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
 
+  }
+
+  @Override
+  public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, vertxContext, okapiHeaders)
+      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
 }

@@ -5,13 +5,6 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
-import io.vertx.core.Context;
-import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
-import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -21,20 +14,33 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
+import org.folio.dao.BudgetDAO;
+import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
+import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+
 
 public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
-  private BudgetsHelper budgetsHelper;
+  @Autowired
+  private BudgetDAO budgetDAO;
   private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
   public GroupFiscalYearSummariesHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
-    budgetsHelper = new BudgetsHelper(httpClient, okapiHeaders, ctx, lang);
     groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query) {
-    return budgetsHelper.getBudgets(Integer.MAX_VALUE, 0, query)
+    return budgetDAO.get(query, 0, Integer.MAX_VALUE, ctx, okapiHeaders)
       .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
 
         Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets().stream()

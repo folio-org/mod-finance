@@ -2,82 +2,80 @@ package org.folio.rest.helper;
 
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
-import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import org.folio.dao.BudgetDAO;
+import org.folio.dao.TransactionDAO;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.Transaction.Source;
-import io.vertx.core.Context;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 import org.folio.rest.util.ErrorCodes;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 
 public class BudgetsHelper extends AbstractHelper {
 
-  private static final String GET_BUDGETS_BY_QUERY = resourcesPath(BUDGETS) + SEARCH_PARAMS;
+  @Autowired
+  private BudgetDAO budgetDAO;
+  @Autowired
+  private TransactionDAO transactionDAO;
 
   public BudgetsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
-  }
-
-  public BudgetsHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
-    super(httpClient, okapiHeaders, ctx, lang);
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public CompletableFuture<Budget> createBudget(Budget budget) {
     double allocatedValue = budget.getAllocated();
     budget.setAllocated(0d);
-    return handleCreateRequest(resourcesPath(BUDGETS), budget).thenCompose(budgetId -> {
+    return budgetDAO.save(budget, ctx, okapiHeaders).thenCompose(createdBudget -> {
       if (allocatedValue > 0d) {
-        return createAllocationTransaction(budget.withAllocated(allocatedValue)).thenApply(v -> budget.withId(budgetId))
+        return createAllocationTransaction(createdBudget.withAllocated(allocatedValue))
           .exceptionally(e -> {
             throw new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED);
           });
       }
-      return CompletableFuture.completedFuture(budget.withId(budgetId));
+      return CompletableFuture.completedFuture(createdBudget);
     });
   }
 
-  private CompletableFuture<Void> createAllocationTransaction(Budget budget) {
+  private CompletableFuture<Budget> createAllocationTransaction(Budget budget) {
     Transaction transaction = new Transaction().withAmount(budget.getAllocated())
       .withFiscalYearId(budget.getFiscalYearId()).withToFundId(budget.getFundId())
       .withTransactionType(Transaction.TransactionType.ALLOCATION).withSource(Source.USER);
 
     return handleGetRequest(resourceByIdPath(FISCAL_YEARS, budget.getFiscalYearId(), lang)).
       thenApply(json -> json.mapTo(FiscalYear.class)).thenAccept(fy ->
-      handleCreateRequest(resourcesPath(TRANSACTIONS), transaction.withCurrency(fy.getCurrency())));
+      transactionDAO.save(transaction.withCurrency(fy.getCurrency()), ctx, okapiHeaders))
+      .thenApply(aVoid -> budget);
 
   }
 
-  public CompletableFuture<BudgetsCollection> getBudgets(int limit, int offset, String query) {
-    String endpoint = String.format(GET_BUDGETS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint)
-      .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(BudgetsCollection.class)));
+  public CompletableFuture<BudgetsCollection> getBudgets(String query, int offset, int limit) {
+    return budgetDAO.get(query, offset, limit, ctx, okapiHeaders);
   }
 
   public CompletableFuture<Budget> getBudget(String id) {
-    return handleGetRequest(resourceByIdPath(BUDGETS, id, lang))
-      .thenApply(json -> json.mapTo(Budget.class));
+    return budgetDAO.getById(id, ctx, okapiHeaders);
   }
 
   public CompletableFuture<Void> updateBudget(Budget budget) {
-    return handleUpdateRequest(resourceByIdPath(BUDGETS, budget.getId(), lang), budget);
+    return budgetDAO.update(budget.getId(), budget, ctx, okapiHeaders);
   }
 
   public CompletableFuture<Void> deleteBudget(String id) {
-    return handleDeleteRequest(resourceByIdPath(BUDGETS, id, lang));
+    return budgetDAO.delete(id, ctx, okapiHeaders);
   }
 
   public boolean newAllowableAmountsExceeded(Budget budget) {

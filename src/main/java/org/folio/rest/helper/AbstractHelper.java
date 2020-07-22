@@ -40,7 +40,7 @@ import io.vertx.core.logging.LoggerFactory;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public abstract class AbstractHelper {
-  static final String ERROR_CAUSE = "cause";
+
   static final String EXCEPTION_CALLING_ENDPOINT_WITH_BODY_MSG = "{} {} request failed. Request body: {}";
   static final String CALLING_ENDPOINT_WITH_BODY_MSG = "Sending {} {} with body: {}";
   static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s&lang=%s";
@@ -74,7 +74,6 @@ public abstract class AbstractHelper {
     this.lang = null;
     this.ctx = ctx;
   }
-
 
   public static HttpClientInterface getHttpClient(Map<String, String> okapiHeaders, boolean setDefaultHeaders) {
     final String okapiURL = okapiHeaders.getOrDefault(OKAPI_URL, "");
@@ -210,7 +209,6 @@ public abstract class AbstractHelper {
     return future;
   }
 
-
   public CompletableFuture<JsonObject> handleGetRequest(String endpoint) {
     CompletableFuture<JsonObject> future = new VertxCompletableFuture<>(ctx);
     try {
@@ -238,7 +236,6 @@ public abstract class AbstractHelper {
     }
     return future;
   }
-
 
   private String verifyAndExtractRecordId(org.folio.rest.tools.client.Response response) {
     logger.debug("Validating received response");

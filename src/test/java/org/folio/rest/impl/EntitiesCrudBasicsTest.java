@@ -99,7 +99,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    *
    * @return stream of test entities
    */
-  static Stream<TestEntities> getTestEntitieswithGetByIdEndpoint() {
+  static Stream<TestEntities> getTestEntitiesWithGetByIdEndpoint() {
     return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR));
   }
 
@@ -113,7 +113,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
-    return getTestEntitieswithGetByIdEndpoint()
+    return getTestEntitiesWithGetByIdEndpoint()
       .filter(e -> !e.equals(TestEntities.TRANSACTIONS));
   }
 
@@ -185,7 +185,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitieswithGetByIdEndpoint")
+  @MethodSource("getTestEntitiesWithGetByIdEndpoint")
   public void testGetRecordById(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id ===", testEntity.name());
 
@@ -196,7 +196,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitieswithGetByIdEndpoint")
+  @MethodSource("getTestEntitiesWithGetByIdEndpoint")
   public void testGetRecordByIdServerError(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Internal Server Error ===", testEntity.name());
 
@@ -205,7 +205,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitieswithGetByIdEndpoint")
+  @MethodSource("getTestEntitiesWithGetByIdEndpoint")
   public void testGetRecordByIdNotFound(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Not Found ===", testEntity.name());
 

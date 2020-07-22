@@ -7,7 +7,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.ExpenseClassCollection;
 
-public class ExpenseClassHttpDAO extends AbstractHttpDAO<ExpenseClass, ExpenseClassCollection> implements ExpenseClassDAO{
+public class ExpenseClassHttpDAO extends AbstractHttpDAO<ExpenseClass, ExpenseClassCollection> implements ExpenseClassDAO {
   @Override
   protected String getByIdEndpoint(String id) {
     return resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL, id);
@@ -27,4 +27,5 @@ public class ExpenseClassHttpDAO extends AbstractHttpDAO<ExpenseClass, ExpenseCl
   protected Class<ExpenseClassCollection> getCollectionClazz() {
     return ExpenseClassCollection.class;
   }
+
 }
