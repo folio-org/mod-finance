@@ -3,6 +3,7 @@ package org.folio.rest.impl;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.folio.rest.jaxrs.model.BudgetExpenseClassTotal.ExpenseClassStatus.ACTIVE;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
@@ -26,7 +27,6 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.ExpenseClassStatus;
 import org.folio.services.BudgetExpenseClassTotalsService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -83,7 +83,7 @@ public class BudgetsApiTest extends ApiTestBase {
     BudgetExpenseClassTotal expenseClassTotal =  new BudgetExpenseClassTotal();
     expenseClassTotal.withId(UUID.randomUUID().toString())
       .withExpenseClassName("test")
-      .withExpenseClassStatus(ExpenseClassStatus.Status.ACTIVE)
+      .withExpenseClassStatus(ACTIVE)
       .withEncumbered(0d)
       .withAwaitingPayment(50d)
       .withExpended(100d)

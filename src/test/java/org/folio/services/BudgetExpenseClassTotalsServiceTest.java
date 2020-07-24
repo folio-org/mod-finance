@@ -23,7 +23,6 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
-import org.folio.rest.jaxrs.model.ExpenseClassStatus;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,12 +83,12 @@ public class BudgetExpenseClassTotalsServiceTest {
     budgetExpenseClass1 = new BudgetExpenseClass()
       .withBudgetId(budget.getId())
       .withExpenseClassId(expenseClass1.getId())
-      .withStatus(ExpenseClassStatus.Status.ACTIVE);
+      .withStatus(BudgetExpenseClass.Status.ACTIVE);
 
     budgetExpenseClass2 = new BudgetExpenseClass()
     .withBudgetId(budget.getId())
     .withExpenseClassId(expenseClass2.getId())
-    .withStatus(ExpenseClassStatus.Status.INACTIVE);
+    .withStatus(BudgetExpenseClass.Status.INACTIVE);
   }
 
   @Test
@@ -137,7 +136,7 @@ public class BudgetExpenseClassTotalsServiceTest {
       .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass1.getId())).findFirst().get();
 
     assertNotNull(expenseClassTotal1);
-    assertEquals(budgetExpenseClass1.getStatus(), expenseClassTotal1.getExpenseClassStatus());
+    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal1.getExpenseClassStatus().value());
     assertEquals(expenseClass1.getName(), expenseClassTotal1.getExpenseClassName());
     assertEquals(10.83, expenseClassTotal1.getEncumbered()); // 7.5 + 3.33
     assertEquals(9.44, expenseClassTotal1.getAwaitingPayment()); // 5 + 4.44
@@ -148,7 +147,7 @@ public class BudgetExpenseClassTotalsServiceTest {
       .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId())).findFirst().get();
 
     assertNotNull(expenseClassTotal2);
-    assertEquals(budgetExpenseClass2.getStatus(), expenseClassTotal2.getExpenseClassStatus());
+    assertEquals(budgetExpenseClass2.getStatus().value(), expenseClassTotal2.getExpenseClassStatus().value());
     assertEquals(expenseClass2.getName(), expenseClassTotal2.getExpenseClassName());
     assertEquals(0d, expenseClassTotal2.getEncumbered());
     assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
@@ -186,7 +185,7 @@ public class BudgetExpenseClassTotalsServiceTest {
     BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
 
     assertNotNull(expenseClassTotal);
-    assertEquals(budgetExpenseClass1.getStatus(), expenseClassTotal.getExpenseClassStatus());
+    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
     assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
     assertEquals(0, expenseClassTotal.getEncumbered());
     assertEquals(0, expenseClassTotal.getAwaitingPayment());
@@ -243,7 +242,7 @@ public class BudgetExpenseClassTotalsServiceTest {
     BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
 
     assertNotNull(expenseClassTotal);
-    assertEquals(budgetExpenseClass1.getStatus(), expenseClassTotal.getExpenseClassStatus());
+    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
     assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
     assertEquals(0d, expenseClassTotal.getEncumbered());
     assertEquals(0d, expenseClassTotal.getAwaitingPayment());

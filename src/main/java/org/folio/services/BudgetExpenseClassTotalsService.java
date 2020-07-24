@@ -22,7 +22,6 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
-import org.folio.rest.jaxrs.model.ExpenseClassStatus;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
@@ -138,8 +137,8 @@ public class BudgetExpenseClassTotalsService {
   private BudgetExpenseClassTotalsCollection updateExpenseClassStatus(BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection,
                                                                       List<BudgetExpenseClass> budgetExpenseClasses) {
     List<BudgetExpenseClassTotal> budgetExpenseClassTotals = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals();
-    Map<String, ExpenseClassStatus.Status> idStatusMap = budgetExpenseClasses.stream()
-      .collect(toMap(BudgetExpenseClass::getExpenseClassId, BudgetExpenseClass::getStatus));
+    Map<String, BudgetExpenseClassTotal.ExpenseClassStatus> idStatusMap = budgetExpenseClasses.stream()
+      .collect(toMap(BudgetExpenseClass::getExpenseClassId, budgetExpenseClass -> BudgetExpenseClassTotal.ExpenseClassStatus.fromValue(budgetExpenseClass.getStatus().value())));
     budgetExpenseClassTotals.forEach(budgetExpenseClassTotal -> budgetExpenseClassTotal.setExpenseClassStatus(idStatusMap.get(budgetExpenseClassTotal.getId())));
     return budgetExpenseClassTotalsCollection;
   }
