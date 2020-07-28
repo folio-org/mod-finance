@@ -14,8 +14,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import org.folio.dao.BudgetDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
@@ -30,7 +32,7 @@ import io.vertx.core.Vertx;
 public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
   @Autowired
-  private BudgetDAO budgetDAO;
+  private RestClient budgetRestClient;
   private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
   public GroupFiscalYearSummariesHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
@@ -40,7 +42,7 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query) {
-    return budgetDAO.get(query, 0, Integer.MAX_VALUE, ctx, okapiHeaders)
+    return budgetRestClient.get(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders), BudgetsCollection.class)
       .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
 
         Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets().stream()

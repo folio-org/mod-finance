@@ -3,26 +3,24 @@ package org.folio.services;
 import static java.lang.Integer.MAX_VALUE;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.BudgetExpenseClassDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 
-import io.vertx.core.Context;
-
 public class BudgetExpenseClassService {
 
-  private final BudgetExpenseClassDAO budgetExpenseClassDAO;
+  private final RestClient restClient;
 
-  public BudgetExpenseClassService(BudgetExpenseClassDAO budgetExpenseClassDAO) {
-    this.budgetExpenseClassDAO = budgetExpenseClassDAO;
+  public BudgetExpenseClassService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
-  public CompletableFuture<List<BudgetExpenseClass>> getBudgetExpenseClasses(String budgetId, Context context, Map<String, String> headers) {
+  public CompletableFuture<List<BudgetExpenseClass>> getBudgetExpenseClasses(String budgetId, RequestContext requestContext) {
     String query = String.format("budgetId==%s", budgetId);
-    return budgetExpenseClassDAO.get(query, 0, MAX_VALUE, context, headers)
+    return restClient.get(query, 0, MAX_VALUE, requestContext, BudgetExpenseClassCollection.class)
       .thenApply(BudgetExpenseClassCollection::getBudgetExpenseClasses);
   }
 }

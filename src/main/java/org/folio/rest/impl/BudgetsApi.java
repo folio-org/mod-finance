@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.helper.BudgetsHelper;
 import org.folio.rest.helper.GroupFundFiscalYearHelper;
 import org.folio.rest.jaxrs.model.Budget;
@@ -38,7 +39,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   @Validate
   @Override
   public void postFinanceBudgets(String lang, Budget entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
-      Context ctx) {
+                                 Context ctx) {
     BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
     GroupFundFiscalYearHelper groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(headers, ctx, lang);
     budgetsHelper.createBudget(entity)
@@ -117,7 +118,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Override
   public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, vertxContext, okapiHeaders)
+    budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }

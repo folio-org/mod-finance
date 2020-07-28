@@ -27,9 +27,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.folio.dao.BudgetDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
@@ -53,7 +55,7 @@ public class FundsHelper extends AbstractHelper {
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
   @Autowired
-  private BudgetDAO budgetDAO;
+  private RestClient budgetRestClient;
   private GroupsHelper groupsHelper;
   private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
@@ -222,7 +224,8 @@ public class FundsHelper extends AbstractHelper {
       return groupsHelper.getGroups(0, 0, convertIdsToCqlQuery(groupIdsForCreation))
         .thenCompose(groupsCollection -> {
           if(groupsCollection.getTotalRecords() == groupIdsForCreation.size()) {
-            return budgetDAO.get(getBudgetsCollectionQuery(currentFiscalYearId, compositeFund.getFund().getId()), 0, 1, ctx, okapiHeaders)
+            String query = getBudgetsCollectionQuery(currentFiscalYearId, compositeFund.getFund().getId());
+            return budgetRestClient.get(query, 0, 1, new RequestContext(ctx, okapiHeaders), BudgetsCollection.class)
                 .thenCompose(budgetsCollection -> {
                   List<Budget> budgets = budgetsCollection.getBudgets();
                   String budgetId = null;

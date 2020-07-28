@@ -44,7 +44,7 @@ public class BudgetsApiTest extends ApiTestBase {
   public static BudgetExpenseClassTotalsService mockService = mock(BudgetExpenseClassTotalsService.class);
 
   @Test
-  public void testUpdateBudgetWithExceededAllowableAmounts() {
+  void testUpdateBudgetWithExceededAllowableAmounts() {
     logger.info("=== Test Update budget with exceeded limit of allowable encumbrance and expenditures ===");
 
     Budget budget = verifyGet(BUDGET.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(Budget.class);
@@ -60,7 +60,7 @@ public class BudgetsApiTest extends ApiTestBase {
   }
 
   @Test
-  public void testDeleteShouldFailIfThereAreTransactionBoundedToBudget() {
+  void testDeleteShouldFailIfThereAreTransactionBoundedToBudget() {
     logger.info("=== Test Delete of the budget is forbidden, if budget related transactions found ===");
 
     Errors errors = verifyDeleteResponse(BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
@@ -72,7 +72,7 @@ public class BudgetsApiTest extends ApiTestBase {
   }
 
   @Test
-  public void testDeleteShouldSuccessIfNoTransactionBoundedToBudget() {
+  void testDeleteShouldSuccessIfNoTransactionBoundedToBudget() {
     logger.info("=== Test Delete of the budget, if no transactions were found. ===");
 
     verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), EMPTY, 204);
@@ -91,12 +91,12 @@ public class BudgetsApiTest extends ApiTestBase {
     BudgetExpenseClassTotalsCollection expectedExpenseClassTotalsCollection = new BudgetExpenseClassTotalsCollection();
     expectedExpenseClassTotalsCollection.withBudgetExpenseClassTotals(Collections.singletonList(expenseClassTotal))
       .withTotalRecords(1);
-    when(mockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any(), anyMap())).thenReturn(CompletableFuture.completedFuture(expectedExpenseClassTotalsCollection));
+    when(mockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any())).thenReturn(CompletableFuture.completedFuture(expectedExpenseClassTotalsCollection));
     String budgetId = UUID.randomUUID().toString();
 
     BudgetExpenseClassTotalsCollection resultExpenseClassTotal = verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 200).as(BudgetExpenseClassTotalsCollection.class);
 
-    verify(mockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any(), anyMap());
+    verify(mockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any());
     assertEquals(expectedExpenseClassTotalsCollection, resultExpenseClassTotal);
   }
 
@@ -104,12 +104,12 @@ public class BudgetsApiTest extends ApiTestBase {
   void getFinanceBudgetsExpenseClassesTotalsByIdWithError() {
     CompletableFuture<BudgetExpenseClassTotalsCollection> future = new CompletableFuture<>();
     future.completeExceptionally(new HttpException(400, GENERIC_ERROR_CODE));
-    when(mockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any(), anyMap())).thenReturn(future);
+    when(mockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any())).thenReturn(future);
     String budgetId = UUID.randomUUID().toString();
 
     verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 400);
 
-    verify(mockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any(), anyMap());
+    verify(mockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any());
   }
 
   /**

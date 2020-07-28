@@ -9,8 +9,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.BudgetDAO;
-import org.folio.dao.TransactionDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -27,9 +27,9 @@ import io.vertx.core.Vertx;
 public class BudgetsHelper extends AbstractHelper {
 
   @Autowired
-  private BudgetDAO budgetDAO;
+  private RestClient budgetRestClient;
   @Autowired
-  private TransactionDAO transactionDAO;
+  private RestClient transactionRestClient;
 
   public BudgetsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
@@ -39,7 +39,7 @@ public class BudgetsHelper extends AbstractHelper {
   public CompletableFuture<Budget> createBudget(Budget budget) {
     double allocatedValue = budget.getAllocated();
     budget.setAllocated(0d);
-    return budgetDAO.save(budget, ctx, okapiHeaders).thenCompose(createdBudget -> {
+    return budgetRestClient.post(budget, new RequestContext(ctx, okapiHeaders), Budget.class).thenCompose(createdBudget -> {
       if (allocatedValue > 0d) {
         return createAllocationTransaction(createdBudget.withAllocated(allocatedValue))
           .exceptionally(e -> {
@@ -57,25 +57,25 @@ public class BudgetsHelper extends AbstractHelper {
 
     return handleGetRequest(resourceByIdPath(FISCAL_YEARS, budget.getFiscalYearId(), lang)).
       thenApply(json -> json.mapTo(FiscalYear.class)).thenAccept(fy ->
-      transactionDAO.save(transaction.withCurrency(fy.getCurrency()), ctx, okapiHeaders))
+      transactionRestClient.post(transaction.withCurrency(fy.getCurrency()), new RequestContext(ctx, okapiHeaders), Transaction.class))
       .thenApply(aVoid -> budget);
 
   }
 
   public CompletableFuture<BudgetsCollection> getBudgets(String query, int offset, int limit) {
-    return budgetDAO.get(query, offset, limit, ctx, okapiHeaders);
+    return budgetRestClient.get(query, offset, limit, new RequestContext(ctx, okapiHeaders), BudgetsCollection.class);
   }
 
   public CompletableFuture<Budget> getBudget(String id) {
-    return budgetDAO.getById(id, ctx, okapiHeaders);
+    return budgetRestClient.getById(id, new RequestContext(ctx, okapiHeaders), Budget.class);
   }
 
   public CompletableFuture<Void> updateBudget(Budget budget) {
-    return budgetDAO.update(budget.getId(), budget, ctx, okapiHeaders);
+    return budgetRestClient.put(budget.getId(), budget, new RequestContext(ctx, okapiHeaders));
   }
 
   public CompletableFuture<Void> deleteBudget(String id) {
-    return budgetDAO.delete(id, ctx, okapiHeaders);
+    return budgetRestClient.delete(id, new RequestContext(ctx, okapiHeaders));
   }
 
   public boolean newAllowableAmountsExceeded(Budget budget) {

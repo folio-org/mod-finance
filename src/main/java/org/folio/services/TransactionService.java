@@ -1,27 +1,25 @@
 package org.folio.services;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.TransactionDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
-import io.vertx.core.Context;
-
 public class TransactionService {
 
-  private final TransactionDAO transactionDAO;
+  private final RestClient restClient;
 
-  public TransactionService(TransactionDAO transactionDAO) {
-    this.transactionDAO = transactionDAO;
+  public TransactionService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
-  public CompletableFuture<List<Transaction>> getTransactions(Budget budget, Context context, Map<String, String> headers) {
+  public CompletableFuture<List<Transaction>> getTransactions(Budget budget, RequestContext requestContext) {
     String query = String.format("fromFundId==%s AND fiscalYearId==%s", budget.getFundId(), budget.getFiscalYearId());
-    return transactionDAO.get(query, 0, Integer.MAX_VALUE, context, headers)
+    return restClient.get(query, 0, Integer.MAX_VALUE, requestContext, TransactionCollection.class)
       .thenApply(TransactionCollection::getTransactions);
   }
 }
