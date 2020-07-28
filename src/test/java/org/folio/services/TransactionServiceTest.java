@@ -41,7 +41,7 @@ public class TransactionServiceTest {
   }
 
   @Test
-  public void getTransactions() {
+  void getTransactions() {
     String fundId = UUID.randomUUID().toString();
     String fiscalYearId = UUID.randomUUID().toString();
     Budget budget = new Budget().withFundId(fundId).withFiscalYearId(fiscalYearId);
