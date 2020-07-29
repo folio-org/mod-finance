@@ -40,6 +40,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.services.GroupFundFiscalYearService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,13 +57,13 @@ public class FundsHelper extends AbstractHelper {
 
   @Autowired
   private RestClient budgetRestClient;
+  @Autowired
+  private GroupFundFiscalYearService groupFundFiscalYearService;
   private GroupsHelper groupsHelper;
-  private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
     groupsHelper = new GroupsHelper(httpClient, okapiHeaders, ctx, lang);
-    groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
@@ -148,7 +149,7 @@ public class FundsHelper extends AbstractHelper {
   private CompletableFuture<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {
     List<GroupFundFiscalYear> groupFundFiscalYears = buildGroupFundFiscalYears(compositeFund, fiscalYearId);
     return VertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
-      .map(groupFundFiscalYear -> groupFundFiscalYearHelper.createGroupFundFiscalYear(groupFundFiscalYear))
+      .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }
 
@@ -192,18 +193,18 @@ public class FundsHelper extends AbstractHelper {
 
   private CompletableFuture<Void> assignFundToGroups(List<GroupFundFiscalYear> groupFundFiscalYears) {
     return VertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
-      .map(groupFundFiscalYear -> new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang).createGroupFundFiscalYear(groupFundFiscalYear))
+      .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }
 
   private CompletableFuture<Void> unassignGroupsForFund(Collection<String> groupFundFiscalYearIds) {
     return VertxCompletableFuture.allOf(ctx, groupFundFiscalYearIds.stream()
-      .map(id -> new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang).deleteGroupFundFiscalYear(id))
+      .map(id -> groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }
 
   private CompletionStage<List<String>> getGroupIdsThatFundBelongs(String fundId, String currentFYId) {
-    return groupFundFiscalYearHelper.getGroupFundFiscalYearCollection(fundId, currentFYId)
+    return groupFundFiscalYearService.getGroupFundFiscalYearCollection(fundId, currentFYId, new RequestContext(ctx, okapiHeaders))
       .thenApply(groupFundFiscalYearCollection -> groupFundFiscalYearCollection.getGroupFundFiscalYears()
         .stream()
         .map(GroupFundFiscalYear::getGroupId)
@@ -211,7 +212,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private CompletionStage<List<GroupFundFiscalYear>> getGroupFundFiscalYearsThatFundBelongs(String fundId, String currentFYId) {
-    return groupFundFiscalYearHelper.getGroupFundFiscalYearCollection(fundId, currentFYId)
+    return groupFundFiscalYearService.getGroupFundFiscalYearCollection(fundId, currentFYId, new RequestContext(ctx, okapiHeaders))
       .thenApply(groupFundFiscalYearCollection -> new ArrayList<>(groupFundFiscalYearCollection.getGroupFundFiscalYears()));
   }
 
@@ -280,7 +281,7 @@ public class FundsHelper extends AbstractHelper {
 
   public CompletableFuture<Void> deleteFund(String id) {
     String query = String.format("fundId==%s", id);
-    return groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query)
+    return groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders))
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))
       .thenApply(this::unassignGroupsForFund)
       .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS, id, lang)));

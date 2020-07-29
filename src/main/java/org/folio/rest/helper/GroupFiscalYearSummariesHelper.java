@@ -22,6 +22,7 @@ import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+import org.folio.services.GroupFundFiscalYearService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,17 +34,17 @@ public class GroupFiscalYearSummariesHelper extends AbstractHelper {
 
   @Autowired
   private RestClient budgetRestClient;
-  private GroupFundFiscalYearHelper groupFundFiscalYearHelper;
+  @Autowired
+  private GroupFundFiscalYearService groupFundFiscalYearService;
 
   public GroupFiscalYearSummariesHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
-    groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(httpClient, okapiHeaders, ctx, lang);
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query) {
     return budgetRestClient.get(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders), BudgetsCollection.class)
-      .thenCombine(groupFundFiscalYearHelper.getGroupFundFiscalYears(Integer.MAX_VALUE, 0, query), (budgetsCollection, groupFundFiscalYearCollection) -> {
+      .thenCombine(groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders)), (budgetsCollection, groupFundFiscalYearCollection) -> {
 
         Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets().stream()
           .collect(groupingBy(Budget::getFundId,

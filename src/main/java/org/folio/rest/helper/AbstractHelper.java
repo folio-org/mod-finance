@@ -10,7 +10,7 @@ import static org.folio.rest.util.HelperUtils.CALLING_ENDPOINT_MSG;
 import static org.folio.rest.util.HelperUtils.EXCEPTION_CALLING_ENDPOINT_MSG;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
-import static org.folio.rest.util.HelperUtils.converToError;
+import static org.folio.rest.util.HelperUtils.convertToErrors;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.folio.rest.util.HelperUtils.createResponseBuilder;
 import static org.folio.rest.util.HelperUtils.defineErrorCode;
@@ -253,10 +253,14 @@ public abstract class AbstractHelper {
   protected int handleProcessingError(Throwable throwable) {
     logger.error("Exception encountered", throwable.getCause());
     if (getErrors().isEmpty()) {
-      final Error error = converToError(throwable);
-      addProcessingError(error);
+      final Errors errors = convertToErrors(throwable);
+      addProcessingError(errors);
     }
     return defineErrorCode(throwable);
+  }
+
+  private void addProcessingError(Errors errors) {
+    processingErrors.getErrors().addAll(errors.getErrors());
   }
 
   public Response buildErrorResponse(Throwable throwable) {

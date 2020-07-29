@@ -2,36 +2,49 @@ package org.folio.rest.exception;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.util.ErrorCodes;
+
+import java.util.Collections;
 
 public class HttpException extends RuntimeException {
   private static final long serialVersionUID = 8109197948434861504L;
 
   private final int code;
-  private final transient Error error;
+  private final transient Errors errors;
 
   public HttpException(int code, String message) {
     super(StringUtils.isNotEmpty(message) ? message : ErrorCodes.GENERIC_ERROR_CODE.getDescription());
     this.code = code;
-    this.error = new Error().withCode(ErrorCodes.GENERIC_ERROR_CODE.getCode()).withMessage(message);
+    this.errors = new Errors()
+      .withErrors(Collections.singletonList(new Error().withCode(ErrorCodes.GENERIC_ERROR_CODE.getCode()).withMessage(message)))
+      .withTotalRecords(1);
   }
 
   public HttpException(int code, ErrorCodes errCodes) {
     super(errCodes.getDescription());
-    this.error = new Error().withCode(errCodes.getCode()).withMessage(errCodes.getDescription());
+    this.errors = new Errors()
+      .withErrors(Collections.singletonList(new Error().withCode(errCodes.getCode()).withMessage(errCodes.getDescription())))
+      .withTotalRecords(1);
     this.code = code;
   }
 
   public HttpException(int code, Error error) {
     this.code = code;
-    this.error = error;
+    this.errors = new Errors().withErrors(Collections.singletonList(error))
+    .withTotalRecords(1);
+  }
+
+  public HttpException(int code, Errors errors) {
+    this.code = code;
+    this.errors = errors;
   }
 
   public int getCode() {
     return code;
   }
 
-  public Error getError() {
-    return error;
+  public Errors getErrors() {
+    return errors;
   }
 }

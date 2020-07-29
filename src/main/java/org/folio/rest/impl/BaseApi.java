@@ -4,17 +4,15 @@ import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static javax.ws.rs.core.HttpHeaders.LOCATION;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.util.HelperUtils.converToError;
+import static org.folio.rest.util.HelperUtils.convertToErrors;
 import static org.folio.rest.util.HelperUtils.createResponseBuilder;
 import static org.folio.rest.util.HelperUtils.defineErrorCode;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 
 import javax.ws.rs.core.Response;
 
-import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 
 import io.vertx.core.AsyncResult;
@@ -58,10 +56,10 @@ public class BaseApi {
   public Response buildErrorResponse(Throwable throwable) {
     logger.error("Exception encountered", throwable.getCause());
     final int code = defineErrorCode(throwable);
-    final Error error = converToError(throwable);
+    final Errors errors = convertToErrors(throwable);
     final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);
     return responseBuilder.header(CONTENT_TYPE, APPLICATION_JSON)
-      .entity(new Errors().withErrors(Collections.singletonList(error)))
+      .entity(errors)
       .build();
   }
 }

@@ -2,6 +2,7 @@ package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
+import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
 import java.util.Map;
@@ -11,12 +12,11 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.helper.BudgetsHelper;
-import org.folio.rest.helper.GroupFundFiscalYearHelper;
-import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
-import org.folio.rest.util.HelperUtils;
 import org.folio.services.BudgetExpenseClassTotalsService;
+import org.folio.services.BudgetService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,6 +31,9 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Autowired
   private BudgetExpenseClassTotalsService budgetExpenseClassTotalsService;
+  @Autowired
+  private BudgetService budgetService;
+
 
   public BudgetsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -38,16 +41,14 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void postFinanceBudgets(String lang, Budget entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void postFinanceBudgets(String lang, SharedBudget budget, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
                                  Context ctx) {
-    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
-    GroupFundFiscalYearHelper groupFundFiscalYearHelper = new GroupFundFiscalYearHelper(headers, ctx, lang);
-    budgetsHelper.createBudget(entity)
-      .thenCompose(createdBudget -> groupFundFiscalYearHelper.updateBudgetIdForGroupFundFiscalYears(createdBudget)
-        .thenApply(v -> createdBudget))
+
+    RequestContext requestContext = new RequestContext(ctx, headers);
+    budgetService.createBudget(budget, requestContext)
       .thenAccept(createdBudget -> handler.handle(
-          succeededFuture(budgetsHelper.buildResponseWithLocation(String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
-      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
+          succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -55,38 +56,29 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   public void getFinanceBudgets(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
-
-    budgetsHelper.getBudgets(query, offset, limit)
-      .thenAccept(budgets -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budgets))))
-      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
+    budgetService.getBudgets(query, offset, limit, new RequestContext(ctx, headers))
+      .thenAccept(budgets -> handler.handle(succeededFuture(buildOkResponse(budgets))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
 
   }
 
   @Validate
   @Override
-  public void putFinanceBudgetsById(String id, String lang, Budget budget, Map<String, String> headers,
-      Handler<AsyncResult<Response>> handler, Context ctx) {
+  public void putFinanceBudgetsById(String id, String lang, SharedBudget budget, Map<String, String> headers,
+                                    Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
 
     // Set id if this is available only in path
     if (StringUtils.isEmpty(budget.getId())) {
       budget.setId(id);
     } else if (!id.equals(budget.getId())) {
-      budgetsHelper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
-      handler.handle(succeededFuture(budgetsHelper.buildErrorResponse(422)));
+      handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
       return;
     }
 
-    if (budgetsHelper.newAllowableAmountsExceeded(budget)){
-      handler.handle(succeededFuture(budgetsHelper.buildErrorResponse(422)));
-      return;
-    }
-
-    budgetsHelper.updateBudget(budget)
-      .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
-      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
+    budgetService.updateBudget(budget, new RequestContext(ctx, headers))
+      .thenAccept(v -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
 
   }
 
@@ -95,11 +87,9 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   public void getFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
-
-    budgetsHelper.getBudget(id)
-      .thenAccept(budget -> handler.handle(succeededFuture(budgetsHelper.buildOkResponse(budget))))
-      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
+    budgetService.getBudgetById(id, new RequestContext(ctx, headers))
+      .thenAccept(budget -> handler.handle(succeededFuture(buildOkResponse(budget))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
 
   }
 
@@ -108,11 +98,9 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   public void deleteFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    BudgetsHelper budgetsHelper = new BudgetsHelper(headers, ctx, lang);
-
-    budgetsHelper.deleteBudget(id)
-      .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
-      .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, budgetsHelper, fail));
+    budgetService.deleteBudget(id, new RequestContext(ctx, headers))
+      .thenAccept(v -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
 
   }
 
