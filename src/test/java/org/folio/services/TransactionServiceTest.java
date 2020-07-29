@@ -1,6 +1,7 @@
 package org.folio.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -9,11 +10,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.TransactionDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
@@ -23,21 +24,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import io.vertx.core.impl.EventLoopContext;
-
 public class TransactionServiceTest {
 
   @InjectMocks
   private TransactionService transactionService;
 
   @Mock
-  private TransactionDAO transactionDAOMock;
+  private RestClient transactionRestClientMock;
 
   @Mock
-  private Map<String, String> okapiHeadersMock;
-
-  @Mock
-  private EventLoopContext ctxMock;
+  private RequestContext requestContext;
 
   @BeforeEach
   public void initMocks() {
@@ -45,7 +41,7 @@ public class TransactionServiceTest {
   }
 
   @Test
-  public void getTransactions() {
+  void getTransactions() {
     String fundId = UUID.randomUUID().toString();
     String fiscalYearId = UUID.randomUUID().toString();
     Budget budget = new Budget().withFundId(fundId).withFiscalYearId(fiscalYearId);
@@ -53,14 +49,14 @@ public class TransactionServiceTest {
     List<Transaction> transactions = Collections.singletonList(new Transaction().withId(UUID.randomUUID().toString()));
     TransactionCollection transactionCollection = new TransactionCollection().withTransactions(transactions).withTotalRecords(1);
 
-    when(transactionDAOMock.get(anyString(), anyInt(), anyInt(), eq(ctxMock), eq(okapiHeadersMock)))
+    when(transactionRestClientMock.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
       .thenReturn(CompletableFuture.completedFuture(transactionCollection));
 
-    CompletableFuture<List<Transaction>> result = transactionService.getTransactions(budget, ctxMock, okapiHeadersMock);
+    CompletableFuture<List<Transaction>> result = transactionService.getTransactions(budget, requestContext);
 
     String expectedQuery = String.format("fromFundId==%s AND fiscalYearId==%s", fundId, fiscalYearId);
-    verify(transactionDAOMock)
-      .get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(ctxMock), eq(okapiHeadersMock));
+    verify(transactionRestClientMock)
+      .get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(TransactionCollection.class));
 
     List<Transaction> resultTransactions = result.join();
     assertEquals(transactions, resultTransactions);

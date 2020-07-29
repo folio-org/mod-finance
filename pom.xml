@@ -211,7 +211,6 @@
             <exclude>budget_expense_class_totals_collection.json</exclude>
             <exclude>budget_expense_class.json</exclude>
             <exclude>budget_expense_class_collection.json</exclude>
-            <exclude>expense_class_status.json</exclude>
           </excludes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
           <generateBuilders>true</generateBuilders>

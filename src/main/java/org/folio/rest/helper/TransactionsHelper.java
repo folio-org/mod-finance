@@ -3,7 +3,8 @@ package org.folio.rest.helper;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.TransactionDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -17,7 +18,7 @@ import io.vertx.core.Vertx;
 public class TransactionsHelper extends AbstractHelper {
 
   @Autowired
-  public TransactionDAO transactionDAO;
+  public RestClient transactionRestClient;
 
   public TransactionsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
@@ -27,19 +28,19 @@ public class TransactionsHelper extends AbstractHelper {
   public CompletableFuture<Transaction> createTransaction(Transaction transaction) {
     TransactionRestrictHelper transactionRestrictHelper = new TransactionRestrictHelper(okapiHeaders,ctx, lang);
     return transactionRestrictHelper.checkRestrictions(transaction)
-      .thenCompose(res -> transactionDAO.save(res, ctx, okapiHeaders));
+      .thenCompose(res -> transactionRestClient.post(res, new RequestContext(ctx, okapiHeaders), Transaction.class));
   }
 
   public CompletableFuture<TransactionCollection> getTransactions(int limit, int offset, String query) {
-    return transactionDAO.get(query, offset, limit, ctx, okapiHeaders);
+    return transactionRestClient.get(query, offset, limit, new RequestContext(ctx, okapiHeaders), TransactionCollection.class);
   }
 
   public CompletableFuture<Transaction> getTransaction(String id) {
-    return transactionDAO.getById(id, ctx, okapiHeaders);
+    return transactionRestClient.getById(id, new RequestContext(ctx, okapiHeaders), Transaction.class);
   }
 
   public CompletableFuture<Void> updateTransaction(Transaction transaction) {
-    return transactionDAO.update(transaction.getId(), transaction, ctx, okapiHeaders);
+    return transactionRestClient.put(transaction.getId(), transaction, new RequestContext(ctx, okapiHeaders));
   }
 
   private void validateTransactionType(Transaction transaction, Transaction.TransactionType type) {

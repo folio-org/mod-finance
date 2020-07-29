@@ -1,13 +1,12 @@
 package org.folio.config;
 
-import org.folio.dao.BudgetDAO;
-import org.folio.dao.BudgetExpenseClassDAO;
-import org.folio.dao.BudgetExpenseClassHttpDAO;
-import org.folio.dao.BudgetHttpDAO;
-import org.folio.dao.ExpenseClassDAO;
-import org.folio.dao.ExpenseClassHttpDAO;
-import org.folio.dao.TransactionDAO;
-import org.folio.dao.TransactionHttpDAO;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
+import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
+import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+
+import org.folio.rest.core.RestClient;
 import org.folio.services.BudgetExpenseClassService;
 import org.folio.services.BudgetExpenseClassTotalsService;
 import org.folio.services.ExpenseClassService;
@@ -22,46 +21,46 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationConfig {
 
   @Bean
-  public ExpenseClassDAO expenseClassDAO() {
-    return new ExpenseClassHttpDAO() ;
+  RestClient budgetRestClient() {
+    return new RestClient(resourcesPath(BUDGETS));
+  }
+
+  @Bean
+  RestClient budgetExpenseClassRestClient() {
+    return new RestClient(resourcesPath(BUDGET_EXPENSE_CLASSES));
+  }
+
+  @Bean
+  RestClient expenseClassRestClient() {
+    return new RestClient(resourcesPath(EXPENSE_CLASSES_STORAGE_URL));
+  }
+
+  @Bean
+  RestClient transactionRestClient() {
+    return new RestClient(resourcesPath(TRANSACTIONS));
   }
 
   @Bean
   @Autowired
-  public ExpenseClassService expenseClassService(ExpenseClassDAO expenseClassDAO) {
-    return new ExpenseClassService(expenseClassDAO);
+  public ExpenseClassService expenseClassService(RestClient expenseClassRestClient) {
+    return new ExpenseClassService(expenseClassRestClient);
   }
 
   @Bean
-  public BudgetDAO budgetDAO() {
-    return new BudgetHttpDAO();
+  public BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient) {
+    return new BudgetExpenseClassService(budgetExpenseClassRestClient);
   }
 
   @Bean
-  public TransactionDAO transactionDAO() {
-    return new TransactionHttpDAO();
+  public TransactionService transactionService(RestClient transactionRestClient) {
+    return new TransactionService(transactionRestClient);
   }
 
   @Bean
-  public BudgetExpenseClassDAO budgetExpenseClassDAO() {
-    return new BudgetExpenseClassHttpDAO();
-  }
-
-  @Bean
-  public BudgetExpenseClassService budgetExpenseClassService(BudgetExpenseClassDAO budgetExpenseClassDAO) {
-    return new BudgetExpenseClassService(budgetExpenseClassDAO);
-  }
-
-  @Bean
-  public TransactionService transactionService(TransactionDAO transactionDAO) {
-    return new TransactionService(transactionDAO);
-  }
-
-  @Bean
-  public BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(BudgetDAO budgetDAO,
+  public BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient budgetRestClient,
                                                                          ExpenseClassService expenseClassService,
                                                                          TransactionService transactionService,
                                                                          BudgetExpenseClassService budgetExpenseClassService)  {
-    return new BudgetExpenseClassTotalsService(budgetDAO, expenseClassService, transactionService, budgetExpenseClassService);
+    return new BudgetExpenseClassTotalsService(budgetRestClient, expenseClassService, transactionService, budgetExpenseClassService);
   }
 }

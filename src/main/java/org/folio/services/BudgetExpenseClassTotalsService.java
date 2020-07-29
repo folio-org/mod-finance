@@ -16,7 +16,8 @@ import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 
-import org.folio.dao.BudgetDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
@@ -26,31 +27,29 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
 
-import io.vertx.core.Context;
-
 public class BudgetExpenseClassTotalsService {
 
-  private final BudgetDAO budgetDAO;
+  private final RestClient restClient;
   private final ExpenseClassService expenseClassService;
   private final TransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
 
-  public BudgetExpenseClassTotalsService(BudgetDAO budgetDAO,
+  public BudgetExpenseClassTotalsService(RestClient restClient,
                                          ExpenseClassService expenseClassService,
                                          TransactionService transactionService,
                                          BudgetExpenseClassService budgetExpenseClassService) {
-    this.budgetDAO = budgetDAO;
+    this.restClient = restClient;
     this.expenseClassService = expenseClassService;
     this.transactionService = transactionService;
     this.budgetExpenseClassService = budgetExpenseClassService;
   }
 
-  public CompletableFuture<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, Context context, Map<String, String> headers) {
-    return budgetDAO.getById(budgetId, context, headers)
-      .thenCompose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, context, headers)
-        .thenCompose(expenseClasses -> transactionService.getTransactions(budget, context, headers)
+  public CompletableFuture<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
+    return restClient.getById(budgetId, requestContext, Budget.class)
+      .thenCompose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
+        .thenCompose(expenseClasses -> transactionService.getTransactions(budget, requestContext)
         .thenApply(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
-      .thenCompose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, context, headers)
+      .thenCompose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .thenApply(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));
   }
 

@@ -3,7 +3,6 @@ package org.folio.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -15,16 +14,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.dao.BudgetExpenseClassDAO;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import io.vertx.core.impl.EventLoopContext;
 
 public class BudgetExpenseClassServiceTest {
 
@@ -32,13 +32,13 @@ public class BudgetExpenseClassServiceTest {
   private BudgetExpenseClassService budgetExpenseClassService;
 
   @Mock
-  private BudgetExpenseClassDAO budgetExpenseClassDAOMock;
+  private RestClient budgetExpenseClassClientMock;
 
   @Mock
   private Map<String, String> okapiHeadersMock;
 
   @Mock
-  private EventLoopContext ctxMock;
+  private RequestContext requestContext;
 
   @BeforeEach
   public void initMocks() {
@@ -57,13 +57,13 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetExpenseClasses(expectedBudgetExpenseClasses)
       .withTotalRecords(1);
 
-    when(budgetExpenseClassDAOMock.get(anyString(), anyInt(), anyInt(), any(), anyMap()))
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
 
-    CompletableFuture<List<BudgetExpenseClass>> resultFuture = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, ctxMock, okapiHeadersMock);
+    CompletableFuture<List<BudgetExpenseClass>> resultFuture = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext);
 
     String expectedQuery =  String.format("budgetId==%s", budgetId);
-    verify(budgetExpenseClassDAOMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(ctxMock), eq(okapiHeadersMock));
+    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(BudgetExpenseClassCollection.class));
 
     List<BudgetExpenseClass> resultBudgetExpenseClasses = resultFuture.join();
     assertEquals(expectedBudgetExpenseClasses, resultBudgetExpenseClasses);
