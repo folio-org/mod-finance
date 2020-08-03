@@ -140,7 +140,7 @@ public class BudgetServiceTest {
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
     HttpException cause = (HttpException) exception.getCause();
     Errors errors = new Errors().withErrors(Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError())).withTotalRecords(1);
-    assertEquals(400, cause.getCode());
+    assertEquals(422, cause.getCode());
     assertEquals(errors, cause.getErrors());
 
     verify(budgetMockRestClient, never()).put(anyString(), any(), any());
@@ -191,7 +191,7 @@ public class BudgetServiceTest {
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
     HttpException cause = (HttpException) exception.getCause();
     Errors errors = new Errors().withErrors(Collections.singletonList(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError())).withTotalRecords(1);
-    assertEquals(400, cause.getCode());
+    assertEquals(422, cause.getCode());
     assertEquals(errors, cause.getErrors());
 
     verify(budgetMockRestClient, never()).put(anyString(), any(), any());

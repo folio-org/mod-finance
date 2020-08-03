@@ -26,10 +26,10 @@ import io.vertx.core.json.JsonObject;
 
 public class BudgetService {
 
-  private RestClient budgetRestClient;
-  private TransactionService transactionService;
-  private BudgetExpenseClassService budgetExpenseClassService;
-  private GroupFundFiscalYearService groupFundFiscalYearService;
+  private final RestClient budgetRestClient;
+  private final TransactionService transactionService;
+  private final BudgetExpenseClassService budgetExpenseClassService;
+  private final GroupFundFiscalYearService groupFundFiscalYearService;
 
   public BudgetService(RestClient budgetRestClient,
                        TransactionService transactionService,
@@ -91,7 +91,7 @@ public class BudgetService {
     errors.addAll(checkRemainingExpenditure(budget));
 
     if (!errors.isEmpty()) {
-      future.completeExceptionally(new HttpException(400, new Errors()
+      future.completeExceptionally(new HttpException(422, new Errors()
         .withErrors(errors)
         .withTotalRecords(errors.size())));
     } else {
