@@ -9,6 +9,7 @@ import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import org.folio.rest.core.RestClient;
+import org.folio.services.FundDetailsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.BudgetExpenseClassService;
 import org.folio.services.BudgetExpenseClassTotalsService;
@@ -89,5 +90,10 @@ public class ApplicationConfig {
                                      BudgetExpenseClassService budgetExpenseClassService,
                                      GroupFundFiscalYearService groupFundFiscalYearService) {
     return new BudgetService(budgetRestClient, transactionService, budgetExpenseClassService, groupFundFiscalYearService);
+  }
+
+  @Bean
+  public FundDetailsService fundService(BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService){
+    return new FundDetailsService(budgetService, budgetExpenseClassService);
   }
 }
