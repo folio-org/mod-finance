@@ -39,7 +39,7 @@ public class FundDetailsService {
   public CompletableFuture<Optional<Budget>> retrieveCurrentBudget(String fundId, RequestContext requestContext) {
     return fundService.retrieveFundById(fundId, requestContext)
                       .thenApply(Fund::getLedgerId)
-                      .thenCompose(budgetFYId -> fiscalYearService.getCurrentFiscalYear(budgetFYId, requestContext))
+                      .thenCompose(budgetLedgerId -> fiscalYearService.getCurrentFiscalYear(budgetLedgerId, requestContext))
                       .thenApply(fundCurrFY -> buildActiveBudgetQuery(fundId, fundCurrFY.getId()))
                       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, requestContext))
                       .thenApply(this::getFirstBudget);

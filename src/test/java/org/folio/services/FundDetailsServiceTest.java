@@ -20,12 +20,15 @@ import static org.mockito.Mockito.verify;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
+import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.Fund;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -37,7 +40,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
 public class FundDetailsServiceTest {
-  private static final String X_ACTIVE_BUDGET_QUERY = "query=fundId==%s and budgetStatus==Active";
+  private static final String X_ACTIVE_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
 
   private RequestContext requestContext;
 
@@ -49,6 +52,12 @@ public class FundDetailsServiceTest {
 
   @Mock
   private BudgetExpenseClassService budgetExpenseClassService;
+
+  @Mock
+  private FundService fundService;
+
+  @Mock
+  private FiscalYearService fiscalYearService;
 
   @BeforeEach
   public void initMocks() {
@@ -62,47 +71,47 @@ public class FundDetailsServiceTest {
     requestContext = new RequestContext(context, okapiHeaders);
   }
 
-//  @Test
-//  public void testShouldReturnActiveExistingBudget() {
-//    String fundId = UUID.randomUUID().toString();
-//    String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId);
-//    //Given
-//    Budget expBudget = new Budget().withId(UUID.randomUUID().toString()).withFundId(fundId);
-//    BudgetsCollection budgetsCollection = new BudgetsCollection().withBudgets(singletonList(expBudget));
-//
-//    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//    //When
-//    Budget actBudget = fundDetailsService.retrieveActiveBudget(fundId, requestContext).join();
-//    //Then
-//    assertThat(actBudget, equalTo(expBudget));
-//    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//  }
-//
-//  @Test
-//  public void testShouldReturnNullIfNoActiveBudget() {
-//    String fundId = UUID.randomUUID().toString();
-//    String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId);
-//    //Given
-//    doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//    //When
-//    Budget actBudget = fundDetailsService.retrieveActiveBudget(fundId, requestContext).join();
-//    //Then
-//    assertNull(actBudget);
-//    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//  }
-//
-//  @Test
-//  public void testShouldReturnNullIfBudgetCollectionWithoutActiveBudget() {
-//    String fundId = UUID.randomUUID().toString();
-//    String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId);
-//    //Given
-//    doReturn(completedFuture(new BudgetsCollection())).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//    //When
-//    Budget actBudget = fundDetailsService.retrieveActiveBudget(fundId, requestContext).join();
-//    //Then
-//    assertNull(actBudget);
-//    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-//  }
+  @Test
+  public void testShouldReturnCurrentExistingBudget() {
+    //Given
+    String fiscalId = UUID.randomUUID().toString();
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
+    String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId, fiscalId);
+    Optional<Budget> expBudget = Optional.of(new Budget().withId(UUID.randomUUID().toString()).withFundId(fundId));
+    BudgetsCollection budgetsCollection = new BudgetsCollection().withBudgets(singletonList(expBudget.get()));
+    Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
+    FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
+
+    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    //When
+    Optional<Budget> actBudget = fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join();
+    //Then
+    assertThat(actBudget.get(), equalTo(expBudget.get()));
+    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+  }
+
+  @Test
+  public void testShouldReturnNullIfNoActiveBudget() {
+    //Given
+    String fiscalId = UUID.randomUUID().toString();
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
+    String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId, fiscalId);
+    Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
+    FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
+
+    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    //When
+    Optional<Budget> actBudget = fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join();
+    //Then
+    assertEquals(Optional.empty(), actBudget);
+    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+  }
 
   @Test
   public void testShouldReturnExpenseClassesForActiveBudget() {

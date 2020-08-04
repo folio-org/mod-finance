@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +33,6 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
@@ -115,37 +113,6 @@ public class FundsHelper extends AbstractHelper {
         fund.setId(id);
         return compositeFund;
       });
-  }
-
-//  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId) {
-//    FiscalYearsHelper fiscalYearsHelper = new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang);
-//    return getFirstTwoFiscalYears(ledgerId, fiscalYearsHelper)
-//      .thenApply(firstTwoFiscalYears -> {
-//        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
-//          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
-//            return firstTwoFiscalYears.get(1);
-//          } else {
-//            return firstTwoFiscalYears.get(0);
-//          }
-//        } else {
-//          return null;
-//        }
-//      });
-//  }
-
-  private boolean isOverlapped(FiscalYear firstYear, FiscalYear secondYear) {
-    Date now = new Date();
-    return firstYear.getPeriodStart().before(now) && firstYear.getPeriodEnd().after(now)
-      && secondYear.getPeriodStart().before(now) && secondYear.getPeriodEnd().after(now)
-      && firstYear.getPeriodEnd().after(secondYear.getPeriodStart());
-  }
-
-  private CompletableFuture<List<FiscalYear>> getFirstTwoFiscalYears(String ledgerId, FiscalYearsHelper fiscalYearsHelper) {
-    return ledgerService.retrieveLedgerById(ledgerId, new RequestContext(ctx, okapiHeaders))
-      .thenCompose(ledger -> fiscalYearsHelper.getFiscalYear(ledger.getFiscalYearOneId()))
-      .thenApply(this::buildCurrentFYQuery)
-      .thenCompose(endpoint -> fiscalYearsHelper.getFiscalYears(2, 0, endpoint))
-      .thenApply(FiscalYearsCollection::getFiscalYears);
   }
 
   private String buildCurrentFYQuery(FiscalYear fiscalYearOne) {
