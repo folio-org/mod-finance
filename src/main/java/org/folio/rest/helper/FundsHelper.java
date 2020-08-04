@@ -40,7 +40,9 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.services.FiscalYearService;
 import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,6 +61,11 @@ public class FundsHelper extends AbstractHelper {
   private RestClient budgetRestClient;
   @Autowired
   private GroupFundFiscalYearService groupFundFiscalYearService;
+  @Autowired
+  private LedgerService ledgerService;
+  @Autowired
+  private FiscalYearService fiscalYearService;
+
   private GroupsHelper groupsHelper;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
@@ -93,7 +100,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<CompositeFund> createFund(CompositeFund compositeFund) {
     final Fund fund = compositeFund.getFund();
     if (CollectionUtils.isNotEmpty(compositeFund.getGroupIds())) {
-      return getCurrentFiscalYear(fund.getLedgerId())
+      return fiscalYearService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
         .thenCompose(fiscalYear -> {
           if (Objects.isNull(fiscalYear)) {
             throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
@@ -110,21 +117,21 @@ public class FundsHelper extends AbstractHelper {
       });
   }
 
-  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId) {
-    FiscalYearsHelper fiscalYearsHelper = new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang);
-    return getFirstTwoFiscalYears(ledgerId, fiscalYearsHelper)
-      .thenApply(firstTwoFiscalYears -> {
-        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
-          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
-            return firstTwoFiscalYears.get(1);
-          } else {
-            return firstTwoFiscalYears.get(0);
-          }
-        } else {
-          return null;
-        }
-      });
-  }
+//  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId) {
+//    FiscalYearsHelper fiscalYearsHelper = new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang);
+//    return getFirstTwoFiscalYears(ledgerId, fiscalYearsHelper)
+//      .thenApply(firstTwoFiscalYears -> {
+//        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
+//          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
+//            return firstTwoFiscalYears.get(1);
+//          } else {
+//            return firstTwoFiscalYears.get(0);
+//          }
+//        } else {
+//          return null;
+//        }
+//      });
+//  }
 
   private boolean isOverlapped(FiscalYear firstYear, FiscalYear secondYear) {
     Date now = new Date();
@@ -134,7 +141,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private CompletableFuture<List<FiscalYear>> getFirstTwoFiscalYears(String ledgerId, FiscalYearsHelper fiscalYearsHelper) {
-    return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getLedger(ledgerId)
+    return ledgerService.retrieveLedgerById(ledgerId, new RequestContext(ctx, okapiHeaders))
       .thenCompose(ledger -> fiscalYearsHelper.getFiscalYear(ledger.getFiscalYearOneId()))
       .thenApply(this::buildCurrentFYQuery)
       .thenCompose(endpoint -> fiscalYearsHelper.getFiscalYears(2, 0, endpoint))
@@ -179,8 +186,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {
     return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
-      .thenCompose(compositeFund -> getCurrentFiscalYear(compositeFund.getFund()
-        .getLedgerId())
+      .thenCompose(compositeFund -> fiscalYearService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
           .thenCompose(currentFY -> Objects.isNull(currentFY) ? CompletableFuture.completedFuture(null)
               : getGroupIdsThatFundBelongs(id, currentFY.getId()))
           .thenApply(compositeFund::withGroupIds));
@@ -257,7 +263,7 @@ public class FundsHelper extends AbstractHelper {
     Fund fund = compositeFund.getFund();
     Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
 
-    return getCurrentFiscalYear(fund.getLedgerId())
+    return fiscalYearService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
       .thenCompose(currentFiscalYear-> {
         if(Objects.nonNull(currentFiscalYear)) {
           String currentFiscalYearId = currentFiscalYear.getId();

@@ -12,6 +12,7 @@ documentation:
 types:
   compositeFund: !include acq-models/mod-finance/schemas/composite_fund.json
   fundsCollection: !include acq-models/mod-finance/schemas/fund_collection.json
+  expenseClassCollection: !include acq-models/mod-finance/schemas/expense_class_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -26,6 +27,7 @@ traits:
 resourceTypes:
   collection: !include raml-util/rtypes/collection-with-json-response.raml
   collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
+  collection-get: !include raml-util/rtypes/collection-get-with-json-response.raml
 
 /finance/funds:
   displayName: Finance fund
@@ -56,3 +58,8 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/composite_fund.sample
     put:
       is: [validate]
+    /expense-classes:
+      type:
+        collection-get:
+          exampleCollection: !include acq-models/mod-finance/examples/expense_class_collection.sample
+          schemaCollection: expenseClassCollection

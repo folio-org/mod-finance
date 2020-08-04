@@ -4,6 +4,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.ApiTestSuite.mockPort;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
+import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
 import static org.folio.rest.util.HelperUtils.convertToJson;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -54,7 +55,7 @@ public class ApiTestBase {
   public static final Header EMPTY_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "EmptyConfig");
   public static final Header INVALID_CONFIG_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, "InvalidConfig");
   public static final Header ERROR_X_OKAPI_TENANT = new Header(OKAPI_HEADER_TENANT, ERROR_TENANT);
-  static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, VALID_OKAPI_TOKEN);
+  public static final Header X_OKAPI_TOKEN = new Header(OKAPI_HEADER_TOKEN, VALID_OKAPI_TOKEN);
   public static final String BAD_QUERY = "unprocessableQuery";
   public static final String ID_DOES_NOT_EXIST = "d25498e7-3ae6-45fe-9612-ec99e2700d2f";
   public static final String SERIES_DOES_NOT_EXIST = ID_DOES_NOT_EXIST;
@@ -62,7 +63,7 @@ public class ApiTestBase {
   public static final String SERIES_INTERNAL_SERVER_ERROR = ID_FOR_INTERNAL_SERVER_ERROR;
   public static final String BASE_MOCK_DATA_PATH = "mockdata/";
   public static final String TOTAL_RECORDS = "totalRecords";
-
+  public static final Header X_OKAPI_USER_ID = new Header(OKAPI_USERID_HEADER, "d1d0a10b-c563-4c4b-ae22-e5a0c11623eb");
 
   static {
     System.setProperty(LoggerFactory.LOGGER_DELEGATE_FACTORY_CLASS_NAME, "io.vertx.core.logging.Log4j2LogDelegateFactory");

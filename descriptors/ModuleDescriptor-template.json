@@ -118,7 +118,7 @@
     },
     {
       "id": "finance.funds",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -177,7 +177,16 @@
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.delete"
           ]
-        }
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/funds/{id}/expense-classes",
+          "permissionsRequired": ["finance.funds.expense-classes.collection.get"],
+          "modulePermissions": [
+            "finance-storage.budgets.collection.get",
+            "finance.expense-classes.collection.get"
+          ]
+        }	        }
       ]
     },
     {

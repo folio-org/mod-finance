@@ -13,15 +13,21 @@ import java.util.Objects;
 
 import javax.ws.rs.core.Response;
 
+import io.vertx.core.Vertx;
 import one.util.streamex.StreamEx;
 import org.folio.HttpStatus;
 import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.helper.FundsHelper;
 import org.folio.rest.helper.LedgersHelper;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
+import org.folio.services.FiscalYearService;
+import org.folio.services.LedgerService;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -30,6 +36,15 @@ import io.vertx.core.Handler;
 public class LedgersApi implements FinanceLedgers {
 
   private static final String LEDGERS_LOCATION_PREFIX = getEndpoint(FinanceLedgers.class) + "/%s";
+
+  @Autowired
+  private FiscalYearService fiscalYearService;
+  @Autowired
+  private LedgerService ledgerService;
+
+  public LedgersApi() {
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
+  }
 
   @Validate
   @Override
@@ -94,7 +109,7 @@ public class LedgersApi implements FinanceLedgers {
   public void getFinanceLedgersById(String ledgerId, String fiscalYearId, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
     LedgersHelper helper = new LedgersHelper(headers, ctx, lang);
-    helper.getLedgerWithSummary(ledgerId, fiscalYearId)
+    ledgerService.getLedgerWithSummary(ledgerId, fiscalYearId, new RequestContext(ctx, headers))
       .thenAccept(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
       .exceptionally(fail -> handleErrorResponse(handler, helper, fail));
   }
@@ -113,7 +128,7 @@ public class LedgersApi implements FinanceLedgers {
   @Override
   public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
     FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
-    helper.getCurrentFiscalYear(ledgerId)
+    fiscalYearService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(currentFiscalYear -> {
         if(Objects.nonNull(currentFiscalYear)) {
           handler.handle(succeededFuture(helper.buildOkResponse(currentFiscalYear)));

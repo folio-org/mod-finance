@@ -7,10 +7,14 @@ import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import org.folio.rest.core.RestClient;
+import org.folio.services.FiscalYearService;
+import org.folio.services.FundDetailsService;
+import org.folio.services.FundService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.BudgetExpenseClassService;
 import org.folio.services.BudgetExpenseClassTotalsService;
@@ -68,6 +72,11 @@ public class ApplicationConfig {
   }
 
   @Bean
+  RestClient ledgerFYStorageRestClient() {
+    return new RestClient(resourcesPath(LEDGER_FYS_STORAGE));
+  }
+
+  @Bean
   @Autowired
   ExpenseClassService expenseClassService(RestClient expenseClassRestClient) {
     return new ExpenseClassService(expenseClassRestClient);
@@ -103,4 +112,27 @@ public class ApplicationConfig {
                                      GroupFundFiscalYearService groupFundFiscalYearService) {
     return new BudgetService(budgetRestClient, transactionService, budgetExpenseClassService, groupFundFiscalYearService);
   }
+
+  @Bean
+  LedgerService ledgerService(RestClient ledgerStorageRestClient, RestClient ledgerFYStorageRestClient) {
+    return new LedgerService(ledgerStorageRestClient, ledgerFYStorageRestClient);
+  }
+
+  @Bean
+  FiscalYearService fiscalYearService(LedgerService ledgerService, RestClient fiscalYearRestClient){
+    return new FiscalYearService(ledgerService, fiscalYearRestClient);
+  }
+
+  @Bean
+  FundDetailsService fundDetailsService(FiscalYearService fiscalYearService, FundService fundService
+          , BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService){
+    return new FundDetailsService(fiscalYearService, fundService, budgetService, budgetExpenseClassService);
+  }
+
+  @Bean
+  FundService fundService(RestClient fundStorageRestClient) {
+    return new FundService(fundStorageRestClient);
+  }
+
+
 }

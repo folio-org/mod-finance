@@ -28,7 +28,7 @@ import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -198,7 +198,7 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(LEDGERS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
-    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS))
+    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS_STORAGE))
       .handler(this::handleGetLedgerFyCollection);
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
@@ -268,7 +268,7 @@ public class MockServer {
 
   private void handleGetLedgerFyCollection(RoutingContext ctx) {
     String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
-    addServerRqQuery(LEDGER_FYS, query);
+    addServerRqQuery(LEDGER_FYS_STORAGE, query);
     if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else if (query.contains(BAD_QUERY)) {
@@ -288,12 +288,12 @@ public class MockServer {
         }
       };
       LedgerFYCollection ledgerFYCollection = new LedgerFYCollection();
-      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS, LedgerFY.class).orElseGet(getFromFile);
+      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS_STORAGE, LedgerFY.class).orElseGet(getFromFile);
 
       ledgerFYCollection.setTotalRecords(ledgerFYs.size());
       ledgerFYCollection.setLedgerFY(ledgerFYs);
       JsonObject responseRecord = JsonObject.mapFrom(ledgerFYCollection);
-      addServerRqRsData(HttpMethod.GET, LEDGER_FYS, responseRecord);
+      addServerRqRsData(HttpMethod.GET, LEDGER_FYS_STORAGE, responseRecord);
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
