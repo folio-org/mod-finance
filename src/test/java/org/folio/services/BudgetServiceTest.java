@@ -63,10 +63,16 @@ public class BudgetServiceTest {
   @Mock
   private RequestContext requestContextMock;
 
+  private SharedBudget sharedBudget;
+
 
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    sharedBudget = new SharedBudget()
+      .withId(UUID.randomUUID().toString())
+      .withFiscalYearId(UUID.randomUUID().toString())
+      .withFundId(UUID.randomUUID().toString());;
   }
 
   @Test
@@ -124,17 +130,16 @@ public class BudgetServiceTest {
 
   @Test
   void testUpdateBudgetWithExceededAllowableEncumbered() {
-    SharedBudget budget = new SharedBudget()
-      .withAllocated(25000d)
+    sharedBudget.withAllocated(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
       .withEncumbered(7307.4)
       .withExpenditures(2228.55)
-      .withAllowableEncumbrance(1d)
-      .withAllowableExpenditure(110d);
+      .withAllowableExpenditure(110d)
+      .withAllowableEncumbrance(1d);
 
-    CompletableFuture<Void> resultFuture = budgetService.updateBudget(budget, requestContextMock);
+    CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
 
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
@@ -148,16 +153,7 @@ public class BudgetServiceTest {
 
   @Test
   void testUpdateBudgetWithoutStatusExpenseClasses() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withAllocated(25000d)
-      .withAvailable(15313.45)
-      .withUnavailable(9686.55)
-      .withAwaitingPayment(150.60)
-      .withEncumbered(7307.4)
-      .withExpenditures(2228.55)
-      .withAllowableEncumbrance(110d)
-      .withAllowableExpenditure(110d);
+
     when(budgetMockRestClient.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
@@ -175,8 +171,7 @@ public class BudgetServiceTest {
 
   @Test()
   void testUpdateBudgetWithExceededAllowableExpenditure() {
-    SharedBudget budget = new SharedBudget()
-      .withAllocated(25000d)
+    sharedBudget.withAllocated(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
@@ -185,7 +180,7 @@ public class BudgetServiceTest {
       .withAllowableEncumbrance(110d)
       .withAllowableExpenditure(1d);
 
-    CompletableFuture<Void> resultFuture = budgetService.updateBudget(budget, requestContextMock);
+    CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
 
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
@@ -200,10 +195,8 @@ public class BudgetServiceTest {
   @Test
   void testCreateBudgetWithAllocated() {
 
-    SharedBudget sharedBudget = new SharedBudget().withId(UUID.randomUUID().toString())
-      .withAllocated(100.43)
-      .withFiscalYearId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString());
+    sharedBudget.withAllocated(100.43);
+
     Budget budgetFromStorage = new Budget().withId(sharedBudget.getId())
       .withAllocated(0d)
       .withFiscalYearId(sharedBudget.getFiscalYearId())
@@ -232,10 +225,7 @@ public class BudgetServiceTest {
   @Test
   void testCreateBudgetWithZeroAllocated() {
 
-    SharedBudget sharedBudget = new SharedBudget().withId(UUID.randomUUID().toString())
-      .withAllocated(0d)
-      .withFiscalYearId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString());
+    sharedBudget.withAllocated(0d);
     when(groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     when(budgetMockRestClient.post(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(sharedBudget));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
@@ -257,10 +247,7 @@ public class BudgetServiceTest {
   @Test
   void testCreateBudgetWithAllocationCreationError() {
 
-    SharedBudget sharedBudget = new SharedBudget().withId(UUID.randomUUID().toString())
-      .withAllocated(100.43)
-      .withFiscalYearId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString());
+    sharedBudget.withAllocated(100.43);
     Budget budgetFromStorage = new Budget().withId(sharedBudget.getId())
       .withAllocated(0d)
       .withFiscalYearId(sharedBudget.getFiscalYearId())

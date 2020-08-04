@@ -7,7 +7,6 @@ import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPEN
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
@@ -35,7 +34,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -51,6 +49,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.impl.EventLoopContext;
 
 public class BudgetExpenseClassServiceTest {
@@ -67,15 +66,21 @@ public class BudgetExpenseClassServiceTest {
   @Mock
   private RequestContext requestContextMock;
 
+  private SharedBudget sharedBudget;
+
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    sharedBudget =  new SharedBudget()
+      .withId(UUID.randomUUID().toString())
+      .withFundId(UUID.randomUUID().toString())
+      .withFiscalYearId(UUID.randomUUID().toString());
   }
 
   @Test
   void testGetBudgetExpenseClasses() {
 
-    String budgetId = UUID.randomUUID().toString();
+    String budgetId = sharedBudget.getId();
     List<BudgetExpenseClass> expectedBudgetExpenseClasses = Collections.singletonList(new BudgetExpenseClass()
       .withBudgetId(budgetId)
       .withId(UUID.randomUUID().toString()));
@@ -99,17 +104,12 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testCreateBudgetWithExpenseClasses() {
-    StatusExpenseClass expenseClass1 = new StatusExpenseClass()
-      .withExpenseClassId(UUID.randomUUID().toString())
-      .withStatus(StatusExpenseClass.Status.ACTIVE);
+    StatusExpenseClass expenseClass1 = getNewStatusExpenseClass(UUID.randomUUID().toString());
 
-    StatusExpenseClass expenseClass2 = new StatusExpenseClass()
-      .withExpenseClassId(UUID.randomUUID().toString())
+    StatusExpenseClass expenseClass2 = getNewStatusExpenseClass(UUID.randomUUID().toString())
       .withStatus(StatusExpenseClass.Status.INACTIVE);
 
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
+    sharedBudget.withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
 
     when(requestContextMock.getContext()).thenReturn(mock(EventLoopContext.class));
     when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(new BudgetExpenseClass()));
@@ -140,9 +140,6 @@ public class BudgetExpenseClassServiceTest {
   @Test
   void testCreateBudgetWithoutExpenseClasses() {
 
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString());
-
     CompletableFuture<Void> future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
     future.join();
 
@@ -154,8 +151,6 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinksWithoutExpenseClasses() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString());
 
     when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(new BudgetExpenseClassCollection()));
 
@@ -172,19 +167,10 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_noTransactionsAssigned_existingBudgetExpenseClassesHasToBeDeleted() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
+
+    BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass3 = getNewBudgetExpenseClass();
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
@@ -215,19 +201,10 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_transactionsAssigned_budgetExpenseClassesDeletionProhibited() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
+
+    BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass3 = getNewBudgetExpenseClass();
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
@@ -262,31 +239,16 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinks_withSameStatusExpenseClassesAsExistingBudgetExpenseClassesNoUpdates() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
+
+    BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass3 = getNewBudgetExpenseClass();
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    StatusExpenseClass statusExpenseClass1 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass1.getExpenseClassId())
-      .withStatus(StatusExpenseClass.Status.fromValue(budgetExpenseClass1.getStatus().value()));
-    StatusExpenseClass statusExpenseClass2 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass2.getExpenseClassId())
-      .withStatus(StatusExpenseClass.Status.fromValue(budgetExpenseClass2.getStatus().value()));
-    StatusExpenseClass statusExpenseClass3 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass3.getExpenseClassId())
-      .withStatus(StatusExpenseClass.Status.fromValue(budgetExpenseClass3.getStatus().value()));
+    StatusExpenseClass statusExpenseClass1 = getNewStatusExpenseClass(budgetExpenseClass1.getExpenseClassId());
+    StatusExpenseClass statusExpenseClass2 = getNewStatusExpenseClass(budgetExpenseClass2.getExpenseClassId());
+    StatusExpenseClass statusExpenseClass3 = getNewStatusExpenseClass(budgetExpenseClass3.getExpenseClassId());
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
@@ -308,30 +270,17 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinks_withUpdatedStatusExpenseClasses_existingBudgetExpenseClassesHasToBeUpdated() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
+
+    BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClass3 = getNewBudgetExpenseClass();
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    StatusExpenseClass statusExpenseClass1 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass1.getExpenseClassId())
-      .withStatus(StatusExpenseClass.Status.fromValue(budgetExpenseClass1.getStatus().value()));
-    StatusExpenseClass statusExpenseClass2 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass2.getExpenseClassId())
+    StatusExpenseClass statusExpenseClass1 = getNewStatusExpenseClass(budgetExpenseClass1.getExpenseClassId());
+    StatusExpenseClass statusExpenseClass2 = getNewStatusExpenseClass(budgetExpenseClass2.getExpenseClassId())
       .withStatus(StatusExpenseClass.Status.INACTIVE);
-    StatusExpenseClass statusExpenseClass3 = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass3.getExpenseClassId())
+    StatusExpenseClass statusExpenseClass3 = getNewStatusExpenseClass(budgetExpenseClass3.getExpenseClassId())
       .withStatus(StatusExpenseClass.Status.INACTIVE);
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
@@ -367,25 +316,16 @@ public class BudgetExpenseClassServiceTest {
 
   @Test
   void testUpdateBudgetExpenseClassesLinks_complexTestWithBudgetExpenseClassDeletionUpdateCreation() {
-    SharedBudget sharedBudget = new SharedBudget()
-      .withId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString())
-      .withFiscalYearId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClassToBeDeleted = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
-    BudgetExpenseClass budgetExpenseClassToBeUpdated = new BudgetExpenseClass()
-      .withId(UUID.randomUUID().toString())
-      .withExpenseClassId(UUID.randomUUID().toString());
+
+    BudgetExpenseClass budgetExpenseClassToBeDeleted = getNewBudgetExpenseClass();
+    BudgetExpenseClass budgetExpenseClassToBeUpdated = getNewBudgetExpenseClass();
 
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClassToBeDeleted, budgetExpenseClassToBeUpdated));
 
-    StatusExpenseClass updatingStatusExpenseClass = new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClassToBeUpdated.getExpenseClassId())
+    StatusExpenseClass updatingStatusExpenseClass = getNewStatusExpenseClass(budgetExpenseClassToBeUpdated.getExpenseClassId())
       .withStatus(StatusExpenseClass.Status.INACTIVE);
-    StatusExpenseClass newStatusExpenseClass = new StatusExpenseClass()
-      .withExpenseClassId(UUID.randomUUID().toString())
+    StatusExpenseClass newStatusExpenseClass = getNewStatusExpenseClass(UUID.randomUUID().toString())
       .withStatus(StatusExpenseClass.Status.INACTIVE);
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(updatingStatusExpenseClass, newStatusExpenseClass);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
@@ -425,5 +365,16 @@ public class BudgetExpenseClassServiceTest {
     assertEquals(budgetExpenseClassToBeUpdated, budgetExpenseClass);
     assertThat(budgetExpenseClass, hasProperty("status", is(INACTIVE)));
 
+  }
+
+  private BudgetExpenseClass getNewBudgetExpenseClass() {
+    return new BudgetExpenseClass()
+      .withId(UUID.randomUUID().toString())
+      .withExpenseClassId(UUID.randomUUID().toString());
+  }
+
+  private StatusExpenseClass getNewStatusExpenseClass(String s) {
+    return new StatusExpenseClass()
+      .withExpenseClassId(s);
   }
 }
