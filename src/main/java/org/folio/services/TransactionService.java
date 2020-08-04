@@ -18,11 +18,11 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 public class TransactionService {
 
   private final RestClient transactionRestClient;
-  private final RestClient fiscalYearRestClient;
+  private final RestClient fiscalYearStorageRestClient;
 
-  public TransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+  public TransactionService(RestClient transactionRestClient, RestClient fiscalYearStorageRestClient) {
     this.transactionRestClient = transactionRestClient;
-    this.fiscalYearRestClient = fiscalYearRestClient;
+    this.fiscalYearStorageRestClient = fiscalYearStorageRestClient;
   }
 
   public CompletableFuture<List<Transaction>> getTransactions(Budget budget, RequestContext requestContext) {
@@ -42,7 +42,7 @@ public class TransactionService {
     Transaction transaction = new Transaction().withAmount(budget.getAllocated())
       .withFiscalYearId(budget.getFiscalYearId()).withToFundId(budget.getFundId())
       .withTransactionType(Transaction.TransactionType.ALLOCATION).withSource(Transaction.Source.USER);
-    return fiscalYearRestClient.getById(budget.getFiscalYearId(), requestContext, FiscalYear.class)
+    return fiscalYearStorageRestClient.getById(budget.getFiscalYearId(), requestContext, FiscalYear.class)
       .thenCompose(fiscalYear -> createTransaction(transaction.withCurrency(fiscalYear.getCurrency()), requestContext));
   }
 

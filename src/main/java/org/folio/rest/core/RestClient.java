@@ -3,7 +3,7 @@ package org.folio.rest.core;
 import static java.util.Objects.nonNull;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static org.folio.rest.RestConstants.SEARCH_ENDPOINT;
+import static org.folio.rest.RestConstants.SEARCH_PARAMS_WITHOUT_LANG;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.verifyAndExtractBody;
@@ -39,7 +39,7 @@ public class RestClient {
   }
 
   public <T> CompletableFuture<T> get(String query, int offset, int limit, RequestContext requestContext, Class<T> responseType) {
-    String endpoint = String.format(SEARCH_ENDPOINT, baseEndpoint, limit, offset, buildQueryParam(query, logger));
+    String endpoint = String.format(SEARCH_PARAMS_WITHOUT_LANG, baseEndpoint, limit, offset, buildQueryParam(query, logger));
     return get(requestContext, endpoint, responseType);
   }
 
