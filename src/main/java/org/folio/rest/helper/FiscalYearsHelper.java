@@ -1,6 +1,7 @@
 package org.folio.rest.helper;
 
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
+import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -10,6 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 
 import io.vertx.core.Context;
 import io.vertx.core.json.JsonObject;
@@ -48,6 +50,16 @@ public class FiscalYearsHelper extends AbstractHelper {
         .orElseThrow(() -> new HttpException(500, ErrorCodes.CURRENCY_NOT_FOUND));
   }
 
+  public CompletableFuture<FiscalYearsCollection> getFiscalYears(int limit, int offset, String query) {
+    String endpoint = String.format(GET_FISCAL_YEARS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
+    return handleGetRequest(endpoint)
+      .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FiscalYearsCollection.class)));
+  }
+
+  public CompletableFuture<FiscalYear> getFiscalYear(String id) {
+    return handleGetRequest(resourceByIdPath(FISCAL_YEARS_STORAGE, id, lang))
+      .thenApply(json -> json.mapTo(FiscalYear.class));
+  }
 
   public CompletableFuture<Void> updateFiscalYear(FiscalYear fiscalYear) {
     return HelperUtils.getConfigurationEntries(okapiHeaders, ctx, logger)

@@ -15,18 +15,13 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.acq.model.finance.LedgerFYCollection;
-import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 import org.folio.rest.util.HelperUtils;
-import org.folio.services.LedgerService;
-import org.folio.spring.SpringContextUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.Context;
-import io.vertx.core.Vertx;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class LedgersHelper extends AbstractHelper {
@@ -36,23 +31,12 @@ public class LedgersHelper extends AbstractHelper {
   public static final String LEDGER_ID_AND_FISCAL_YEAR_ID = "ledgerId==%s AND fiscalYearId==%s";
   public static final String FISCAL_YEAR_ID = "fiscalYearId==%s";
 
-  @Autowired
-  private LedgerService ledgerService;
-
   public LedgersHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
-    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public LedgersHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(httpClient, okapiHeaders, ctx, lang);
-    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
-  }
-
-  public LedgersHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang
-              , LedgerService ledgerService) {
-    super(httpClient, okapiHeaders, ctx, lang);
-    this.ledgerService = ledgerService;
   }
 
   public CompletableFuture<Ledger> createLedger(Ledger ledger) {
@@ -66,7 +50,7 @@ public class LedgersHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Ledger> getLedgerWithSummary(String ledgerId, String fiscalYearId) {
-    CompletableFuture<Ledger> future = ledgerService.getLedger(ledgerId, new RequestContext(ctx, okapiHeaders));
+    CompletableFuture<Ledger> future = getLedger(ledgerId);
     if (isEmpty(fiscalYearId)) {
       return future;
     } else {
@@ -99,6 +83,11 @@ public class LedgersHelper extends AbstractHelper {
     return ledger.withAllocated(ledgerFY.getAllocated())
       .withAvailable(ledgerFY.getAvailable())
       .withUnavailable(ledgerFY.getUnavailable());
+  }
+
+  CompletableFuture<Ledger> getLedger(String id) {
+    return handleGetRequest(resourceByIdPath(LEDGERS_STORAGE, id, lang))
+      .thenApply(json -> json.mapTo(Ledger.class));
   }
 
   public CompletableFuture<Void> updateLedger(Ledger ledger) {

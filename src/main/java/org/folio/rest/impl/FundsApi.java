@@ -5,7 +5,9 @@ import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BOD
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
@@ -24,7 +26,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 
-public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
+public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes {
 
   private static final String FUNDS_LOCATION_PREFIX = getEndpoint(FinanceFunds.class) + "/%s";
   private static final String FUND_TYPES_LOCATION_PREFIX = getEndpoint(FinanceFundTypes.class) + "/%s";
