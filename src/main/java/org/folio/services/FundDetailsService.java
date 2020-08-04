@@ -1,7 +1,8 @@
 package org.folio.services;
 
-import static org.folio.rest.util.HelperUtils.EXCEPTION_CALLING_ENDPOINT_MSG;
-import static org.folio.rest.util.HelperUtils.emptyListFuture;
+import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,9 +11,11 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
+import org.folio.rest.jaxrs.model.ExpenseClass;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 
 import io.vertx.core.logging.Logger;
@@ -26,50 +29,64 @@ public class FundDetailsService {
   private final FiscalYearService fiscalYearService;
   private final FundService fundService;
   private final BudgetService budgetService;
-  private final BudgetExpenseClassService budgetExpenseClassService;
+  private final ExpenseClassService expenseClassService;
 
   public FundDetailsService(FiscalYearService fiscalYearService, FundService fundService
-        , BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService) {
+        , BudgetService budgetService, ExpenseClassService expenseClassService) {
     this.fiscalYearService = fiscalYearService;
     this.fundService = fundService;
     this.budgetService = budgetService;
-    this.budgetExpenseClassService = budgetExpenseClassService;
+    this.expenseClassService = expenseClassService;
   }
 
-  public CompletableFuture<Optional<Budget>> retrieveCurrentBudget(String fundId, RequestContext requestContext) {
+  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, RequestContext requestContext) {
     return fundService.retrieveFundById(fundId, requestContext)
                       .thenApply(Fund::getLedgerId)
-                      .thenCompose(budgetLedgerId -> fiscalYearService.getCurrentFiscalYear(budgetLedgerId, requestContext))
+                      .thenCompose(budgetLedgerId -> getCurrentFiscalYear(budgetLedgerId, requestContext))
                       .thenApply(fundCurrFY -> buildActiveBudgetQuery(fundId, fundCurrFY.getId()))
                       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, requestContext))
                       .thenApply(this::getFirstBudget);
   }
 
-  public CompletableFuture<List<BudgetExpenseClass>> retrieveCurrentExpenseClasses(String fundId, RequestContext requestContext) {
-    CompletableFuture<List<BudgetExpenseClass>> future = new VertxCompletableFuture<>(requestContext.getContext());
+  public CompletableFuture<List<ExpenseClass>> retrieveCurrentExpenseClasses(String fundId, RequestContext requestContext) {
+    CompletableFuture<List<ExpenseClass>> future = new VertxCompletableFuture<>(requestContext.getContext());
     retrieveCurrentBudget(fundId, requestContext)
-                      .thenCompose(activeBudget -> activeBudget.map(budget -> retrieveExpenseClasses(budget, requestContext))
-                                                               .orElse(emptyListFuture()))
-                      .thenAccept(future::complete)
+                      .thenCompose(currentBudget -> {
+                        logger.debug("Is Current budget for fund found : " + currentBudget.getId());
+                        return retrieveBudgetExpenseClasses(currentBudget, requestContext);
+                      })
+                      .thenAccept(expenseClasses -> {
+                        logger.debug("Expense classes for fund size : " + expenseClasses.size());
+                        future.complete(expenseClasses);
+                      })
                       .exceptionally(t -> {
-                        logger.error(EXCEPTION_CALLING_ENDPOINT_MSG, t);
+                        logger.error(GENERIC_ERROR_CODE.getDescription(), t.getCause());
                         future.completeExceptionally(t);
                         return null;
                       });
     return future;
   }
 
-  private CompletableFuture<List<BudgetExpenseClass>> retrieveExpenseClasses(Budget budget, RequestContext requestContext) {
+  private CompletableFuture<List<ExpenseClass>> retrieveBudgetExpenseClasses(Budget budget, RequestContext requestContext) {
     return Optional.ofNullable(budget)
-      .map(activeBudgetP -> budgetExpenseClassService.getBudgetExpenseClasses(activeBudgetP.getId(), requestContext))
-      .orElse(CompletableFuture.completedFuture(Collections.emptyList()));
+                  .map(budgetP -> expenseClassService.getExpenseClassesByBudgetId(budgetP.getId(), requestContext))
+                  .orElse(CompletableFuture.completedFuture(Collections.emptyList()));
   }
 
-  private Optional<Budget> getFirstBudget(BudgetsCollection budgetsCollection) {
+  private Budget getFirstBudget(BudgetsCollection budgetsCollection) {
     return Optional.ofNullable(budgetsCollection)
                   .filter(budgetsCol -> !CollectionUtils.isEmpty(budgetsCol.getBudgets()))
                   .map(BudgetsCollection::getBudgets)
-                  .map(budgets -> budgets.get(0));
+                  .map(budgets -> budgets.get(0))
+                  .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
+  }
+
+  private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext requestContext) {
+    return fiscalYearService.getCurrentFiscalYear(budgetLedgerId, requestContext)
+                            .thenApply(fiscalYear ->
+                              Optional.ofNullable(fiscalYear)
+                                      .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError()))
+                            );
   }
 
   private String buildActiveBudgetQuery(String fundId, String fundCurrFYId) {

@@ -125,8 +125,8 @@ public class ApplicationConfig {
 
   @Bean
   FundDetailsService fundDetailsService(FiscalYearService fiscalYearService, FundService fundService
-          , BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService){
-    return new FundDetailsService(fiscalYearService, fundService, budgetService, budgetExpenseClassService);
+          , BudgetService budgetService, ExpenseClassService expenseClassService){
+    return new FundDetailsService(fiscalYearService, fundService, budgetService, expenseClassService);
   }
 
   @Bean
