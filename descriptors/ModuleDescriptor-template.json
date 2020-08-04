@@ -186,7 +186,7 @@
             "finance-storage.budgets.collection.get",
             "finance.expense-classes.collection.get"
           ]
-        }	        }
+        }
       ]
     },
     {
@@ -730,6 +730,11 @@
       "description": "Delete finance funds"
     },
     {
+      "permissionName": "finance.funds.expense-classes.collection.get",
+      "displayName": "Finances - get expense classes for fund from current budget",
+      "description": "Get expense classes for fund from current budget"
+    },
+    {
       "permissionName": "finance.funds.all",
       "displayName": "Finance Funds - all permissions",
       "description": "Entire set of permissions needed to use the Finance funds interface",
@@ -738,7 +743,8 @@
         "finance.funds.item.get",
         "finance.funds.item.post",
         "finance.funds.item.put",
-        "finance.funds.item.delete"
+        "finance.funds.item.delete",
+        "finance.funds.expense-classes.collection.get"
       ],
       "visible": false
     },
