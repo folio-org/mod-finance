@@ -27,6 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.folio.ApiTestSuite;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
+import org.hamcrest.beans.SamePropertyValuesAs;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -209,7 +210,7 @@ public class ApiTestBase {
     JsonObject entry = rqRsEntries.get(0);
     entry.remove("metadata");
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
-    assertThat(recordToStorage, org.hamcrest.beans.SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
+    assertThat(recordToStorage, SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
   }
 
   void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {

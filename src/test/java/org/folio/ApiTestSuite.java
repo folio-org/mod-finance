@@ -7,6 +7,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.rest.RestVerticle;
 import org.folio.rest.impl.BudgetsApiTest;
+
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeRateTest;
@@ -20,7 +21,9 @@ import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.rest.util.MockServer;
 import org.folio.services.BudgetExpenseClassServiceTest;
 import org.folio.services.BudgetExpenseClassTotalsServiceTest;
+import org.folio.services.BudgetServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
+import org.folio.services.GroupFundFiscalYearServiceTest;
 import org.folio.services.TransactionServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -137,5 +140,13 @@ public class ApiTestSuite {
 
   @Nested
   class TransactionServiceTestNested extends TransactionServiceTest {
+  }
+
+  @Nested
+  class BudgetServiceTestNested extends BudgetServiceTest {
+  }
+
+  @Nested
+  class GroupFundFiscalYearServiceTestNested extends GroupFundFiscalYearServiceTest {
   }
 }

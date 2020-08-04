@@ -23,7 +23,8 @@
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.put",
             "finance-storage.transactions.item.post",
-            "finance-storage.fiscal-years.item.get"
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.budget-expense-classes.item.post"
           ]
         },
         {
@@ -31,7 +32,8 @@
           "pathPattern": "/finance/budgets/{id}",
           "permissionsRequired": ["finance.budgets.item.get"],
           "modulePermissions": [
-            "finance-storage.budgets.item.get"
+            "finance-storage.budgets.item.get",
+            "finance-storage.budget-expense-classes.collection.get"
           ]
         },
         {
@@ -39,7 +41,12 @@
           "pathPattern": "/finance/budgets/{id}",
           "permissionsRequired": ["finance.budgets.item.put"],
           "modulePermissions": [
-            "finance-storage.budgets.item.put"
+            "finance-storage.budgets.item.put",
+            "finance-storage.budget-expense-classes.collection.get",
+            "finance-storage.budget-expense-classes.item.post",
+            "finance-storage.budget-expense-classes.item.put",
+            "finance-storage.budget-expense-classes.item.delete",
+            "finance-storage.transactions.collection.get"
           ]
         },
         {

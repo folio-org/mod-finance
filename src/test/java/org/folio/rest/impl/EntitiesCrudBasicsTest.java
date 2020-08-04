@@ -15,9 +15,11 @@ import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ALLOCATION;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_CREDIT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ENCUMBRANCE;
@@ -41,7 +43,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.folio.rest.acq.model.finance.LedgerFY;
-import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
@@ -49,10 +50,8 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.TestEntities;
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -82,7 +81,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntities() {
     return Arrays.stream(TestEntities.values())
-      .filter(e -> !e.equals(FUND));
+      .filter(e -> !e.equals(FUND))
+      .filter(e -> !e.equals(BUDGET));
   }
 
   /**
@@ -100,11 +100,12 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithGetByIdEndpoint() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TestEntities.GROUP_FUND_FISCAL_YEAR));
+    return getTestEntitiesWithGetEndpoint()
+      .filter(e -> !e.equals(GROUP_FUND_FISCAL_YEAR));
   }
 
   static Stream<TestEntities> getTestEntitiesWithPostEndpoint() {
-    return getTestEntities().filter(e -> !e.equals(TestEntities.TRANSACTIONS));
+    return getTestEntities().filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -114,7 +115,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
     return getTestEntitiesWithGetByIdEndpoint()
-      .filter(e -> !e.equals(TestEntities.TRANSACTIONS));
+      .filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -123,7 +124,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithDeleteEndpoint() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TestEntities.TRANSACTIONS));
+    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -138,7 +139,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetEndpoint")
-  public void testGetCollection(TestEntities testEntity) {
+  void testGetCollection(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
     String responseBody = verifyGet(testEntity.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).asString();
@@ -168,7 +169,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetEndpoint")
-  public void testGetCollectionInternalServerError(TestEntities testEntity) {
+  void testGetCollectionInternalServerError(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Internal Server Error ===", testEntity.name());
 
     String query = buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);
@@ -177,7 +178,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetEndpoint")
-  public void testGetCollectionBadQuery(TestEntities testEntity) {
+  void testGetCollectionBadQuery(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Bad Request error ===", testEntity.name());
 
     String query = buildQueryParam(BAD_QUERY);
@@ -186,7 +187,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetByIdEndpoint")
-  public void testGetRecordById(TestEntities testEntity) {
+  void testGetRecordById(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id ===", testEntity.name());
 
     verifyGet(testEntity.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(testEntity.getClazz());
@@ -197,7 +198,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetByIdEndpoint")
-  public void testGetRecordByIdServerError(TestEntities testEntity) {
+  void testGetRecordByIdServerError(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Internal Server Error ===", testEntity.name());
 
     verifyGet(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
@@ -206,7 +207,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetByIdEndpoint")
-  public void testGetRecordByIdNotFound(TestEntities testEntity) {
+  void testGetRecordByIdNotFound(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Not Found ===", testEntity.name());
 
     verifyGet(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
@@ -214,7 +215,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  public void testPostRecord(TestEntities testEntity) throws IOException {
+  void testPostRecord(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record ===", testEntity.name());
     if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
       addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
@@ -228,7 +229,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesForOnlyTransactionTypes")
-  public void testPostRecordForUnprocessibleEntity(TestEntities testEntity) {
+  void testPostRecordForUnprocessibleEntity(TestEntities testEntity) {
     logger.info("=== Test create {} record - Unprocessible entity ===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
@@ -246,7 +247,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  public void testPostRecordServerError(TestEntities testEntity) throws IOException {
+  void testPostRecordServerError(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
     if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
       addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
@@ -262,7 +263,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPutEndpoint")
-  public void testUpdateRecord(TestEntities testEntity) {
+  void testUpdateRecord(TestEntities testEntity) {
     logger.info("=== Test update {} record ===", testEntity.name());
 
     JsonObject body = testEntity.getMockObject();
@@ -276,7 +277,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPutEndpoint")
-  public void testUpdateRecordServerError(TestEntities testEntity) {
+  void testUpdateRecordServerError(TestEntities testEntity) {
     logger.info("=== Test update {} record - Internal Server Error ===", testEntity.name());
 
     JsonObject body = testEntity.getMockObject();
@@ -288,7 +289,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPutEndpoint")
-  public void testUpdateRecordNotFound(TestEntities testEntity) {
+  void testUpdateRecordNotFound(TestEntities testEntity) {
     logger.info("=== Test update {} record - Not Found ===", testEntity.name());
 
     JsonObject body = testEntity.getMockObject();
@@ -299,7 +300,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPutEndpoint")
-  public void testUpdateRecordIdMismatch(TestEntities testEntity) {
+  void testUpdateRecordIdMismatch(TestEntities testEntity) {
     logger.info("=== Test update {} record - Path and body id mismatch ===", testEntity.name());
 
     Errors errors = verifyPut(testEntity.getEndpointWithId(VALID_UUID), testEntity.getMockObject(), APPLICATION_JSON, 422)
@@ -312,7 +313,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithDeleteEndpoint")
-  public void testDeleteRecord(TestEntities testEntity) {
+  void testDeleteRecord(TestEntities testEntity) {
     logger.info("=== Test delete {} record ===", testEntity.name());
 
     verifyDeleteResponse(testEntity.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
@@ -320,7 +321,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithDeleteEndpoint")
-  public void testDeleteRecordServerError(TestEntities testEntity) {
+  void testDeleteRecordServerError(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Internal Server Error ===", testEntity.name());
 
     verifyDeleteResponse(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
@@ -329,7 +330,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithDeleteEndpoint")
-  public void testDeleteRecordNotFound(TestEntities testEntity) {
+  void testDeleteRecordNotFound(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Not Found ===", testEntity.name());
 
     verifyDeleteResponse(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
@@ -338,7 +339,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
   @ParameterizedTest
   @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY","INVOICE_TRANSACTION_SUMMARY"})
-  public void testPostRecordMinimumValidation(TestEntities testEntity) {
+  void testPostRecordMinimumValidation(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
@@ -357,23 +358,9 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
   }
 
-  @Test
-  @Order(1)
-  public void testPostBudgetWithAllocated() {
-    logger.info("=== Test create Budget with allocation transaction created===");
-
-    Response response = verifyPostResponse(BUDGET.getEndpoint(), BUDGET.getMockObject(), APPLICATION_JSON, CREATED.getStatusCode());
-    assertThat(response.getBody()
-      .as(Budget.class)
-      .getAllocated(), Matchers.greaterThan(0.0));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.POST, TRANSACTIONS_ALLOCATION.name()), hasSize(1));
-
-    verifyDeleteResponse(BUDGET.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
-  }
-
   @ParameterizedTest
   @EnumSource(value = TestEntities.class, names = {"GROUP"})
-  public void testPostGroupWhenJsonErrorComeFromStorage(TestEntities testEntity) {
+  void testPostGroupWhenJsonErrorComeFromStorage(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
@@ -387,7 +374,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetLedgersCollectionWithFiscalYear() {
+  void testGetLedgersCollectionWithFiscalYear() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) ===");
 
     String fiscalYearId = UUID.randomUUID().toString();
@@ -426,7 +413,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetLedgersCollectionWithFiscalYearBadQuery() {
+  void testGetLedgersCollectionWithFiscalYearBadQuery() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Bad Request error ===");
 
     String query = buildQueryParam(BAD_QUERY);
@@ -437,7 +424,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetLedgersCollectionWithFiscalYearInternalServerError() {
+  void testGetLedgersCollectionWithFiscalYearInternalServerError() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Internal Server Error ===");
 
     String query = buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);

@@ -20,7 +20,8 @@ public enum ErrorCodes {
   TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR("transactionIsPresentBudgetDeleteError",
     "Budget related transactions found. Deletion of the budget is forbidden."),
   MISSING_FUND_ID("missingFundId", "Missing to/from fund id"),
-  ALLOCATION_IDS_MISMATCH("allowableAllocationIdsMismatch", "Allowable allocation ids mismatch");
+  ALLOCATION_IDS_MISMATCH("allowableAllocationIdsMismatch", "Allowable allocation ids mismatch"),
+  TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR("transactionIsPresentBudgetExpenseClassDeleteError", "Budget expense class related transactions found. Deletion of the budget expense class is forbidden.");
 
   private final String code;
   private final String description;

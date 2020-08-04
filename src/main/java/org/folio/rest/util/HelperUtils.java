@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.tools.client.Response;
@@ -231,25 +233,32 @@ public class HelperUtils {
   }
 
   public static int defineErrorCode(Throwable throwable) {
-    final Throwable cause = throwable.getCause();
+    final Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
     if (cause instanceof HttpException) {
       return ((HttpException) cause).getCode();
     }
     return INTERNAL_SERVER_ERROR.getStatusCode();
   }
 
-  public static Error converToError(Throwable throwable) {
-    final Throwable cause = throwable.getCause();
-    Error error;
+  public static Errors convertToErrors(Throwable throwable) {
+    final Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
+    Errors errors;
 
     if (cause instanceof HttpException) {
-      error = ((HttpException) cause).getError();
-      if (HelperUtils.isErrorMessageJson(error.getMessage())) {
-        error = new JsonObject(error.getMessage()).mapTo(Error.class);
-      }
+      errors = ((HttpException) cause).getErrors();
+      List<Error> errorList = errors.getErrors().stream().map(HelperUtils::mapToError).collect(toList());
+      errors.setErrors(errorList);
     } else {
-      error = GENERIC_ERROR_CODE.toError()
-        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage());
+      errors = new Errors().withErrors(Collections.singletonList(GENERIC_ERROR_CODE.toError()
+        .withAdditionalProperty(ERROR_CAUSE, cause.getMessage())))
+        .withTotalRecords(1);
+    }
+    return errors;
+  }
+
+  private static Error mapToError(Error error) {
+    if (HelperUtils.isErrorMessageJson(error.getMessage())) {
+      return new JsonObject(error.getMessage()).mapTo(Error.class);
     }
     return error;
   }

@@ -38,9 +38,9 @@ resourceTypes:
   type:
     collection:
       schemaCollection: budgetsCollection
-      schemaItem: budget
+      schemaItem: sharedBudget
       exampleCollection: !include acq-models/mod-finance/examples/budget_collection.sample
-      exampleItem: !include acq-models/mod-finance/examples/budget.sample
+      exampleItem: !include acq-models/mod-finance/examples/shared_budget.sample
   post:
     is: [validate]
   get:
@@ -57,8 +57,8 @@ resourceTypes:
     description: Get, Delete or Update a specific budget
     type:
       collection-item:
-        schema: budget
-        exampleItem: !include acq-models/mod-finance/examples/budget.sample
+        schema: sharedBudget
+        exampleItem: !include acq-models/mod-finance/examples/shared_budget.sample
     put:
       is: [validate]
     /expense-classes-totals:
