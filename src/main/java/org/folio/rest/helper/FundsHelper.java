@@ -8,7 +8,7 @@ import static org.folio.rest.util.ErrorCodes.GROUP_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.HelperUtils.getSetDifference;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -52,7 +52,7 @@ import one.util.streamex.StreamEx;
 public class FundsHelper extends AbstractHelper {
 
   private static final String GET_FUND_TYPES_BY_QUERY = resourcesPath(FUND_TYPES) + SEARCH_PARAMS;
-  private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS) + SEARCH_PARAMS;
+  private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS_STORAGE) + SEARCH_PARAMS;
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
   @Autowired
@@ -98,12 +98,12 @@ public class FundsHelper extends AbstractHelper {
           if (Objects.isNull(fiscalYear)) {
             throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
           }
-          return handleCreateRequest(resourcesPath(FUNDS), fund).thenAccept(fund::setId)
+          return handleCreateRequest(resourcesPath(FUNDS_STORAGE), fund).thenAccept(fund::setId)
             .thenCompose(ok -> assignFundToGroups(compositeFund, fiscalYear.getId()));
         })
         .thenApply(aVoid -> compositeFund);
     }
-    return handleCreateRequest(resourcesPath(FUNDS), fund)
+    return handleCreateRequest(resourcesPath(FUNDS_STORAGE), fund)
       .thenApply(id -> {
         fund.setId(id);
         return compositeFund;
@@ -177,7 +177,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
       .thenCompose(compositeFund -> getCurrentFiscalYear(compositeFund.getFund()
         .getLedgerId())
@@ -187,7 +187,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Fund> getFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> json.mapTo(Fund.class));
   }
 
@@ -272,7 +272,7 @@ public class FundsHelper extends AbstractHelper {
         } else {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
-      }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS, fund.getId(), lang), fund));
+      }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId(), lang), fund));
   }
 
   private String getBudgetsCollectionQuery(String currentFiscalYearId, String fundId) {
@@ -284,7 +284,7 @@ public class FundsHelper extends AbstractHelper {
     return groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders))
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))
       .thenApply(this::unassignGroupsForFund)
-      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS, id, lang)));
+      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS_STORAGE, id, lang)));
   }
 
 }

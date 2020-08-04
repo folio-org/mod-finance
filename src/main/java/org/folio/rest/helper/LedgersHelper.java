@@ -4,7 +4,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.LEDGER_FY_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -26,7 +26,7 @@ import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class LedgersHelper extends AbstractHelper {
 
-  private static final String GET_LEDGERS_BY_QUERY = resourcesPath(LEDGERS) + SEARCH_PARAMS;
+  private static final String GET_LEDGERS_BY_QUERY = resourcesPath(LEDGERS_STORAGE) + SEARCH_PARAMS;
   private static final String GET_LEDGERSFY_BY_QUERY = resourcesPath(LEDGER_FYS) + SEARCH_PARAMS;
   public static final String LEDGER_ID_AND_FISCAL_YEAR_ID = "ledgerId==%s AND fiscalYearId==%s";
   public static final String FISCAL_YEAR_ID = "fiscalYearId==%s";
@@ -40,7 +40,7 @@ public class LedgersHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Ledger> createLedger(Ledger ledger) {
-    return handleCreateRequest(resourcesPath(LEDGERS), ledger).thenApply(ledger::withId);
+    return handleCreateRequest(resourcesPath(LEDGERS_STORAGE), ledger).thenApply(ledger::withId);
   }
 
   public CompletableFuture<LedgersCollection> getLedgers(int limit, int offset, String query) {
@@ -86,15 +86,15 @@ public class LedgersHelper extends AbstractHelper {
   }
 
   CompletableFuture<Ledger> getLedger(String id) {
-    return handleGetRequest(resourceByIdPath(LEDGERS, id, lang))
+    return handleGetRequest(resourceByIdPath(LEDGERS_STORAGE, id, lang))
       .thenApply(json -> json.mapTo(Ledger.class));
   }
 
   public CompletableFuture<Void> updateLedger(Ledger ledger) {
-    return handleUpdateRequest(resourceByIdPath(LEDGERS, ledger.getId(), lang), ledger);
+    return handleUpdateRequest(resourceByIdPath(LEDGERS_STORAGE, ledger.getId(), lang), ledger);
   }
 
   public CompletableFuture<Void> deleteLedger(String id) {
-    return handleDeleteRequest(resourceByIdPath(LEDGERS, id, lang));
+    return handleDeleteRequest(resourceByIdPath(LEDGERS_STORAGE, id, lang));
   }
 }

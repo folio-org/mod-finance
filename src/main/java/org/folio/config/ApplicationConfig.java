@@ -1,10 +1,12 @@
 package org.folio.config;
 
-import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
-import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -14,6 +16,7 @@ import org.folio.services.BudgetExpenseClassService;
 import org.folio.services.BudgetExpenseClassTotalsService;
 import org.folio.services.BudgetService;
 import org.folio.services.ExpenseClassService;
+import org.folio.services.LedgerService;
 import org.folio.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +29,7 @@ public class ApplicationConfig {
 
   @Bean
   RestClient budgetRestClient() {
-    return new RestClient(resourcesPath(BUDGETS));
+    return new RestClient(resourcesPath(BUDGETS_STORAGE));
   }
 
   @Bean
@@ -46,7 +49,7 @@ public class ApplicationConfig {
 
   @Bean
   RestClient fiscalYearRestClient() {
-    return new RestClient(resourcesPath(FISCAL_YEARS));
+    return new RestClient(resourcesPath(FISCAL_YEARS_STORAGE));
   }
 
   @Bean
@@ -55,23 +58,33 @@ public class ApplicationConfig {
   }
 
   @Bean
+  RestClient fundStorageRestClient() {
+    return new RestClient(resourcesPath(FUNDS_STORAGE));
+  }
+
+  @Bean
+  RestClient ledgerStorageRestClient() {
+    return new RestClient(resourcesPath(LEDGERS_STORAGE));
+  }
+
+  @Bean
   @Autowired
-  public ExpenseClassService expenseClassService(RestClient expenseClassRestClient) {
+  ExpenseClassService expenseClassService(RestClient expenseClassRestClient) {
     return new ExpenseClassService(expenseClassRestClient);
   }
 
   @Bean
-  public BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient, TransactionService transactionService) {
+  BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient, TransactionService transactionService) {
     return new BudgetExpenseClassService(budgetExpenseClassRestClient, transactionService);
   }
 
   @Bean
-  public TransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+  TransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
     return new TransactionService(transactionRestClient, fiscalYearRestClient);
   }
 
   @Bean
-  public BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient budgetRestClient,
+  BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient budgetRestClient,
                                                                          ExpenseClassService expenseClassService,
                                                                          TransactionService transactionService,
                                                                          BudgetExpenseClassService budgetExpenseClassService)  {
@@ -79,12 +92,12 @@ public class ApplicationConfig {
   }
 
   @Bean
-  public GroupFundFiscalYearService groupFundFiscalYearService(RestClient groupFundFiscalYearRestClient) {
+  GroupFundFiscalYearService groupFundFiscalYearService(RestClient groupFundFiscalYearRestClient) {
     return new GroupFundFiscalYearService(groupFundFiscalYearRestClient);
   }
 
   @Bean
-  public BudgetService budgetService(RestClient budgetRestClient,
+  BudgetService budgetService(RestClient budgetRestClient,
                                      TransactionService transactionService,
                                      BudgetExpenseClassService budgetExpenseClassService,
                                      GroupFundFiscalYearService groupFundFiscalYearService) {

@@ -278,4 +278,8 @@ public class HelperUtils {
     }
     return responseBuilder;
   }
+
+  public static <T> CompletableFuture<List<T>> emptyListFuture() {
+    return CompletableFuture.completedFuture(Collections.emptyList());
+  }
 }

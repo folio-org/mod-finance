@@ -7,7 +7,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.rest.RestVerticle;
 import org.folio.rest.impl.BudgetsApiTest;
-
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeRateTest;
@@ -149,4 +148,8 @@ public class ApiTestSuite {
   @Nested
   class GroupFundFiscalYearServiceTestNested extends GroupFundFiscalYearServiceTest {
   }
+
+//  @Nested
+//  class FundDetailsServiceTestNested extends FundDetailsServiceTest {
+//  }
 }
