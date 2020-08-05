@@ -119,8 +119,8 @@ public class FundDetailsServiceTest {
     String expenseClassId = UUID.randomUUID().toString();
 
     String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId, fiscalId);
-    Optional<Budget> expBudget = Optional.of(new Budget().withId(budgetId).withFundId(fundId).withFiscalYearId(fiscalId));
-    BudgetsCollection budgetsCollection = new BudgetsCollection().withBudgets(singletonList(expBudget.get()));
+    Budget expBudget = new Budget().withId(budgetId).withFundId(fundId).withFiscalYearId(fiscalId);
+    BudgetsCollection budgetsCollection = new BudgetsCollection().withBudgets(singletonList(expBudget));
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
