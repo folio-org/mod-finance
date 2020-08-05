@@ -39,7 +39,7 @@ public class FiscalYearService {
   }
 
   public CompletableFuture<FiscalYearsCollection> getFiscalYears(int limit, int offset, String query, RequestContext requestContext) {
-    return fiscalYearRestClient.get(query, limit, offset, requestContext, FiscalYearsCollection.class);
+    return fiscalYearRestClient.get(query, offset, limit, requestContext, FiscalYearsCollection.class);
   }
 
   public CompletableFuture<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {

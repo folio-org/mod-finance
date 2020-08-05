@@ -60,7 +60,7 @@ public class FundDetailsService {
                         future.complete(expenseClasses);
                       })
                       .exceptionally(t -> {
-                        logger.error(GENERIC_ERROR_CODE.getDescription(), t.getCause());
+                        logger.error("Retrieve current expense classes for fund failed", t.getCause());
                         future.completeExceptionally(t);
                         return null;
                       });
