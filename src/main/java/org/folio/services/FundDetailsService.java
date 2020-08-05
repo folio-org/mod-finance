@@ -2,7 +2,6 @@ package org.folio.services;
 
 import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 
 import java.util.Collections;
 import java.util.List;

@@ -115,11 +115,6 @@ public class FundsHelper extends AbstractHelper {
       });
   }
 
-  private String buildCurrentFYQuery(FiscalYear fiscalYearOne) {
-    Instant now = Instant.now().truncatedTo(ChronoUnit.DAYS);
-    return String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
-  }
-
   private CompletableFuture<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {
     List<GroupFundFiscalYear> groupFundFiscalYears = buildGroupFundFiscalYears(compositeFund, fiscalYearId);
     return VertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
