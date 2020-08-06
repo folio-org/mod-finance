@@ -1,11 +1,14 @@
 package org.folio.services;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -25,11 +30,8 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.matchers.apachecommons.ReflectionEquals;
 
 
 public class TransactionServiceTest {
@@ -147,5 +149,32 @@ public class TransactionServiceTest {
     assertEquals(resultTransaction.getCurrency(), fiscalYear.getCurrency());
 
     verify(fiscalYearRestClient).getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class));
+  }
+
+  @Test
+  void getTransactionsByFundIdsInChunks() {
+    String fiscalYearId = UUID.randomUUID().toString();
+
+    List<String> fundIds = Stream.generate(() -> UUID.randomUUID().toString())
+      .limit(40)
+      .collect(Collectors.toList());
+
+    List<Transaction> transactions = Collections.singletonList(new Transaction()
+      .withId(UUID.randomUUID().toString()));
+
+    TransactionCollection transactionCollection = new TransactionCollection()
+      .withTransactions(transactions)
+      .withTotalRecords(1);
+
+    when(transactionRestClient.get(anyString(), anyInt(), anyInt(), any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(transactionCollection), CompletableFuture.completedFuture(new TransactionCollection()), CompletableFuture.completedFuture(new TransactionCollection()));
+
+    CompletableFuture<List<Transaction>> resultFuture = transactionService.getTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+
+    List<Transaction> resultTransactions = resultFuture.join();
+
+    assertThat(resultTransactions, hasSize(1));
+
+    verify(transactionRestClient, times(3)).get(anyString(), anyInt(), anyInt(), any(), any());
   }
 }

@@ -13,6 +13,7 @@ import org.folio.rest.impl.ExchangeRateTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundsTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
+import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgerSummaryTest;
 import org.folio.rest.impl.TransactionTest;
 import org.folio.rest.tools.utils.NetworkUtils;
@@ -23,6 +24,7 @@ import org.folio.services.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.BudgetServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
 import org.folio.services.FundDetailsServiceTest;
+import org.folio.services.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.GroupFundFiscalYearServiceTest;
 import org.folio.services.TransactionServiceTest;
 import org.junit.jupiter.api.AfterAll;
@@ -152,6 +154,14 @@ public class ApiTestSuite {
 
   @Nested
   class FundDetailsServiceTestNested extends FundDetailsServiceTest {
+  }
+
+  @Nested
+  class GroupExpenseClassTotalsServiceTestNested extends GroupExpenseClassTotalsServiceTest {
+  }
+
+  @Nested
+  class GroupsApiTestNested extends GroupsApiTest {
   }
 
 }

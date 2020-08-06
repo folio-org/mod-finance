@@ -1,5 +1,6 @@
 package org.folio.services;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.core.RestClient;
@@ -7,6 +8,8 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
+
+import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class GroupFundFiscalYearService {
 
@@ -34,11 +37,10 @@ public class GroupFundFiscalYearService {
   }
 
   private CompletableFuture<Void> processGroupFundFyUpdate(Budget budget, GroupFundFiscalYearCollection gffyCollection, RequestContext requestContext) {
-    CompletableFuture[] futures = gffyCollection.getGroupFundFiscalYears()
+     return VertxCompletableFuture.allOf(requestContext.getContext(), gffyCollection.getGroupFundFiscalYears()
       .stream()
       .map(gffy -> groupFundFiscalYearRestClient.put(gffy.getId(), gffy.withBudgetId(budget.getId()), requestContext))
-      .toArray(CompletableFuture[]::new);
-    return CompletableFuture.allOf(futures);
+      .toArray(CompletableFuture[]::new));
   }
 
   public CompletableFuture<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId, RequestContext requestContext) {
@@ -46,4 +48,9 @@ public class GroupFundFiscalYearService {
     return getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext);
   }
 
+  public CompletableFuture<List<GroupFundFiscalYear>> getGroupFundFiscalYearsWithBudgetId(String groupId, String fiscalYearId, RequestContext requestContext) {
+    String query = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
+    return getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext)
+      .thenApply(GroupFundFiscalYearCollection::getGroupFundFiscalYears);
+  }
 }
