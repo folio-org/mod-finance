@@ -118,7 +118,7 @@
     },
     {
       "id": "finance.funds",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -176,6 +176,19 @@
             "finance-storage.funds.item.delete",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.delete"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/funds/{id}/expense-classes",
+          "permissionsRequired": ["finance.funds.expense-classes.collection.get"],
+          "modulePermissions": [
+            "finance-storage.funds.item.get",
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.budgets.collection.get",
+            "finance-storage.expense-classes.collection.get"
           ]
         }
       ]
@@ -721,6 +734,11 @@
       "description": "Delete finance funds"
     },
     {
+      "permissionName": "finance.funds.expense-classes.collection.get",
+      "displayName": "Finances - get expense classes for fund from current budget",
+      "description": "Get expense classes for fund from current budget"
+    },
+    {
       "permissionName": "finance.funds.all",
       "displayName": "Finance Funds - all permissions",
       "description": "Entire set of permissions needed to use the Finance funds interface",
@@ -729,7 +747,8 @@
         "finance.funds.item.get",
         "finance.funds.item.post",
         "finance.funds.item.put",
-        "finance.funds.item.delete"
+        "finance.funds.item.delete",
+        "finance.funds.expense-classes.collection.get"
       ],
       "visible": false
     },

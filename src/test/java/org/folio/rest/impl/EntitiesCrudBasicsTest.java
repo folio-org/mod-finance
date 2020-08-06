@@ -12,7 +12,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
@@ -389,7 +389,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
         .withAvailable(available)
         .withUnavailable(unavailable);
       addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
-      addMockEntry(LEDGER_FYS, JsonObject.mapFrom(ledgerFY));
+      addMockEntry(LEDGER_FYS_STORAGE, JsonObject.mapFrom(ledgerFY));
     }
 
     LedgersCollection response = verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear", fiscalYearId).as(LedgersCollection.class);
@@ -407,8 +407,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     // Validate actual requests
     assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER.name()), hasSize(1));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS), hasSize(1));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS_STORAGE), hasSize(1));
+    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS_STORAGE).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers));
 
   }
 

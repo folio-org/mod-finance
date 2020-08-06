@@ -8,16 +8,13 @@ import static org.folio.rest.util.ErrorCodes.GROUP_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.HelperUtils.getSetDifference;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +30,14 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.CompositeFund;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.services.FiscalYearService;
 import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,13 +49,18 @@ import one.util.streamex.StreamEx;
 public class FundsHelper extends AbstractHelper {
 
   private static final String GET_FUND_TYPES_BY_QUERY = resourcesPath(FUND_TYPES) + SEARCH_PARAMS;
-  private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS) + SEARCH_PARAMS;
+  private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS_STORAGE) + SEARCH_PARAMS;
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
   @Autowired
   private RestClient budgetRestClient;
   @Autowired
   private GroupFundFiscalYearService groupFundFiscalYearService;
+  @Autowired
+  private LedgerService ledgerService;
+  @Autowired
+  private FiscalYearService fiscalYearService;
+
   private GroupsHelper groupsHelper;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
@@ -93,57 +95,21 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<CompositeFund> createFund(CompositeFund compositeFund) {
     final Fund fund = compositeFund.getFund();
     if (CollectionUtils.isNotEmpty(compositeFund.getGroupIds())) {
-      return getCurrentFiscalYear(fund.getLedgerId())
+      return fiscalYearService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
         .thenCompose(fiscalYear -> {
           if (Objects.isNull(fiscalYear)) {
             throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
           }
-          return handleCreateRequest(resourcesPath(FUNDS), fund).thenAccept(fund::setId)
+          return handleCreateRequest(resourcesPath(FUNDS_STORAGE), fund).thenAccept(fund::setId)
             .thenCompose(ok -> assignFundToGroups(compositeFund, fiscalYear.getId()));
         })
         .thenApply(aVoid -> compositeFund);
     }
-    return handleCreateRequest(resourcesPath(FUNDS), fund)
+    return handleCreateRequest(resourcesPath(FUNDS_STORAGE), fund)
       .thenApply(id -> {
         fund.setId(id);
         return compositeFund;
       });
-  }
-
-  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId) {
-    FiscalYearsHelper fiscalYearsHelper = new FiscalYearsHelper(httpClient, okapiHeaders, ctx, lang);
-    return getFirstTwoFiscalYears(ledgerId, fiscalYearsHelper)
-      .thenApply(firstTwoFiscalYears -> {
-        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
-          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
-            return firstTwoFiscalYears.get(1);
-          } else {
-            return firstTwoFiscalYears.get(0);
-          }
-        } else {
-          return null;
-        }
-      });
-  }
-
-  private boolean isOverlapped(FiscalYear firstYear, FiscalYear secondYear) {
-    Date now = new Date();
-    return firstYear.getPeriodStart().before(now) && firstYear.getPeriodEnd().after(now)
-      && secondYear.getPeriodStart().before(now) && secondYear.getPeriodEnd().after(now)
-      && firstYear.getPeriodEnd().after(secondYear.getPeriodStart());
-  }
-
-  private CompletableFuture<List<FiscalYear>> getFirstTwoFiscalYears(String ledgerId, FiscalYearsHelper fiscalYearsHelper) {
-    return new LedgersHelper(httpClient, okapiHeaders, ctx, lang).getLedger(ledgerId)
-      .thenCompose(ledger -> fiscalYearsHelper.getFiscalYear(ledger.getFiscalYearOneId()))
-      .thenApply(this::buildCurrentFYQuery)
-      .thenCompose(endpoint -> fiscalYearsHelper.getFiscalYears(2, 0, endpoint))
-      .thenApply(FiscalYearsCollection::getFiscalYears);
-  }
-
-  private String buildCurrentFYQuery(FiscalYear fiscalYearOne) {
-    Instant now = Instant.now().truncatedTo(ChronoUnit.DAYS);
-    return String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
   }
 
   private CompletableFuture<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {
@@ -177,17 +143,16 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
-      .thenCompose(compositeFund -> getCurrentFiscalYear(compositeFund.getFund()
-        .getLedgerId())
+      .thenCompose(compositeFund -> fiscalYearService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
           .thenCompose(currentFY -> Objects.isNull(currentFY) ? CompletableFuture.completedFuture(null)
               : getGroupIdsThatFundBelongs(id, currentFY.getId()))
           .thenApply(compositeFund::withGroupIds));
   }
 
   public CompletableFuture<Fund> getFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> json.mapTo(Fund.class));
   }
 
@@ -257,7 +222,7 @@ public class FundsHelper extends AbstractHelper {
     Fund fund = compositeFund.getFund();
     Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
 
-    return getCurrentFiscalYear(fund.getLedgerId())
+    return fiscalYearService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
       .thenCompose(currentFiscalYear-> {
         if(Objects.nonNull(currentFiscalYear)) {
           String currentFiscalYearId = currentFiscalYear.getId();
@@ -272,7 +237,7 @@ public class FundsHelper extends AbstractHelper {
         } else {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
-      }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS, fund.getId(), lang), fund));
+      }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId(), lang), fund));
   }
 
   private String getBudgetsCollectionQuery(String currentFiscalYearId, String fundId) {
@@ -284,7 +249,7 @@ public class FundsHelper extends AbstractHelper {
     return groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders))
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))
       .thenApply(this::unassignGroupsForFund)
-      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS, id, lang)));
+      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS_STORAGE, id, lang)));
   }
 
 }

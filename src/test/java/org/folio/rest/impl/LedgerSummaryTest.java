@@ -10,7 +10,7 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getQueryParams;
 import static org.folio.rest.util.MockServer.getRecordById;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -38,10 +38,10 @@ public class LedgerSummaryTest extends ApiTestBase {
 
     // Make sure that correct storage endpoint was used
     assertThat(getRecordById(LEDGER.name()), hasSize(1));
-    assertThat(getCollectionRecords(LEDGER_FYS), hasSize(1));
-    assertThat(getQueryParams(LEDGER_FYS), hasSize(1));
-    assertThat(getQueryParams(LEDGER_FYS).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger.getId(), fiscalYearId)));
-    LedgerFY ledgerFY = getCollectionRecords(LEDGER_FYS).get(0).mapTo(LedgerFYCollection.class).getLedgerFY().get(0);
+    assertThat(getCollectionRecords(LEDGER_FYS_STORAGE), hasSize(1));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE), hasSize(1));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger.getId(), fiscalYearId)));
+    LedgerFY ledgerFY = getCollectionRecords(LEDGER_FYS_STORAGE).get(0).mapTo(LedgerFYCollection.class).getLedgerFY().get(0);
 
     assertThat(ledger.getAllocated(), equalTo(ledgerFY.getAllocated()));
     assertThat(ledger.getAvailable(), equalTo(ledgerFY.getAvailable()));
@@ -58,8 +58,8 @@ public class LedgerSummaryTest extends ApiTestBase {
 
     assertThat(getRecordById(LEDGER.name()), hasSize(1));
     String ledgerId = getRecordById(LEDGER.name()).get(0).getString(ID);
-    assertThat(getQueryParams(LEDGER_FYS), hasSize(1));
-    assertThat(getQueryParams(LEDGER_FYS).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, ID_DOES_NOT_EXIST)));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE), hasSize(1));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, ID_DOES_NOT_EXIST)));
 
     assertThat(errors.getErrors(), hasSize(1));
     assertThat(errors.getErrors().get(0).getCode(), equalTo(LEDGER_FY_NOT_FOUND.getCode()));
@@ -75,8 +75,8 @@ public class LedgerSummaryTest extends ApiTestBase {
 
     assertThat(getRecordById(LEDGER.name()), hasSize(1));
     String ledgerId = getRecordById(LEDGER.name()).get(0).getString(ID);
-    assertThat(getQueryParams(LEDGER_FYS), hasSize(1));
-    assertThat(getQueryParams(LEDGER_FYS).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, ID_FOR_INTERNAL_SERVER_ERROR)));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE), hasSize(1));
+    assertThat(getQueryParams(LEDGER_FYS_STORAGE).get(0), equalTo(String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, ID_FOR_INTERNAL_SERVER_ERROR)));
 
     assertThat(errors.getErrors(), hasSize(1));
   }

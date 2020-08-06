@@ -2,7 +2,7 @@ package org.folio.rest.helper;
 
 import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
-import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -24,7 +24,7 @@ public class FiscalYearsHelper extends AbstractHelper {
   private static final String CURRENCY = "currency";
   private static final String LOCALE_SETTINGS = "localeSettings";
   private static final String DEFAULT_LOCALE = "{\"locale\":\"en-US\",\"timezone\":\"America/New_York\",\"currency\":\"USD\"}";
-  static final String GET_FISCAL_YEARS_BY_QUERY = resourcesPath(FISCAL_YEARS) + SEARCH_PARAMS;
+  static final String GET_FISCAL_YEARS_BY_QUERY = resourcesPath(FISCAL_YEARS_STORAGE) + SEARCH_PARAMS;
 
   public FiscalYearsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
     super(okapiHeaders, ctx, lang);
@@ -40,7 +40,7 @@ public class FiscalYearsHelper extends AbstractHelper {
         // Initially the config will not have any locale, the same default values used here are hardcoded in tenant Settings
         String currency = getCurrency(locale);
         fiscalYear.setCurrency(currency);
-        return handleCreateRequest(resourcesPath(FISCAL_YEARS), fiscalYear).thenApply(fiscalYear::withId);
+        return handleCreateRequest(resourcesPath(FISCAL_YEARS_STORAGE), fiscalYear).thenApply(fiscalYear::withId);
       });
   }
 
@@ -57,7 +57,7 @@ public class FiscalYearsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<FiscalYear> getFiscalYear(String id) {
-    return handleGetRequest(resourceByIdPath(FISCAL_YEARS, id, lang))
+    return handleGetRequest(resourceByIdPath(FISCAL_YEARS_STORAGE, id, lang))
       .thenApply(json -> json.mapTo(FiscalYear.class));
   }
 
@@ -66,12 +66,12 @@ public class FiscalYearsHelper extends AbstractHelper {
       .thenCompose(locale -> {
         String currency = getCurrency(locale);
         fiscalYear.setCurrency(currency);
-        return handleUpdateRequest(resourceByIdPath(FISCAL_YEARS, fiscalYear.getId(), lang), fiscalYear);
+        return handleUpdateRequest(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYear.getId(), lang), fiscalYear);
       });
 
   }
 
   public CompletableFuture<Void> deleteFiscalYear(String id) {
-    return handleDeleteRequest(resourceByIdPath(FISCAL_YEARS, id, lang));
+    return handleDeleteRequest(resourceByIdPath(FISCAL_YEARS_STORAGE, id, lang));
   }
 }

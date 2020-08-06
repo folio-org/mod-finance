@@ -10,13 +10,13 @@ public class ResourcePathResolver {
   private ResourcePathResolver() {
   }
 
-  public static final String BUDGETS = "budgets";
-  public static final String FUNDS = "funds";
+  public static final String BUDGETS_STORAGE = "budgets";
+  public static final String FUNDS_STORAGE = "funds";
   public static final String FUND_TYPES = "fundTypes";
   public static final String GROUP_FUND_FISCAL_YEARS = "groupFundFiscalYears";
-  public static final String FISCAL_YEARS = "fiscalYears";
-  public static final String LEDGERS = "ledgers";
-  public static final String LEDGER_FYS = "ledgerFYs";
+  public static final String FISCAL_YEARS_STORAGE = "fiscalYears";
+  public static final String LEDGERS_STORAGE = "ledgers";
+  public static final String LEDGER_FYS_STORAGE = "ledgerFYs";
   public static final String GROUPS = "groups";
   public static final String TRANSACTIONS = "transactions";
   public static final String CONFIGURATIONS = "configurations";
@@ -31,13 +31,13 @@ public class ResourcePathResolver {
   private static final String LANG_PARAM = "?lang=%s";
   static {
     Map<String, String> apis = new HashMap<>();
-    apis.put(BUDGETS, "/finance-storage/budgets");
-    apis.put(FUNDS, "/finance-storage/funds");
+    apis.put(BUDGETS_STORAGE, "/finance-storage/budgets");
+    apis.put(FUNDS_STORAGE, "/finance-storage/funds");
     apis.put(FUND_TYPES, "/finance-storage/fund-types");
     apis.put(GROUP_FUND_FISCAL_YEARS, "/finance-storage/group-fund-fiscal-years");
-    apis.put(FISCAL_YEARS, "/finance-storage/fiscal-years");
-    apis.put(LEDGERS, "/finance-storage/ledgers");
-    apis.put(LEDGER_FYS, "/finance-storage/ledger-fiscal-years");
+    apis.put(FISCAL_YEARS_STORAGE, "/finance-storage/fiscal-years");
+    apis.put(LEDGERS_STORAGE, "/finance-storage/ledgers");
+    apis.put(LEDGER_FYS_STORAGE, "/finance-storage/ledger-fiscal-years");
     apis.put(GROUPS, "/finance-storage/groups");
     apis.put(TRANSACTIONS, "/finance-storage/transactions");
     apis.put(CONFIGURATIONS, "/configurations/entries");

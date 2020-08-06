@@ -7,22 +7,22 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.rest.RestVerticle;
 import org.folio.rest.impl.BudgetsApiTest;
-
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeRateTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundsTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
-import org.folio.rest.impl.HelperUtilsTest;
 import org.folio.rest.impl.LedgerSummaryTest;
 import org.folio.rest.impl.TransactionTest;
 import org.folio.rest.tools.utils.NetworkUtils;
+import org.folio.rest.util.HelperUtilsTest;
 import org.folio.rest.util.MockServer;
 import org.folio.services.BudgetExpenseClassServiceTest;
 import org.folio.services.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.BudgetServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
+import org.folio.services.FundDetailsServiceTest;
 import org.folio.services.GroupFundFiscalYearServiceTest;
 import org.folio.services.TransactionServiceTest;
 import org.junit.jupiter.api.AfterAll;
@@ -149,4 +149,9 @@ public class ApiTestSuite {
   @Nested
   class GroupFundFiscalYearServiceTestNested extends GroupFundFiscalYearServiceTest {
   }
+
+  @Nested
+  class FundDetailsServiceTestNested extends FundDetailsServiceTest {
+  }
+
 }

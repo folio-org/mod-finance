@@ -19,16 +19,16 @@ import static org.folio.rest.impl.ApiTestBase.getMockData;
 import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.ResourcePathResolver.BUDGETS;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
-import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS;
+import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
-import static org.folio.rest.util.ResourcePathResolver.LEDGERS;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -163,17 +163,17 @@ public class MockServer {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
 
-    router.route(HttpMethod.POST, resourcesPath(BUDGETS))
+    router.route(HttpMethod.POST, resourcesPath(BUDGETS_STORAGE))
       .handler(ctx -> handlePostEntry(ctx, Budget.class, TestEntities.BUDGET.name()));
-    router.route(HttpMethod.POST, resourcesPath(FUNDS))
+    router.route(HttpMethod.POST, resourcesPath(FUNDS_STORAGE))
       .handler(ctx -> handlePostEntry(ctx, Fund.class, TestEntities.FUND.name()));
-    router.route(HttpMethod.POST, resourcesPath(FISCAL_YEARS))
+    router.route(HttpMethod.POST, resourcesPath(FISCAL_YEARS_STORAGE))
       .handler(ctx -> handlePostEntry(ctx, FiscalYear.class, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.POST, resourcesPath(FUND_TYPES))
       .handler(ctx -> handlePostEntry(ctx, FundType.class, TestEntities.FUND_TYPE.name()));
     router.route(HttpMethod.POST, resourcesPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handlePostEntry(ctx, GroupFundFiscalYear.class, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
-    router.route(HttpMethod.POST, resourcesPath(LEDGERS))
+    router.route(HttpMethod.POST, resourcesPath(LEDGERS_STORAGE))
       .handler(ctx -> handlePostEntry(ctx, Ledger.class, TestEntities.LEDGER.name()));
     router.route(HttpMethod.POST, resourcesPath(GROUPS))
       .handler(ctx -> handlePostEntry(ctx, Group.class, TestEntities.GROUP.name()));
@@ -186,19 +186,19 @@ public class MockServer {
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePostEntry(ctx, ExpenseClass.class, TestEntities.EXPENSE_CLASSES.name()));
 
-    router.route(HttpMethod.GET, resourcesPath(BUDGETS))
+    router.route(HttpMethod.GET, resourcesPath(BUDGETS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
-    router.route(HttpMethod.GET, resourcesPath(FUNDS))
+    router.route(HttpMethod.GET, resourcesPath(FUNDS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND));
-    router.route(HttpMethod.GET, resourcesPath(FISCAL_YEARS))
+    router.route(HttpMethod.GET, resourcesPath(FISCAL_YEARS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(FUND_TYPES))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND_TYPE));
     router.route(HttpMethod.GET, resourcesPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
-    router.route(HttpMethod.GET, resourcesPath(LEDGERS))
+    router.route(HttpMethod.GET, resourcesPath(LEDGERS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
-    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS))
+    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS_STORAGE))
       .handler(this::handleGetLedgerFyCollection);
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
@@ -209,15 +209,15 @@ public class MockServer {
     router.route(HttpMethod.GET, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.EXPENSE_CLASSES));
 
-    router.route(HttpMethod.GET, resourceByIdPath(BUDGETS))
+    router.route(HttpMethod.GET, resourceByIdPath(BUDGETS_STORAGE))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.BUDGET));
-    router.route(HttpMethod.GET, resourceByIdPath(FUNDS))
+    router.route(HttpMethod.GET, resourceByIdPath(FUNDS_STORAGE))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND));
-    router.route(HttpMethod.GET, resourceByIdPath(FISCAL_YEARS))
+    router.route(HttpMethod.GET, resourceByIdPath(FISCAL_YEARS_STORAGE))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FISCAL_YEAR));
     router.route(HttpMethod.GET, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND_TYPE));
-    router.route(HttpMethod.GET, resourceByIdPath(LEDGERS))
+    router.route(HttpMethod.GET, resourceByIdPath(LEDGERS_STORAGE))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.LEDGER));
     router.route(HttpMethod.GET, resourceByIdPath(GROUPS))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.GROUP));
@@ -226,32 +226,32 @@ public class MockServer {
     router.route(HttpMethod.GET, resourceByIdPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.EXPENSE_CLASSES));
 
-    router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS))
+    router.route(HttpMethod.DELETE, resourceByIdPath(BUDGETS_STORAGE))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.BUDGET.name()));
-    router.route(HttpMethod.DELETE, resourceByIdPath(FUNDS))
+    router.route(HttpMethod.DELETE, resourceByIdPath(FUNDS_STORAGE))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND.name()));
-    router.route(HttpMethod.DELETE, resourceByIdPath(FISCAL_YEARS))
+    router.route(HttpMethod.DELETE, resourceByIdPath(FISCAL_YEARS_STORAGE))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND_TYPE.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
-    router.route(HttpMethod.DELETE, resourceByIdPath(LEDGERS))
+    router.route(HttpMethod.DELETE, resourceByIdPath(LEDGERS_STORAGE))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUPS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.EXPENSE_CLASSES.name()));
 
-    router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS))
+    router.route(HttpMethod.PUT, resourceByIdPath(BUDGETS_STORAGE))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.BUDGET.name()));
-    router.route(HttpMethod.PUT, resourceByIdPath(FUNDS))
+    router.route(HttpMethod.PUT, resourceByIdPath(FUNDS_STORAGE))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND.name()));
-    router.route(HttpMethod.PUT, resourceByIdPath(FISCAL_YEARS))
+    router.route(HttpMethod.PUT, resourceByIdPath(FISCAL_YEARS_STORAGE))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND_TYPE.name()));
-    router.route(HttpMethod.PUT, resourceByIdPath(LEDGERS))
+    router.route(HttpMethod.PUT, resourceByIdPath(LEDGERS_STORAGE))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
@@ -268,7 +268,7 @@ public class MockServer {
 
   private void handleGetLedgerFyCollection(RoutingContext ctx) {
     String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
-    addServerRqQuery(LEDGER_FYS, query);
+    addServerRqQuery(LEDGER_FYS_STORAGE, query);
     if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else if (query.contains(BAD_QUERY)) {
@@ -288,12 +288,12 @@ public class MockServer {
         }
       };
       LedgerFYCollection ledgerFYCollection = new LedgerFYCollection();
-      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS, LedgerFY.class).orElseGet(getFromFile);
+      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS_STORAGE, LedgerFY.class).orElseGet(getFromFile);
 
       ledgerFYCollection.setTotalRecords(ledgerFYs.size());
       ledgerFYCollection.setLedgerFY(ledgerFYs);
       JsonObject responseRecord = JsonObject.mapFrom(ledgerFYCollection);
-      addServerRqRsData(HttpMethod.GET, LEDGER_FYS, responseRecord);
+      addServerRqRsData(HttpMethod.GET, LEDGER_FYS_STORAGE, responseRecord);
       ctx.response()
         .setStatusCode(200)
         .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
