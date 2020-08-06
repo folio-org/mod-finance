@@ -183,8 +183,12 @@
           "pathPattern": "/finance/funds/{id}/expense-classes",
           "permissionsRequired": ["finance.funds.expense-classes.collection.get"],
           "modulePermissions": [
+            "finance-storage.funds.item.get",
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
             "finance-storage.budgets.collection.get",
-            "finance.expense-classes.collection.get"
+            "finance-storage.expense-classes.collection.get"
           ]
         }
       ]
