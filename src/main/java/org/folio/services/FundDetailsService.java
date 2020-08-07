@@ -74,10 +74,10 @@ public class FundDetailsService {
 
   private Budget getFirstBudget(BudgetsCollection budgetsCollection) {
     return Optional.ofNullable(budgetsCollection)
-                  .filter(budgetsCol -> !CollectionUtils.isEmpty(budgetsCol.getBudgets()))
-                  .map(BudgetsCollection::getBudgets)
-                  .map(budgets -> budgets.get(0))
-                  .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
+      .filter(budgetsCol -> !CollectionUtils.isEmpty(budgetsCol.getBudgets()))
+      .map(BudgetsCollection::getBudgets)
+      .map(budgets -> budgets.get(0))
+      .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
   }
 
   private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext requestContext) {
@@ -90,5 +90,12 @@ public class FundDetailsService {
 
   private String buildActiveBudgetQuery(String fundId, String fundCurrFYId) {
     return String.format(ACTIVE_BUDGET_QUERY, fundId, fundCurrFYId);
+  }
+
+  private boolean isBudgetExpenseClassWithStatus(BudgetExpenseClass budgetExpenseClass, String status) {
+    if ( Objects.nonNull(status)) {
+      return budgetExpenseClass.getStatus().equals(Status.fromValue(status));
+    }
+    return true;
   }
 }
