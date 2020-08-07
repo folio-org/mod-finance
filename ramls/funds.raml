@@ -63,3 +63,11 @@ resourceTypes:
         collection-get:
           exampleCollection: !include acq-models/mod-finance/examples/expense_class_collection.sample
           schemaCollection: expenseClassCollection
+      get:
+        queryParameters:
+          status:
+            displayName: RAML Path
+            type: string
+            description: Status of the expense classes
+            example: Active
+            required: false

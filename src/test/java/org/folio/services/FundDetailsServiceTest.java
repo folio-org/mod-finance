@@ -132,7 +132,7 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
     //When
 
-    List<ExpenseClass> actClasses = fundDetailsService.retrieveCurrentExpenseClasses(fundId, requestContext).join();
+    List<ExpenseClass> actClasses = fundDetailsService.retrieveCurrentExpenseClasses(fundId, null,requestContext).join();
     //Then
     assertEquals(expClasses.getId(), actClasses.get(0).getId());
     verify(fundService).retrieveFundById(fundId, requestContext);
@@ -162,7 +162,7 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
     Assertions.assertThrows(CompletionException.class, () -> {
-        fundDetailsService.retrieveCurrentExpenseClasses(fundId, requestContext).join();
+      fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join();
     });
   }
 
@@ -187,7 +187,7 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
     Assertions.assertThrows(CompletionException.class, () -> {
-       fundDetailsService.retrieveCurrentExpenseClasses(fundId, requestContext).join();
+      fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join();
     });
   }
 }
