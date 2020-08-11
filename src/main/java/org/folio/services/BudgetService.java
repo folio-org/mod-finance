@@ -57,7 +57,8 @@ public class BudgetService {
     return budgetRestClient.post(convertToBudget(sharedBudget), requestContext, Budget.class)
       .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
       .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
-        .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContext))
+        .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(convertToSharedBudget(createdBudget)
+          .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()), requestContext))
         .thenApply(aVoid -> convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
   }
 
