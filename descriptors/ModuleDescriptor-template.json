@@ -373,6 +373,16 @@
           "modulePermissions": [
             "finance-storage.groups.item.delete"
           ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/groups/{id}/expense-classes-totals",
+          "permissionsRequired": ["finance.groups-expense-classes-totals.collection.get"],
+          "modulePermissions": [
+            "finance-storage.group-fund-fiscal-years.collection.get",
+            "finance-storage.expense-classes.collection.get",
+            "finance-storage.transactions.collection.get"
+          ]
         }
       ]
     },
@@ -860,6 +870,11 @@
       "description" : "Delete a group"
     },
     {
+      "permissionName": "finance.groups-expense-classes-totals.collection.get",
+      "displayName" : "expense-classes-totals collection get",
+      "description" : "Get expense class totals within a budget"
+    },
+    {
       "permissionName" : "finance.groups.all",
       "displayName" : "All group permissions",
       "description" : "All permissions for the group APIs",
@@ -868,7 +883,8 @@
         "finance.groups.item.post",
         "finance.groups.item.get",
         "finance.groups.item.put",
-        "finance.groups.item.delete"
+        "finance.groups.item.delete",
+        "finance.groups-expense-classes-totals.collection.get"
       ]
     },
     {

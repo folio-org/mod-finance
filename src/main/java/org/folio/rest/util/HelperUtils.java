@@ -1,6 +1,7 @@
 package org.folio.rest.util;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -139,6 +141,23 @@ public class HelperUtils {
   public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
     String prefix = fieldName + (strictMatch ? "==(" : "=(");
     return StreamEx.of(values).joining(" or ", prefix, ")");
+  }
+
+  /**
+   * Wait for all requests completion and collect all resulting objects. In case any failed, complete resulting future with the exception
+   * @param futures list of futures and each produces resulting object on completion
+   * @param <T> resulting objects type
+   * @return CompletableFuture with resulting objects
+   */
+  public static <T> CompletableFuture<List<T>> collectResultsOnSuccess(List<CompletableFuture<T>> futures) {
+    return allOf(futures.toArray(new CompletableFuture[0]))
+      .thenApply(v -> futures
+        .stream()
+        // The CompletableFuture::join can be safely used because the `allOf` guaranties success at this step
+        .map(CompletableFuture::join)
+        .filter(Objects::nonNull)
+        .collect(toList())
+      );
   }
 
   /**

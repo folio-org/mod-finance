@@ -12,6 +12,7 @@ documentation:
 types:
   group: !include acq-models/mod-finance/schemas/group.json
   groupsCollection: !include acq-models/mod-finance/schemas/group_collection.json
+  groupExpenseClassTotalsCollection: !include acq-models/mod-finance/schemas/group_expense_class_totals_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -26,6 +27,7 @@ traits:
 resourceTypes:
   collection: !include raml-util/rtypes/collection-with-json-response.raml
   collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
+  collection-get: !include raml-util/rtypes/collection-get-with-json-response.raml
 
 /finance/groups:
   displayName: Finance groups
@@ -56,3 +58,16 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/group.sample
     put:
       is: [validate]
+    /expense-classes-totals:
+      displayName: Expense classes totals
+      description: Get expense classes totals within a given group
+      type:
+        collection-get:
+          exampleCollection: !include acq-models/mod-finance/examples/group_expense_class_totals_collection.sample
+          schemaCollection: groupExpenseClassTotalsCollection
+      get:
+        queryParameters:
+          fiscalYearId:
+            description: The UUID of a fiscal year
+            type: UUID
+            required: true

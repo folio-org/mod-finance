@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -71,6 +72,7 @@ public class GroupFundFiscalYearServiceTest {
     when(groupFundFiscalYearRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(CompletableFuture.completedFuture(groupFundFiscalYearCollection));
     when(groupFundFiscalYearRestClientMock.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(requestContext.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     CompletableFuture<Void> resultFuture = groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(budget, requestContext);
 
@@ -92,5 +94,18 @@ public class GroupFundFiscalYearServiceTest {
     List<GroupFundFiscalYear> groupFundFiscalYears = groupFundFiscalYearArgumentCaptor.getAllValues();
     assertThat(groupFundFiscalYears, everyItem(hasProperty("budgetId", is(budget.getId()))));
 
+  }
+
+  @Test
+  void testGetGroupFundFiscalYearsWithBudgetIds() {
+    String groupId = UUID.randomUUID().toString();
+    String fiscalYearId = UUID.randomUUID().toString();
+    when(groupFundFiscalYearRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(new GroupFundFiscalYearCollection()));
+
+    CompletableFuture<List<GroupFundFiscalYear>> resultFuture = groupFundFiscalYearMockService.getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext);
+    resultFuture.join();
+    String expectedQuery = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
+    verify(groupFundFiscalYearRestClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(GroupFundFiscalYearCollection.class));
   }
 }

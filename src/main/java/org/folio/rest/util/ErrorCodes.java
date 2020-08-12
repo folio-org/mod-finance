@@ -23,7 +23,8 @@ public enum ErrorCodes {
   ALLOCATION_IDS_MISMATCH("allowableAllocationIdsMismatch", "Allowable allocation ids mismatch"),
   TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR("transactionIsPresentBudgetExpenseClassDeleteError", "Budget expense class related transactions found. Deletion of the budget expense class is forbidden."),
   CURRENT_BUDGET_NOT_FOUND("currentBudgetNotFound", "Current budget doesn't exist"),
-  CURRENT_FISCAL_YEAR_NOT_FOUND("currentFiscalYearNotFound", "Current fiscal year doesn't exist");
+  CURRENT_FISCAL_YEAR_NOT_FOUND("currentFiscalYearNotFound", "Current fiscal year doesn't exist"),
+  MISSING_FISCAL_YEAR_ID("missingFiscalYearId", "fiscalYearId must not be null");
 
   private final String code;
   private final String description;

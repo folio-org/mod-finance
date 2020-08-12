@@ -1,10 +1,14 @@
 package org.folio.services;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -62,6 +68,33 @@ public class ExpenseClassServiceTest {
     List<ExpenseClass> resultBudgetExpenseClasses = resultFuture.join();
     assertEquals(expectedExpenseClasses, resultBudgetExpenseClasses);
 
+  }
+
+  @Test
+  void getExpenseClassesByBudgetIdsInChunks() {
+
+    List<String> budgetIds = Stream.generate(() -> UUID.randomUUID().toString())
+      .limit(40)
+      .collect(Collectors.toList());
+
+    List<ExpenseClass> expectedExpenseClasses = Collections.singletonList(new ExpenseClass()
+      .withName("Test name")
+      .withId(UUID.randomUUID().toString()));
+
+    ExpenseClassCollection expenseClassCollection = new ExpenseClassCollection()
+      .withExpenseClasses(expectedExpenseClasses)
+      .withTotalRecords(1);
+
+    when(expenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
+      .thenReturn(CompletableFuture.completedFuture(expenseClassCollection));
+
+    CompletableFuture<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
+
+    List<ExpenseClass> expenseClasses = resultFuture.join();
+
+    assertThat(expenseClasses, hasSize(1));
+
+    verify(expenseClassClientMock, times(3)).get(anyString(), anyInt(), anyInt(), any(), any());
   }
 
 }

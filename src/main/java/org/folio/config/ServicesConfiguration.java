@@ -8,6 +8,7 @@ import org.folio.services.ExpenseClassService;
 import org.folio.services.FiscalYearService;
 import org.folio.services.FundDetailsService;
 import org.folio.services.FundService;
+import org.folio.services.GroupExpenseClassTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.LedgerService;
 import org.folio.services.TransactionService;
@@ -71,6 +72,11 @@ public class ServicesConfiguration {
   @Bean
   FundService fundService(RestClient fundStorageRestClient) {
     return new FundService(fundStorageRestClient);
+  }
+
+  @Bean
+  GroupExpenseClassTotalsService groupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, TransactionService transactionService, ExpenseClassService expenseClassService) {
+    return new GroupExpenseClassTotalsService(groupFundFiscalYearService, transactionService, expenseClassService);
   }
 
 }
