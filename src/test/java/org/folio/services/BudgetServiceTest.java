@@ -207,7 +207,7 @@ public class BudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
     CompletableFuture<SharedBudget> resultFuture = budgetService.createBudget(sharedBudget, requestContextMock);
-    Budget resultBudget = resultFuture.join();
+    SharedBudget resultBudget = resultFuture.join();
     assertEquals(100.43, resultBudget.getAllocated());
     assertEquals(0, sharedBudget.getAllocated());
     assertEquals(budgetFromStorage, resultBudget);
@@ -219,7 +219,7 @@ public class BudgetServiceTest {
     verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
     verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
     verify(groupFundFiscalYearService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(sharedBudget), eq(requestContextMock));
+    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(resultBudget), eq(requestContextMock));
   }
 
   @Test
