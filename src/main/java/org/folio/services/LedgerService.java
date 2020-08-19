@@ -3,7 +3,6 @@ package org.folio.services;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
