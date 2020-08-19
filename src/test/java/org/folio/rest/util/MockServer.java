@@ -6,16 +6,16 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.impl.ApiTestBase.BAD_QUERY;
-import static org.folio.rest.impl.ApiTestBase.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.impl.ApiTestBase.EMPTY_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.impl.ApiTestBase.ERROR_TENANT;
-import static org.folio.rest.impl.ApiTestBase.ID_DOES_NOT_EXIST;
-import static org.folio.rest.impl.ApiTestBase.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.impl.ApiTestBase.INVALID_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.impl.ApiTestBase.TOTAL_RECORDS;
-import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
-import static org.folio.rest.impl.ApiTestBase.getMockData;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
@@ -28,7 +28,6 @@ import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -50,9 +49,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.rest.acq.model.finance.LedgerFY;
-import org.folio.rest.acq.model.finance.LedgerFYCollection;
-import org.folio.rest.impl.ApiTestBase;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -198,8 +194,6 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(LEDGERS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.LEDGER));
-    router.route(HttpMethod.GET, resourcesPath(LEDGER_FYS_STORAGE))
-      .handler(this::handleGetLedgerFyCollection);
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
@@ -264,43 +258,6 @@ public class MockServer {
     router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.EXPENSE_CLASSES.name()));
     return router;
-  }
-
-  private void handleGetLedgerFyCollection(RoutingContext ctx) {
-    String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
-    addServerRqQuery(LEDGER_FYS_STORAGE, query);
-    if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
-      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    } else if (query.contains(BAD_QUERY)) {
-      serverResponse(ctx, 400, APPLICATION_JSON, BAD_REQUEST.getReasonPhrase());
-    } else if (query.contains(ID_DOES_NOT_EXIST)) {
-      LedgerFYCollection emptyCollection = new LedgerFYCollection();
-      emptyCollection.setTotalRecords(0);
-      serverResponse(ctx,200, APPLICATION_JSON, JsonObject.mapFrom(emptyCollection).encodePrettily());
-    }
-    try {
-      Supplier<List<LedgerFY>> getFromFile = () -> {
-        try {
-          return new JsonObject(getMockData(LEDGER_FYS_MOCK_PATH)).mapTo(LedgerFYCollection.class)
-            .getLedgerFY();
-        } catch (IOException e) {
-          return Collections.emptyList();
-        }
-      };
-      LedgerFYCollection ledgerFYCollection = new LedgerFYCollection();
-      List<LedgerFY> ledgerFYs = getMockEntries(LEDGER_FYS_STORAGE, LedgerFY.class).orElseGet(getFromFile);
-
-      ledgerFYCollection.setTotalRecords(ledgerFYs.size());
-      ledgerFYCollection.setLedgerFY(ledgerFYs);
-      JsonObject responseRecord = JsonObject.mapFrom(ledgerFYCollection);
-      addServerRqRsData(HttpMethod.GET, LEDGER_FYS_STORAGE, responseRecord);
-      ctx.response()
-        .setStatusCode(200)
-        .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-        .end(responseRecord.encodePrettily());
-    } catch (Exception e) {
-      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    }
   }
 
   private void handleGetCollection(RoutingContext ctx, TestEntities testEntity) {
@@ -811,7 +768,7 @@ public class MockServer {
         fileName = "invalid_config";
       }
 
-      serverResponse(ctx, 200, APPLICATION_JSON, ApiTestBase.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));
+      serverResponse(ctx, 200, APPLICATION_JSON, TestUtils.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));
     } catch (IOException e) {
       serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
     }

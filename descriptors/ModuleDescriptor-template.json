@@ -274,7 +274,7 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.4",
+      "version": "1.5",
       "handlers": [
         {
           "methods": ["GET"],
@@ -282,7 +282,8 @@
           "permissionsRequired": ["finance.ledgers.collection.get"],
           "modulePermissions": [
             "finance-storage.ledgers.collection.get",
-            "finance-storage.ledgersFY.collection.get"
+            "finance-storage.budgets.collection.get",
+            "finance-storage.fiscal-years.item.get"
           ]
         },
         {
@@ -299,7 +300,8 @@
           "permissionsRequired": ["finance.ledgers.item.get"],
           "modulePermissions": [
             "finance-storage.ledgers.item.get",
-            "finance-storage.ledgersFY.collection.get"
+            "finance-storage.budgets.collection.get",
+            "finance-storage.fiscal-years.item.get"
           ]
         },
         {

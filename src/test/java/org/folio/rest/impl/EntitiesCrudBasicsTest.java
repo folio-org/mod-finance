@@ -7,12 +7,19 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.VALID_UUID;
+import static org.folio.rest.util.TestUtils.getMockData;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_FYS_STORAGE;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
@@ -42,17 +49,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import org.folio.rest.acq.model.finance.LedgerFY;
+import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
+import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
+import org.hamcrest.beans.SamePropertyValuesAs;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -67,12 +76,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class EntitiesCrudBasicsTest extends ApiTestBase {
+public class EntitiesCrudBasicsTest {
 
   private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
   private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_ENCUMBRANCE
       , TRANSACTIONS_TRANSFER, TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT
         , TRANSACTIONS_CREDIT, ORDER_TRANSACTION_SUMMARY, INVOICE_TRANSACTION_SUMMARY);
+
 
   /**
    * Test entities except for FUND
@@ -82,7 +92,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   static Stream<TestEntities> getTestEntities() {
     return Arrays.stream(TestEntities.values())
       .filter(e -> !e.equals(FUND))
-      .filter(e -> !e.equals(BUDGET));
+      .filter(e -> !e.equals(BUDGET))
+      .filter(e -> !e.equals(LEDGER));
   }
 
   /**
@@ -137,12 +148,22 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
             && !e.equals(INVOICE_TRANSACTION_SUMMARY));
   }
 
+  @BeforeAll
+  static void before() {
+    initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearServiceInteractions();
+  }
+
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithGetEndpoint")
   void testGetCollection(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
-    String responseBody = verifyGet(testEntity.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).asString();
+    String responseBody = RestTestUtils.verifyGet(testEntity.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).asString();
 
     // Verify collection response
     JsonObject collection = new JsonObject(responseBody);
@@ -172,8 +193,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testGetCollectionInternalServerError(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Internal Server Error ===", testEntity.name());
 
-    String query = buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);
-    verifyGet(testEntity.getEndpoint() + query, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    String query = RestTestUtils.buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);
+    RestTestUtils.verifyGet(testEntity.getEndpoint() + query, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -181,8 +202,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testGetCollectionBadQuery(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Bad Request error ===", testEntity.name());
 
-    String query = buildQueryParam(BAD_QUERY);
-    verifyGet(testEntity.getEndpoint() + query, APPLICATION_JSON, BAD_REQUEST.getStatusCode()).as(Errors.class);
+    String query = RestTestUtils.buildQueryParam(BAD_QUERY);
+    RestTestUtils.verifyGet(testEntity.getEndpoint() + query, APPLICATION_JSON, BAD_REQUEST.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -190,7 +211,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testGetRecordById(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id ===", testEntity.name());
 
-    verifyGet(testEntity.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(testEntity.getClazz());
+    RestTestUtils.verifyGet(testEntity.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(testEntity.getClazz());
 
     // Make sure that correct storage endpoint was used
     assertThat(getRecordById(testEntity.name()), hasSize(1));
@@ -201,7 +222,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testGetRecordByIdServerError(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Internal Server Error ===", testEntity.name());
 
-    verifyGet(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
+    RestTestUtils.verifyGet(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
       .as(Errors.class);
   }
 
@@ -210,7 +231,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testGetRecordByIdNotFound(TestEntities testEntity) {
     logger.info("=== Test Get {} record by id - Not Found ===", testEntity.name());
 
-    verifyGet(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -223,7 +244,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     }
 
     JsonObject record = testEntity.getMockObject();
-    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
+    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
     compareRecordWithSentToStorage(HttpMethod.POST, record, testEntity, testEntity.getIgnoreProperties());
   }
 
@@ -241,8 +262,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
       t.setTransactionType(Transaction.TransactionType.TRANSFER);
     }
     record = JsonObject.mapFrom(t);
-    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
-    verifyRecordNotSentToStorage(HttpMethod.POST, record, testEntity);
+    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
+    verifyRecordNotSentToStorage(HttpMethod.POST, testEntity);
   }
 
   @ParameterizedTest
@@ -254,10 +275,10 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
       addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
     }
 
-    Headers headers = prepareHeaders(X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
+    Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
     JsonObject record = testEntity.getMockObject();
 
-    verifyPostResponse(testEntity.getEndpoint(), record, headers, APPLICATION_JSON,
+    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, headers, APPLICATION_JSON,
         INTERNAL_SERVER_ERROR.getStatusCode());
   }
 
@@ -271,7 +292,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject expected = JsonObject.mapFrom(body);
 
-    verifyPut(testEntity.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPut(testEntity.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
     compareRecordWithSentToStorage(HttpMethod.PUT, expected, testEntity, testEntity.getIgnoreProperties());
   }
 
@@ -283,7 +304,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject body = testEntity.getMockObject();
     body.put(ID, ID_FOR_INTERNAL_SERVER_ERROR);
 
-    verifyPut(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), body, APPLICATION_JSON,
+    RestTestUtils.verifyPut(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), body, APPLICATION_JSON,
         INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
@@ -295,7 +316,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
     JsonObject body = testEntity.getMockObject();
     body.put(ID, ID_DOES_NOT_EXIST);
 
-    verifyPut(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), body, APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyPut(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), body, APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -303,7 +324,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testUpdateRecordIdMismatch(TestEntities testEntity) {
     logger.info("=== Test update {} record - Path and body id mismatch ===", testEntity.name());
 
-    Errors errors = verifyPut(testEntity.getEndpointWithId(VALID_UUID), testEntity.getMockObject(), APPLICATION_JSON, 422)
+    Errors errors = RestTestUtils.verifyPut(testEntity.getEndpointWithId(VALID_UUID), testEntity.getMockObject(), APPLICATION_JSON, 422)
       .as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
@@ -316,7 +337,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testDeleteRecord(TestEntities testEntity) {
     logger.info("=== Test delete {} record ===", testEntity.name());
 
-    verifyDeleteResponse(testEntity.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyDeleteResponse(testEntity.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
   }
 
   @ParameterizedTest
@@ -324,7 +345,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testDeleteRecordServerError(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Internal Server Error ===", testEntity.name());
 
-    verifyDeleteResponse(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
+    RestTestUtils.verifyDeleteResponse(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
         INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
@@ -333,7 +354,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
   void testDeleteRecordNotFound(TestEntities testEntity) {
     logger.info("=== Test delete {} record - Not Found ===", testEntity.name());
 
-    verifyDeleteResponse(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
+    RestTestUtils.verifyDeleteResponse(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
       .as(Errors.class);
   }
 
@@ -344,7 +365,7 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject record = testEntity.getMockObject();
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
-    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
   }
 
   @ParameterizedTest
@@ -354,8 +375,8 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject record = testEntity.getMockObject();
     record.put(testEntity.getUpdatedFieldName(), 4);
-    verifyPut(testEntity.getEndpointWithId(UUID.randomUUID().toString()), record, "", 422);
-    verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
+    RestTestUtils.verifyPut(testEntity.getEndpointWithId(UUID.randomUUID().toString()), record, "", 422);
+    RestTestUtils.verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
   }
 
   @ParameterizedTest
@@ -365,73 +386,37 @@ public class EntitiesCrudBasicsTest extends ApiTestBase {
 
     JsonObject record = testEntity.getMockObject();
     record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
-    verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 201);
-    Response response = verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 400);
+    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 201);
+    Response response = RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 400);
 
     Pattern pattern = Pattern.compile("(uniqueField.*Error)");
     Matcher matcher = pattern.matcher(response.getBody().asString());
     Assert.assertTrue(matcher.find());
   }
 
-  @Test
-  void testGetLedgersCollectionWithFiscalYear() {
-    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) ===");
-
-    String fiscalYearId = UUID.randomUUID().toString();
-    double allocated = 10.0d, available = 6.0d, unavailable = 4.0d;
-
-    int i = 0, numOfLedgers = 2;
-
-    while(i++ < numOfLedgers) {
-      Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
-      LedgerFY ledgerFY = new LedgerFY().withFiscalYearId(fiscalYearId).withLedgerId(ledger.getId())
-        .withAllocated(allocated)
-        .withAvailable(available)
-        .withUnavailable(unavailable);
-      addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
-      addMockEntry(LEDGER_FYS_STORAGE, JsonObject.mapFrom(ledgerFY));
-    }
-
-    LedgersCollection response = verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear", fiscalYearId).as(LedgersCollection.class);
-
-    // Validate response
-    assertThat(response.getTotalRecords(), is(numOfLedgers));
-    assertThat(response.getLedgers(), hasSize(numOfLedgers));
-
-    // Validate summary population
-    for(Ledger ledger : response.getLedgers()) {
-      assertThat(ledger.getAllocated(), is(allocated));
-      assertThat(ledger.getAvailable(), is(available));
-      assertThat(ledger.getUnavailable(), is(unavailable));
-    }
-
-    // Validate actual requests
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER.name()), hasSize(1));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS_STORAGE), hasSize(1));
-    assertThat(MockServer.getRqRsEntries(HttpMethod.GET, LEDGER_FYS_STORAGE).get(0).getJsonArray("ledgerFY").size(), is(numOfLedgers));
-
+  void verifyRecordNotSentToStorage(HttpMethod method, TestEntities testEntity) {
+    // Verify that record not sent to storage
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(0));
   }
 
-  @Test
-  void testGetLedgersCollectionWithFiscalYearBadQuery() {
-    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Bad Request error ===");
+  /**
+   * Compare the record returned with the record that was sent in request, properties to be ignored from comparision can be added
+   * @param method
+   * @param record
+   * @param testEntity
+   * @param ignoreProperties - Properties that will be ignored from comparison
+   */
+  void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity, String ignoreProperties) {
+    // Verify that record sent to storage is the same as in response
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(1));
 
-    String query = buildQueryParam(BAD_QUERY);
-    Errors errors = verifyGetWithParam(TestEntities.LEDGER.getEndpoint() + query, APPLICATION_JSON, BAD_REQUEST.getStatusCode(), "fiscalYear", UUID.randomUUID().toString()).as(Errors.class);
-    assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
-    assertThat(errors.getErrors().get(0).getMessage(), is("Bad Request"));
-  }
-
-  @Test
-  void testGetLedgersCollectionWithFiscalYearInternalServerError() {
-    logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Internal Server Error ===");
-
-    String query = buildQueryParam("id==" + ID_FOR_INTERNAL_SERVER_ERROR);
-    Errors errors = verifyGet(TestEntities.LEDGER.getEndpoint() + query, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
-    assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
-    assertThat(errors.getErrors().get(0).getMessage(), is("Internal Server Error"));
+    // remove "metadata" before comparing
+    JsonObject entry = rqRsEntries.get(0);
+    entry.remove("metadata");
+    Object recordToStorage = entry.mapTo(testEntity.getClazz());
+    assertThat(recordToStorage, SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
   }
 
 }

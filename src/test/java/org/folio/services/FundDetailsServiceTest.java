@@ -2,11 +2,11 @@ package org.folio.services;
 
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.folio.ApiTestSuite.mockPort;
 import static org.folio.rest.RestConstants.OKAPI_URL;
-import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TENANT;
-import static org.folio.rest.impl.ApiTestBase.X_OKAPI_TOKEN;
-import static org.folio.rest.impl.ApiTestBase.X_OKAPI_USER_ID;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.rest.util.TestConfig.mockPort;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,7 +51,7 @@ public class FundDetailsServiceTest {
   @Mock
   private FundService fundService;
   @Mock
-  private FiscalYearService fiscalYearService;
+  private CurrentFiscalYearService fiscalYearService;
   @Mock
   private BudgetExpenseClassService budgetExpenseClassService;
 
@@ -68,7 +68,7 @@ public class FundDetailsServiceTest {
   }
 
   @Test
-  public void testShouldReturnCurrentExistingBudget() {
+  void testShouldReturnCurrentExistingBudget() {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -90,7 +90,7 @@ public class FundDetailsServiceTest {
   }
 
   @Test
-  public void testShouldReturnNullIfNoActiveBudget() {
+  void testShouldReturnNullIfNoActiveBudget() {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -103,13 +103,11 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
     doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> {
-      fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join();
-    });
+    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join());
   }
 
   @Test
-  public void testShouldReturnExpenseClassesIfCurrentBudgetExistForFund() {
+  void testShouldReturnExpenseClassesIfCurrentBudgetExistForFund() {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -142,7 +140,7 @@ public class FundDetailsServiceTest {
   }
 
   @Test
-  public void testShouldThrowExceptionIfNoFundFoundById() {
+  void testShouldThrowExceptionIfNoFundFoundById() {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -161,13 +159,11 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> {
-      fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join();
-    });
+    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join());
   }
 
   @Test
-  public void testShouldThrowExceptionIfNoCurrentFiscalYear() {
+  void testShouldThrowExceptionIfNoCurrentFiscalYear() {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -186,8 +182,6 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> {
-      fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join();
-    });
+    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentExpenseClasses(fundId, null, requestContext).join());
   }
 }

@@ -2,17 +2,24 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static org.folio.rest.util.TestUtils.getMockData;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
+import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.folio.rest.util.MockServer;
+import org.folio.rest.util.RestTestUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.http.HttpMethod;
@@ -20,9 +27,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-public class EncumbrancesTest extends ApiTestBase {
+public class EncumbrancesTest {
 
   private static final Logger logger = LoggerFactory.getLogger(EncumbrancesTest.class);
+
+  @BeforeAll
+  static void before() {
+    initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearServiceInteractions();
+  }
 
   @Test
   void testPostReleaseEncumbrance() {
@@ -30,7 +47,7 @@ public class EncumbrancesTest extends ApiTestBase {
 
     String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
 
-    verifyPostResponse("/finance/release-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
 
     Transaction updatedEncumbrance = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
     assertEquals(Encumbrance.Status.RELEASED, updatedEncumbrance.getEncumbrance().getStatus());
@@ -44,7 +61,7 @@ public class EncumbrancesTest extends ApiTestBase {
     Transaction allocation = new JsonObject(getMockData("mockdata/transactions/allocations.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
 
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(allocation));
-    Errors errors = verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", BAD_REQUEST.getStatusCode()).then()
+    Errors errors = RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", BAD_REQUEST.getStatusCode()).then()
       .extract()
       .as(Errors.class);
 
@@ -61,7 +78,7 @@ public class EncumbrancesTest extends ApiTestBase {
     releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
-    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
 
   }
 
@@ -71,7 +88,7 @@ public class EncumbrancesTest extends ApiTestBase {
 
     String transactionID = "bad-encumbrance-id";
 
-    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
+    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
 
   }
 

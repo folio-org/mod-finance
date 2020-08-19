@@ -2,6 +2,8 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
@@ -9,29 +11,44 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceGroupFiscalYearSummaries;
 import org.folio.rest.util.HelperUtils;
+import org.folio.rest.util.RestTestUtils;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 
-public class GroupFiscalYearSummariesTest extends ApiTestBase {
+public class GroupFiscalYearSummariesTest {
 
   private static final Logger logger = LoggerFactory.getLogger(GroupFiscalYearSummariesTest.class);
 
+  @BeforeAll
+  static void before() {
+    initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearServiceInteractions();
+  }
+
   @Test
-  public void testSummariesCollectionDifferentGroupAndFiscalYear() {
+  void testSummariesCollectionDifferentGroupAndFiscalYear() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - different Group and Fiscal Year Ids ===");
 
     GroupFundFiscalYear firstGroupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
@@ -48,7 +65,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
     Budget thirdBudget = buildBudget(secondGroupFundFiscalYear.getFundId(), secondGroupFundFiscalYear.getFiscalYearId(), 999d, 0d, 999d);
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(thirdBudget));
 
-    GroupFiscalYearSummaryCollection response = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    GroupFiscalYearSummaryCollection response = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
 
     List<GroupFiscalYearSummary> actualSummaries = response.getGroupFiscalYearSummaries();
     assertThat(actualSummaries, hasSize(2));
@@ -62,7 +79,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
   }
 
   @Test
-  public void testSummariesCollectionSameGroupAndFiscalYear() {
+  void testSummariesCollectionSameGroupAndFiscalYear() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - the same Group and Fiscal Year Ids ===");
 
     String groupId = UUID.randomUUID().toString();
@@ -80,7 +97,7 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
     Budget secondBudget = buildBudget(secondGroupFundFiscalYear.getFundId(), secondGroupFundFiscalYear.getFiscalYearId(), 400d, 450d, 500d);
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(secondBudget));
 
-    GroupFiscalYearSummaryCollection response = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    GroupFiscalYearSummaryCollection response = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
 
     List<GroupFiscalYearSummary> actualSummaries = response.getGroupFiscalYearSummaries();
     assertThat(actualSummaries, hasSize(1));
@@ -93,20 +110,20 @@ public class GroupFiscalYearSummariesTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCollectionGffyNotFound() {
+  void testGetCollectionGffyNotFound() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Group Fund Fiscal Years Not Found ===");
 
-    GroupFiscalYearSummaryCollection collection = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + buildQueryParam("id==(" + UUID.randomUUID().toString() + ")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    GroupFiscalYearSummaryCollection collection = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + UUID.randomUUID().toString() + ")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
     assertThat(collection.getTotalRecords(), is(0));
     assertThat(collection.getTotalRecords(), is(0));
   }
 
   @Test
-  public void testGetCollectionBudgetNotFound() {
+  void testGetCollectionBudgetNotFound() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Budgets Not Found ===");
     GroupFundFiscalYear groupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(groupFundFiscalYear));
-    GroupFiscalYearSummaryCollection collection = verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + buildQueryParam("id==(" + groupFundFiscalYear.getId() +")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    GroupFiscalYearSummaryCollection collection = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + groupFundFiscalYear.getId() +")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
 
     assertThat(collection.getTotalRecords(), is(1));
     assertThat(collection.getGroupFiscalYearSummaries(), hasSize(1));

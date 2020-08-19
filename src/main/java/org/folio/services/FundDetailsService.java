@@ -29,15 +29,15 @@ public class FundDetailsService {
   private static final Logger logger = LoggerFactory.getLogger(FundDetailsService.class);
   private static final String ACTIVE_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
 
-  private final FiscalYearService fiscalYearService;
+  private final CurrentFiscalYearService currentFiscalYearService;
   private final FundService fundService;
   private final BudgetService budgetService;
   private final ExpenseClassService expenseClassService;
   private final BudgetExpenseClassService budgetExpenseClassService;
 
-  public FundDetailsService(FiscalYearService fiscalYearService, FundService fundService
+  public FundDetailsService(CurrentFiscalYearService currentFiscalYearService, FundService fundService
     , BudgetService budgetService, ExpenseClassService expenseClassService, BudgetExpenseClassService budgetExpenseClassService) {
-    this.fiscalYearService = fiscalYearService;
+    this.currentFiscalYearService = currentFiscalYearService;
     this.fundService = fundService;
     this.budgetService = budgetService;
     this.expenseClassService = expenseClassService;
@@ -92,7 +92,7 @@ public class FundDetailsService {
   }
 
   private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext rqContext) {
-    return fiscalYearService.getCurrentFiscalYear(budgetLedgerId, rqContext)
+    return currentFiscalYearService.getCurrentFiscalYear(budgetLedgerId, rqContext)
       .thenApply(fiscalYear ->
         Optional.ofNullable(fiscalYear)
           .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError()))
