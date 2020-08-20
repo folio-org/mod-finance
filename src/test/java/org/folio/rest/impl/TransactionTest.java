@@ -1,22 +1,29 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
-import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestUtils.getMockData;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -27,6 +34,7 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class TransactionTest {
   private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class);
+  private static boolean runningOnOwn;
 
   private final String dollars = "USD";
   private final String FISCAL_YEAR_ID = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
@@ -36,13 +44,24 @@ public class TransactionTest {
   private final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(ApplicationConfig.class);
   }
 
   @AfterEach
   void afterEach() {
     clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @Test

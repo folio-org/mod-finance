@@ -93,6 +93,10 @@ public final class TestConfig {
     vertx.close();
   }
 
+  public static boolean isVerticleNotDeployed() {
+    return vertx.deploymentIDs().isEmpty();
+  }
+
   private static Context getFirstContextFromVertx(Vertx vertx) {
     return vertx.deploymentIDs().stream().flatMap((id) -> ((VertxImpl)vertx)
       .getDeployment(id).getVerticles().stream())

@@ -7,19 +7,20 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.MockServer.getCollectionRecords;
+import static org.folio.rest.util.MockServer.getRecordById;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.BAD_QUERY;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
-import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.initSpringContext;
-import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.MockServer.addMockEntry;
-import static org.folio.rest.util.MockServer.getCollectionRecords;
-import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
@@ -33,6 +34,7 @@ import static org.folio.rest.util.TestEntities.TRANSACTIONS_ENCUMBRANCE;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_PENDING_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_TRANSFER;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -45,20 +47,24 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.RestTestUtils;
+import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.beans.SamePropertyValuesAs;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -82,6 +88,7 @@ public class EntitiesCrudBasicsTest {
   private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_ENCUMBRANCE
       , TRANSACTIONS_TRANSFER, TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT
         , TRANSACTIONS_CREDIT, ORDER_TRANSACTION_SUMMARY, INVOICE_TRANSACTION_SUMMARY);
+  private static boolean runningOnOwn;
 
 
   /**
@@ -149,8 +156,19 @@ public class EntitiesCrudBasicsTest {
   }
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @AfterEach

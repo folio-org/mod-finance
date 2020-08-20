@@ -3,8 +3,10 @@ package org.folio.rest.impl;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,8 +16,11 @@ import static org.hamcrest.core.Is.is;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
@@ -24,6 +29,7 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceGroupFiscalYearSummaries;
 import org.folio.rest.util.HelperUtils;
 import org.folio.rest.util.RestTestUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,15 +42,27 @@ import io.vertx.core.logging.LoggerFactory;
 public class GroupFiscalYearSummariesTest {
 
   private static final Logger logger = LoggerFactory.getLogger(GroupFiscalYearSummariesTest.class);
+  private static boolean runningOnOwn;
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(ApplicationConfig.class);
   }
 
   @AfterEach
   void afterEach() {
     clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @Test

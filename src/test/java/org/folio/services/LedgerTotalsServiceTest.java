@@ -1,11 +1,13 @@
 package org.folio.services;
 
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,15 +20,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_NOT_FOUND;
 import static org.folio.services.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -192,6 +201,31 @@ public class LedgerTotalsServiceTest {
     List<String> args = argumentCaptor.getAllValues();
 
     assertThat(args, containsInAnyOrder(expectedQuery1, expectedQuery2, expectedQuery3));
+  }
+
+  @Test
+  void shouldReturnResponseWith400StatusWhenFiscalYearNotFound() {
+    String fiscalYearId = UUID.randomUUID().toString();
+    CompletableFuture<FiscalYear> errorFuture = new CompletableFuture<>();
+    CompletionException completionException = new CompletionException(new HttpException(404, NOT_FOUND.getReasonPhrase()));
+    errorFuture.completeExceptionally(completionException);
+
+    Ledger ledger = new Ledger()
+      .withId(UUID.randomUUID().toString());
+
+    when(fiscalYearMockService.getFiscalYear(anyString(), any())).thenReturn(errorFuture);
+
+    CompletableFuture<Ledger> resultFuture = ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContextMock);
+    ExecutionException executionException = assertThrows(ExecutionException.class, resultFuture::get);
+
+    assertThat(executionException.getCause(), IsInstanceOf.instanceOf(HttpException.class));
+
+    HttpException httpException = (HttpException) executionException.getCause();
+    assertEquals(400, httpException.getCode());
+    assertEquals(FISCAL_YEAR_NOT_FOUND.toError(), httpException.getErrors().getErrors().get(0));
+
+    verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
+   // verify(budgetMockService, never()).getBudgets(any(), any(), any(), any());
   }
 
 }

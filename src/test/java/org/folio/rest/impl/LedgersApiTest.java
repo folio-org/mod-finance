@@ -5,6 +5,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
@@ -13,6 +14,7 @@ import static org.folio.rest.util.RestTestUtils.verifyGet;
 import static org.folio.rest.util.RestTestUtils.verifyGetWithParam;
 import static org.folio.rest.util.RestTestUtils.verifyPostResponse;
 import static org.folio.rest.util.RestTestUtils.verifyPut;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
@@ -35,7 +37,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
@@ -61,6 +66,7 @@ import io.vertx.core.logging.LoggerFactory;
 public class LedgersApiTest {
 
   private static final Logger logger = LoggerFactory.getLogger(LedgersApiTest.class);
+  private static boolean runningOnOwn;
 
   @Autowired
   public LedgerService ledgerMockService;
@@ -68,7 +74,11 @@ public class LedgersApiTest {
   public CurrentFiscalYearService currentFiscalYearMockService;
 
   @BeforeAll
-  static void init() {
+  static void init() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(LedgersApiTest.ContextConfiguration.class);
   }
 
@@ -79,6 +89,9 @@ public class LedgersApiTest {
 
   @AfterAll
   static void afterAll() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
     clearVertxContext();
   }
 

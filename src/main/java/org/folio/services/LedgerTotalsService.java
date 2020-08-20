@@ -1,11 +1,13 @@
 package org.folio.services;
 
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.rest.util.ErrorCodes;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
 
@@ -14,6 +16,7 @@ import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
@@ -32,8 +35,20 @@ public class LedgerTotalsService {
   }
 
   public CompletableFuture<Ledger> populateLedgerTotals(Ledger ledger, String fiscalYearId, RequestContext requestContext) {
-    return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
+    return getFiscalYear(fiscalYearId, requestContext)
       .thenCompose(fiscalYear -> populateLedgerTotals(ledger, fiscalYear, requestContext));
+  }
+
+  private CompletableFuture<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
+    return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
+      .exceptionally(t -> {
+        // Skip error processing if item has already deleted
+        if (t.getCause() instanceof HttpException && ((HttpException) t.getCause()).getCode() == 404) {
+          throw new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND);
+        } else {
+          throw new CompletionException(t);
+        }
+      });
   }
 
   public CompletableFuture<Ledger> populateLedgerTotals(Ledger ledger, FiscalYear fiscalYear, RequestContext requestContext) {
@@ -42,7 +57,7 @@ public class LedgerTotalsService {
   }
 
   public CompletableFuture<LedgersCollection> populateLedgersTotals(LedgersCollection ledgersCollection, String fiscalYearId, RequestContext requestContext) {
-    return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
+    return getFiscalYear(fiscalYearId, requestContext)
       .thenCompose(fiscalYear -> collectResultsOnSuccess(ledgersCollection.getLedgers().stream()
         .map(ledger -> populateLedgerTotals(ledger, fiscalYear, requestContext))
         .collect(Collectors.toList()))

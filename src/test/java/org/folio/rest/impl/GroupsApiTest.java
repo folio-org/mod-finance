@@ -3,8 +3,10 @@ package org.folio.rest.impl;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +21,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
@@ -35,17 +40,25 @@ import org.springframework.context.annotation.Bean;
 
 public class GroupsApiTest {
 
+  private static boolean runningOnOwn;
   @Autowired
   private GroupExpenseClassTotalsService groupExpenseClassTotalsServiceMock;
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(GroupsApiTest.ContextConfiguration.class);
   }
 
   @AfterAll
   static void after() {
     clearVertxContext();
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @BeforeEach

@@ -8,13 +8,15 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClassTotal.ExpenseClassStatus.ACTIVE;
-import static org.folio.rest.util.TestConfig.autowireDependencies;
-import static org.folio.rest.util.TestConfig.clearVertxContext;
-import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestConfig.autowireDependencies;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,7 +35,10 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -70,14 +75,23 @@ public class BudgetsApiTest  {
   @Autowired
   public BudgetService budgetMockService;
 
+  private static boolean runningOnOwn;
+
   @BeforeAll
-  public static void before() {
+  public static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(BudgetsApiTest.ContextConfiguration.class);
   }
 
   @AfterAll
   public static void after() {
     clearVertxContext();
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @BeforeEach

@@ -6,19 +6,21 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.MockServer.getRqRsEntries;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
-import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.initSpringContext;
-import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.MockServer.addMockEntry;
-import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -28,18 +30,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.RestTestUtils;
+import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.TestEntities;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,15 +59,27 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class FiscalYearTest {
   private static final Logger logger = LoggerFactory.getLogger(FiscalYearTest.class);
+  private static boolean runningOnOwn;
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(ApplicationConfig.class);
   }
 
   @AfterEach
   void afterEach() {
     clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
   }
 
   @Test

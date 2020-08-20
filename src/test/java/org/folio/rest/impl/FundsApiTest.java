@@ -7,6 +7,8 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
@@ -40,7 +42,10 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.Errors;
@@ -54,6 +59,7 @@ import org.folio.rest.util.MockServer;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -71,9 +77,14 @@ public class FundsApiTest {
   public static final String GROUP_ID_FIELD_NAME = "groupId";
   public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";
   public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
+  private static boolean runningOnOwn;
 
   @BeforeAll
-  static void before() {
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
     initSpringContext(ApplicationConfig.class);
   }
 
@@ -82,7 +93,14 @@ public class FundsApiTest {
     clearServiceInteractions();
   }
 
-  @Test
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
+
+    @Test
   void testGetCompositeFundById() {
 
     logger.info("=== Test Get Composite Fund record by id ===");

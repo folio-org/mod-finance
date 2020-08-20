@@ -1,12 +1,20 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import org.folio.ApiTestSuite;
 import org.folio.rest.acq.model.finance.ExchangeRate;
 import org.folio.rest.util.RestTestUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.logging.Logger;
@@ -24,6 +32,22 @@ public class ExchangeRateTest {
   private static final String MISSING_TO = "?from=USD";
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
+  private static boolean runningOnOwn;
+
+  @BeforeAll
+  static void beforeAll() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
 
   @Test
   void getExchangeRate() {
