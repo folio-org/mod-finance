@@ -42,7 +42,6 @@ public class LedgerTotalsService {
   private CompletableFuture<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
     return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
       .exceptionally(t -> {
-        // Skip error processing if item has already deleted
         Throwable cause = t.getCause() == null ? t : t.getCause();
         if (cause instanceof HttpException && ((HttpException) cause).getCode() == 404) {
           throw new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND);
