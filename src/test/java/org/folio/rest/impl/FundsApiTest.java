@@ -7,6 +7,17 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
+import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.SERIES_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.VALID_UUID;
+import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
@@ -31,17 +42,26 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
+import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.MockServer;
+import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.restassured.http.Headers;
@@ -50,20 +70,42 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-public class FundsTest extends ApiTestBase {
+public class FundsApiTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(FundsTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(FundsApiTest.class);
   public static final String FUND_FIELD_NAME = "fund";
   public static final String GROUP_ID_FIELD_NAME = "groupId";
   public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";
   public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
+  private static boolean runningOnOwn;
 
-  @Test
-  public void testGetCompositeFundById() {
+  @BeforeAll
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+    initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
+
+    @Test
+  void testGetCompositeFundById() {
 
     logger.info("=== Test Get Composite Fund record by id ===");
 
-    CompositeFund compositeFund = verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
+    CompositeFund compositeFund = RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
 
     // Make sure that correct storage endpoint was used
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 1);
@@ -77,7 +119,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdFiscalYearsNotFound() {
+  void testGetCompositeFundByIdFiscalYearsNotFound() {
 
     logger.info("=== Test Get Composite Fund record by id, current Fiscal Year not found ===");
 
@@ -85,7 +127,7 @@ public class FundsTest extends ApiTestBase {
     fiscalYearOne.setSeries(SERIES_DOES_NOT_EXIST);
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
-    CompositeFund compositeFund = verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
+    CompositeFund compositeFund = RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, OK.getStatusCode()).as(CompositeFund.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -98,7 +140,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdLedgerByIdError() {
+  void testGetCompositeFundByIdLedgerByIdError() {
 
     logger.info("=== Test Get Composite Fund record by id, get Ledger by id Internal server error ===");
 
@@ -106,7 +148,7 @@ public class FundsTest extends ApiTestBase {
     fund.setLedgerId(ID_FOR_INTERNAL_SERVER_ERROR);
     addMockEntry(FUND.name(), JsonObject.mapFrom(fund));
 
-    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -118,7 +160,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdFiscalYearByIdError() {
+  void testGetCompositeFundByIdFiscalYearByIdError() {
 
     logger.info("=== Test Get Composite Fund record by id, get Fiscal Year by id Internal server error ===");
 
@@ -126,7 +168,7 @@ public class FundsTest extends ApiTestBase {
     ledger.setFiscalYearOneId(ID_FOR_INTERNAL_SERVER_ERROR);
     addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
 
-    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -138,7 +180,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdFiscalYearsByQueryError() {
+  void testGetCompositeFundByIdFiscalYearsByQueryError() {
 
     logger.info("=== Test Get Composite Fund record by id, get Fiscal Years by query Internal server error ===");
 
@@ -146,7 +188,7 @@ public class FundsTest extends ApiTestBase {
     fiscalYearOne.setSeries(SERIES_INTERNAL_SERVER_ERROR);
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
-    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -158,7 +200,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdGroupFundFyByQueryError() {
+  void testGetCompositeFundByIdGroupFundFyByQueryError() {
 
     logger.info("=== Test Get Composite Fund record by id, get Group Fund Fiscal Year by query Internal server error ===");
 
@@ -177,7 +219,7 @@ public class FundsTest extends ApiTestBase {
 
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYear));
 
-    verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(FUND.getEndpointWithDefaultId(), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 0);
 
@@ -189,27 +231,27 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testGetCompositeFundByIdServerError() {
+  void testGetCompositeFundByIdServerError() {
     logger.info("=== Test Get Composite Fund record by id - Internal Server Error ===");
 
-    verifyGet(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
+    RestTestUtils.verifyGet(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
       .as(Errors.class);
   }
 
   @Test
-  public void testGetCompositeFundByIdNotFound() {
+  void testGetCompositeFundByIdNotFound() {
     logger.info("=== Test Get Composite Fund record by id - Not Found ===");
 
-    verifyGet(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyGet(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
   }
 
   @Test
-  public void testPostCompositeFundEmptyGroupIds() {
+  void testPostCompositeFundEmptyGroupIds() {
     logger.info("=== Test create Composite Fund record ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
     CompositeFund record = new CompositeFund().withFund(fundRecord);
-    CompositeFund compositeFund = verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(CompositeFund.class);
+    CompositeFund compositeFund = RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode()).as(CompositeFund.class);
 
     assertThat(compositeFund.getFund(), hasProperty(ID));
 
@@ -223,7 +265,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testPostCompositeFundWithGroupIds() {
+  void testPostCompositeFundWithGroupIds() {
     logger.info("=== Test create Composite Fund record ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
@@ -241,7 +283,7 @@ public class FundsTest extends ApiTestBase {
     fiscalYearOne.setPeriodEnd(Date.from(Instant.now().plus(1, DAYS)));
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
-    verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
+    RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
 
     compareRecordWithSentToStorage(HttpMethod.POST, JsonObject.mapFrom(fundRecord), FUND);
     verifyCurrentFYQuery(fiscalYearOne);
@@ -254,14 +296,14 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testPostCompositeFundWithInternalServerErrorOnGetLedger() {
+  void testPostCompositeFundWithInternalServerErrorOnGetLedger() {
     logger.info("=== Test create Composite Fund record, get current Fiscal Year Internal Sever Error ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
     fundRecord.setLedgerId(ID_FOR_INTERNAL_SERVER_ERROR);
     CompositeFund record = new CompositeFund().withFund(fundRecord);
     record.getGroupIds().add(UUID.randomUUID().toString());
-    verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
 
@@ -271,7 +313,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testPostCompositeFundWithInternalServerErrorOnGetFiscalYearById() {
+  void testPostCompositeFundWithInternalServerErrorOnGetFiscalYearById() {
     logger.info("=== Test create Composite Fund record, get Fiscal Year by id Internal Sever Error ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
@@ -283,7 +325,7 @@ public class FundsTest extends ApiTestBase {
     addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
 
     record.getGroupIds().add(UUID.randomUUID().toString());
-    verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
 
@@ -294,7 +336,7 @@ public class FundsTest extends ApiTestBase {
 
 
   @Test
-  public void testPostCompositeFundWithEmptyResultOnSearchFiscalYear() {
+  void testPostCompositeFundWithEmptyResultOnSearchFiscalYear() {
     logger.info("=== Test create Composite Fund record current Fiscal Year not found ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
@@ -310,7 +352,7 @@ public class FundsTest extends ApiTestBase {
     fiscalYearOne.setId(ledger.getFiscalYearOneId());
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
-    Errors errors = verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, 422).as(Errors.class);
+    Errors errors = RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record, APPLICATION_JSON, 422).as(Errors.class);
     verifyCurrentFYQuery(fiscalYearOne);
 
     assertThat(errors.getErrors().get(0).getCode(), equalTo(FISCAL_YEARS_NOT_FOUND.getCode()));
@@ -325,7 +367,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testPostCompositeFundWithInternalServerErrorOnGroupFundFYCreation() {
+  void testPostCompositeFundWithInternalServerErrorOnGroupFundFYCreation() {
     logger.info("=== Test create Composite Fund record, Internal Server Error upon POST groupFundFiscalYear ===");
 
     Fund fundRecord = FUND.getMockObject().mapTo(Fund.class);
@@ -340,8 +382,8 @@ public class FundsTest extends ApiTestBase {
     fiscalYearOne.setId(ledger.getFiscalYearOneId());
     addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(fiscalYearOne));
 
-    Headers headers = prepareHeaders(X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
-    verifyPostResponse(FUND.getEndpoint(), record,  headers, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
+    RestTestUtils.verifyPostResponse(FUND.getEndpoint(), record,  headers, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     verifyCurrentFYQuery(fiscalYearOne);
 
@@ -353,7 +395,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithAssignUnassignGroupIds() {
+  void testUpdateRecordWithAssignUnassignGroupIds() {
     logger.info("=== Test update Composite Fund record - assign and unassign group ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -379,7 +421,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
 
     JsonObject expected = JsonObject.mapFrom(body).getJsonObject(FUND_FIELD_NAME);
     compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
@@ -402,7 +444,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithAssignGroupIds() {
+  void testUpdateRecordWithAssignGroupIds() {
     logger.info("=== Test update Composite Fund record - Assign Group ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -429,7 +471,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
 
     JsonObject expected = JsonObject.mapFrom(body).getJsonObject(FUND_FIELD_NAME);
     compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
@@ -450,7 +492,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithUnassignGroupIds() {
+  void testUpdateRecordWithUnassignGroupIds() {
     logger.info("=== Test update Composite Fund record - Unassign Group ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -470,7 +512,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", NO_CONTENT.getStatusCode());
 
     JsonObject expected = JsonObject.mapFrom(body).getJsonObject(FUND_FIELD_NAME);
     compareRecordWithSentToStorage(HttpMethod.PUT, expected, FUND);
@@ -491,7 +533,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordWithGroupIdsGroupNotFound() {
+  void testUpdateRecordWithGroupIdsGroupNotFound() {
     logger.info("=== Test update Composite Fund record - Group Not Found ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -516,7 +558,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", 422);
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", 422);
 
     verifyCurrentFYQuery(fiscalYearOne);
 
@@ -530,7 +572,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordFiscalYearNotFound() {
+  void testUpdateRecordFiscalYearNotFound() {
     logger.info("=== Test update Composite Fund record - Fiscal Year Not Found ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -553,7 +595,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", 422);
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", 422);
 
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
@@ -565,7 +607,7 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordLedgerNotFound() {
+  void testUpdateRecordLedgerNotFound() {
     logger.info("=== Test update Composite Fund record - Ledger Internal Server Error ===");
 
     Fund fund = FUND.getMockObject().mapTo(Fund.class);
@@ -579,7 +621,7 @@ public class FundsTest extends ApiTestBase {
     body.getJsonObject(FUND_FIELD_NAME).put(FUND.getUpdatedFieldName(), FUND.getUpdatedFieldValue());
 
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
-    verifyPut(FUND.getEndpointWithId(id), body, "", INTERNAL_SERVER_ERROR.getStatusCode());
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", INTERNAL_SERVER_ERROR.getStatusCode());
 
     verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
@@ -591,33 +633,33 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testUpdateRecordServerError() {
+  void testUpdateRecordServerError() {
     logger.info("=== Test update Composite Fund record - Internal Server Error ===");
 
     JsonObject body = FUND.getMockObject();
     body.put(ID, ID_FOR_INTERNAL_SERVER_ERROR);
     CompositeFund compositeFund = new CompositeFund().withFund(body.mapTo(Fund.class));
-    verifyPut(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), compositeFund, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), compositeFund, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode())
       .as(Errors.class);
   }
 
   @Test
-  public void testUpdateRecordNotFound() {
+  void testUpdateRecordNotFound() {
     logger.info("=== Test update Composite Fund record - Not Found ===");
 
     JsonObject body = FUND.getMockObject();
     body.put(ID, ID_DOES_NOT_EXIST);
     CompositeFund compositeFund = new CompositeFund().withFund(body.mapTo(Fund.class));
-    verifyPut(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), compositeFund, APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
+    RestTestUtils.verifyPut(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), compositeFund, APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
   }
 
   @Test
-  public void testUpdateRecordIdMismatch() {
+  void testUpdateRecordIdMismatch() {
     logger.info("=== Test update Composite Fund record - Path and body id mismatch ===");
 
     JsonObject body = FUND.getMockObject();
     CompositeFund compositeFund = new CompositeFund().withFund(body.mapTo(Fund.class));
-    Errors errors = verifyPut(FUND.getEndpointWithId(VALID_UUID), compositeFund, APPLICATION_JSON, 422)
+    Errors errors = RestTestUtils.verifyPut(FUND.getEndpointWithId(VALID_UUID), compositeFund, APPLICATION_JSON, 422)
       .as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
@@ -625,10 +667,10 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testDeleteRecord() {
+  void testDeleteRecord() {
     logger.info("=== Test delete Composite Fund record ===");
 
-    verifyDeleteResponse(FUND.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyDeleteResponse(FUND.getEndpointWithDefaultId(), "", NO_CONTENT.getStatusCode());
 
     verifyRsEntitiesQuantity(HttpMethod.DELETE, FUND, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, GROUP_FUND_FISCAL_YEAR, 1);
@@ -636,19 +678,32 @@ public class FundsTest extends ApiTestBase {
   }
 
   @Test
-  public void testDeleteRecordServerError() {
+  void testDeleteRecordServerError() {
     logger.info("=== Test delete Composite Fund record - Internal Server Error ===");
 
-    verifyDeleteResponse(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
+    RestTestUtils.verifyDeleteResponse(FUND.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
       INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
   @Test
-  public void testDeleteRecordNotFound() {
+  void testDeleteRecordNotFound() {
     logger.info("=== Test delete Composite Fund record - Not Found ===");
 
-    verifyDeleteResponse(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
+    RestTestUtils.verifyDeleteResponse(FUND.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
       .as(Errors.class);
+  }
+
+  private void compareRecordWithSentToStorage(HttpMethod method, JsonObject record, TestEntities testEntity) {
+    // Verify that record sent to storage is the same as in response
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    assertThat(rqRsEntries, hasSize(1));
+
+    // remove "metadata" before comparing
+    JsonObject entry = rqRsEntries.get(0);
+    entry.remove("metadata");
+    Object recordToStorage = entry.mapTo(testEntity.getClazz());
+
+    assertThat(recordToStorage, equalTo(record.mapTo(testEntity.getClazz())));
   }
 
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {

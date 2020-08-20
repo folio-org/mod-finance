@@ -6,19 +6,35 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestUtils.getMockData;
+
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import org.folio.ApiTestSuite;
+import org.folio.config.ApplicationConfig;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.util.RestTestUtils;
+import org.folio.rest.util.TestEntities;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.util.TestEntities;
-import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
-public class TransactionTest extends ApiTestBase {
+public class TransactionTest {
   private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class);
+  private static boolean runningOnOwn;
 
   private final String dollars = "USD";
   private final String FISCAL_YEAR_ID = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
@@ -27,8 +43,29 @@ public class TransactionTest extends ApiTestBase {
   private final String LATHIST_ID = "e6d7e91a-4dbc-4a70-9b38-e000d2fbdc79";
   private final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
 
+  @BeforeAll
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+    initSpringContext(ApplicationConfig.class);
+  }
+
+  @AfterEach
+  void afterEach() {
+    clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
+
   @Test
-  public void testTransferAndAllocationWithMatchingAllocatedIds() throws Exception {
+  void testTransferAndAllocationWithMatchingAllocatedIds() throws Exception {
     logger.info("=== Test transfer and allocation toFund.allocatedFromIds matches fromFund.allocatedToIds) - Success ===");
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
@@ -37,15 +74,15 @@ public class TransactionTest extends ApiTestBase {
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(HIST_ID)
       .withToFundId(CANHIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
   }
 
   @Test
-  public void testTransferAndAllocationWithEmptyAllocatedIds() throws Exception {
+  void testTransferAndAllocationWithEmptyAllocatedIds() throws Exception {
     logger.info("=== Test transfer and allocation with empty toFund.allocatedFromIds and fromFund.allocatedToIds - Success ===");
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/LATHIST.json")));
@@ -55,16 +92,16 @@ public class TransactionTest extends ApiTestBase {
       .withFromFundId(CANHIST_ID)
       .withToFundId(LATHIST_ID);
     JsonObject body = JsonObject.mapFrom(transaction);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
     body = JsonObject.mapFrom(transaction);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
   }
 
   @Test
-  public void testTransferAndAllocationWithEmptyAllocatedFromIds() throws Exception {
+  void testTransferAndAllocationWithEmptyAllocatedFromIds() throws Exception {
     logger.info("=== Test transfer and allocation with empty toFund.allocatedFromIds) - Success ===");
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/LATHIST.json")));
@@ -74,16 +111,16 @@ public class TransactionTest extends ApiTestBase {
       .withFromFundId(HIST_ID)
       .withToFundId(LATHIST_ID);
     JsonObject body = JsonObject.mapFrom(transaction);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
     body = JsonObject.mapFrom(transaction);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
   }
 
   @Test
-  public void testTransferAndAllocationWithAllocatedIdsMismatch() throws Exception {
+  void testTransferAndAllocationWithAllocatedIdsMismatch() throws Exception {
     logger.info("=== Test transfer and allocation with toFund.allocatedFromIds and fromFund.allocatedToIds mismatch - Unprocessable entity ===");
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/ASIAHIST.json")));
@@ -92,15 +129,15 @@ public class TransactionTest extends ApiTestBase {
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(ASIAHIST_ID)
       .withToFundId(CANHIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
-  public void testTransferAndAllocationWithEmptyAllocatedFromIdsMismatch() throws Exception {
+  void testTransferAndAllocationWithEmptyAllocatedFromIdsMismatch() throws Exception {
     logger.info("=== Test transfer and allocation with empty fromFund.allocatedToIds mismatch - Unprocessable entity ===");
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
     addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/LATHIST.json")));
@@ -109,46 +146,46 @@ public class TransactionTest extends ApiTestBase {
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(LATHIST_ID)
       .withToFundId(CANHIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
-  public void testTransferMissingToOrFromFundId() {
+  void testTransferMissingToOrFromFundId() {
     logger.info("=== Test transfer missing toFundId or fromFundId - Unprocessable entity ===");
 
     // missing toFundId
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(HIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
 
     // missing fromFundId
     transaction = createTransaction(TRANSFER)
       .withToFundId(HIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
-  public void testExternalAllocation() {
+  void testExternalAllocation() {
     logger.info("=== Test external allocation (missing fromFundId or toFundId) - Success ===");
     // external from allocation
     Transaction transaction = createTransaction(ALLOCATION)
       .withFromFundId(HIST_ID);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
 
     // external to allocation
     transaction.setTransactionType(ALLOCATION);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
   }
 
   @Test
-  public void testAllocationMissingBothFundIds() {
+  void testAllocationMissingBothFundIds() {
     logger.info("=== Test allocation missing both FROM and TO fund ids - Unprocessable entity ===");
     Transaction transaction = createTransaction(ALLOCATION);
-    verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
@@ -157,7 +194,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
     transaction.setId(id);
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), "", 204);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), "", 204);
   }
 
   @Test
@@ -166,7 +203,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(ENCUMBRANCE);
     transaction.setId(UUID.randomUUID().toString());
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test
@@ -175,7 +212,7 @@ public class TransactionTest extends ApiTestBase {
     String id = UUID.randomUUID().toString();
     Transaction transaction = createTransaction(PAYMENT);
     transaction.setId(id);
-    verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {

@@ -1,45 +1,74 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-import static javax.ws.rs.core.Response.Status.CREATED;
+import static org.folio.rest.util.TestConfig.autowireDependencies;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
-import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
-import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.util.TestEntities;
-import org.folio.services.GroupExpenseClassTotalsService;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
-public class GroupsApiTest extends ApiTestBase {
+import org.folio.ApiTestSuite;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
+import org.folio.rest.util.RestTestUtils;
+import org.folio.services.GroupExpenseClassTotalsService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 
-  public static GroupExpenseClassTotalsService groupExpenseClassTotalsServiceMock = mock(GroupExpenseClassTotalsService.class);
+public class GroupsApiTest {
+
+  private static boolean runningOnOwn;
+  @Autowired
+  private GroupExpenseClassTotalsService groupExpenseClassTotalsServiceMock;
+
+  @BeforeAll
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+    initSpringContext(GroupsApiTest.ContextConfiguration.class);
+  }
+
+  @AfterAll
+  static void after() {
+    clearVertxContext();
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    autowireDependencies(this);
+  }
 
   @AfterEach
-  void clearMocks() {
-    Mockito.reset(groupExpenseClassTotalsServiceMock);
+  void resetMocks() {
+    reset(groupExpenseClassTotalsServiceMock);
   }
 
   @Test
@@ -50,7 +79,7 @@ public class GroupsApiTest extends ApiTestBase {
 
     when(groupExpenseClassTotalsServiceMock.getExpenseClassTotals(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(groupExpenseClassTotalsCollection));
 
-    GroupExpenseClassTotalsCollection result = verifyGet(String.format("/finance/groups/%s/expense-classes-totals?fiscalYearId=%s", groupId, fiscalYearId), APPLICATION_JSON, 200)
+    GroupExpenseClassTotalsCollection result = RestTestUtils.verifyGet(String.format("/finance/groups/%s/expense-classes-totals?fiscalYearId=%s", groupId, fiscalYearId), APPLICATION_JSON, 200)
       .as(GroupExpenseClassTotalsCollection.class);
 
 
@@ -62,7 +91,7 @@ public class GroupsApiTest extends ApiTestBase {
   void testGetFinanceGroupsExpenseClassesTotalsByIdWithoutFiscalYearIdParam() {
     String groupId = UUID.randomUUID().toString();
 
-    Errors errors = verifyGet(String.format("/finance/groups/%s/expense-classes-totals", groupId), APPLICATION_JSON, 400).as(Errors.class);
+    Errors errors = RestTestUtils.verifyGet(String.format("/finance/groups/%s/expense-classes-totals", groupId), APPLICATION_JSON, 400).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     assertEquals(errors.getErrors().get(0), MISSING_FISCAL_YEAR_ID.toError());
@@ -73,13 +102,12 @@ public class GroupsApiTest extends ApiTestBase {
   /**
    * Define unit test specific beans to override actual ones
    */
-  @Configuration
+
   static class ContextConfiguration {
 
-    @Bean("groupExpenseClassTotalsMockService")
-    @Primary
+    @Bean
     public GroupExpenseClassTotalsService groupExpenseClassTotalsService() {
-      return groupExpenseClassTotalsServiceMock;
+      return mock(GroupExpenseClassTotalsService.class);
     }
   }
 }

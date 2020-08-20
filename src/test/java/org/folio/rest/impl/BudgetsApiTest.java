@@ -12,7 +12,11 @@ import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
-
+import static org.folio.rest.util.TestConfig.autowireDependencies;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,13 +28,17 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -41,32 +49,60 @@ import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
+import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
 import org.folio.services.BudgetExpenseClassTotalsService;
 import org.folio.services.BudgetService;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-public class BudgetsApiTest extends ApiTestBase {
+public class BudgetsApiTest  {
 
   private static final Logger logger = LoggerFactory.getLogger(BudgetsApiTest.class);
   public static final String BUDGET_WITH_BOUNDED_TRANSACTION_ID = "34fe0c8b-2b99-4fe2-81a5-4ed6872a32e8";
-  public static BudgetExpenseClassTotalsService budgetExpenseClassTotalsMockService = mock(BudgetExpenseClassTotalsService.class);
-  public static BudgetService budgetMockService = mock(BudgetService.class);
+  @Autowired
+  public BudgetExpenseClassTotalsService budgetExpenseClassTotalsMockService;
+  @Autowired
+  public BudgetService budgetMockService;
+
+  private static boolean runningOnOwn;
+
+  @BeforeAll
+  public static void before() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+    initSpringContext(BudgetsApiTest.ContextConfiguration.class);
+  }
+
+  @AfterAll
+  public static void after() {
+    clearVertxContext();
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    autowireDependencies(this);
+  }
 
   @AfterEach
-  void clearMocks() {
-    Mockito.reset(budgetMockService);
-    Mockito.reset(budgetExpenseClassTotalsMockService);
+  void resetMocks() {
+    reset(budgetExpenseClassTotalsMockService);
+    reset(budgetMockService);
   }
 
   @Test
@@ -75,7 +111,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.createBudget(any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
 
-    SharedBudget resultBudget = verifyPostResponse(TestEntities.BUDGET.getEndpoint(), budget, APPLICATION_JSON, CREATED.getStatusCode()).as(SharedBudget.class);
+    SharedBudget resultBudget = RestTestUtils.verifyPostResponse(TestEntities.BUDGET.getEndpoint(), budget, APPLICATION_JSON, CREATED.getStatusCode()).as(SharedBudget.class);
 
 
     assertEquals(budget, resultBudget);
@@ -89,7 +125,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.createBudget(any(), any())).thenReturn(errorFuture);
 
-    Errors errors = verifyPostResponse(TestEntities.BUDGET.getEndpoint(), TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    Errors errors = RestTestUtils.verifyPostResponse(TestEntities.BUDGET.getEndpoint(), TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     assertEquals(GENERIC_ERROR_CODE.toError(), errors.getErrors().get(0));
@@ -102,7 +138,7 @@ public class BudgetsApiTest extends ApiTestBase {
     SharedBudget budget = TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class)
       .withId(UUID.randomUUID().toString());
 
-    Errors errors = verifyPut(TestEntities.BUDGET.getEndpointWithId(id), budget, APPLICATION_JSON, 422).as(Errors.class);
+    Errors errors = RestTestUtils.verifyPut(TestEntities.BUDGET.getEndpointWithId(id), budget, APPLICATION_JSON, 422).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     Error expectedError = MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError();
@@ -118,7 +154,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.updateBudget(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
-    verifyPut(TestEntities.BUDGET.getEndpointWithId(id), budget, "", NO_CONTENT.getStatusCode());
+    RestTestUtils.verifyPut(TestEntities.BUDGET.getEndpointWithId(id), budget, "", NO_CONTENT.getStatusCode());
 
     final ArgumentCaptor<SharedBudget> budgetArgumentCaptor = ArgumentCaptor.forClass(SharedBudget.class);
     verify(budgetMockService).updateBudget(budgetArgumentCaptor.capture(), any());
@@ -136,7 +172,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.getBudgetById(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budget));
 
-    SharedBudget resultBudget = verifyGet(TestEntities.BUDGET.getEndpointWithId(budget.getId()), APPLICATION_JSON, OK.getStatusCode()).as(SharedBudget.class);
+    SharedBudget resultBudget = RestTestUtils.verifyGet(TestEntities.BUDGET.getEndpointWithId(budget.getId()), APPLICATION_JSON, OK.getStatusCode()).as(SharedBudget.class);
 
     assertEquals(budget, resultBudget);
 
@@ -151,7 +187,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.getBudgetById(anyString(), any())).thenReturn(errorFuture);
 
-    Errors errors = verifyGet(TestEntities.BUDGET.getEndpointWithId(budgetId), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
+    Errors errors = RestTestUtils.verifyGet(TestEntities.BUDGET.getEndpointWithId(budgetId), APPLICATION_JSON, NOT_FOUND.getStatusCode()).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     Error expectedError = GENERIC_ERROR_CODE.toError().withMessage(NOT_FOUND.getReasonPhrase());
@@ -165,7 +201,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     BudgetsCollection budgetCollection = new BudgetsCollection();
     when(budgetMockService.getBudgets(isNull(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(budgetCollection));
-    BudgetsCollection budgetCollectionResult = verifyGet(TestEntities.BUDGET.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).as(BudgetsCollection.class);
+    BudgetsCollection budgetCollectionResult = RestTestUtils.verifyGet(TestEntities.BUDGET.getEndpoint(), APPLICATION_JSON, OK.getStatusCode()).as(BudgetsCollection.class);
 
     assertEquals(budgetCollection, budgetCollectionResult);
     verify(budgetMockService).getBudgets(isNull(), eq(0), eq(10), any(RequestContext.class));
@@ -184,7 +220,7 @@ public class BudgetsApiTest extends ApiTestBase {
     int limit = 50;
     int offset = 4;
     String url = String.format("%s?query=%s&limit=%d&offset=%d", TestEntities.BUDGET.getEndpoint(), query, limit, offset);
-    BudgetsCollection budgetCollectionResult = verifyGet(url, APPLICATION_JSON, OK.getStatusCode()).as(BudgetsCollection.class);
+    BudgetsCollection budgetCollectionResult = RestTestUtils.verifyGet(url, APPLICATION_JSON, OK.getStatusCode()).as(BudgetsCollection.class);
 
     assertEquals(budgetCollection, budgetCollectionResult);
     verify(budgetMockService).getBudgets(eq(query), eq(offset), eq(limit), any(RequestContext.class));
@@ -199,7 +235,7 @@ public class BudgetsApiTest extends ApiTestBase {
 
     when(budgetMockService.getBudgets(isNull(), anyInt(), anyInt(), any())).thenReturn(errorFuture);
 
-    Errors errors = verifyGet(TestEntities.BUDGET.getEndpoint(), APPLICATION_JSON, 422).as(Errors.class);
+    Errors errors = RestTestUtils.verifyGet(TestEntities.BUDGET.getEndpoint(), APPLICATION_JSON, 422).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     assertEquals("Test error", errors.getErrors().get(0).getMessage());
@@ -215,7 +251,7 @@ public class BudgetsApiTest extends ApiTestBase {
     future.completeExceptionally(new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR));
     when(budgetMockService.deleteBudget(anyString(), any())).thenReturn(future);
 
-    Errors errors = verifyDeleteResponse(TestEntities.BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
+    Errors errors = RestTestUtils.verifyDeleteResponse(TestEntities.BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
       .extract()
       .as(Errors.class);
 
@@ -227,7 +263,7 @@ public class BudgetsApiTest extends ApiTestBase {
   void testDeleteShouldSuccessIfNoTransactionBoundedToBudget() {
     logger.info("=== Test Delete of the budget, if no transactions were found. ===");
     when(budgetMockService.deleteBudget(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    verifyDeleteResponse(TestEntities.BUDGET.getEndpointWithDefaultId(), EMPTY, 204);
+    RestTestUtils.verifyDeleteResponse(TestEntities.BUDGET.getEndpointWithDefaultId(), EMPTY, 204);
     verify(budgetMockService).deleteBudget(eq(TestEntities.BUDGET.getMockObject().getString(ID)), any(RequestContext.class));
   }
 
@@ -247,7 +283,7 @@ public class BudgetsApiTest extends ApiTestBase {
     when(budgetExpenseClassTotalsMockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any())).thenReturn(CompletableFuture.completedFuture(expectedExpenseClassTotalsCollection));
     String budgetId = UUID.randomUUID().toString();
 
-    BudgetExpenseClassTotalsCollection resultExpenseClassTotal = verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 200).as(BudgetExpenseClassTotalsCollection.class);
+    BudgetExpenseClassTotalsCollection resultExpenseClassTotal = RestTestUtils.verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 200).as(BudgetExpenseClassTotalsCollection.class);
 
     verify(budgetExpenseClassTotalsMockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any());
     assertEquals(expectedExpenseClassTotalsCollection, resultExpenseClassTotal);
@@ -260,7 +296,7 @@ public class BudgetsApiTest extends ApiTestBase {
     when(budgetExpenseClassTotalsMockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any())).thenReturn(future);
     String budgetId = UUID.randomUUID().toString();
 
-    verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 400);
+    RestTestUtils.verifyGet(String.format("/finance/budgets/%s/expense-classes-totals", budgetId), APPLICATION_JSON, 400);
 
     verify(budgetExpenseClassTotalsMockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any());
   }
@@ -268,19 +304,16 @@ public class BudgetsApiTest extends ApiTestBase {
   /**
    * Define unit test specific beans to override actual ones
    */
-  @Configuration
   static class ContextConfiguration {
 
-    @Bean("budgetExpenseClassTotalsMockService")
-    @Primary
+    @Bean
     public BudgetExpenseClassTotalsService budgetExpenseClassTotalsService() {
-      return budgetExpenseClassTotalsMockService;
+      return mock(BudgetExpenseClassTotalsService.class);
     }
 
-    @Bean("budgetMockService")
-    @Primary
+    @Bean
     public BudgetService budgetService() {
-      return budgetMockService;
+      return mock(BudgetService.class);
     }
   }
 

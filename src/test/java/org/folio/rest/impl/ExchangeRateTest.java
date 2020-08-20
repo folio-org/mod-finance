@@ -1,16 +1,26 @@
 package org.folio.rest.impl;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import org.folio.rest.acq.model.finance.ExchangeRate;
-import org.junit.jupiter.api.Test;
-
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class ExchangeRateTest extends ApiTestBase {
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import org.folio.ApiTestSuite;
+import org.folio.rest.acq.model.finance.ExchangeRate;
+import org.folio.rest.util.RestTestUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+
+public class ExchangeRateTest {
   private static final Logger logger = LoggerFactory.getLogger(ExchangeRateTest.class);
 
   private static final double ONE = 1.0;
@@ -22,57 +32,73 @@ public class ExchangeRateTest extends ApiTestBase {
   private static final String MISSING_TO = "?from=USD";
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
+  private static boolean runningOnOwn;
+
+  @BeforeAll
+  static void beforeAll() throws InterruptedException, ExecutionException, TimeoutException {
+    if (isVerticleNotDeployed()) {
+      ApiTestSuite.before();
+      runningOnOwn = true;
+    }
+  }
+
+  @AfterAll
+  static void after() {
+    if (runningOnOwn) {
+      ApiTestSuite.after();
+    }
+  }
 
   @Test
-  public void getExchangeRate() {
+  void getExchangeRate() {
     logger.info("=== Test get exchange rate: Success ===");
-    ExchangeRate exchangeRate = verifyGet(EXCHANGE_RATE_PATH + VALID_REQUEST, APPLICATION_JSON, 200).as(ExchangeRate.class);
+    ExchangeRate exchangeRate = RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + VALID_REQUEST, APPLICATION_JSON, 200).as(ExchangeRate.class);
     assertThat(exchangeRate.getFrom(), equalTo("USD"));
     assertThat(exchangeRate.getTo(), equalTo("EUR"));
     assertNotNull(exchangeRate.getExchangeRate());
   }
 
   @Test
-  public void exchangeRateForSameCurrenciesIsOne() {
+  void exchangeRateForSameCurrenciesIsOne() {
     logger.info("=== Test get exchange rate for same currency codes: Success, exchangeRate=1 ===");
-    ExchangeRate exchangeRate = verifyGet(EXCHANGE_RATE_PATH + SAME_CURRENCIES, APPLICATION_JSON, 200).as(ExchangeRate.class);
+    ExchangeRate exchangeRate = RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + SAME_CURRENCIES, APPLICATION_JSON, 200).as(ExchangeRate.class);
     assertThat(exchangeRate.getFrom(), equalTo(exchangeRate.getTo()));
     assertThat(ONE, equalTo(exchangeRate.getExchangeRate()));
   }
 
   @Test
-  public void getExchangeRateForNonexistentCurrency(){
+  void getExchangeRateForNonexistentCurrency(){
     logger.info("=== Test get exchange rate for non-existent currency code: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + NON_EXISTENT_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + NON_EXISTENT_CURRENCY, "", 400);
   }
 
   @Test
-  public void getExchangeRateMissingParameters() {
+  void getExchangeRateMissingParameters() {
     logger.info("=== Test get exchange rate missing query parameters: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH, "", 400);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH, "", 400);
   }
 
   @Test
-  public void getExchangeRateMissingFromParameter() {
+  void getExchangeRateMissingFromParameter() {
     logger.info("=== Test get exchange rate missing FROM parameter: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + MISSING_FROM, "", 400);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + MISSING_FROM, "", 400);
   }
 
   @Test
-  public void getExchangeRateMissingToParameter() {
+  void getExchangeRateMissingToParameter() {
     logger.info("=== Test get exchange rate missing TO parameter: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + MISSING_TO, "", 400);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + MISSING_TO, "", 400);
   }
 
   @Test
-  public void getExchangeRateInvalidCurrencyCode() {
+  void getExchangeRateInvalidCurrencyCode() {
     logger.info("=== Test get exchange rate for invalid currency code: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + INVALID_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + INVALID_CURRENCY, "", 400);
   }
 
   @Test
-  public void getExchangeRateNoRate() {
+  void getExchangeRateNoRate() {
     logger.info("=== Test get exchange rate from USD to ALL : NOT_FOUND ===");
-    verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
+    RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
   }
 }

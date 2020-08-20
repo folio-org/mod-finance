@@ -1,6 +1,6 @@
 package org.folio.rest.util;
 
-import static org.folio.rest.impl.ApiTestBase.getMockData;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.rest.util.HelperUtils.ID;
 
 import java.io.IOException;
