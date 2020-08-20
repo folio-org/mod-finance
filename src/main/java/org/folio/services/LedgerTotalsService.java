@@ -43,7 +43,8 @@ public class LedgerTotalsService {
     return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
       .exceptionally(t -> {
         // Skip error processing if item has already deleted
-        if (t.getCause() instanceof HttpException && ((HttpException) t.getCause()).getCode() == 404) {
+        Throwable cause = t.getCause() == null ? t : t.getCause();
+        if (cause instanceof HttpException && ((HttpException) cause).getCode() == 404) {
           throw new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND);
         } else {
           throw new CompletionException(t);
