@@ -19,16 +19,17 @@ import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
 
 public class GroupExpenseClassTotalsService {
 
   private final GroupFundFiscalYearService groupFundFiscalYearService;
-  private final TransactionService transactionService;
+  private final CommonTransactionService transactionService;
   private final ExpenseClassService expenseClassService;
 
-  public GroupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, TransactionService transactionService, ExpenseClassService expenseClassService) {
+  public GroupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, CommonTransactionService transactionService, ExpenseClassService expenseClassService) {
     this.groupFundFiscalYearService = groupFundFiscalYearService;
     this.transactionService = transactionService;
     this.expenseClassService = expenseClassService;
@@ -51,7 +52,7 @@ public class GroupExpenseClassTotalsService {
 
   private CompletableFuture<List<Transaction>> getTransactions(List<GroupFundFiscalYear> groupFundFiscalYears, String fiscalYearId, RequestContext requestContext) {
     List<String> fundIds = groupFundFiscalYears.stream().map(GroupFundFiscalYear::getFundId).collect(Collectors.toList());
-    return transactionService.getTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+    return transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
   }
 
   private CompletableFuture<List<ExpenseClass>> getExpenseClasses(List<GroupFundFiscalYear> groupFundFiscalYears, RequestContext requestContext) {

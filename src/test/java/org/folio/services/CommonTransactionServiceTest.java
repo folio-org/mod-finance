@@ -28,15 +28,16 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
+import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 
-public class TransactionServiceTest {
+public class CommonTransactionServiceTest {
 
-  private TransactionService transactionService;
+  private CommonTransactionService transactionService;
 
   @Mock(name = "transactionRestClient")
   private RestClient transactionRestClient;
@@ -50,7 +51,7 @@ public class TransactionServiceTest {
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
-    transactionService = new TransactionService(transactionRestClient, fiscalYearRestClient);
+    transactionService = new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
   }
 
   @Test
@@ -65,7 +66,7 @@ public class TransactionServiceTest {
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
       .thenReturn(CompletableFuture.completedFuture(transactionCollection));
 
-    CompletableFuture<List<Transaction>> result = transactionService.getTransactions(budget, requestContext);
+    CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(budget, requestContext);
 
     String expectedQuery = String.format("fromFundId==%s AND fiscalYearId==%s", fundId, fiscalYearId);
     verify(transactionRestClient)
@@ -98,7 +99,7 @@ public class TransactionServiceTest {
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
       .thenReturn(CompletableFuture.completedFuture(transactionCollection));
 
-    CompletableFuture<List<Transaction>> result = transactionService.getTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
+    CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
 
     String expectedQuery = String.format("fromFundId==%s AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
       fundId, fiscalYearId,
@@ -169,7 +170,7 @@ public class TransactionServiceTest {
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), any(), any()))
       .thenReturn(CompletableFuture.completedFuture(transactionCollection), CompletableFuture.completedFuture(new TransactionCollection()), CompletableFuture.completedFuture(new TransactionCollection()));
 
-    CompletableFuture<List<Transaction>> resultFuture = transactionService.getTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+    CompletableFuture<List<Transaction>> resultFuture = transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
 
     List<Transaction> resultTransactions = resultFuture.join();
 

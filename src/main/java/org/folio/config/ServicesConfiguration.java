@@ -13,9 +13,23 @@ import org.folio.services.GroupExpenseClassTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.LedgerService;
 import org.folio.services.LedgerTotalsService;
-import org.folio.services.TransactionService;
+import org.folio.services.transactions.AllocationService;
+import org.folio.services.transactions.BaseTransactionService;
+import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.CreditService;
+import org.folio.services.transactions.EncumbranceService;
+import org.folio.services.transactions.PaymentService;
+import org.folio.services.transactions.PendingPaymentService;
+import org.folio.services.transactions.TransactionManagingService;
+import org.folio.services.transactions.TransactionRestrictService;
+import org.folio.services.transactions.TransactionService;
+import org.folio.services.transactions.TransactionStrategyFactory;
+import org.folio.services.transactions.TransactionTypeManagingStrategy;
+import org.folio.services.transactions.TransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import java.util.Set;
 
 public class ServicesConfiguration {
   @Bean
@@ -25,19 +39,19 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient, TransactionService transactionService) {
+  BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient, CommonTransactionService transactionService) {
     return new BudgetExpenseClassService(budgetExpenseClassRestClient, transactionService);
   }
 
   @Bean
-  TransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
-    return new TransactionService(transactionRestClient, fiscalYearRestClient);
+  CommonTransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
   }
 
   @Bean
   BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient budgetRestClient,
                                                                   ExpenseClassService expenseClassService,
-                                                                  TransactionService transactionService,
+                                                                  CommonTransactionService transactionService,
                                                                   BudgetExpenseClassService budgetExpenseClassService)  {
     return new BudgetExpenseClassTotalsService(budgetRestClient, expenseClassService, transactionService, budgetExpenseClassService);
   }
@@ -49,7 +63,7 @@ public class ServicesConfiguration {
 
   @Bean
   BudgetService budgetService(RestClient budgetRestClient,
-                              TransactionService transactionService,
+                              CommonTransactionService transactionService,
                               BudgetExpenseClassService budgetExpenseClassService,
                               GroupFundFiscalYearService groupFundFiscalYearService) {
     return new BudgetService(budgetRestClient, transactionService, budgetExpenseClassService, groupFundFiscalYearService);
@@ -82,13 +96,63 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  GroupExpenseClassTotalsService groupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, TransactionService transactionService, ExpenseClassService expenseClassService) {
+  GroupExpenseClassTotalsService groupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, CommonTransactionService transactionService, ExpenseClassService expenseClassService) {
     return new GroupExpenseClassTotalsService(groupFundFiscalYearService, transactionService, expenseClassService);
   }
 
   @Bean
   CurrentFiscalYearService currentFiscalYearService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
     return new CurrentFiscalYearService(fiscalYearService, ledgerService);
+  }
+
+  @Bean
+  TransactionService baseTransactionService(RestClient transactionRestClient) {
+    return new BaseTransactionService(transactionRestClient);
+  }
+
+  @Bean
+  TransactionRestrictService transactionRestrictService(FundService fundService) {
+    return new TransactionRestrictService(fundService);
+  }
+
+  @Bean
+  TransactionManagingService allocationService(BaseTransactionService transactionService, TransactionRestrictService transactionRestrictService) {
+    return new AllocationService(transactionService, transactionRestrictService);
+  }
+
+  @Bean
+  TransactionManagingService creditService(BaseTransactionService transactionService) {
+    return new CreditService(transactionService);
+  }
+
+  @Bean
+  TransactionManagingService paymentService(BaseTransactionService transactionService) {
+    return new PaymentService(transactionService);
+  }
+
+  @Bean
+  TransactionManagingService encumbranceService(BaseTransactionService transactionService) {
+    return new EncumbranceService(transactionService);
+  }
+
+  @Bean
+  TransactionManagingService transferService(BaseTransactionService transactionService, TransactionRestrictService transactionRestrictService) {
+    return new TransferService(transactionService, transactionRestrictService);
+  }
+
+  @Bean
+  TransactionManagingService pendingPaymentService(BaseTransactionService transactionService) {
+    return new PendingPaymentService(transactionService);
+  }
+
+  @Bean
+  TransactionService commonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
+  }
+
+  @Bean
+  TransactionStrategyFactory transactionStrategyFactory(Set<TransactionTypeManagingStrategy> transactionTypeManagingStrategies) {
+    return new TransactionStrategyFactory(transactionTypeManagingStrategies);
   }
 
 }

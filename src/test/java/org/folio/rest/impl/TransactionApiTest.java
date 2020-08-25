@@ -5,14 +5,16 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
+import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.clearVertxContext;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestUtils.getMockData;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -20,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
+import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
@@ -32,8 +35,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-public class TransactionTest {
-  private static final Logger logger = LoggerFactory.getLogger(TransactionTest.class);
+public class TransactionApiTest {
+  private static final Logger logger = LoggerFactory.getLogger(TransactionApiTest.class);
   private static boolean runningOnOwn;
 
   private final String dollars = "USD";
@@ -62,6 +65,28 @@ public class TransactionTest {
     if (runningOnOwn) {
       ApiTestSuite.after();
     }
+  }
+
+  @Test
+  void shouldReturnResponseWithErrorWhenPostPaymentWithNegativeAmount() {
+
+    Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
+    transaction.setAmount(-1d);
+    Errors errors = RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_PAYMENT.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422).as(Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(1));
+    assertEquals(NEGATIVE_VALUE.toError().getCode(), errors.getErrors().get(0).getCode());
+  }
+
+  @Test
+  void shouldReturnResponseWithErrorWhenPostCreditWithNegativeAmount() {
+
+    Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
+    transaction.setAmount(-1d);
+    Errors errors = RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_CREDIT.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422).as(Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(1));
+    assertEquals(NEGATIVE_VALUE.toError().getCode(), errors.getErrors().get(0).getCode());
   }
 
   @Test
@@ -165,7 +190,7 @@ public class TransactionTest {
     // missing fromFundId
     transaction = createTransaction(TRANSFER)
       .withToFundId(HIST_ID);
-    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
   }
 
   @Test

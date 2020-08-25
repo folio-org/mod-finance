@@ -23,6 +23,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -41,7 +42,7 @@ public class BudgetExpenseClassTotalsServiceTest {
   private ExpenseClassService expenseClassServiceMock;
 
   @Mock
-  private TransactionService transactionServiceMock;
+  private CommonTransactionService transactionServiceMock;
 
   @Mock
   private BudgetExpenseClassService budgetExpenseClassServiceMock;
@@ -111,14 +112,14 @@ public class BudgetExpenseClassTotalsServiceTest {
 
     when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.getTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
     when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
 
     CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
     verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
     verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).getTransactions(eq(budget), eq(requestContext));
+    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
     verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
     BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
@@ -161,14 +162,14 @@ public class BudgetExpenseClassTotalsServiceTest {
 
     when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.getTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
     when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
 
     CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
     verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
     verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).getTransactions(eq(budget), eq(requestContext));
+    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
     verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
     BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
@@ -194,14 +195,14 @@ public class BudgetExpenseClassTotalsServiceTest {
 
     when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    when(transactionServiceMock.getTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(credit)));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(credit)));
     when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
 
     CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
     verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
     verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).getTransactions(eq(budget), eq(requestContext));
+    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
     verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
     BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
@@ -218,14 +219,14 @@ public class BudgetExpenseClassTotalsServiceTest {
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
     when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.getTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
     when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
 
     CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
     verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
     verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).getTransactions(eq(budget), eq(requestContext));
+    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
     verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
     BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();

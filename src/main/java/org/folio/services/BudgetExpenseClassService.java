@@ -21,13 +21,14 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.services.transactions.CommonTransactionService;
 
 public class BudgetExpenseClassService {
 
   private final RestClient budgetExpenseClassRestClient;
-  private final TransactionService transactionService;
+  private final CommonTransactionService transactionService;
 
-  public BudgetExpenseClassService(RestClient budgetExpenseClassRestClient, TransactionService transactionService) {
+  public BudgetExpenseClassService(RestClient budgetExpenseClassRestClient, CommonTransactionService transactionService) {
     this.budgetExpenseClassRestClient = budgetExpenseClassRestClient;
     this.transactionService = transactionService;
   }
@@ -88,7 +89,7 @@ public class BudgetExpenseClassService {
   }
 
   private CompletableFuture<Void> checkNoTransactionsAssigned(List<BudgetExpenseClass> deleteList, SharedBudget budget, RequestContext requestContext) {
-    return transactionService.getTransactions(deleteList, budget, requestContext)
+    return transactionService.retrieveTransactions(deleteList, budget, requestContext)
       .thenAccept(transactions -> {
         if (isNotEmpty(transactions)) {
           throw new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR);
