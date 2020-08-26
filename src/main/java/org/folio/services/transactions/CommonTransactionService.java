@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.transactions;
 
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
@@ -10,55 +10,56 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import one.util.streamex.StreamEx;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
+import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
-public class TransactionService {
+import one.util.streamex.StreamEx;
 
-  private final RestClient transactionRestClient;
+public class CommonTransactionService extends BaseTransactionService {
+
+  private static final Logger logger = LoggerFactory.getLogger(CommonTransactionService.class);
+
   private final RestClient fiscalYearRestClient;
 
-  public TransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
-    this.transactionRestClient = transactionRestClient;
+  public CommonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+    super(transactionRestClient);
     this.fiscalYearRestClient = fiscalYearRestClient;
   }
 
-  public CompletableFuture<TransactionCollection> getTransactions(String query, int offset, int limit, RequestContext requestContext) {
-    return transactionRestClient.get(query, offset, limit, requestContext, TransactionCollection.class);
-  }
-
-  public CompletableFuture<List<Transaction>> getTransactions(Budget budget, RequestContext requestContext) {
+  public CompletableFuture<List<Transaction>> retrieveTransactions(Budget budget, RequestContext requestContext) {
     String query = String.format("fromFundId==%s AND fiscalYearId==%s", budget.getFundId(), budget.getFiscalYearId());
-    return getTransactions(query, 0, Integer.MAX_VALUE, requestContext)
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
 
-  public CompletableFuture<List<Transaction>> getTransactions(List<BudgetExpenseClass> budgetExpenseClasses, SharedBudget budget, RequestContext requestContext) {
+  public CompletableFuture<List<Transaction>> retrieveTransactions(List<BudgetExpenseClass> budgetExpenseClasses, SharedBudget budget, RequestContext requestContext) {
     List<String> ids = budgetExpenseClasses.stream().map(BudgetExpenseClass::getExpenseClassId).collect(Collectors.toList());
     String query = String.format("fromFundId==%s AND fiscalYearId==%s AND %s", budget.getFundId(), budget.getFiscalYearId(), convertIdsToCqlQuery(ids, "expenseClassId", true));
-    return getTransactions(query, 0, Integer.MAX_VALUE, requestContext)
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
 
-  public CompletableFuture<List<Transaction>> getTransactionsByFundIds(List<String> fundIds, String fiscalYearId, RequestContext requestContext) {
+  public CompletableFuture<List<Transaction>> retrieveTransactionsByFundIds(List<String> fundIds, String fiscalYearId, RequestContext requestContext) {
     List<CompletableFuture<List<Transaction>>> futures = StreamEx
       .ofSubLists(fundIds, MAX_IDS_FOR_GET_RQ)
-      .map(ids ->  getTransactionsChunk(buildGetTransactionsQuery(fiscalYearId, ids), requestContext))
+      .map(ids ->  retrieveTransactionsChunk(buildGetTransactionsQuery(fiscalYearId, ids), requestContext))
       .collect(toList());
 
     return collectResultsOnSuccess(futures)
       .thenApply(listList -> listList.stream().flatMap(Collection::stream).collect(toList()));
   }
 
-  private CompletableFuture<List<Transaction>> getTransactionsChunk(String query, RequestContext requestContext) {
-    return getTransactions(query, 0, Integer.MAX_VALUE, requestContext)
+  private CompletableFuture<List<Transaction>> retrieveTransactionsChunk(String query, RequestContext requestContext) {
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
 
@@ -77,8 +78,22 @@ public class TransactionService {
       .thenCompose(fiscalYear -> createTransaction(transaction.withCurrency(fiscalYear.getCurrency()), requestContext));
   }
 
-  private CompletableFuture<Transaction> createTransaction(Transaction transaction, RequestContext requestContext) {
-    return transactionRestClient.post(transaction, requestContext, Transaction.class);
+  public CompletableFuture<Void> releaseTransaction(String id, RequestContext requestContext) {
+    return retrieveTransactionById(id, requestContext)
+      .thenCompose(transaction -> releaseTransaction(transaction, requestContext));
+  }
+
+  private CompletableFuture<Void> releaseTransaction(Transaction transaction, RequestContext requestContext) {
+    logger.info("Start releasing transaction {}", transaction.getId()) ;
+
+    validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
+
+    if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
+    return updateTransaction(transaction, requestContext);
   }
 
 }

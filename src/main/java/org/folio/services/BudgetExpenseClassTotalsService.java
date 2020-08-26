@@ -24,6 +24,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
 
@@ -31,12 +32,12 @@ public class BudgetExpenseClassTotalsService {
 
   private final RestClient restClient;
   private final ExpenseClassService expenseClassService;
-  private final TransactionService transactionService;
+  private final CommonTransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
 
   public BudgetExpenseClassTotalsService(RestClient restClient,
                                          ExpenseClassService expenseClassService,
-                                         TransactionService transactionService,
+                                         CommonTransactionService transactionService,
                                          BudgetExpenseClassService budgetExpenseClassService) {
     this.restClient = restClient;
     this.expenseClassService = expenseClassService;
@@ -47,7 +48,7 @@ public class BudgetExpenseClassTotalsService {
   public CompletableFuture<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
     return restClient.getById(budgetId, requestContext, Budget.class)
       .thenCompose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
-        .thenCompose(expenseClasses -> transactionService.getTransactions(budget, requestContext)
+        .thenCompose(expenseClasses -> transactionService.retrieveTransactions(budget, requestContext)
         .thenApply(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
       .thenCompose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .thenApply(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));

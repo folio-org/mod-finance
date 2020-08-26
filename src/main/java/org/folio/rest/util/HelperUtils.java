@@ -9,9 +9,10 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
-import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
+import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -35,11 +36,11 @@ import org.folio.rest.acq.model.finance.LedgerFY;
 import org.folio.rest.client.ConfigurationsClient;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
-import org.folio.rest.helper.TransactionsHelper;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.tools.client.Response;
 
 import io.vertx.core.AsyncResult;
@@ -235,11 +236,6 @@ public class HelperUtils {
 
   }
 
-  public static void handleTransactionError(TransactionsHelper helper, Handler<AsyncResult<javax.ws.rs.core.Response>> asyncResultHandler) {
-    helper.addProcessingError(INVALID_TRANSACTION_TYPE.toError());
-    asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
-  }
-
   public static boolean isErrorMessageJson(String errorMessage) {
     if (!StringUtils.isEmpty(errorMessage)) {
       Pattern pattern = Pattern.compile("(message).*(code).*(parameters)");
@@ -300,5 +296,23 @@ public class HelperUtils {
 
   public static <T> CompletableFuture<List<T>> emptyListFuture() {
     return CompletableFuture.completedFuture(Collections.emptyList());
+  }
+
+  public static void validateAmount(double doubleAmount, String fieldName) {
+    BigDecimal amount = BigDecimal.valueOf(doubleAmount);
+    if (isNegative(amount)) {
+      Parameter parameter = new Parameter().withKey("field").withValue(fieldName);
+      throw new HttpException(422, NEGATIVE_VALUE.toError().withParameters(Collections.singletonList(parameter)));
+    }
+  }
+
+  private static boolean isNegative(BigDecimal amount) {
+    return amount.compareTo(BigDecimal.ZERO) < 0;
+  }
+
+  public static CompletableFuture<Void> unsupportedOperationExceptionFuture() {
+    CompletableFuture<Void> future = new CompletableFuture<>();
+    future.completeExceptionally(new UnsupportedOperationException());
+    return future;
   }
 }

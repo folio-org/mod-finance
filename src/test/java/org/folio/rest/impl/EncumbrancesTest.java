@@ -2,6 +2,7 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static org.folio.rest.util.ErrorCodes.TRANSACTION_TYPE_MISMATCH;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.deployVerticle;
@@ -79,11 +80,11 @@ public class EncumbrancesTest {
     Transaction allocation = new JsonObject(getMockData("mockdata/transactions/allocations.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
 
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(allocation));
-    Errors errors = RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", BAD_REQUEST.getStatusCode()).then()
+    Errors errors = RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", 422).then()
       .extract()
       .as(Errors.class);
 
-    assertEquals("Transaction type mismatch. Encumbrance expected", errors.getErrors().get(0).getMessage());
+    assertEquals(TRANSACTION_TYPE_MISMATCH.getCode(), errors.getErrors().get(0).getCode());
 
   }
 

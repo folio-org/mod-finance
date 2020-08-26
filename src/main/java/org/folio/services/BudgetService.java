@@ -23,16 +23,17 @@ import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.util.ErrorCodes;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.services.transactions.CommonTransactionService;
 
 public class BudgetService {
 
   private final RestClient budgetRestClient;
-  private final TransactionService transactionService;
+  private final CommonTransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
 
   public BudgetService(RestClient budgetRestClient,
-                       TransactionService transactionService,
+                       CommonTransactionService transactionService,
                        BudgetExpenseClassService budgetExpenseClassService,
                        GroupFundFiscalYearService groupFundFiscalYearService) {
     this.budgetRestClient = budgetRestClient;

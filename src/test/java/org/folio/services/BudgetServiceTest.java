@@ -36,6 +36,7 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ public class BudgetServiceTest {
   private RestClient budgetMockRestClient;
 
   @Mock
-  private TransactionService transactionMockService;
+  private CommonTransactionService transactionMockService;
 
   @Mock
   private BudgetExpenseClassService budgetExpenseClassMockService;
