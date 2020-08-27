@@ -66,8 +66,23 @@ public class BudgetService {
 
   public CompletableFuture<Void> updateBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     return validateBudget(sharedBudget)
-      .thenCompose(aVoid -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContext))
-      .thenCompose(aVoid -> budgetRestClient.put(sharedBudget.getId(), convertToBudget(sharedBudget), requestContext));
+      .thenCompose(aVoid -> budgetRestClient.getById(sharedBudget.getId(), requestContext, Budget.class))
+      .thenApply(budgetFromStorage -> mergeBudgets(sharedBudget, budgetFromStorage))
+      .thenCompose(updatedSharedBudget -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
+        .thenCompose(aVoid -> budgetRestClient.put(updatedSharedBudget.getId(), convertToBudget(updatedSharedBudget), requestContext)));
+  }
+
+  private SharedBudget mergeBudgets(SharedBudget sharedBudget, Budget budgetFromStorage) {
+    return sharedBudget
+      .withAllocated(budgetFromStorage.getAllocated())
+      .withAvailable(budgetFromStorage.getAvailable())
+      .withUnavailable(budgetFromStorage.getUnavailable())
+      .withAwaitingPayment(budgetFromStorage.getAwaitingPayment())
+      .withExpenditures(budgetFromStorage.getExpenditures())
+      .withEncumbered(budgetFromStorage.getEncumbered())
+      .withOverEncumbrance(budgetFromStorage.getOverEncumbrance())
+      .withOverExpended(budgetFromStorage.getOverExpended())
+      .withNetTransfers(budgetFromStorage.getNetTransfers());
   }
 
   public CompletableFuture<Void> deleteBudget(String id, RequestContext requestContext) {
