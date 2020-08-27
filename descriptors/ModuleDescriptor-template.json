@@ -118,7 +118,7 @@
     },
     {
       "id": "finance.funds",
-      "version": "1.2",
+      "version": "1.3",
       "handlers": [
         {
           "methods": ["GET"],
@@ -190,6 +190,18 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.expense-classes.collection.get",
             "finance-storage.budget-expense-classes.collection.get"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/funds/{id}/budget",
+          "permissionsRequired": ["finance.funds.budget.item.get"],
+          "modulePermissions": [
+            "finance-storage.funds.item.get",
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.budgets.collection.get"
           ]
         }
       ]
@@ -761,6 +773,7 @@
         "finance.funds.item.post",
         "finance.funds.item.put",
         "finance.funds.item.delete",
+        "finance.funds.budget.item.get",
         "finance.funds.expense-classes.collection.get"
       ],
       "visible": false
@@ -1066,6 +1079,11 @@
         "finance.expense-classes.item.delete"
       ],
       "visible": false
+    },
+    {
+      "permissionName" : "finance.funds.budget.item.get",
+      "displayName" : "budget-item get",
+      "description" : "Fetch an budget for fund"
     }
   ],
   "launchDescriptor": {
