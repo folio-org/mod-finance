@@ -2,7 +2,7 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static org.folio.rest.util.ErrorCodes.TRANSACTION_TYPE_MISMATCH;
+import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.deployVerticle;
@@ -84,7 +84,7 @@ public class EncumbrancesTest {
       .extract()
       .as(Errors.class);
 
-    assertEquals(TRANSACTION_TYPE_MISMATCH.getCode(), errors.getErrors().get(0).getCode());
+    assertEquals(INVALID_TRANSACTION_TYPE.getCode(), errors.getErrors().get(0).getCode());
 
   }
 

@@ -25,8 +25,7 @@ public enum ErrorCodes {
   CURRENT_BUDGET_NOT_FOUND("currentBudgetNotFound", "Current budget doesn't exist"),
   CURRENT_FISCAL_YEAR_NOT_FOUND("currentFiscalYearNotFound", "Current fiscal year doesn't exist"),
   MISSING_FISCAL_YEAR_ID("missingFiscalYearId", "fiscalYearId must not be null"),
-  NEGATIVE_VALUE("negativeValue", "Value must be greater or equal to zero"),
-  TRANSACTION_TYPE_MISMATCH("transactionTypeMismatch", "Transaction type mismatch");
+  NEGATIVE_VALUE("negativeValue", "Value must be greater or equal to zero");
 
   private final String code;
   private final String description;

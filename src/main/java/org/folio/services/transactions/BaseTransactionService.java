@@ -12,7 +12,7 @@ import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
-import static org.folio.rest.util.ErrorCodes.TRANSACTION_TYPE_MISMATCH;
+import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 
 public class BaseTransactionService implements TransactionService {
 
@@ -46,7 +46,7 @@ public class BaseTransactionService implements TransactionService {
     if (transaction.getTransactionType() != transactionType) {
       logger.info("Transaction {} type mismatch. {} expected", transaction.getId(), transactionType) ;
       Parameter parameter = new Parameter().withKey("expected").withValue(transactionType.name());
-      throw new HttpException(422, TRANSACTION_TYPE_MISMATCH.toError().withParameters(Collections.singletonList(parameter)));
+      throw new HttpException(422, INVALID_TRANSACTION_TYPE.toError().withParameters(Collections.singletonList(parameter)));
     }
   }
 
