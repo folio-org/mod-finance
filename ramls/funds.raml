@@ -78,3 +78,11 @@ resourceTypes:
         item-collection-get:
           schema: budget
           exampleItem: !include acq-models/mod-finance/examples/budget.sample
+      get:
+        queryParameters:
+          status:
+            displayName: Status of the budget
+            type: string
+            description: Status of the budget
+            example: Active
+            required: false

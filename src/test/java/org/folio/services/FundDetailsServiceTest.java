@@ -83,7 +83,7 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Budget actBudget = fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join();
+    Budget actBudget = fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join();
     //Then
     assertThat(actBudget, equalTo(expBudget));
     verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
@@ -103,7 +103,7 @@ public class FundDetailsServiceTest {
     doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
     doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, requestContext).join());
+    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join());
   }
 
   @Test

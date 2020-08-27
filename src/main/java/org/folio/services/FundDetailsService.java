@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -27,7 +28,8 @@ import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class FundDetailsService {
   private static final Logger logger = LoggerFactory.getLogger(FundDetailsService.class);
-  private static final String ACTIVE_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
+  private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "query=fundId==%s and fiscalYearId==%s and budgetStatus==%s";
+  private static final String CURRENT_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
 
   private final CurrentFiscalYearService currentFiscalYearService;
   private final FundService fundService;
@@ -44,18 +46,18 @@ public class FundDetailsService {
     this.budgetExpenseClassService = budgetExpenseClassService;
   }
 
-  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, RequestContext rqContext) {
+  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
     return fundService.retrieveFundById(fundId, rqContext)
       .thenApply(Fund::getLedgerId)
       .thenCompose(budgetLedgerId -> getCurrentFiscalYear(budgetLedgerId, rqContext))
-      .thenApply(fundCurrFY -> buildActiveBudgetQuery(fundId, fundCurrFY.getId()))
+      .thenApply(fundCurrFY -> buildCurrentBudgetQuery(fundId, budgetStatus, fundCurrFY.getId()))
       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
       .thenApply(this::getFirstBudget);
   }
 
   public CompletableFuture<List<ExpenseClass>> retrieveCurrentExpenseClasses(String fundId, String status, RequestContext rqContext) {
     CompletableFuture<List<ExpenseClass>> future = new VertxCompletableFuture<>(rqContext.getContext());
-    retrieveCurrentBudget(fundId, rqContext)
+    retrieveCurrentBudget(fundId, null, rqContext)
       .thenCompose(currentBudget -> {
         logger.debug("Is Current budget for fund found : " + currentBudget.getId());
         return retrieveBudgetExpenseClasses(currentBudget, rqContext)
@@ -109,8 +111,9 @@ public class FundDetailsService {
       );
   }
 
-  private String buildActiveBudgetQuery(String fundId, String fundCurrFYId) {
-    return String.format(ACTIVE_BUDGET_QUERY, fundId, fundCurrFYId);
+  private String buildCurrentBudgetQuery(String fundId, String budgetStatus, String fundCurrFYId) {
+    return StringUtils.isEmpty(budgetStatus) ? String.format(CURRENT_BUDGET_QUERY, fundId, fundCurrFYId)
+      : String.format(CURRENT_BUDGET_QUERY_WITH_STATUS, fundId, fundCurrFYId, Budget.BudgetStatus.fromValue(budgetStatus).value());
   }
 
   private boolean isBudgetExpenseClassWithStatus(BudgetExpenseClass budgetExpenseClass, String status) {
