@@ -39,7 +39,8 @@
           "pathPattern": "/finance/budgets/{id}",
           "permissionsRequired": ["finance.budgets.item.put"],
           "modulePermissions": [
-            "finance-storage.budgets.item.put"
+            "finance-storage.budgets.item.put",
+            "finance-storage.budgets.item.get"
           ]
         },
         {

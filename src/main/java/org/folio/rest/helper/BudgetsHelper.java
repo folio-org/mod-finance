@@ -19,10 +19,11 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.Transaction.Source;
-import io.vertx.core.Context;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 import org.folio.rest.util.ErrorCodes;
+
+import io.vertx.core.Context;
+import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class BudgetsHelper extends AbstractHelper {
 
@@ -73,7 +74,9 @@ public class BudgetsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Void> updateBudget(Budget budget) {
-    return handleUpdateRequest(resourceByIdPath(BUDGETS, budget.getId(), lang), budget);
+    return getBudget(budget.getId())
+      .thenApply(budgetFromStorage -> mergeBudgets(budget, budgetFromStorage))
+      .thenCompose(mergedBudget -> handleUpdateRequest(resourceByIdPath(BUDGETS, mergedBudget.getId(), lang), mergedBudget));
   }
 
   public CompletableFuture<Void> deleteBudget(String id) {
@@ -108,4 +111,16 @@ public class BudgetsHelper extends AbstractHelper {
     }
     return !getProcessingErrors().getErrors().isEmpty();
   }
+
+  private Budget mergeBudgets(Budget newBudget, Budget budgetFromStorage) {
+    return newBudget
+      .withAllocated(budgetFromStorage.getAllocated())
+      .withAvailable(budgetFromStorage.getAvailable())
+      .withUnavailable(budgetFromStorage.getUnavailable())
+      .withAwaitingPayment(budgetFromStorage.getAwaitingPayment())
+      .withExpenditures(budgetFromStorage.getExpenditures())
+      .withEncumbered(budgetFromStorage.getEncumbered())
+      .withOverEncumbrance(budgetFromStorage.getOverEncumbrance())
+      .withOverExpended(budgetFromStorage.getOverExpended());
+   }
 }
