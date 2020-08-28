@@ -75,7 +75,13 @@ public class BudgetsHelper extends AbstractHelper {
 
   public CompletableFuture<Void> updateBudget(Budget budget) {
     return getBudget(budget.getId())
-      .thenApply(budgetFromStorage -> mergeBudgets(budget, budgetFromStorage))
+      .thenApply(budgetFromStorage -> {
+        Budget mergedBudget = mergeBudgets(budget, budgetFromStorage);
+        if (newAllowableAmountsExceeded(mergedBudget)) {
+          throw new HttpException(422, "Allowable amount exceed");
+        }
+        return mergedBudget;
+      })
       .thenCompose(mergedBudget -> handleUpdateRequest(resourceByIdPath(BUDGETS, mergedBudget.getId(), lang), mergedBudget));
   }
 
