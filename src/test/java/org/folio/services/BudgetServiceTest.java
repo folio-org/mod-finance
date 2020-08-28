@@ -131,14 +131,19 @@ public class BudgetServiceTest {
 
   @Test
   void testUpdateBudgetWithExceededAllowableEncumbered() {
-    sharedBudget.withAllocated(25000d)
+    sharedBudget
+      .withAllowableExpenditure(110d)
+      .withAllowableEncumbrance(1d);
+
+    Budget budgetFromStorage = new Budget()
+      .withAllocated(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
       .withEncumbered(7307.4)
-      .withExpenditures(2228.55)
-      .withAllowableExpenditure(110d)
-      .withAllowableEncumbrance(1d);
+      .withExpenditures(2228.55);
+
+    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
 
     CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
@@ -149,6 +154,7 @@ public class BudgetServiceTest {
     assertEquals(422, cause.getCode());
     assertEquals(errors, cause.getErrors());
 
+    verify(budgetMockRestClient).getById(eq(sharedBudget.getId()), eq(requestContextMock), eq(Budget.class));
     verify(budgetMockRestClient, never()).put(anyString(), any(), any());
   }
 
@@ -191,16 +197,21 @@ public class BudgetServiceTest {
     assertEquals(budgetFromStorage.getOverEncumbrance(), sharedBudget.getOverEncumbrance());
   }
 
-  @Test()
+  @Test
   void testUpdateBudgetWithExceededAllowableExpenditure() {
-    sharedBudget.withAllocated(25000d)
+    sharedBudget
+      .withAllowableEncumbrance(110d)
+      .withAllowableExpenditure(1d);
+
+    Budget budgetFromStorage = new Budget()
+      .withAllocated(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
       .withEncumbered(7307.4)
-      .withExpenditures(2228.55)
-      .withAllowableEncumbrance(110d)
-      .withAllowableExpenditure(1d);
+      .withExpenditures(2228.55);
+
+    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
 
     CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
@@ -211,6 +222,7 @@ public class BudgetServiceTest {
     assertEquals(422, cause.getCode());
     assertEquals(errors, cause.getErrors());
 
+    verify(budgetMockRestClient).getById(eq(sharedBudget.getId()), eq(requestContextMock), eq(Budget.class));
     verify(budgetMockRestClient, never()).put(anyString(), any(), any());
   }
 

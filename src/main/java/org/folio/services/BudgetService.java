@@ -65,9 +65,12 @@ public class BudgetService {
 
 
   public CompletableFuture<Void> updateBudget(SharedBudget sharedBudget, RequestContext requestContext) {
-    return validateBudget(sharedBudget)
-      .thenCompose(aVoid -> budgetRestClient.getById(sharedBudget.getId(), requestContext, Budget.class))
-      .thenApply(budgetFromStorage -> mergeBudgets(sharedBudget, budgetFromStorage))
+    return budgetRestClient.getById(sharedBudget.getId(), requestContext, Budget.class)
+      .thenApply(budgetFromStorage -> {
+        SharedBudget mergedBudget = mergeBudgets(sharedBudget, budgetFromStorage);
+        validateBudget(mergedBudget);
+        return mergedBudget;
+      })
       .thenCompose(updatedSharedBudget -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
         .thenCompose(aVoid -> budgetRestClient.put(updatedSharedBudget.getId(), convertToBudget(updatedSharedBudget), requestContext)));
   }
@@ -100,21 +103,17 @@ public class BudgetService {
     return CompletableFuture.completedFuture(createdBudget);
   }
 
-  private CompletableFuture<Void> validateBudget(Budget budget) {
-    CompletableFuture<Void> future = new CompletableFuture<>();
+  private void validateBudget(Budget budget) {
     List<Error> errors = new ArrayList<>();
 
     errors.addAll(checkRemainingEncumbrance(budget));
     errors.addAll(checkRemainingExpenditure(budget));
 
     if (!errors.isEmpty()) {
-      future.completeExceptionally(new HttpException(422, new Errors()
+      throw new HttpException(422, new Errors()
         .withErrors(errors)
-        .withTotalRecords(errors.size())));
-    } else {
-      future.complete(null);
+        .withTotalRecords(errors.size()));
     }
-    return future;
   }
 
   private List<Error> checkRemainingEncumbrance(Budget budget) {
