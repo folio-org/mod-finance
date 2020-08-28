@@ -13,6 +13,7 @@ types:
   compositeFund: !include acq-models/mod-finance/schemas/composite_fund.json
   fundsCollection: !include acq-models/mod-finance/schemas/fund_collection.json
   expenseClassCollection: !include acq-models/mod-finance/schemas/expense_class_collection.json
+  budget: !include acq-models/mod-finance/schemas/budget.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
     type: string
@@ -28,6 +29,7 @@ resourceTypes:
   collection: !include raml-util/rtypes/collection-with-json-response.raml
   collection-item: !include raml-util/rtypes/item-collection-with-json-response.raml
   collection-get: !include raml-util/rtypes/collection-get-with-json-response.raml
+  item-collection-get: !include raml-util/rtypes/item-collection-get-with-json-response.raml
 
 /finance/funds:
   displayName: Finance fund
@@ -69,5 +71,18 @@ resourceTypes:
             displayName: Status of the expense classes
             type: string
             description: Status of the expense classes
+            example: Active
+            required: false
+    /budget:
+      type:
+        item-collection-get:
+          schema: budget
+          exampleItem: !include acq-models/mod-finance/examples/budget.sample
+      get:
+        queryParameters:
+          status:
+            displayName: Status of the budget
+            type: string
+            description: Status of the budget
             example: Active
             required: false

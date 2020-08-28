@@ -47,6 +47,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -77,6 +78,7 @@ public class FundsApiTest {
   public static final String GROUP_ID_FIELD_NAME = "groupId";
   public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";
   public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
+  public static final String FUND_BUDGET_ENDPOINT = "finance/funds/%s/budget";
   private static boolean runningOnOwn;
 
   @BeforeAll
@@ -137,6 +139,15 @@ public class FundsApiTest {
 
     assertThat(getRecordById(FUND.name()), hasSize(1));
     assertThat(compositeFund.getGroupIds(), hasSize(0));
+  }
+
+  @Test
+  void testGetFundRelatedBudget() {
+    Fund fund = FUND.getMockObject().mapTo(Fund.class);
+    addMockEntry(FUND.name(), JsonObject.mapFrom(fund));
+
+    RestTestUtils.verifyGet(String.format(FUND_BUDGET_ENDPOINT, fund.getId()), APPLICATION_JSON, 200)
+      .as(Budget.class);
   }
 
   @Test

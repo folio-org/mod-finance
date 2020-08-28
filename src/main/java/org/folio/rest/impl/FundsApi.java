@@ -179,4 +179,13 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
                 .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
 
+  @Validate
+  @Override
+  public void getFinanceFundsBudgetById(String id, String status, String lang,
+    Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context ctx) {
+    fundDetailsService.retrieveCurrentBudget(id, status, new RequestContext(ctx, okapiHeaders))
+      .thenAccept(obj -> handler.handle(succeededFuture(buildOkResponse(obj))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
+  }
+
 }
