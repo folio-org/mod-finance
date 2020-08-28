@@ -67,11 +67,6 @@ public class BudgetsApi implements FinanceBudgets {
       return;
     }
 
-    if (budgetsHelper.newAllowableAmountsExceeded(budget)){
-      handler.handle(succeededFuture(budgetsHelper.buildErrorResponse(422)));
-      return;
-    }
-
     budgetsHelper.updateBudget(budget)
       .thenAccept(v -> handler.handle(succeededFuture(budgetsHelper.buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(handler, budgetsHelper, fail));
