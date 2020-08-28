@@ -153,10 +153,21 @@ public class BudgetServiceTest {
   }
 
   @Test
-  void testUpdateBudgetWithoutStatusExpenseClasses() {
+  void testUpdateBudgetWithoutStatusExpenseClassesTotalValuesShouldBeIgnored() {
+    Budget budgetFromStorage = new Budget();
+    budgetFromStorage.setAllocated(200.12);
+    budgetFromStorage.setAvailable(101.12);
+    budgetFromStorage.setUnavailable(100d);
+    budgetFromStorage.setExpenditures(55d);
+    budgetFromStorage.setAwaitingPayment(12.5);
+    budgetFromStorage.setEncumbered(42.5);
+    budgetFromStorage.setOverEncumbrance(5d);
+    budgetFromStorage.setOverExpended(5d);
+    budgetFromStorage.setNetTransfers(1d);
 
     when(budgetMockRestClient.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
 
     CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     resultFuture.join();
@@ -168,6 +179,16 @@ public class BudgetServiceTest {
 
     verify(budgetExpenseClassMockService).updateBudgetExpenseClassesLinks(eq(sharedBudget), eq(requestContextMock));
     verify(budgetMockRestClient).put(eq(sharedBudget.getId()), eq(expectedBudget), eq(requestContextMock));
+
+    assertEquals(budgetFromStorage.getAllocated(), sharedBudget.getAllocated());
+    assertEquals(budgetFromStorage.getAvailable(), sharedBudget.getAvailable());
+    assertEquals(budgetFromStorage.getUnavailable(), sharedBudget.getUnavailable());
+    assertEquals(budgetFromStorage.getEncumbered(), sharedBudget.getEncumbered());
+    assertEquals(budgetFromStorage.getExpenditures(), sharedBudget.getExpenditures());
+    assertEquals(budgetFromStorage.getAwaitingPayment(), sharedBudget.getAwaitingPayment());
+    assertEquals(budgetFromStorage.getNetTransfers(), sharedBudget.getNetTransfers());
+    assertEquals(budgetFromStorage.getOverExpended(), sharedBudget.getOverExpended());
+    assertEquals(budgetFromStorage.getOverEncumbrance(), sharedBudget.getOverEncumbrance());
   }
 
   @Test()
