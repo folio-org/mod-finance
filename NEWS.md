@@ -1,5 +1,13 @@
 ## 3.1.0 - Unreleased
 
+## 3.0.1 - Released
+Hotfix release to fix budget's totals calculations
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v3.0.0...v3.0.1)
+
+### Bud Fixes
+* [MODFIN -147](https://issues.folio.org/browse/MODFIN-147) Budget allocation calculation out of sync with transaction log
+
 ## 3.0.0 - Released
 The primary focus of this release was to implement exchange rate API and bug fixing.
 Also **major versions of APIs** were changed for **finance.transactions** and **finance.invoice-transaction-summaries**
