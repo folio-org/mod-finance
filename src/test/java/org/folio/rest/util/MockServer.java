@@ -252,7 +252,7 @@ public class MockServer {
     router.route(HttpMethod.PUT, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
-      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.TRANSACTIONS.name()));
+      .handler(ctx -> handleTransactionPutEntry(ctx, Transaction.class));
     router.route(HttpMethod.PUT, resourceByIdPath(ORDER_TRANSACTION_SUMMARIES))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
@@ -604,6 +604,40 @@ public class MockServer {
 
   private String resourceByIdPath(String field) {
     return resourcesPath(field) + ID_PATH_PARAM;
+  }
+
+  private <T> void handleTransactionPutEntry(RoutingContext ctx, Class<T> tClass) {
+    logger.info("got: " + ctx.getBodyAsString());
+
+    String tenant = ctx.request()
+      .getHeader(OKAPI_HEADER_TENANT);
+    if (ERROR_TENANT.equals(tenant)) {
+      serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else {
+      JsonObject body = ctx.getBodyAsJson();
+      if (body.getString(ID) == null) {
+        body.put(ID, UUID.randomUUID()
+          .toString());
+      }
+      T entry = body.mapTo(tClass);
+      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+
+      if (ID_DOES_NOT_EXIST.equals(t.getId())) {
+        serverResponse(ctx, 404, APPLICATION_JSON, t.getId());
+        return;
+      } else if (t.getId().equals(ID_FOR_INTERNAL_SERVER_ERROR)) {
+        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+        return;
+      }
+      if (t.getTransactionType() == Transaction.TransactionType.PENDING_PAYMENT) {
+        addServerRqRsData(HttpMethod.PUT, TestEntities.TRANSACTIONS_PENDING_PAYMENT.name(), body);
+      } else {
+        addServerRqRsData(HttpMethod.PUT, TestEntities.TRANSACTIONS.name(), body);
+      }
+
+      serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry)
+        .encodePrettily());
+    }
   }
 
   private <T> void handleTransactionPostEntry(RoutingContext ctx, Class<T> tClass) {

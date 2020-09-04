@@ -14,6 +14,7 @@ import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.jaxrs.resource.Finance;
 import org.folio.services.transactions.TransactionService;
 import org.folio.services.transactions.TransactionStrategyFactory;
@@ -127,6 +128,21 @@ public class TransactionsApi extends BaseApi implements Finance {
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.PENDING_PAYMENT, pendingPayment, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(transaction -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, transaction.getId()), transaction))))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
+
+  @Override
+  public void putFinancePendingPaymentsById(String id, String lang, Transaction pendingPayment,
+    Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    if (isEmpty(pendingPayment.getId())) {
+      pendingPayment.setId(id);
+    } else if (!id.equals(pendingPayment.getId())) {
+      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
+      return;
+    }
+    transactionStrategyFactory.updateTransaction(
+      TransactionType.PENDING_PAYMENT, pendingPayment, new RequestContext(vertxContext, okapiHeaders))
+      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
