@@ -403,7 +403,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "4.0",
+      "version": "4.1",
       "handlers": [
         {
           "methods": ["POST"],
@@ -453,6 +453,14 @@
           "permissionsRequired": ["finance.pending-payments.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/pending-payments/{id}",
+          "permissionsRequired": ["finance.pending-payments.item.put"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put"
           ]
         },
         {
@@ -960,6 +968,11 @@
       "description" : "Create a new pending payment"
     },
     {
+      "permissionName" : "finance.pending-payments.item.put",
+      "displayName" : "Pending payments - update a transaction of type pending payment",
+      "description" : "Update a pending payment"
+    },
+    {
       "permissionName" : "finance.credits.item.post",
       "displayName" : "Credits - create a new transaction of type credit",
       "description" : "Create a new credit"
@@ -985,6 +998,7 @@
         "finance.transfers.item.post",
         "finance.payments.item.post",
         "finance.pending-payments.item.post",
+        "finance.pending-payments.item.put",
         "finance.credits.item.post",
         "finance.transactions.collection.get",
         "finance.transactions.item.get",

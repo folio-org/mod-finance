@@ -23,6 +23,7 @@ traits:
 
 resourceTypes:
   post-with-201: !include rtypes/post-json-201.raml
+  put-json: !include rtypes/post-put-json.raml
   get-only: !include raml-util/rtypes/get-only-with-json-response.raml
   collection-item-get: !include raml-util/rtypes/item-collection-get-with-json-response.raml
 
@@ -99,6 +100,17 @@ resourceTypes:
       is: [validate]
       post:
         description: Create a pending payment by transaction
+
+      /{id}:
+        displayName: Update a transaction pending payment
+        description: Update a pending payment
+        type:
+          put-json:
+            schemaItem: transaction
+            exampleItem: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
+        is: [validate]
+        put:
+          description: Update a pending payment by transaction
 
   /credits:
     displayName: Create a transaction credit

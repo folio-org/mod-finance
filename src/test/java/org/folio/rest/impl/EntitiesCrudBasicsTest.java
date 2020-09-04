@@ -132,8 +132,8 @@ public class EntitiesCrudBasicsTest {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
-    return getTestEntitiesWithGetByIdEndpoint()
-      .filter(e -> !e.equals(TRANSACTIONS));
+    return Stream.concat(getTestEntitiesWithGetByIdEndpoint()
+      .filter(e -> !e.equals(TRANSACTIONS)), Stream.of(TRANSACTIONS_PENDING_PAYMENT));
   }
 
   /**
@@ -433,8 +433,11 @@ public class EntitiesCrudBasicsTest {
     // remove "metadata" before comparing
     JsonObject entry = rqRsEntries.get(0);
     entry.remove("metadata");
+    entry.remove(ignoreProperties);
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
-    assertThat(recordToStorage, SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz()), ignoreProperties));
+
+    record.remove(ignoreProperties);
+    assertThat(recordToStorage, SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz())));
   }
 
 }
