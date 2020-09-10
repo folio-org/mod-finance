@@ -67,5 +67,26 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
         .buildResponseWithLocation(String.format(INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX, invoiceTxSummary.getId()), invoiceTxSummary))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
+
+  @Override
+  @Validate
+  public void putFinanceInvoiceTransactionSummariesById(String id, String lang, InvoiceTransactionSummary entity,
+      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
+
+    // Set id if this is available only in path
+    if (isEmpty(entity.getId())) {
+      entity.setId(id);
+    } else if (!id.equals(entity.getId())) {
+      helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
+      asyncResultHandler.handle(succeededFuture(helper.buildErrorResponse(422)));
+      return;
+    }
+
+    helper.updateInvoiceTransactionSummary(entity)
+      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+  }
+
 }
 
