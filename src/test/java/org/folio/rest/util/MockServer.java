@@ -6,6 +6,7 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.TestConstants.BAD_QUERY;
 import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
 import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
@@ -255,6 +256,8 @@ public class MockServer {
       .handler(ctx -> handleTransactionPutEntry(ctx, Transaction.class));
     router.route(HttpMethod.PUT, resourceByIdPath(ORDER_TRANSACTION_SUMMARIES))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.EXPENSE_CLASSES.name()));
     return router;

@@ -60,4 +60,9 @@ public class TransactionSummariesHelper extends AbstractHelper {
     return VertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
       .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId(), lang), orderSummary));
   }
+
+  public CompletableFuture<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
+    return VertxCompletableFuture.runAsync(ctx, () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
+      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId(), lang), invoiceSummary));
+  }
 }

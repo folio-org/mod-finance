@@ -377,7 +377,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY","INVOICE_TRANSACTION_SUMMARY"})
+  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY", "INVOICE_TRANSACTION_SUMMARY"})
   void testPostRecordMinimumValidation(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 
@@ -387,7 +387,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY"})
+  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY", "INVOICE_TRANSACTION_SUMMARY"})
   void testPutRecordMinimumValidation(TestEntities testEntity) {
     logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
 

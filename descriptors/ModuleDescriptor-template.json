@@ -537,7 +537,7 @@
     },
     {
     "id": "finance.invoice-transaction-summaries",
-      "version": "2.0",
+      "version": "2.1",
       "handlers": [
         {
           "methods": ["POST"],
@@ -545,6 +545,14 @@
           "permissionsRequired": ["finance.invoice-transaction-summaries.item.post"],
           "modulePermissions": [
             "finance-storage.invoice-transaction-summaries.item.post"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/invoice-transaction-summaries/{id}",
+          "permissionsRequired": ["finance.invoice-transaction-summaries.item.put"],
+          "modulePermissions": [
+            "finance-storage.invoice-transaction-summaries.item.put"
           ]
         }
       ]
@@ -1031,6 +1039,11 @@
       "description" : "Post Invoice Transaction Summary"
     },
     {
+      "permissionName" : "finance.invoice-transaction-summaries.item.put",
+      "displayName" : "Finances - Put Invoice transaction Summaries",
+      "description" : "Put Invoice Transaction Summary"
+    },
+    {
       "permissionName" : "finance.exchange-rate.item.get",
       "displayName" : "Finances - Exchange Rate",
       "description" : "Get Exchange Rate"
@@ -1052,6 +1065,7 @@
         "finance.order-transaction-summaries.item.post",
         "finance.order-transaction-summaries.item.put",
         "finance.invoice-transaction-summaries.item.post",
+        "finance.invoice-transaction-summaries.item.put",
         "finance.exchange-rate.item.get",
         "finance.expense-classes.all"
       ],

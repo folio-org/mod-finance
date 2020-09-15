@@ -37,7 +37,7 @@ resourceTypes:
       description: Create a new order transaction summary, for an order with number of transactions(encumbrances)
 
     /{id}:
-      displayName: Create a transaction allocation
+      displayName: Create a transaction summary
       description: Create a new order transaction summary
       type:
         put-json:
@@ -60,3 +60,13 @@ resourceTypes:
     is: [validate]
     post:
       description: Create a new invoice transaction summary, for an order with number of transactions(encumbrances) and number of payment credits
+    /{id}:
+      displayName: Update a transaction summary
+      description: Update a new invoice transaction summary
+      type:
+        put-json:
+          schemaItem: invoice-transaction-summary
+          exampleItem: !include acq-models/mod-finance/examples/invoice_transaction_summary.sample
+      is: [validate]
+      put:
+        description: Updated invoice transaction summary, for an invoice with number of pending payments and number of payment/credits
