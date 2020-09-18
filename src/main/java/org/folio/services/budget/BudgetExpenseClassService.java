@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.function.UnaryOperator.identity;

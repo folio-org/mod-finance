@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,6 +23,9 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.ExpenseClassService;
+import org.folio.services.budget.BudgetExpenseClassService;
+import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

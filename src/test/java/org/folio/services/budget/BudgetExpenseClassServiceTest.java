@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static java.util.Collections.emptyList;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClass.Status.INACTIVE;
@@ -42,6 +42,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

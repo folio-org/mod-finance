@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class CurrentFiscalYearService {
+public class LedgerDetailsService {
 
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
@@ -19,31 +19,48 @@ public class CurrentFiscalYearService {
   private final LedgerService ledgerService;
 
 
-  public CurrentFiscalYearService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
+  public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
     this.fiscalYearService = fiscalYearService;
     this.ledgerService = ledgerService;
   }
 
-  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
-    return getFirstTwoFiscalYears(ledgerId, requestContext)
+  public CompletableFuture<FiscalYear> getLedgerCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
+    return getFirstThreeFiscalYears(ledgerId, requestContext)
+      .thenApply(this::defineCurrentFiscalYear);
+  }
+
+  public CompletableFuture<FiscalYear> getLedgerPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
+    return getFirstThreeFiscalYears(ledgerId, requestContext)
       .thenApply(firstTwoFiscalYears -> {
-        if(CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
-          if(firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
-            return firstTwoFiscalYears.get(1);
-          } else {
-            return firstTwoFiscalYears.get(0);
-          }
-        } else {
-          return null;
-        }
+         FiscalYear curFY = defineCurrentFiscalYear(firstTwoFiscalYears);
+         int size = firstTwoFiscalYears.size();
+         int curIndex = firstTwoFiscalYears.indexOf(curFY);
+         int nextIndex = curIndex + 1;
+         if (curFY != null && nextIndex != size && size > 1) {
+           return firstTwoFiscalYears.get(curIndex + 1);
+         } else {
+           return null;
+         }
       });
   }
 
-  private CompletableFuture<List<FiscalYear>> getFirstTwoFiscalYears(String ledgerId, RequestContext requestContext) {
+  private FiscalYear defineCurrentFiscalYear(List<FiscalYear> firstTwoFiscalYears) {
+    if (CollectionUtils.isNotEmpty(firstTwoFiscalYears)) {
+      if (firstTwoFiscalYears.size() > 1 && isOverlapped(firstTwoFiscalYears.get(0), firstTwoFiscalYears.get(1))) {
+        return firstTwoFiscalYears.get(1);
+      } else {
+        return firstTwoFiscalYears.get(0);
+      }
+    } else {
+      return null;
+    }
+  }
+
+  private CompletableFuture<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
       .thenCompose(ledger -> fiscalYearService.getFiscalYear(ledger.getFiscalYearOneId(), requestContext))
       .thenApply(this::buildCurrentFYQuery)
-      .thenCompose(query -> fiscalYearService.getFiscalYears(2, 0, query, requestContext))
+      .thenCompose(query -> fiscalYearService.getFiscalYears(3, 0, query, requestContext))
       .thenApply(FiscalYearsCollection::getFiscalYears);
   }
 

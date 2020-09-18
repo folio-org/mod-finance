@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
@@ -23,6 +23,9 @@ import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.util.ErrorCodes;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.services.FundDetailsService;
+import org.folio.services.LedgerDetailsService;
+import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
 
 public class BudgetService {
@@ -31,15 +34,18 @@ public class BudgetService {
   private final CommonTransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
+  private final FundDetailsService fundDetailsService;
 
   public BudgetService(RestClient budgetRestClient,
                        CommonTransactionService transactionService,
                        BudgetExpenseClassService budgetExpenseClassService,
-                       GroupFundFiscalYearService groupFundFiscalYearService) {
+                       GroupFundFiscalYearService groupFundFiscalYearService,
+                       FundDetailsService fundDetailsService) {
     this.budgetRestClient = budgetRestClient;
     this.transactionService = transactionService;
     this.budgetExpenseClassService = budgetExpenseClassService;
     this.groupFundFiscalYearService = groupFundFiscalYearService;
+    this.fundDetailsService = fundDetailsService;
   }
 
   public CompletableFuture<BudgetsCollection> getBudgets(String query, int offset, int limit, RequestContext requestContext) {
@@ -55,12 +61,17 @@ public class BudgetService {
   public CompletableFuture<SharedBudget> createBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     double allocatedValue = sharedBudget.getAllocated();
     sharedBudget.setAllocated(0d);
-    return budgetRestClient.post(convertToBudget(sharedBudget), requestContext, Budget.class)
+    return
+      budgetRestClient.post(convertToBudget(sharedBudget), requestContext, Budget.class)
       .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
       .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
         .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(convertToSharedBudget(createdBudget)
           .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()), requestContext))
         .thenApply(aVoid -> convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
+  }
+
+  private CompletableFuture<Budget> createNewBudget(SharedBudget sharedBudget, RequestContext requestContext) {
+    return budgetRestClient.post(convertToBudget(sharedBudget), requestContext, Budget.class);
   }
 
 

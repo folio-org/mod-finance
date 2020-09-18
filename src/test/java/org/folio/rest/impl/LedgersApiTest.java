@@ -5,7 +5,6 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
@@ -48,7 +47,7 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.util.TestEntities;
-import org.folio.services.CurrentFiscalYearService;
+import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -71,7 +70,7 @@ public class LedgersApiTest {
   @Autowired
   public LedgerService ledgerMockService;
   @Autowired
-  public CurrentFiscalYearService currentFiscalYearMockService;
+  public LedgerDetailsService currentFiscalYearMockService;
 
   @BeforeAll
   static void init() throws InterruptedException, ExecutionException, TimeoutException {
@@ -311,8 +310,8 @@ public class LedgersApiTest {
     }
 
     @Bean
-    public CurrentFiscalYearService currentFiscalYearService() {
-      return mock(CurrentFiscalYearService.class);
+    public LedgerDetailsService currentFiscalYearService() {
+      return mock(LedgerDetailsService.class);
     }
   }
 

@@ -15,8 +15,8 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
-import org.folio.services.BudgetExpenseClassTotalsService;
-import org.folio.services.BudgetService;
+import org.folio.services.budget.BudgetExpenseClassTotalsService;
+import org.folio.services.budget.BudgetService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

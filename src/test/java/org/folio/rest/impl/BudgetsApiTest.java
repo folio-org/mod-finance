@@ -14,7 +14,6 @@ import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELET
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,8 +50,8 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
-import org.folio.services.BudgetExpenseClassTotalsService;
-import org.folio.services.BudgetService;
+import org.folio.services.budget.BudgetExpenseClassTotalsService;
+import org.folio.services.budget.BudgetService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;

@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
@@ -36,6 +36,9 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.budget.BudgetExpenseClassService;
+import org.folio.services.budget.BudgetService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;

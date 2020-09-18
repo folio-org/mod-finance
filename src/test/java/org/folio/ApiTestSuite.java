@@ -19,9 +19,10 @@ import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgersApiTest;
 import org.folio.rest.impl.TransactionApiTest;
 import org.folio.rest.util.HelperUtilsTest;
-import org.folio.services.BudgetExpenseClassServiceTest;
-import org.folio.services.BudgetExpenseClassTotalsServiceTest;
-import org.folio.services.BudgetServiceTest;
+import org.folio.services.LedgerDetailsServiceTest;
+import org.folio.services.budget.BudgetExpenseClassServiceTest;
+import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
+import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
 import org.folio.services.FundDetailsServiceTest;
 import org.folio.services.GroupExpenseClassTotalsServiceTest;
@@ -134,4 +135,7 @@ public class ApiTestSuite {
   class LedgerTotalsServiceTestNested extends LedgerTotalsServiceTest {
   }
 
+  @Nested
+  class LedgerDetailsServiceTestNested extends LedgerDetailsServiceTest {
+  }
 }
