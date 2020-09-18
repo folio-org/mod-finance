@@ -650,7 +650,7 @@
     },
     {
       "id": "finance-storage.ledgers",
-      "version": "2.3"
+      "version": "3.0"
     },
     {
      "id": "finance-storage.transactions",
