@@ -38,7 +38,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 
 public class FundDetailsServiceTest {
-  private static final String X_ACTIVE_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
+  private static final String X_ACTIVE_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
   private RequestContext requestContext;
 
