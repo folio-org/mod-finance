@@ -94,7 +94,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<CompositeFund> createFund(CompositeFund compositeFund) {
     final Fund fund = compositeFund.getFund();
     if (CollectionUtils.isNotEmpty(compositeFund.getGroupIds())) {
-      return ledgerDetailsService.getLedgerCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
+      return ledgerDetailsService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
         .thenCompose(fiscalYear -> {
           if (Objects.isNull(fiscalYear)) {
             throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
@@ -144,7 +144,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {
     return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
-      .thenCompose(compositeFund -> ledgerDetailsService.getLedgerCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
+      .thenCompose(compositeFund -> ledgerDetailsService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
           .thenCompose(currentFY -> Objects.isNull(currentFY) ? CompletableFuture.completedFuture(null)
               : getGroupIdsThatFundBelongs(id, currentFY.getId()))
           .thenApply(compositeFund::withGroupIds));
@@ -221,7 +221,7 @@ public class FundsHelper extends AbstractHelper {
     Fund fund = compositeFund.getFund();
     Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
 
-    return ledgerDetailsService.getLedgerCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
+    return ledgerDetailsService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
       .thenCompose(currentFiscalYear-> {
         if(Objects.nonNull(currentFiscalYear)) {
           String currentFiscalYearId = currentFiscalYear.getId();

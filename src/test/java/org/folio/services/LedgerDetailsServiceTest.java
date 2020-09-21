@@ -73,7 +73,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYear(curFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerCurrentFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
     assertThat(actFY.getId(), equalTo(fiscalYear.getId()));
   }
@@ -104,7 +104,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerCurrentFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
     assertThat(actFY.getId(), equalTo(secfiscalYear.getId()));
   }
@@ -135,7 +135,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerCurrentFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
     assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
   }
@@ -166,7 +166,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerPlannedFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then
     assertThat(actFY.getId(), equalTo(nextfiscalYear.getId()));
   }
@@ -192,7 +192,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerPlannedFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then
     assertNull(actFY);
   }
@@ -223,7 +223,7 @@ public class LedgerDetailsServiceTest {
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
     doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getLedgerPlannedFiscalYear(ledgerId, requestContext).join();
+    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then
     assertNull(actFY);
   }

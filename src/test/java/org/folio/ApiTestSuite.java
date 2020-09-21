@@ -30,6 +30,7 @@ import org.folio.services.GroupFundFiscalYearServiceTest;
 import org.folio.services.LedgerServiceTest;
 import org.folio.services.LedgerTotalsServiceTest;
 import org.folio.services.CommonTransactionServiceTest;
+import org.folio.services.budget.CreateBudgetServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -137,5 +138,9 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerDetailsServiceTestNested extends LedgerDetailsServiceTest {
+  }
+
+  @Nested
+  class CreateBudgetServiceTestNested extends CreateBudgetServiceTest {
   }
 }

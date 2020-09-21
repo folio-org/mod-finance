@@ -15,7 +15,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.util.HelperUtils;
-import org.folio.services.FundDetailsService;
+import org.folio.services.fund.FundDetailsService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

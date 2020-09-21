@@ -102,7 +102,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   @Override
   public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
 
-    ledgerDetailsService.getLedgerCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
+    ledgerDetailsService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(currentFiscalYear -> {
         if(Objects.nonNull(currentFiscalYear)) {
           handler.handle(succeededFuture(buildOkResponse(currentFiscalYear)));

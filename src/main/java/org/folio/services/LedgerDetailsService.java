@@ -24,12 +24,12 @@ public class LedgerDetailsService {
     this.ledgerService = ledgerService;
   }
 
-  public CompletableFuture<FiscalYear> getLedgerCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
+  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
     return getFirstThreeFiscalYears(ledgerId, requestContext)
       .thenApply(this::defineCurrentFiscalYear);
   }
 
-  public CompletableFuture<FiscalYear> getLedgerPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
+  public CompletableFuture<FiscalYear> getPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
     return getFirstThreeFiscalYears(ledgerId, requestContext)
       .thenApply(firstTwoFiscalYears -> {
          FiscalYear curFY = defineCurrentFiscalYear(firstTwoFiscalYears);

@@ -11,7 +11,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
-import org.folio.services.FundService;
+import org.folio.services.fund.FundService;
 
 public class TransactionRestrictService {
 

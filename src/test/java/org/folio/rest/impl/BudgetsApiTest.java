@@ -52,6 +52,7 @@ import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.budget.CreateBudgetService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,6 +74,8 @@ public class BudgetsApiTest  {
   public BudgetExpenseClassTotalsService budgetExpenseClassTotalsMockService;
   @Autowired
   public BudgetService budgetMockService;
+  @Autowired
+  public CreateBudgetService mockCreateBudgetService;
 
   private static boolean runningOnOwn;
 
@@ -108,13 +111,13 @@ public class BudgetsApiTest  {
   void postBudget() {
     SharedBudget budget = TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class);
 
-    when(budgetMockService.createBudget(any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
+    when(mockCreateBudgetService.createBudget(any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
 
     SharedBudget resultBudget = RestTestUtils.verifyPostResponse(TestEntities.BUDGET.getEndpoint(), budget, APPLICATION_JSON, CREATED.getStatusCode()).as(SharedBudget.class);
 
 
     assertEquals(budget, resultBudget);
-    verify(budgetMockService).createBudget(refEq(budget, "metadata"), any());
+    verify(mockCreateBudgetService).createBudget(refEq(budget, "metadata"), any());
   }
 
   @Test
@@ -122,13 +125,13 @@ public class BudgetsApiTest  {
     CompletableFuture<SharedBudget> errorFuture = new CompletableFuture<>();
     errorFuture.completeExceptionally(new HttpException(INTERNAL_SERVER_ERROR.getStatusCode(), GENERIC_ERROR_CODE));
 
-    when(budgetMockService.createBudget(any(), any())).thenReturn(errorFuture);
+    when(mockCreateBudgetService.createBudget(any(), any())).thenReturn(errorFuture);
 
     Errors errors = RestTestUtils.verifyPostResponse(TestEntities.BUDGET.getEndpoint(), TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class), APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
     assertEquals(GENERIC_ERROR_CODE.toError(), errors.getErrors().get(0));
-    verify(budgetMockService).createBudget(any(), any());
+    verify(mockCreateBudgetService).createBudget(any(), any());
   }
 
   @Test
