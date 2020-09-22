@@ -1,5 +1,6 @@
 package org.folio.services.budget;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -8,7 +9,9 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.util.BudgetUtils;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.ExpenseClassConverterUtils;
@@ -16,8 +19,12 @@ import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 public class CreateBudgetService {
+  private static final Logger LOG = LoggerFactory.getLogger(CreateBudgetService.class);
+
   private final RestClient budgetRestClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final FundFiscalYearService fundFiscalYearService;
@@ -68,7 +75,10 @@ public class CreateBudgetService {
                                .thenCompose(currBudget -> {
                                  if (currBudget != null) {
                                  return  budgetExpenseClassService.getBudgetExpenseClasses(currBudget.getId(),  requestContext)
-                                                     .thenApply(ExpenseClassConverterUtils::buildStatusExpenseClassList)
+                                                     .thenApply(budgetExpenseClass -> {
+                                                       LOG.info("budgetExpenseClass : " + budgetExpenseClass.size());
+                                                       return ExpenseClassConverterUtils.buildStatusExpenseClassList(budgetExpenseClass);
+                                                     })
                                                      .thenApply(sharedBudget::withStatusExpenseClasses)
                                                      .thenCompose(updatedSharedBudget -> createNewBudget(updatedSharedBudget, requestContext));
                                  }
@@ -82,11 +92,31 @@ public class CreateBudgetService {
     double allocatedValue = sharedBudget.getAllocated();
     sharedBudget.setAllocated(0d);
     return budgetRestClient.post(BudgetUtils.convertToBudget(sharedBudget), requestContext, Budget.class)
+      .thenApply(budget -> {
+        LOG.info("BudgetId : " + budget.getId());
+        return budget;
+      })
       .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
+      .thenApply(createdBudget -> {
+        LOG.info("Allocated transaction : " + createdBudget.getId());
+        return createdBudget;
+      })
       .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
-        .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(BudgetUtils.convertToSharedBudget(createdBudget)
-          .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()), requestContext))
-        .thenApply(aVoid -> BudgetUtils.convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
+                                          .thenApply(v -> {
+                                            LOG.info("updateBudgetIdForGroupFundFiscalYears : " + createdBudget.getId());
+                                            return null;
+                                          })
+                                          .thenCompose(aVoid -> {
+                                                   LOG.info("createBudgetExpenseClasses : " + createdBudget.getId());
+                                                   SharedBudget sharedBudget1 = BudgetUtils.convertToSharedBudget(createdBudget);
+                                                    sharedBudget1.withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses());
+                                              return CompletableFuture.completedFuture(null);//budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget1, requestContext);
+                                          })
+                                          .thenApply(aVoid -> {
+                                            LOG.info("last : " + createdBudget.getId());
+                                            return BudgetUtils.convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses());
+                                          })
+      );
   }
 
 }
