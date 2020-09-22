@@ -105,6 +105,7 @@ public class BudgetsApiTest  {
   void resetMocks() {
     reset(budgetExpenseClassTotalsMockService);
     reset(budgetMockService);
+    reset(mockCreateBudgetService);
   }
 
   @Test
@@ -316,6 +317,11 @@ public class BudgetsApiTest  {
     @Bean
     public BudgetService budgetService() {
       return mock(BudgetService.class);
+    }
+
+    @Bean
+    public CreateBudgetService createBudgetService() {
+      return mock(CreateBudgetService.class);
     }
   }
 
