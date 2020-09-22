@@ -28,8 +28,8 @@ import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
 public class FundDetailsService {
   private static final Logger logger = LoggerFactory.getLogger(FundDetailsService.class);
-  private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "query=fundId==%s and fiscalYearId==%s and budgetStatus==%s";
-  private static final String CURRENT_BUDGET_QUERY = "query=fundId==%s and fiscalYearId==%s";
+  private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
+  private static final String CURRENT_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
   private final BudgetService budgetService;
   private final ExpenseClassService expenseClassService;
