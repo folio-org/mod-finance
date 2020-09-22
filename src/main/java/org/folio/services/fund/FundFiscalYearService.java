@@ -1,7 +1,6 @@
 package org.folio.services.fund;
 
 import static org.folio.rest.util.ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.PLANNED_FISCAL_YEAR_NOT_FOUND;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;

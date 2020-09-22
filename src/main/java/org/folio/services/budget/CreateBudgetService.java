@@ -1,7 +1,5 @@
 package org.folio.services.budget;
 
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -9,9 +7,7 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.util.BudgetUtils;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.ExpenseClassConverterUtils;
@@ -19,6 +15,7 @@ import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
+
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
