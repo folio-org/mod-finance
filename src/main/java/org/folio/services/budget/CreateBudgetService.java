@@ -16,12 +16,7 @@ import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-
 public class CreateBudgetService {
-  private static final Logger LOG = LoggerFactory.getLogger(CreateBudgetService.class);
-
   private final RestClient budgetRestClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final FundFiscalYearService fundFiscalYearService;
