@@ -68,52 +68,29 @@ public class CreateBudgetService {
 
   private CompletableFuture<SharedBudget> createPlannedBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     if (CollectionUtils.isEmpty(sharedBudget.getStatusExpenseClasses())) {
-      return fundDetailsService.retrieveCurrentBudget(sharedBudget.getFundId(), null, requestContext)
+      return fundDetailsService.retrieveCurrentBudget(sharedBudget.getFundId(), null, true, requestContext)
                                .thenCompose(currBudget -> {
                                  if (currBudget != null) {
                                  return  budgetExpenseClassService.getBudgetExpenseClasses(currBudget.getId(),  requestContext)
-                                                     .thenApply(budgetExpenseClass -> {
-                                                       LOG.info("budgetExpenseClass : " + budgetExpenseClass.size());
-                                                       return ExpenseClassConverterUtils.buildStatusExpenseClassList(budgetExpenseClass);
-                                                     })
+                                                     .thenApply(ExpenseClassConverterUtils::buildStatusExpenseClassList)
                                                      .thenApply(sharedBudget::withStatusExpenseClasses)
                                                      .thenCompose(updatedSharedBudget -> createNewBudget(updatedSharedBudget, requestContext));
                                  }
-                                 return CompletableFuture.completedFuture(sharedBudget);
+                                 return createNewBudget(sharedBudget, requestContext);
                                });
     }
-    return CompletableFuture.completedFuture(sharedBudget);
+    return createNewBudget(sharedBudget, requestContext);
   }
 
   public CompletableFuture<SharedBudget> createNewBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     double allocatedValue = sharedBudget.getAllocated();
     sharedBudget.setAllocated(0d);
     return budgetRestClient.post(BudgetUtils.convertToBudget(sharedBudget), requestContext, Budget.class)
-      .thenApply(budget -> {
-        LOG.info("BudgetId : " + budget.getId());
-        return budget;
-      })
-      .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
-      .thenApply(createdBudget -> {
-        LOG.info("Allocated transaction : " + createdBudget.getId());
-        return createdBudget;
-      })
-      .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
-                                          .thenApply(v -> {
-                                            LOG.info("updateBudgetIdForGroupFundFiscalYears : " + createdBudget.getId());
-                                            return null;
-                                          })
-                                          .thenCompose(aVoid -> {
-                                                   LOG.info("createBudgetExpenseClasses : " + createdBudget.getId());
-                                                   SharedBudget sharedBudget1 = BudgetUtils.convertToSharedBudget(createdBudget);
-                                                    sharedBudget1.withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses());
-                                              return CompletableFuture.completedFuture(null);//budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget1, requestContext);
-                                          })
-                                          .thenApply(aVoid -> {
-                                            LOG.info("last : " + createdBudget.getId());
-                                            return BudgetUtils.convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses());
-                                          })
-      );
+                           .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
+                           .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
+                                          .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContext))
+                                          .thenApply(aVoid -> BudgetUtils.convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()))
+    );
   }
 
 }

@@ -1,6 +1,7 @@
 package org.folio.services.fund;
 
 import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
+import static org.folio.rest.util.HelperUtils.EXCEPTION_CALLING_ENDPOINT_MSG;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
 
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
@@ -42,6 +44,25 @@ public class FundDetailsService {
     this.expenseClassService = expenseClassService;
     this.budgetExpenseClassService = budgetExpenseClassService;
     this.fundFiscalYearService = fundFiscalYearService;
+  }
+
+  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException, RequestContext rqContext) {
+    CompletableFuture<Budget> future = new CompletableFuture<>();
+    retrieveCurrentBudget(fundId, budgetStatus, rqContext)
+      .handle((currBudget, t) -> {
+        if (t != null) {
+          logger.error("Failed to retrieve current budget", t.getCause());
+          if (skipThrowException) {
+            future.complete(null);
+          } else {
+            future.completeExceptionally(t.getCause());
+          }
+        } else {
+          future.complete(currBudget);
+        }
+        return null;
+      });
+    return future;
   }
 
   public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
