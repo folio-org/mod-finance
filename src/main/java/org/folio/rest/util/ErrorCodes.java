@@ -26,7 +26,8 @@ public enum ErrorCodes {
   CURRENT_FISCAL_YEAR_NOT_FOUND("currentFiscalYearNotFound", "Current fiscal year doesn't exist"),
   PLANNED_FISCAL_YEAR_NOT_FOUND("plannedFiscalYearNotFound", "Planned fiscal year doesn't exist"),
   MISSING_FISCAL_YEAR_ID("missingFiscalYearId", "fiscalYearId must not be null"),
-  NEGATIVE_VALUE("negativeValue", "Value must be greater or equal to zero");
+  NEGATIVE_VALUE("negativeValue", "Value must be greater or equal to zero"),
+  FUND_NOT_FOUND_ERROR("fundNotFoundError", "Fund with UUID %s does not exist");
 
   private final String code;
   private final String description;

@@ -1,12 +1,17 @@
 package org.folio.services.budget;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.util.BudgetUtils;
 import org.folio.rest.util.ErrorCodes;
@@ -15,6 +20,9 @@ import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
+import static org.folio.rest.RestConstants.BAD_REQUEST;
+import static org.folio.rest.RestConstants.NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
 
 public class CreateBudgetService {
   private final RestClient budgetRestClient;
@@ -47,7 +55,24 @@ public class CreateBudgetService {
                                } else {
                                  return createNewBudget(sharedBudget, requestContext);
                                }
+                             })
+                             .exceptionally(t -> {
+                               if (t.getCause() instanceof HttpException ) {
+                                 processHttpException((HttpException) t.getCause());
+                               }
+                               throw new CompletionException(t.getCause());
                              });
+  }
+
+  private void processHttpException(HttpException httpException) {
+   Error error = Optional.ofNullable(httpException.getErrors())
+                        .map(Errors::getErrors)
+                        .filter(errors -> !CollectionUtils.isEmpty(errors))
+                        .map(errors -> errors.get(0))
+                        .orElseThrow(() -> new CompletionException(httpException));
+    if (NOT_FOUND == httpException.getCode() && FUND_NOT_FOUND_ERROR.getCode().equals(error.getCode())) {
+      throw new CompletionException(new HttpException(BAD_REQUEST, httpException.getErrors()));
+    }
   }
 
   private CompletableFuture<Budget> allocateToBudget(Budget createdBudget, RequestContext requestContext) {
@@ -87,5 +112,4 @@ public class CreateBudgetService {
                                           .thenApply(aVoid -> BudgetUtils.convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()))
     );
   }
-
 }
