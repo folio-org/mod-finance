@@ -24,13 +24,14 @@ import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
-import org.folio.services.FundDetailsServiceTest;
+import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.GroupFundFiscalYearServiceTest;
 import org.folio.services.LedgerServiceTest;
 import org.folio.services.LedgerTotalsServiceTest;
 import org.folio.services.CommonTransactionServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
+import org.folio.services.fund.FundServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -142,5 +143,9 @@ public class ApiTestSuite {
 
   @Nested
   class CreateBudgetServiceTestNested extends CreateBudgetServiceTest {
+  }
+
+  @Nested
+  class FundServiceTestNested extends FundServiceTest {
   }
 }

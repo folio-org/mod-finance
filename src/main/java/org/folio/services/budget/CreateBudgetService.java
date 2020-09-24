@@ -1,6 +1,9 @@
 package org.folio.services.budget;
 
-import java.util.Objects;
+import static org.folio.rest.RestConstants.BAD_REQUEST;
+import static org.folio.rest.RestConstants.NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
+
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -20,9 +23,6 @@ import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
-import static org.folio.rest.RestConstants.BAD_REQUEST;
-import static org.folio.rest.RestConstants.NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
 
 public class CreateBudgetService {
   private final RestClient budgetRestClient;

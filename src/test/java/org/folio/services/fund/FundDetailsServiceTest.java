@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.fund;
 
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -27,6 +27,7 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fund.FundDetailsService;
