@@ -47,16 +47,13 @@ public class FundDetailsService {
   public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException, RequestContext rqContext) {
     CompletableFuture<Budget> future = new CompletableFuture<>();
     retrieveCurrentBudget(fundId, budgetStatus, rqContext)
-      .handle((currBudget, t) -> {
-        if (t != null) {
-          logger.error("Failed to retrieve current budget", t.getCause());
-          if (skipThrowException) {
-            future.complete(null);
-          } else {
-            future.completeExceptionally(t.getCause());
-          }
+      .thenApply(future::complete)
+      .exceptionally(t -> {
+        logger.error("Failed to retrieve current budget", t.getCause());
+        if (skipThrowException) {
+          future.complete(null);
         } else {
-          future.complete(currBudget);
+          future.completeExceptionally(t.getCause());
         }
         return null;
       });
