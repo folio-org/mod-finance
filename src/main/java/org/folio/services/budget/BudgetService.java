@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
@@ -8,38 +8,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.rest.util.ErrorCodes;
-
-import io.vertx.core.json.JsonObject;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.rest.util.BudgetUtils;
 
 public class BudgetService {
 
   private final RestClient budgetRestClient;
-  private final CommonTransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
-  private final GroupFundFiscalYearService groupFundFiscalYearService;
 
-  public BudgetService(RestClient budgetRestClient,
-                       CommonTransactionService transactionService,
-                       BudgetExpenseClassService budgetExpenseClassService,
-                       GroupFundFiscalYearService groupFundFiscalYearService) {
+  public BudgetService(RestClient budgetRestClient, BudgetExpenseClassService budgetExpenseClassService) {
     this.budgetRestClient = budgetRestClient;
-    this.transactionService = transactionService;
     this.budgetExpenseClassService = budgetExpenseClassService;
-    this.groupFundFiscalYearService = groupFundFiscalYearService;
   }
 
   public CompletableFuture<BudgetsCollection> getBudgets(String query, int offset, int limit, RequestContext requestContext) {
@@ -49,20 +36,8 @@ public class BudgetService {
   public CompletableFuture<SharedBudget> getBudgetById(String budgetId, RequestContext requestContext) {
     return budgetRestClient.getById(budgetId, requestContext, Budget.class)
       .thenCompose(budget -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
-      .thenApply(budgetExpenseClasses -> buildSharedBudget(budget, budgetExpenseClasses)));
+      .thenApply(budgetExpenseClasses -> BudgetUtils.buildSharedBudget(budget, budgetExpenseClasses)));
   }
-
-  public CompletableFuture<SharedBudget> createBudget(SharedBudget sharedBudget, RequestContext requestContext) {
-    double allocatedValue = sharedBudget.getAllocated();
-    sharedBudget.setAllocated(0d);
-    return budgetRestClient.post(convertToBudget(sharedBudget), requestContext, Budget.class)
-      .thenCompose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
-      .thenCompose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
-        .thenCompose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(convertToSharedBudget(createdBudget)
-          .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()), requestContext))
-        .thenApply(aVoid -> convertToSharedBudget(createdBudget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
-  }
-
 
   public CompletableFuture<Void> updateBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     return budgetRestClient.getById(sharedBudget.getId(), requestContext, Budget.class)
@@ -72,7 +47,7 @@ public class BudgetService {
         return mergedBudget;
       })
       .thenCompose(updatedSharedBudget -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
-        .thenCompose(aVoid -> budgetRestClient.put(updatedSharedBudget.getId(), convertToBudget(updatedSharedBudget), requestContext)));
+        .thenCompose(aVoid -> budgetRestClient.put(updatedSharedBudget.getId(), BudgetUtils.convertToBudget(updatedSharedBudget), requestContext)));
   }
 
   private SharedBudget mergeBudgets(SharedBudget sharedBudget, Budget budgetFromStorage) {
@@ -90,17 +65,6 @@ public class BudgetService {
 
   public CompletableFuture<Void> deleteBudget(String id, RequestContext requestContext) {
     return budgetRestClient.delete(id, requestContext);
-  }
-
-  private CompletableFuture<Budget> allocateToBudget(Budget createdBudget, RequestContext requestContext) {
-    if (createdBudget.getAllocated() > 0d) {
-      return transactionService.createAllocationTransaction(createdBudget, requestContext)
-        .thenApply(transaction -> createdBudget)
-        .exceptionally(e -> {
-          throw new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED);
-        });
-    }
-    return CompletableFuture.completedFuture(createdBudget);
   }
 
   private void validateBudget(Budget budget) {
@@ -152,28 +116,4 @@ public class BudgetService {
     }
     return Collections.emptyList();
   }
-
-  private SharedBudget buildSharedBudget(Budget budget, List<BudgetExpenseClass> budgetExpenseClasses) {
-      List<StatusExpenseClass> statusExpenseClasses = budgetExpenseClasses.stream()
-      .map(this::buildStatusExpenseClass)
-      .collect(Collectors.toList());
-    return convertToSharedBudget(budget).withStatusExpenseClasses(statusExpenseClasses);
-  }
-
-  private StatusExpenseClass buildStatusExpenseClass(BudgetExpenseClass budgetExpenseClass) {
-    return new StatusExpenseClass()
-      .withExpenseClassId(budgetExpenseClass.getExpenseClassId())
-      .withStatus(StatusExpenseClass.Status.fromValue(budgetExpenseClass.getStatus().value()));
-  }
-
-  private SharedBudget convertToSharedBudget(Budget budget) {
-    return JsonObject.mapFrom(budget).mapTo(SharedBudget.class);
-  }
-
-  private Budget convertToBudget(SharedBudget budget) {
-    JsonObject jsonSharedBudget =  JsonObject.mapFrom(budget);
-    jsonSharedBudget.remove("statusExpenseClasses");
-    return jsonSharedBudget.mapTo(Budget.class);
-  }
-
 }

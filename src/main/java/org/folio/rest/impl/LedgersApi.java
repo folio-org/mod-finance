@@ -17,7 +17,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.services.CurrentFiscalYearService;
+import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   private static final String LEDGERS_LOCATION_PREFIX = getEndpoint(FinanceLedgers.class) + "/%s";
 
   @Autowired
-  private CurrentFiscalYearService currentFiscalYearService;
+  private LedgerDetailsService ledgerDetailsService;
   @Autowired
   private LedgerService ledgerService;
 
@@ -102,7 +102,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   @Override
   public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
 
-    currentFiscalYearService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
+    ledgerDetailsService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(currentFiscalYear -> {
         if(Objects.nonNull(currentFiscalYear)) {
           handler.handle(succeededFuture(buildOkResponse(currentFiscalYear)));

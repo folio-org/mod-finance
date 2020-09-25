@@ -1,7 +1,6 @@
-package org.folio.services;
+package org.folio.services.fund;
 
 import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +18,9 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass.Status;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.Fund;
+import org.folio.services.ExpenseClassService;
+import org.folio.services.budget.BudgetExpenseClassService;
+import org.folio.services.budget.BudgetService;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -31,25 +31,37 @@ public class FundDetailsService {
   private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
   private static final String CURRENT_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
-  private final CurrentFiscalYearService currentFiscalYearService;
-  private final FundService fundService;
   private final BudgetService budgetService;
   private final ExpenseClassService expenseClassService;
   private final BudgetExpenseClassService budgetExpenseClassService;
+  private final FundFiscalYearService fundFiscalYearService;
 
-  public FundDetailsService(CurrentFiscalYearService currentFiscalYearService, FundService fundService
-    , BudgetService budgetService, ExpenseClassService expenseClassService, BudgetExpenseClassService budgetExpenseClassService) {
-    this.currentFiscalYearService = currentFiscalYearService;
-    this.fundService = fundService;
+  public FundDetailsService(BudgetService budgetService, ExpenseClassService expenseClassService, BudgetExpenseClassService budgetExpenseClassService,
+                                FundFiscalYearService fundFiscalYearService) {
     this.budgetService = budgetService;
     this.expenseClassService = expenseClassService;
     this.budgetExpenseClassService = budgetExpenseClassService;
+    this.fundFiscalYearService = fundFiscalYearService;
+  }
+
+  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException, RequestContext rqContext) {
+    CompletableFuture<Budget> future = new CompletableFuture<>();
+    retrieveCurrentBudget(fundId, budgetStatus, rqContext)
+      .thenApply(future::complete)
+      .exceptionally(t -> {
+        logger.error("Failed to retrieve current budget", t.getCause());
+        if (skipThrowException) {
+          future.complete(null);
+        } else {
+          future.completeExceptionally(t.getCause());
+        }
+        return null;
+      });
+    return future;
   }
 
   public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
-    return fundService.retrieveFundById(fundId, rqContext)
-      .thenApply(Fund::getLedgerId)
-      .thenCompose(budgetLedgerId -> getCurrentFiscalYear(budgetLedgerId, rqContext))
+    return fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext)
       .thenApply(fundCurrFY -> buildCurrentBudgetQuery(fundId, budgetStatus, fundCurrFY.getId()))
       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
       .thenApply(this::getFirstBudget);
@@ -91,14 +103,6 @@ public class FundDetailsService {
       .map(BudgetsCollection::getBudgets)
       .map(budgets -> budgets.get(0))
       .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
-  }
-
-  private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext rqContext) {
-    return currentFiscalYearService.getCurrentFiscalYear(budgetLedgerId, rqContext)
-      .thenApply(fiscalYear ->
-        Optional.ofNullable(fiscalYear)
-          .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError()))
-      );
   }
 
   private CompletableFuture<List<String>> getBudgetExpenseClassIds(String budgetId, String status, RequestContext rqContext){

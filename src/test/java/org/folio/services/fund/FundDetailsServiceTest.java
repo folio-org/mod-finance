@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.fund;
 
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -27,6 +27,12 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.services.ExpenseClassService;
+import org.folio.services.budget.BudgetExpenseClassService;
+import org.folio.services.budget.BudgetService;
+import org.folio.services.fund.FundDetailsService;
+import org.folio.services.fund.FundFiscalYearService;
+import org.folio.services.fund.FundService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,9 +57,9 @@ public class FundDetailsServiceTest {
   @Mock
   private FundService fundService;
   @Mock
-  private CurrentFiscalYearService fiscalYearService;
-  @Mock
   private BudgetExpenseClassService budgetExpenseClassService;
+  @Mock
+  private FundFiscalYearService fundFiscalYearService;
 
   @BeforeEach
   public void initMocks() {
@@ -80,7 +86,7 @@ public class FundDetailsServiceTest {
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
 
     doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
     Budget actBudget = fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join();
@@ -100,7 +106,7 @@ public class FundDetailsServiceTest {
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
 
     doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
     Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join());
@@ -124,7 +130,7 @@ public class FundDetailsServiceTest {
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
     doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     doReturn(completedFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
@@ -133,8 +139,7 @@ public class FundDetailsServiceTest {
     List<ExpenseClass> actClasses = fundDetailsService.retrieveCurrentExpenseClasses(fundId, null,requestContext).join();
     //Then
     assertEquals(expClasses.getId(), actClasses.get(0).getId());
-    verify(fundService).retrieveFundById(fundId, requestContext);
-    verify(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    verify(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     verify(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
   }
@@ -155,7 +160,7 @@ public class FundDetailsServiceTest {
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
     doReturn(completedFuture(null)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
@@ -178,7 +183,7 @@ public class FundDetailsServiceTest {
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
     doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(null)).when(fiscalYearService).getCurrentFiscalYear(ledgerId, requestContext);
+    doReturn(completedFuture(null)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When

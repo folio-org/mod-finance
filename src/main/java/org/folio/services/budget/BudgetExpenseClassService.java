@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.function.UnaryOperator.identity;
@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.models.BudgetExpenseClassHolder;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -40,10 +41,13 @@ public class BudgetExpenseClassService {
   }
 
   public CompletableFuture<Void> createBudgetExpenseClasses(SharedBudget sharedBudget, RequestContext requestContext) {
-    List<BudgetExpenseClass> createList = sharedBudget.getStatusExpenseClasses().stream()
-      .map(statusExpenseClass -> buildBudgetExpenseClass(statusExpenseClass, sharedBudget.getId()))
-      .collect(Collectors.toList());
-    return createBudgetExpenseClasses(createList, requestContext);
+    if (!CollectionUtils.isEmpty(sharedBudget.getStatusExpenseClasses())) {
+      List<BudgetExpenseClass> createList = sharedBudget.getStatusExpenseClasses().stream()
+        .map(statusExpenseClass -> buildBudgetExpenseClass(statusExpenseClass, sharedBudget.getId()))
+        .collect(Collectors.toList());
+      return createBudgetExpenseClasses(createList, requestContext);
+    }
+    return CompletableFuture.completedFuture(null);
   }
 
   public CompletableFuture<Void> updateBudgetExpenseClassesLinks(SharedBudget sharedBudget, RequestContext requestContext) {

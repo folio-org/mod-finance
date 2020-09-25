@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.budget;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
@@ -24,6 +24,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;

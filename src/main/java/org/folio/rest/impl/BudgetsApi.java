@@ -15,8 +15,9 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
-import org.folio.services.BudgetExpenseClassTotalsService;
-import org.folio.services.BudgetService;
+import org.folio.services.budget.BudgetExpenseClassTotalsService;
+import org.folio.services.budget.BudgetService;
+import org.folio.services.budget.CreateBudgetService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,6 +34,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   private BudgetExpenseClassTotalsService budgetExpenseClassTotalsService;
   @Autowired
   private BudgetService budgetService;
+  @Autowired
+  private CreateBudgetService createBudgetService;
 
 
   public BudgetsApi() {
@@ -45,7 +48,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
                                  Context ctx) {
 
     RequestContext requestContext = new RequestContext(ctx, headers);
-    budgetService.createBudget(budget, requestContext)
+    createBudgetService.createBudget(budget, requestContext)
       .thenAccept(createdBudget -> handler.handle(
           succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
       .exceptionally(fail -> handleErrorResponse(handler, fail));

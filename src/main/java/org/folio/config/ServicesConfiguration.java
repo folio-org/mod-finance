@@ -1,18 +1,22 @@
 package org.folio.config;
 
+import java.util.Set;
+
 import org.folio.rest.core.RestClient;
-import org.folio.services.BudgetExpenseClassService;
-import org.folio.services.BudgetExpenseClassTotalsService;
-import org.folio.services.BudgetService;
-import org.folio.services.CurrentFiscalYearService;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.FiscalYearService;
-import org.folio.services.FundDetailsService;
-import org.folio.services.FundService;
 import org.folio.services.GroupExpenseClassTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerService;
 import org.folio.services.LedgerTotalsService;
+import org.folio.services.budget.BudgetExpenseClassService;
+import org.folio.services.budget.BudgetExpenseClassTotalsService;
+import org.folio.services.budget.BudgetService;
+import org.folio.services.budget.CreateBudgetService;
+import org.folio.services.fund.FundDetailsService;
+import org.folio.services.fund.FundFiscalYearService;
+import org.folio.services.fund.FundService;
 import org.folio.services.transactions.AllocationService;
 import org.folio.services.transactions.BaseTransactionService;
 import org.folio.services.transactions.CommonTransactionService;
@@ -28,8 +32,6 @@ import org.folio.services.transactions.TransactionTypeManagingStrategy;
 import org.folio.services.transactions.TransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-
-import java.util.Set;
 
 public class ServicesConfiguration {
   @Bean
@@ -62,11 +64,15 @@ public class ServicesConfiguration {
   }
 
   @Bean
+  FundDetailsService fundDetailsService(BudgetService budgetService, ExpenseClassService expenseClassService,
+                                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService){
+    return new FundDetailsService(budgetService, expenseClassService, budgetExpenseClassService, fundFiscalYearService);
+  }
+
+  @Bean
   BudgetService budgetService(RestClient budgetRestClient,
-                              CommonTransactionService transactionService,
-                              BudgetExpenseClassService budgetExpenseClassService,
-                              GroupFundFiscalYearService groupFundFiscalYearService) {
-    return new BudgetService(budgetRestClient, transactionService, budgetExpenseClassService, groupFundFiscalYearService);
+                              BudgetExpenseClassService budgetExpenseClassService) {
+    return new BudgetService(budgetRestClient, budgetExpenseClassService);
   }
 
   @Bean
@@ -85,12 +91,6 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FundDetailsService fundDetailsService(CurrentFiscalYearService fiscalYearService, FundService fundService
-    , BudgetService budgetService, ExpenseClassService expenseClassService, BudgetExpenseClassService budgetExpenseClassService){
-    return new FundDetailsService(fiscalYearService, fundService, budgetService, expenseClassService, budgetExpenseClassService);
-  }
-
-  @Bean
   FundService fundService(RestClient fundStorageRestClient) {
     return new FundService(fundStorageRestClient);
   }
@@ -101,8 +101,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  CurrentFiscalYearService currentFiscalYearService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
-    return new CurrentFiscalYearService(fiscalYearService, ledgerService);
+  LedgerDetailsService ledgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
+    return new LedgerDetailsService(fiscalYearService, ledgerService);
   }
 
   @Bean
@@ -155,4 +155,19 @@ public class ServicesConfiguration {
     return new TransactionStrategyFactory(transactionTypeManagingStrategies);
   }
 
+  @Bean
+  FundFiscalYearService fundFiscalYearService(LedgerDetailsService ledgerDetailsService, FundService fundService) {
+    return new FundFiscalYearService(ledgerDetailsService, fundService);
+  }
+
+  @Bean
+  CreateBudgetService createBudgetService(RestClient budgetRestClient,
+                                                             GroupFundFiscalYearService groupFundFiscalYearService,
+                                                             FundFiscalYearService fundFiscalYearService,
+                                                             BudgetExpenseClassService budgetExpenseClassService,
+                                                             CommonTransactionService transactionService,
+                                                             FundDetailsService fundDetailsService) {
+    return new CreateBudgetService( budgetRestClient, groupFundFiscalYearService, fundFiscalYearService,
+                                          budgetExpenseClassService, transactionService,  fundDetailsService);
+  }
 }
