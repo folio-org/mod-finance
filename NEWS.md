@@ -1,4 +1,37 @@
-## 3.1.0 - Unreleased
+## 4.1.0 - Unreleased
+
+## 4.0.0 - Released
+The primary focus of this release introduce shared allocations and net transfer logic for budgets and groups.
+Also **major versions of APIs** were changed for **finance.transactions**
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v3.0.1...v4.0.0)
+
+### Stories
+* [MODFIN-153](https://issues.folio.org/browse/MODFIN-153)	Implement PUT /finance/invoice-transaction-summary
+* [MODFIN-151](https://issues.folio.org/browse/MODFIN-151)	When creating budget add expense classes from previous budget automatically	
+* [MODFIN-146](https://issues.folio.org/browse/MODFIN-146)	Create business API for retrieving current active budget for fund	
+* [MODFIN-145](https://issues.folio.org/browse/MODFIN-145)	Define and implement PUT /finance/pending-payments/id API	
+* [MODFIN-143](https://issues.folio.org/browse/MODFIN-143)	Calculate ledgers totals on the fly	
+* [MODFIN-142](https://issues.folio.org/browse/MODFIN-142)	mod-finance: Update RMB	
+* [MODFIN-141](https://issues.folio.org/browse/MODFIN-141)	Implement API for getting expense classes for fund	
+* [MODFIN-139](https://issues.folio.org/browse/MODFIN-139)	Migrate mod-finance to JDK 11		
+* [MODFIN-138](https://issues.folio.org/browse/MODFIN-138)	Update /finance/budgets POST and PUT APIs	
+* [MODFIN-137](https://issues.folio.org/browse/MODFIN-137)	Define and implement GET /finance/groups/id/expense-classes-totals API	
+* [MODFIN-136](https://issues.folio.org/browse/MODFIN-136)	Define and implement GET /finance/budgets/id/expense-classes-totals API	
+* [MODFIN-134](https://issues.folio.org/browse/MODFIN-134)	Create PUT /finance/order-transaction-summaries/id and PUT /finance/encumbrance/id APIs	
+* [MODFIN-131](https://issues.folio.org/browse/MODFIN-131)	Create the pending-payments API
+* [MODFIN-130](https://issues.folio.org/browse/MODFIN-130)	Define and Implement Business API for the expense class
+
+### Bug Fixes
+* [MODFIN-112](https://issues.folio.org/browse/MODFIN-112)	Shouldn't allow negative payments or credits
+
+## 3.0.1 - Released
+Hotfix release to fix budget's totals calculations
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v3.0.0...v3.0.1)
+
+### Bud Fixes
+* [MODFIN -147](https://issues.folio.org/browse/MODFIN-147) Budget allocation calculation out of sync with transaction log
 
 ## 3.0.0 - Released
 The primary focus of this release was to implement exchange rate API and bug fixing.
