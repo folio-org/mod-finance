@@ -634,7 +634,7 @@
   "requires": [
     {
       "id": "finance-storage.budgets",
-      "version": "2.1"
+      "version": "2.2"
     },
     {
       "id": "finance-storage.fund-types",
@@ -658,7 +658,7 @@
     },
     {
      "id": "finance-storage.transactions",
-      "version":"3.0"
+      "version":"3.1"
     },
     {
      "id": "configuration",
@@ -670,7 +670,7 @@
     },
     {
      "id": "finance-storage.invoice-transaction-summaries",
-      "version":"2.0"
+      "version":"2.1"
     }
   ],
   "permissionSets": [
