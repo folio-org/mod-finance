@@ -35,6 +35,7 @@ import org.mockito.MockitoAnnotations;
 
 public class GroupExpenseClassTotalsServiceTest {
 
+  public static final String USD_CURRENCY = "USD";
   @InjectMocks
   private GroupExpenseClassTotalsService groupExpenseClassTotalsService;
 
@@ -89,7 +90,7 @@ public class GroupExpenseClassTotalsServiceTest {
       .withAmount(100d)
       .withFiscalYearId(fiscalYearId)
       .withFromFundId(groupFundFiscalYear.getFundId())
-      .withCurrency("USD");
+      .withCurrency(USD_CURRENCY);
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
       .thenReturn(CompletableFuture.completedFuture(Collections.singletonList(groupFundFiscalYear)));
@@ -176,7 +177,7 @@ public class GroupExpenseClassTotalsServiceTest {
       .withFromFundId(fundId1)
       .withFiscalYearId(fiscalYearId)
       .withExpenseClassId(expenseClassId1)
-      .withCurrency("USD");
+      .withCurrency(USD_CURRENCY);
 
     Transaction credit = new Transaction()
       .withTransactionType(Transaction.TransactionType.CREDIT)
@@ -184,7 +185,7 @@ public class GroupExpenseClassTotalsServiceTest {
       .withToFundId(fundId1)
       .withFiscalYearId(fiscalYearId)
       .withExpenseClassId(expenseClassId1)
-      .withCurrency("USD");
+      .withCurrency(USD_CURRENCY);
 
     Transaction payment2 = new Transaction()
       .withTransactionType(Transaction.TransactionType.PAYMENT)
@@ -192,9 +193,43 @@ public class GroupExpenseClassTotalsServiceTest {
       .withFromFundId(fundId1)
       .withFiscalYearId(fiscalYearId)
       .withExpenseClassId(expenseClassId2)
-      .withCurrency("USD");
+      .withCurrency(USD_CURRENCY);
 
-    List<Transaction> transactions = Arrays.asList(payment, credit, payment2);
+    Transaction encumbranceNoExpenseClass = new Transaction()
+      .withTransactionType(Transaction.TransactionType.ENCUMBRANCE)
+      .withAmount(131.31)
+      .withFromFundId(fundId1)
+      .withCurrency(USD_CURRENCY);
+
+    Transaction encumbrance1 = new Transaction()
+      .withTransactionType(Transaction.TransactionType.ENCUMBRANCE)
+      .withAmount(11.31)
+      .withFromFundId(fundId1)
+      .withExpenseClassId(expenseClassId1)
+      .withCurrency(USD_CURRENCY);
+
+    Transaction encumbrance2 = new Transaction()
+      .withTransactionType(Transaction.TransactionType.ENCUMBRANCE)
+      .withAmount(41.32)
+      .withFromFundId(fundId2)
+      .withExpenseClassId(expenseClassId2)
+      .withCurrency(USD_CURRENCY);
+
+    Transaction pendingPayment1 = new Transaction()
+      .withTransactionType(Transaction.TransactionType.PENDING_PAYMENT)
+      .withAmount(1.23)
+      .withFromFundId(fundId1)
+      .withCurrency(USD_CURRENCY)
+      .withExpenseClassId(expenseClassId1);
+
+    Transaction pendingPayment2 = new Transaction()
+      .withTransactionType(Transaction.TransactionType.PENDING_PAYMENT)
+      .withAmount(1.77)
+      .withFromFundId(fundId2)
+      .withCurrency(USD_CURRENCY)
+      .withExpenseClassId(expenseClassId1);
+
+    List<Transaction> transactions = Arrays.asList(payment, credit, payment2, encumbranceNoExpenseClass, encumbrance1, encumbrance2, pendingPayment1, pendingPayment2);
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
       .thenReturn(CompletableFuture.completedFuture(Arrays.asList(groupFundFiscalYear1, groupFundFiscalYear2)));
@@ -210,12 +245,16 @@ public class GroupExpenseClassTotalsServiceTest {
     GroupExpenseClassTotal expected1 = new GroupExpenseClassTotal()
       .withExpenseClassName(expenseClass1.getName())
       .withId(expenseClassId1)
+      .withEncumbered(11.31)
+      .withAwaitingPayment(3d)
       .withExpended(95d)
       .withPercentageExpended(9.5);
 
     GroupExpenseClassTotal expected2 = new GroupExpenseClassTotal()
       .withExpenseClassName(expenseClass2.getName())
       .withId(expenseClassId2)
+      .withEncumbered(41.32)
+      .withAwaitingPayment(0d)
       .withExpended(905d)
       .withPercentageExpended(90.5);
 

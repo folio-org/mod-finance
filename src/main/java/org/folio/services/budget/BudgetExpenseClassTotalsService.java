@@ -24,10 +24,9 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotal;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.CommonTransactionService;
-import org.javamoney.moneta.Money;
-import org.javamoney.moneta.function.MonetaryFunctions;
 
 public class BudgetExpenseClassTotalsService {
 
@@ -94,19 +93,19 @@ public class BudgetExpenseClassTotalsService {
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
       Map<Transaction.TransactionType, List<Transaction>> transactionGroupedByType = transactions.stream().collect(groupingBy(Transaction::getTransactionType));
 
-      encumbered = calculateTotalAmountWithRounding(
+      encumbered = MoneyUtils.calculateTotalAmountWithRounding(
           transactionGroupedByType.getOrDefault(Transaction.TransactionType.ENCUMBRANCE, Collections.emptyList()), currency);
-      awaitingPayment = calculateTotalAmountWithRounding(
+      awaitingPayment = MoneyUtils.calculateTotalAmountWithRounding(
           transactionGroupedByType.getOrDefault(Transaction.TransactionType.PENDING_PAYMENT, Collections.emptyList()), currency);
 
-      MonetaryAmount tmpExpended = calculateTotalAmount(
+      MonetaryAmount tmpExpended = MoneyUtils.calculateTotalAmount(
           transactionGroupedByType.getOrDefault(Transaction.TransactionType.PAYMENT, Collections.emptyList()), currency);
-      tmpExpended = tmpExpended.subtract(calculateTotalAmount(
+      tmpExpended = tmpExpended.subtract(MoneyUtils.calculateTotalAmount(
           transactionGroupedByType.getOrDefault(Transaction.TransactionType.CREDIT, Collections.emptyList()), currency));
 
       expended = tmpExpended.with(Monetary.getDefaultRounding()).getNumber().doubleValue();
 
-      expendedPercentage = calculateExpendedPercentage(tmpExpended, totalExpended);
+      expendedPercentage = MoneyUtils.calculateExpendedPercentage(tmpExpended, totalExpended);
     }
 
     return new BudgetExpenseClassTotal()
@@ -116,23 +115,6 @@ public class BudgetExpenseClassTotalsService {
       .withAwaitingPayment(awaitingPayment)
       .withExpended(expended)
       .withPercentageExpended(expendedPercentage);
-  }
-
-  private Double calculateExpendedPercentage(MonetaryAmount expended, double totalExpended) {
-    if (totalExpended == 0) {
-      return null;
-    }
-    return expended.divide(totalExpended).multiply(100).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
-  }
-
-  private MonetaryAmount calculateTotalAmount(List<Transaction> transactions, CurrencyUnit currency) {
-    return transactions.stream()
-      .map(transaction -> (MonetaryAmount) Money.of(transaction.getAmount(), currency))
-      .reduce(MonetaryFunctions::sum).orElse(Money.zero(currency));
-  }
-
-  private double calculateTotalAmountWithRounding(List<Transaction> transactions, CurrencyUnit currency) {
-    return calculateTotalAmount(transactions, currency).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
   }
 
   private BudgetExpenseClassTotalsCollection updateExpenseClassStatus(BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection,

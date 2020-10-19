@@ -36,14 +36,14 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public CompletableFuture<List<Transaction>> retrieveTransactions(Budget budget, RequestContext requestContext) {
-    String query = String.format("fromFundId==%s AND fiscalYearId==%s", budget.getFundId(), budget.getFiscalYearId());
+    String query = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s", budget.getFundId(), budget.getFundId(), budget.getFiscalYearId());
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
 
   public CompletableFuture<List<Transaction>> retrieveTransactions(List<BudgetExpenseClass> budgetExpenseClasses, SharedBudget budget, RequestContext requestContext) {
     List<String> ids = budgetExpenseClasses.stream().map(BudgetExpenseClass::getExpenseClassId).collect(Collectors.toList());
-    String query = String.format("fromFundId==%s AND fiscalYearId==%s AND %s", budget.getFundId(), budget.getFiscalYearId(), convertIdsToCqlQuery(ids, "expenseClassId", true));
+    String query = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND %s", budget.getFundId(), budget.getFundId(), budget.getFiscalYearId(), convertIdsToCqlQuery(ids, "expenseClassId", true));
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
@@ -64,7 +64,7 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   private String buildGetTransactionsQuery(String fiscalYearId, List<String> fundIds) {
-    return String.format("fiscalYearId==%s AND ((transactionType==Payment AND %s) OR (transactionType==Credit AND %s))",
+    return String.format("fiscalYearId==%s AND %s AND %s",
       fiscalYearId,
       convertIdsToCqlQuery(fundIds, "fromFundId", true),
       convertIdsToCqlQuery(fundIds, "toFundId", true));

@@ -68,7 +68,7 @@ public class CommonTransactionServiceTest {
 
     CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(budget, requestContext);
 
-    String expectedQuery = String.format("fromFundId==%s AND fiscalYearId==%s", fundId, fiscalYearId);
+    String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s", fundId, fundId, fiscalYearId);
     verify(transactionRestClient)
       .get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(TransactionCollection.class));
 
@@ -101,8 +101,8 @@ public class CommonTransactionServiceTest {
 
     CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
 
-    String expectedQuery = String.format("fromFundId==%s AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
-      fundId, fiscalYearId,
+    String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
+      fundId, fundId, fiscalYearId,
       budgetExpenseClass1.getExpenseClassId(),
       budgetExpenseClass2.getExpenseClassId());
 
