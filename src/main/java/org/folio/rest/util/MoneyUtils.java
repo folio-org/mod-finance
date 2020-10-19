@@ -32,10 +32,7 @@ public final class MoneyUtils {
     return subtractValues(d1, d2, currency).doubleValue();
   }
 
-  public static Double calculateExpendedPercentage(MonetaryAmount expended, double totalExpended) {
-    if (totalExpended == 0) {
-      return null;
-    }
+  public static double calculateExpendedPercentage(MonetaryAmount expended, double totalExpended) {
     return expended.divide(totalExpended).multiply(100).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
   }
 

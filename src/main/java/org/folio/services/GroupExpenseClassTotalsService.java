@@ -122,7 +122,7 @@ public class GroupExpenseClassTotalsService {
 
       expended = tmpExpended.with(Monetary.getDefaultRounding()).getNumber().doubleValue();
 
-      percentageExpended = MoneyUtils.calculateExpendedPercentage(tmpExpended, expendedGrandTotal);
+      percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(tmpExpended, expendedGrandTotal);
     }
 
     return new GroupExpenseClassTotal()

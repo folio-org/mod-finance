@@ -105,7 +105,7 @@ public class BudgetExpenseClassTotalsService {
 
       expended = tmpExpended.with(Monetary.getDefaultRounding()).getNumber().doubleValue();
 
-      expendedPercentage = MoneyUtils.calculateExpendedPercentage(tmpExpended, totalExpended);
+      expendedPercentage = totalExpended == 0 ? null : MoneyUtils.calculateExpendedPercentage(tmpExpended, totalExpended);
     }
 
     return new BudgetExpenseClassTotal()
