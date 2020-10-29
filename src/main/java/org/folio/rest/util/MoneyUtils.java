@@ -1,8 +1,16 @@
 package org.folio.rest.util;
 
-import org.javamoney.moneta.Money;
+import java.util.List;
 
-public class MoneyUtils {
+import javax.money.CurrencyUnit;
+import javax.money.Monetary;
+import javax.money.MonetaryAmount;
+
+import org.folio.rest.jaxrs.model.Transaction;
+import org.javamoney.moneta.Money;
+import org.javamoney.moneta.function.MonetaryFunctions;
+
+public final class MoneyUtils {
 
   private MoneyUtils(){
 
@@ -22,5 +30,19 @@ public class MoneyUtils {
 
   public static Double subtractDoubleValues(Double d1, Double d2, String currency) {
     return subtractValues(d1, d2, currency).doubleValue();
+  }
+
+  public static double calculateExpendedPercentage(MonetaryAmount expended, double totalExpended) {
+    return expended.divide(totalExpended).multiply(100).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
+  }
+
+  public static MonetaryAmount calculateTotalAmount(List<Transaction> transactions, CurrencyUnit currency) {
+    return transactions.stream()
+            .map(transaction -> (MonetaryAmount) Money.of(transaction.getAmount(), currency))
+            .reduce(MonetaryFunctions::sum).orElse(Money.zero(currency));
+  }
+
+  public static double calculateTotalAmountWithRounding(List<Transaction> transactions, CurrencyUnit currency) {
+    return MoneyUtils.calculateTotalAmount(transactions, currency).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
   }
 }
