@@ -64,7 +64,7 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   private String buildGetTransactionsQuery(String fiscalYearId, List<String> fundIds) {
-    return String.format("fiscalYearId==%s AND %s AND %s",
+    return String.format("fiscalYearId==%s AND (%s OR %s)",
       fiscalYearId,
       convertIdsToCqlQuery(fundIds, "fromFundId", true),
       convertIdsToCqlQuery(fundIds, "toFundId", true));
