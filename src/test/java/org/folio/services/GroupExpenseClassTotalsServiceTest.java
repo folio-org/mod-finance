@@ -56,7 +56,7 @@ public class GroupExpenseClassTotalsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     groupId = UUID.randomUUID().toString();
     fiscalYearId = UUID.randomUUID().toString();
   }
