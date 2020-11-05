@@ -1,5 +1,14 @@
 ## 4.1.0 - Unreleased
 
+## 4.0.1 - Released
+The focus of this release was to fix logging issues
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.0.0...v4.0.1)
+
+### Bug Fixes
+* [MODFIN-163](https://issues.folio.org/browse/MODFIN-163) No logging in honeysuckle version
+
+
 ## 4.0.0 - Released
 The primary focus of this release introduce shared allocations and net transfer logic for budgets and groups.
 Also **major versions of APIs** were changed for **finance.transactions**
