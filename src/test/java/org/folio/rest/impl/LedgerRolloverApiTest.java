@@ -38,7 +38,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-class LedgerRolloverApiTest {
+public class LedgerRolloverApiTest {
 
   @Autowired
   private LedgerRolloverService mockLedgerRolloverService;

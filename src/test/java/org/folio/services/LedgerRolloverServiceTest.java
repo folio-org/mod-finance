@@ -26,7 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(JUnitPlatform.class)
-class LedgerRolloverServiceTest {
+public class LedgerRolloverServiceTest {
 
   @InjectMocks
   private LedgerRolloverService ledgerRolloverService;
