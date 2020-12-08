@@ -350,6 +350,34 @@
       ]
     },
     {
+      "id": "finance.ledger-rollovers",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers",
+          "permissionsRequired": ["finance.ledger-rollovers.collection.get"],
+          "modulePermissions": ["finance-storage.ledger-rollovers.collection.get"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/ledger-rollovers",
+          "permissionsRequired": ["finance.ledger-rollovers.item.post"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers/{id}",
+          "permissionsRequired": ["finance.ledger-rollovers.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers.item.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.groups",
       "version": "1.1",
       "handlers": [
@@ -868,6 +896,21 @@
       "description" : "Get a current fiscal year"
     },
     {
+      "permissionName" : "finance.ledger-rollovers.collection.get",
+      "displayName" : "Ledger rollover - get the collection of ledger rollovers",
+      "description" : "Get collection of ledger rollovers"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers.item.post",
+      "displayName" : "Ledger rollover - create a new ledger rollover",
+      "description" : "Create a new ledger rollover"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers.item.get",
+      "displayName" : "Ledger rollover - get an existing ledger",
+      "description" : "Fetch a ledger rollover"
+    },
+    {
       "permissionName" : "finance.ledgers.all",
       "displayName" : "All ledger permissions",
       "description" : "All permissions for the ledger APIs",
@@ -877,6 +920,9 @@
         "finance.ledgers.item.get",
         "finance.ledgers.item.put",
         "finance.ledgers.item.delete",
+        "finance.ledger-rollovers.collection.get",
+        "finance.ledger-rollovers.item.get",
+        "finance.ledger-rollovers.item.post",
         "finance.ledgers.current-fiscal-year.item.get"
       ]
     },

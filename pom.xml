@@ -113,6 +113,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>3.4.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
       <version>${rest-assured.version}</version>
@@ -202,6 +208,10 @@
             <exclude>budget_expense_class_totals_collection.json</exclude>
             <exclude>budget_expense_class.json</exclude>
             <exclude>budget_expense_class_collection.json</exclude>
+            <exclude>budget_rollover.json</exclude>
+            <exclude>encumbrance_rollover.json</exclude>
+            <exclude>ledger_fiscal_year_rollover.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_collection.json</exclude>
           </excludes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
           <generateBuilders>true</generateBuilders>
