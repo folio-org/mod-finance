@@ -16,10 +16,12 @@ import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
 import org.folio.rest.impl.GroupsApiTest;
+import org.folio.rest.impl.LedgerRolloverApiTest;
 import org.folio.rest.impl.LedgersApiTest;
 import org.folio.rest.impl.TransactionApiTest;
 import org.folio.rest.util.HelperUtilsTest;
 import org.folio.services.LedgerDetailsServiceTest;
+import org.folio.services.LedgerRolloverServiceTest;
 import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
@@ -82,6 +84,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class LedgerRolloversApiTestNested extends LedgerRolloverApiTest {
+  }
+
+  @Nested
   class ExchangeRateTestNested extends ExchangeRateTest {
   }
 
@@ -131,6 +137,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerServiceTestNested extends LedgerServiceTest {
+  }
+
+  @Nested
+  class LedgerRolloverServiceTestNested extends LedgerRolloverServiceTest {
   }
 
   @Nested

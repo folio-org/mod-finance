@@ -14,6 +14,7 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
@@ -24,6 +25,7 @@ import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
+import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
@@ -49,7 +51,8 @@ public enum TestEntities {
   TRANSACTIONS_CREDIT("Credit", getEndpoint(Finance.class) + "/credits", Transaction.class, "mockdata/transactions/credits.json", "transactions[0]", "amount", 25, 1),
   ORDER_TRANSACTION_SUMMARY("orderTransactionSummary", getEndpoint(FinanceOrderTransactionSummaries.class), OrderTransactionSummary.class, "mockdata/transaction-summaries/order_transaction_summary.json", "", "numTransactions", 0, 1),
   INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", -1, 1),
-  EXPENSE_CLASSES("expenseClasses", getEndpoint(FinanceExpenseClasses.class), ExpenseClass.class, "mockdata/expense-classes/expense-classes.json", "expenseClasses[0]", "externalAccountNumberExt", 1, 1);
+  EXPENSE_CLASSES("expenseClasses", getEndpoint(FinanceExpenseClasses.class), ExpenseClass.class, "mockdata/expense-classes/expense-classes.json", "expenseClasses[0]", "externalAccountNumberExt", 1, 1),
+  LEDGER_ROLLOVER("ledgerRollover", getEndpoint(FinanceLedgerRollovers.class), LedgerFiscalYearRollover.class, "mockdata/ledger-rollovers/ledger-rollovers.json", "ledgerFiscalYearRollovers[0]", "toFiscalYearId", 1, 1);
 
   TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {
