@@ -62,7 +62,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void getFinanceLedgerRolloversSuccessfully() {
+  void shouldReturnLedgerRolloverCollectionWhenCallGetAndRolloverServiceReturnLedgerRollover() {
     LedgerFiscalYearRolloverCollection ledgerRollovers = new LedgerFiscalYearRolloverCollection()
       .withTotalRecords(1)
       .withLedgerFiscalYearRollovers(Arrays.asList(new LedgerFiscalYearRollover()));
@@ -81,7 +81,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void getFinanceLedgerRolloversWhenServiceReturnError() {
+  void shouldReturnErrorWhenCallGetAndRolloverServiceReturnError() {
 
     CompletableFuture<LedgerFiscalYearRolloverCollection> errorFuture = new CompletableFuture<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
@@ -100,7 +100,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void getFinanceLedgerRolloversByIdSuccessfully() {
+  void shouldReturnLedgerRolloverWhenCallGetByIdAndRolloverServiceReturnLedgerRollover() {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
@@ -118,7 +118,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void getFinanceLedgerRolloversByIdWithError() {
+  void shouldReturnErrorWhenCallGetByIdAndRolloverServiceReturnError() {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
@@ -139,7 +139,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void postFinanceLedgerRolloversSuccessfully() {
+  void shouldReturnLedgerRolloverWhenCallPostAndRolloverServiceReturnLedgerRollover() {
 
     // Given LedgerRollover
     String ledgerRolloverId = UUID.randomUUID().toString();
@@ -162,7 +162,7 @@ public class LedgerRolloverApiTest {
   }
 
   @Test
-  void postFinanceLedgerRolloversWithoutRequiredFields() {
+  void shouldReturnErrorWhenCallPostAndRolloverServiceReturnError() {
 
     // Given LedgerRollover
     String ledgerRolloverId = UUID.randomUUID().toString();
