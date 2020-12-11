@@ -8,6 +8,7 @@ import org.folio.services.FiscalYearService;
 import org.folio.services.GroupExpenseClassTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.LedgerDetailsService;
+import org.folio.services.LedgerRolloverProgressService;
 import org.folio.services.LedgerRolloverService;
 import org.folio.services.LedgerService;
 import org.folio.services.LedgerTotalsService;
@@ -89,6 +90,11 @@ public class ServicesConfiguration {
   @Bean
   LedgerRolloverService ledgerRolloverService(RestClient ledgerRolloverStorageRestClient) {
     return new LedgerRolloverService(ledgerRolloverStorageRestClient);
+  }
+
+  @Bean
+  LedgerRolloverProgressService ledgerRolloverProgressService(RestClient ledgerRolloverProgressStorageRestClient) {
+    return new LedgerRolloverProgressService(ledgerRolloverProgressStorageRestClient);
   }
 
   @Bean
