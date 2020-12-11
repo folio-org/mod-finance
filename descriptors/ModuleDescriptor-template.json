@@ -378,6 +378,44 @@
       ]
     },
     {
+      "id": "finance.ledger-rollovers-progress",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers-progress",
+          "permissionsRequired": ["finance.ledger-rollovers-progress.collection.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-progress.collection.get"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/ledger-rollovers-progress",
+          "permissionsRequired": ["finance.ledger-rollovers-progress.item.post"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-progress.item.post"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers-progress/{id}",
+          "permissionsRequired": ["finance.ledger-rollovers-progress.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-progress.item.get"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/ledger-rollovers-progress/{id}",
+          "permissionsRequired": ["finance.ledger-rollovers-progress.item.put"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-progress.item.put"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.groups",
       "version": "1.1",
       "handlers": [
@@ -911,6 +949,26 @@
       "description" : "Fetch a ledger rollover"
     },
     {
+      "permissionName" : "finance.ledger-rollovers-progress.collection.get",
+      "displayName" : "ledger rollover progress collection get",
+      "description" : "Get collection of ledgers rollover progress"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers-progress.item.post",
+      "displayName" : "ledger rollover progress item post",
+      "description" : "Create a new ledger rollover progress"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers-progress.item.get",
+      "displayName" : "ledger rollover progress item get",
+      "description" : "Fetch a ledger rollover progress"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers-progress.item.put",
+      "displayName" : "ledger rollover progress item put",
+      "description" : "Update a ledger rollover progress"
+    },
+    {
       "permissionName" : "finance.ledgers.all",
       "displayName" : "All ledger permissions",
       "description" : "All permissions for the ledger APIs",
@@ -923,7 +981,11 @@
         "finance.ledger-rollovers.collection.get",
         "finance.ledger-rollovers.item.get",
         "finance.ledger-rollovers.item.post",
-        "finance.ledgers.current-fiscal-year.item.get"
+        "finance.ledgers.current-fiscal-year.item.get",
+        "finance.ledger-rollovers-progress.collection.get",
+        "finance.ledger-rollovers-progress.item.post",
+        "finance.ledger-rollovers-progress.item.get",
+        "finance.ledger-rollovers-progress.item.put"
       ]
     },
     {
