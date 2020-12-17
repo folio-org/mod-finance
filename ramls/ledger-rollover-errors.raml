@@ -50,9 +50,7 @@ resourceTypes:
     ]
     responses:
       200:
-        description: "Item successfully updated"
-      404:
-        description: "Item with a given ID not found"
+        description: "Return rollover errors in specified format"
       415:
         description: "Unsupported Media Type : text/csv"
   /{id}:
@@ -65,3 +63,23 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/ledger_fiscal_year_rollover_error.sample
         schema: ledger_fiscal_year_rollover_error
     is: [validate]
+    get:
+      description: Get rollovers errors record by its UUID
+      headers:
+        Accept:
+          displayName: Accept
+          description: either text/csv or application/json
+      is: [
+        searchable:
+          {
+            description: "with valid searchable fields: for example 'errorType'", example: "[\"errorType\", \"Orders\", \"=\"]"
+          },
+        pageable
+      ]
+      responses:
+        200:
+          description: "Return rollover errors in specified format"
+        404:
+          description: "Item with a given ID not found"
+        415:
+          description: "Unsupported Media Type : text/csv"
