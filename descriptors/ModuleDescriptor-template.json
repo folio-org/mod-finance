@@ -378,6 +378,28 @@
       ]
     },
     {
+      "id": "finance.ledger-rollovers-errors",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers-errors",
+          "permissionsRequired": ["finance.ledger-rollovers-errors.collection.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-errors.collection.get"
+          ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers-errors/{id}",
+          "permissionsRequired": ["finance.ledger-rollovers-errors.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-errors.item.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.ledger-rollovers-progress",
       "version": "1.0",
       "handlers": [
