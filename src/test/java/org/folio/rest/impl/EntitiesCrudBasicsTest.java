@@ -12,7 +12,6 @@ import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.BAD_QUERY;
@@ -27,6 +26,7 @@ import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
+import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
@@ -104,6 +104,7 @@ public class EntitiesCrudBasicsTest {
       .filter(e -> !e.equals(BUDGET))
       .filter(e -> !e.equals(LEDGER_ROLLOVER))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_PROGRESS))
+      .filter(e -> !e.equals(LEDGER_ROLLOVER_ERRORS))
       .filter(e -> !e.equals(LEDGER));
   }
 
