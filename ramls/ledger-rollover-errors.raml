@@ -8,21 +8,15 @@ documentation:
   - title: Rollover errors business API
     content: <b>API is used to manage rollover errors.</b>
 
+types:
+  errors: !include raml-util/schemas/errors.schema
+  rolloverErrorsCollection: !include acq-models/mod-finance/schemas/ledger_fiscal_year_rollover_error_collection.json
+
 traits:
   pageable:  !include raml-util/traits/pageable.raml
   searchable: !include raml-util/traits/searchable.raml
   language: !include raml-util/traits/language.raml
   validate: !include raml-util/traits/validation.raml
-
-types:
-  UUID:
-    type: string
-    pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
-  errors: !include raml-util/schemas/errors.schema
-  rolloverErrorsCollection: !include acq-models/mod-finance/schemas/ledger_fiscal_year_rollover_error_collection.json
-  rolloverErrorsCollectionExample: !include acq-models/mod-finance/examples/ledger_fiscal_year_rollover_error_collection.sample
-  rolloverError: !include acq-models/mod-finance/schemas/ledger_fiscal_year_rollover_error.json
-  rolloverErrorExample: !include acq-models/mod-finance/examples/ledger_fiscal_year_rollover_error.sample
 
 resourceTypes:
   get-only: !include raml-util/rtypes/get-only-with-json-response.raml
@@ -32,7 +26,7 @@ resourceTypes:
   type:
     get-only:
       schema: rolloverErrorsCollection
-      exampleCollection: rolloverErrorsCollectionExample
+      exampleCollection: !include acq-models/mod-finance/examples/ledger_fiscal_year_rollover_error_collection.sample
   is: [validate]
   get:
     description: Get list of rollovers errors
@@ -40,33 +34,12 @@ resourceTypes:
       Accept:
         displayName: Accept
         description: either text/csv or application/json
-    is:
+    is: [
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"},
+      pageable
+    ]
     responses:
       200:
         description: "Return rollover errors in specified format"
       415:
-        description: "Unsupported Media Type : text/csv"
-  /{id}:
-    uriParameters:
-      id:
-        description: The UUID of a rollover errors record
-        type: UUID
-    type:
-      collection-item:
-        schema: rolloverError
-        exampleItem: rolloverErrorExample
-    is: [validate]
-    get:
-      description: Get rollovers error record by its UUID
-      headers:
-        Accept:
-          displayName: Accept
-          description: either text/csv or application/json
-      is:
-      responses:
-        200:
-          description: "Return rollover errors in specified format"
-        404:
-          description: "Item with a given ID not found"
-        415:
-          description: "Unsupported Media Type : text/csv"
+        description: "Unsupported Media Type: text/csv"
