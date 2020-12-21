@@ -4,7 +4,18 @@ import org.folio.rest.core.RestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import static org.folio.rest.util.ResourcePathResolver.*;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
+import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_PROGRESS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 @Configuration
 public class RestClientsConfiguration {
