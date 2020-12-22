@@ -57,7 +57,7 @@ public class LedgerRolloverErrorsApiTest {
   }
 
   @Test
-  void shouldReturnLedgerRolloverProgressCollectionWhenCallGetAndRolloverProgressServiceReturnLedgerRolloverProgress() {
+  void shouldReturnLedgerRolloverErrorsCollectionWhenCallGetAndRolloverErrorsServiceReturnLedgerRolloverErrors() {
     LedgerFiscalYearRolloverErrorCollection ledgerErrors = new LedgerFiscalYearRolloverErrorCollection()
       .withTotalRecords(1)
       .withLedgerFiscalYearRolloverErrors(Arrays.asList(new LedgerFiscalYearRolloverError()));
@@ -75,7 +75,7 @@ public class LedgerRolloverErrorsApiTest {
   }
 
   @Test
-  void shouldReturnErrorWhenCallGetAndRolloverProgressServiceReturnError() {
+  void shouldReturnErrorWhenCallGetAndRolloverErrorsServiceReturnError() {
 
     CompletableFuture<LedgerFiscalYearRolloverErrorCollection> errorFuture = new CompletableFuture<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
@@ -90,7 +90,6 @@ public class LedgerRolloverErrorsApiTest {
     // Then return ERROR
     assertThat(errors.getErrors(), hasSize(1));
     assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
-
   }
 
   static class ContextConfiguration {

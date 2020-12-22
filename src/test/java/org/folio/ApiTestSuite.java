@@ -8,32 +8,13 @@ import static org.folio.rest.util.TestConfig.startMockServer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import org.folio.rest.impl.BudgetsApiTest;
-import org.folio.rest.impl.EncumbrancesTest;
-import org.folio.rest.impl.EntitiesCrudBasicsTest;
-import org.folio.rest.impl.ExchangeRateTest;
-import org.folio.rest.impl.FiscalYearTest;
-import org.folio.rest.impl.FundsApiTest;
-import org.folio.rest.impl.GroupFiscalYearSummariesTest;
-import org.folio.rest.impl.GroupsApiTest;
-import org.folio.rest.impl.LedgerRolloverApiTest;
-import org.folio.rest.impl.LedgerRolloverProgressApiTest;
-import org.folio.rest.impl.LedgersApiTest;
-import org.folio.rest.impl.TransactionApiTest;
+import org.folio.rest.impl.*;
 import org.folio.rest.util.HelperUtilsTest;
-import org.folio.services.LedgerDetailsServiceTest;
-import org.folio.services.LedgerRolloverProgressServiceTest;
-import org.folio.services.LedgerRolloverServiceTest;
+import org.folio.services.*;
 import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
-import org.folio.services.ExpenseClassServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
-import org.folio.services.GroupExpenseClassTotalsServiceTest;
-import org.folio.services.GroupFundFiscalYearServiceTest;
-import org.folio.services.LedgerServiceTest;
-import org.folio.services.LedgerTotalsServiceTest;
-import org.folio.services.CommonTransactionServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fund.FundServiceTest;
 import org.junit.jupiter.api.AfterAll;
@@ -87,6 +68,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloversApiTestNested extends LedgerRolloverApiTest {
+  }
+
+  @Nested
+  class LedgerRolloversErrorsApiTestNested extends LedgerRolloverErrorsApiTest {
   }
 
   @Nested
@@ -147,6 +132,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloverServiceTestNested extends LedgerRolloverServiceTest {
+  }
+
+  @Nested
+  class LedgerRolloverErrorsServiceTestNested extends LedgerRolloverErrorsServiceTest {
   }
 
   @Nested
