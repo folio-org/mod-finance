@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -60,9 +60,9 @@ public class LedgerRolloverErrorsApiTest {
   void shouldReturnLedgerRolloverErrorsCollectionWhenCallGetAndRolloverErrorsServiceReturnLedgerRolloverErrors() {
     LedgerFiscalYearRolloverErrorCollection ledgerErrors = new LedgerFiscalYearRolloverErrorCollection()
       .withTotalRecords(1)
-      .withLedgerFiscalYearRolloverErrors(Arrays.asList(new LedgerFiscalYearRolloverError()));
+      .withLedgerFiscalYearRolloverErrors(List.of(new LedgerFiscalYearRolloverError()));
 
-    when(mockLedgerRolloverErrorsService.retrieveLedgersRolloverErrors(any(), anyInt(), anyInt(), any()))
+    when(mockLedgerRolloverErrorsService.retrieveLedgersRolloverErrors(any(), anyInt(), anyInt(), anyString(), any()))
       .thenReturn(CompletableFuture.completedFuture(ledgerErrors));
 
     // When call getFinanceLedgerRollovers successfully
@@ -80,7 +80,7 @@ public class LedgerRolloverErrorsApiTest {
     CompletableFuture<LedgerFiscalYearRolloverErrorCollection> errorFuture = new CompletableFuture<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
-    when(mockLedgerRolloverErrorsService.retrieveLedgersRolloverErrors(any(), anyInt(), anyInt(), any()))
+    when(mockLedgerRolloverErrorsService.retrieveLedgersRolloverErrors(any(), anyInt(), anyInt(), anyString(), any()))
       .thenReturn(errorFuture);
 
     // When call getFinanceLedgerRollovers but ledgerRolloverService return error

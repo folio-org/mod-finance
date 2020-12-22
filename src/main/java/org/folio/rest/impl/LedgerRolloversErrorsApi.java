@@ -31,7 +31,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
                                               Map<String, String> okapiHeaders,
                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
-    ledgerRolloverErrorsService.retrieveLedgersRolloverErrors(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
+    ledgerRolloverErrorsService.retrieveLedgersRolloverErrors(query, offset, limit, accept, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(rolloverErrors -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverErrors))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
