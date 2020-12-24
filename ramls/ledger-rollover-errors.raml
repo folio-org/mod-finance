@@ -1,0 +1,44 @@
+#%RAML 1.0
+title: "Rollover error report business API"
+version: v1.0
+protocols: [ HTTP, HTTPS ]
+baseUri: http://github.com/folio-org/mod-finanace
+
+documentation:
+  - title: Rollover errors business API
+    content: <b>API is used to manage rollover errors.</b>
+
+types:
+  errors: !include raml-util/schemas/errors.schema
+  rolloverErrorsCollection: !include acq-models/mod-finance/schemas/ledger_fiscal_year_rollover_error_collection.json
+
+traits:
+  pageable:  !include raml-util/traits/pageable.raml
+  searchable: !include raml-util/traits/searchable.raml
+  language: !include raml-util/traits/language.raml
+  validate: !include raml-util/traits/validation.raml
+
+resourceTypes:
+  get-only: !include raml-util/rtypes/get-only-with-json-response.raml
+
+/finance/ledger-rollovers-errors:
+  type:
+    get-only:
+      schema: rolloverErrorsCollection
+      exampleCollection: !include acq-models/mod-finance/examples/ledger_fiscal_year_rollover_error_collection.sample
+  is: [validate]
+  get:
+    description: Get list of rollovers errors
+    headers:
+      Accept:
+        displayName: Accept
+        description: either text/csv or application/json
+    is: [
+      searchable: {description: "with valid searchable fields: for example code", example: "[\"code\", \"MEDGRANT\", \"=\"]"},
+      pageable
+    ]
+    responses:
+      200:
+        description: "Return rollover errors in specified format"
+      415:
+        description: "Unsupported Media Type: text/csv"

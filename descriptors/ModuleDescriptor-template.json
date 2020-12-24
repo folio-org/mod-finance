@@ -378,6 +378,20 @@
       ]
     },
     {
+      "id": "finance.ledger-rollovers-errors",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledger-rollovers-errors",
+          "permissionsRequired": ["finance.ledger-rollovers-errors.collection.get"],
+          "modulePermissions": [
+            "finance-storage.ledger-rollovers-errors.collection.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.ledger-rollovers-progress",
       "version": "1.0",
       "handlers": [
@@ -949,6 +963,11 @@
       "description" : "Fetch a ledger rollover"
     },
     {
+      "permissionName" : "finance.ledger-rollovers-errors.collection.get",
+      "displayName" : "ledger rollover errors collection get",
+      "description" : "Get collection of ledgers rollover errors"
+    },
+    {
       "permissionName" : "finance.ledger-rollovers-progress.collection.get",
       "displayName" : "ledger rollover progress collection get",
       "description" : "Get collection of ledgers rollover progress"
@@ -982,6 +1001,7 @@
         "finance.ledger-rollovers.item.get",
         "finance.ledger-rollovers.item.post",
         "finance.ledgers.current-fiscal-year.item.get",
+        "finance.ledger-rollovers-errors.collection.get",
         "finance.ledger-rollovers-progress.collection.get",
         "finance.ledger-rollovers-progress.item.post",
         "finance.ledger-rollovers-progress.item.get",
