@@ -73,7 +73,7 @@ public class GroupFiscalYearSummariesTest {
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(firstGroupFundFiscalYear));
 
     Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100d, 50d, 0d);
-    Budget secondBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), null, 50.1111111111d, 100d);
+    Budget secondBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 0d, 50.1111111111d, 100d);
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(firstBudget));
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(secondBudget));
 
@@ -106,7 +106,7 @@ public class GroupFiscalYearSummariesTest {
     GroupFundFiscalYear firstGroupFundFiscalYear = buildGroupFundFiscalYear(groupId, fiscalYearId);
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(firstGroupFundFiscalYear));
 
-    Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100d, 50d, null);
+    Budget firstBudget = buildBudget(firstGroupFundFiscalYear.getFundId(), firstGroupFundFiscalYear.getFiscalYearId(), 100d, 50d, 0d);
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(firstBudget));
 
     GroupFundFiscalYear secondGroupFundFiscalYear = buildGroupFundFiscalYear(groupId, fiscalYearId);
