@@ -73,6 +73,8 @@ public class BudgetExpenseClassTotalsServiceTest {
     budget = new Budget()
       .withId(UUID.randomUUID().toString())
       .withFundId(UUID.randomUUID().toString())
+      .withOverEncumbrance(0.0d)
+      .withOverExpended(0.0d)
       .withFiscalYearId(UUID.randomUUID().toString());
 
     expenseClass1 = new ExpenseClass().withName("EC1").withId(UUID.randomUUID().toString());

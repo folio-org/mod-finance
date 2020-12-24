@@ -118,7 +118,7 @@ public class BudgetsApiTest  {
 
 
     assertEquals(budget, resultBudget);
-    verify(mockCreateBudgetService).createBudget(refEq(budget, "metadata"), any());
+    verify(mockCreateBudgetService).createBudget(any(), any());
   }
 
   @Test

@@ -67,7 +67,7 @@ public class BudgetService {
     return budgetRestClient.delete(id, requestContext);
   }
 
-  private void validateBudget(Budget budget) {
+  private void validateBudget(SharedBudget budget) {
     List<Error> errors = new ArrayList<>();
 
     errors.addAll(checkRemainingEncumbrance(budget));
@@ -80,7 +80,7 @@ public class BudgetService {
     }
   }
 
-  private List<Error> checkRemainingEncumbrance(Budget budget) {
+  private List<Error> checkRemainingEncumbrance(SharedBudget budget) {
     BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
     BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
@@ -96,7 +96,7 @@ public class BudgetService {
     return Collections.emptyList();
   }
 
-  private List<Error> checkRemainingExpenditure(Budget budget) {
+  private List<Error> checkRemainingExpenditure(SharedBudget budget) {
     BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
