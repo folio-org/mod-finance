@@ -16,6 +16,7 @@ import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.ToDoubleFunction;
@@ -78,11 +79,31 @@ public class LedgerTotalsService {
     double availableTotal = calculateBudgetTotals(budgets, currency, Budget::getAvailable);
     double unavailableTotal = calculateBudgetTotals(budgets, currency, Budget::getUnavailable);
     double netTransfersTotal = calculateBudgetTotals(budgets, currency, Budget::getNetTransfers);
+    double initialAllocation = calculateBudgetTotals(budgets, currency, Budget::getInitialAllocation);
+    double allocationTo = calculateBudgetTotals(budgets, currency, Budget::getAllocationTo);
+    double allocationFrom = calculateBudgetTotals(budgets, currency, Budget::getAllocationFrom);
+    double awaitingPayment = calculateBudgetTotals(budgets, currency, Budget::getAwaitingPayment);
+    double encumbered = calculateBudgetTotals(budgets, currency, Budget::getEncumbered);
+    double expenditures = calculateBudgetTotals(budgets, currency, Budget::getExpenditures);
+    double overEncumbrance = calculateBudgetTotals(budgets, currency, Budget::getOverEncumbrance);
+    double overExpended = calculateBudgetTotals(budgets, currency, Budget::getOverExpended);
+    double totalFunding = calculateBudgetTotals(budgets, currency, Budget::getTotalFunding);
+    double cashBalance = calculateBudgetTotals(budgets, currency, Budget::getCashBalance);
 
     return ledger.withAllocated(allocatedTotal)
       .withAvailable(availableTotal)
       .withUnavailable(unavailableTotal)
-      .withNetTransfers(netTransfersTotal);
+      .withNetTransfers(netTransfersTotal)
+      .withInitialAllocation(initialAllocation)
+      .withAllocationTo(allocationTo)
+      .withAllocationFrom(allocationFrom)
+      .withAwaitingPayment(awaitingPayment)
+      .withEncumbered(encumbered)
+      .withExpenditures(expenditures)
+      .withOverEncumbrance(overEncumbrance)
+      .withOverExpended(overExpended)
+      .withTotalFunding(totalFunding)
+      .withCashBalance(cashBalance);
   }
 
   private double calculateBudgetTotals(List<Budget> budgets, CurrencyUnit currency, ToDoubleFunction<Budget> getBudgetTotal) {
