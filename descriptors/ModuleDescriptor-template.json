@@ -291,7 +291,7 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.5",
+      "version": "1.6",
       "handlers": [
         {
           "methods": ["GET"],

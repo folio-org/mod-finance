@@ -1,5 +1,27 @@
 package org.folio.services;
 
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_NOT_FOUND;
+import static org.folio.services.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -15,29 +37,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_NOT_FOUND;
-import static org.folio.services.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class LedgerTotalsServiceTest {
 
@@ -71,21 +70,51 @@ public class LedgerTotalsServiceTest {
       .withAllocated(100.01)
       .withAvailable(120d)
       .withNetTransfers(20d)
-      .withUnavailable(0.01d);
+      .withUnavailable(0.01)
+      .withInitialAllocation(100.01)
+      .withAllocationTo(0d)
+      .withAllocationFrom(0d)
+      .withEncumbered(0.01d)
+      .withAwaitingPayment(0d)
+      .withExpenditures(0d)
+      .withTotalFunding(120.01)
+      .withCashBalance(120.01)
+      .withOverEncumbrance(0d)
+      .withOverExpended(0d);
 
     Budget budget2 = new Budget()
       .withFiscalYearId(fiscalYearId)
       .withAllocated(300d)
-      .withAvailable(120.97d)
-      .withNetTransfers(-19.03d)
-      .withUnavailable(160d);
+      .withAvailable(120.97)
+      .withNetTransfers(-19.03)
+      .withUnavailable(160d)
+      .withInitialAllocation(150d)
+      .withAllocationTo(200d)
+      .withAllocationFrom(50d)
+      .withEncumbered(40d)
+      .withAwaitingPayment(20d)
+      .withExpenditures(100d)
+      .withTotalFunding(280.97)
+      .withCashBalance(180.97)
+      .withOverEncumbrance(0d)
+      .withOverExpended(0d);
 
     Budget budget3 = new Budget()
       .withFiscalYearId(fiscalYearId)
       .withAllocated(0d)
-      .withAvailable(120.55d)
-      .withNetTransfers(120.55d)
-      .withUnavailable(0d);
+      .withAvailable(120.55)
+      .withNetTransfers(120.55)
+      .withUnavailable(0d)
+      .withInitialAllocation(150d)
+      .withAllocationTo(0d)
+      .withAllocationFrom(150d)
+      .withEncumbered(0d)
+      .withAwaitingPayment(0d)
+      .withExpenditures(0d)
+      .withTotalFunding(120.55)
+      .withCashBalance(120.55)
+      .withOverEncumbrance(0d)
+      .withOverExpended(0d);
 
     List<Budget> budgets = Arrays.asList(budget1, budget2, budget3);
     BudgetsCollection budgetsCollection = new BudgetsCollection()
@@ -101,31 +130,34 @@ public class LedgerTotalsServiceTest {
 
     Ledger resultLedger = ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContextMock).join();
 
-    double expectedAllocated = BigDecimal.valueOf(budget1.getAllocated())
-      .add(BigDecimal.valueOf(budget2.getAllocated()))
-      .add(BigDecimal.valueOf(budget3.getAllocated()))
-      .doubleValue();
-
-    double expectedAvailable = BigDecimal.valueOf(budget1.getAvailable())
-      .add(BigDecimal.valueOf(budget2.getAvailable()))
-      .add(BigDecimal.valueOf(budget3.getAvailable()))
-      .doubleValue();
-
-    double expectedUnavailable = BigDecimal.valueOf(budget1.getUnavailable())
-      .add(BigDecimal.valueOf(budget2.getUnavailable()))
-      .add(BigDecimal.valueOf(budget3.getUnavailable()))
-      .doubleValue();
-
-    double expectedNetTransfers = BigDecimal.valueOf(budget1.getNetTransfers())
-      .add(BigDecimal.valueOf(budget2.getNetTransfers()))
-      .add(BigDecimal.valueOf(budget3.getNetTransfers()))
-      .doubleValue();
+    double expectedAllocated = 400.01;
+    double expectedAvailable = 361.52;
+    double expectedUnavailable = 160.01;
+    double expectedNetTransfers = 121.52;
+    double expectedInitialAllocation = 400.01;
+    double expectedAllocationTo = 200d;
+    double expectedAllocationFrom = 200d;
+    double expectedEncumbered = 40.01;
+    double expectedExpenditures = 100d;
+    double expectedAwaitingPayment = 20d;
+    double expectedTotalFunding = 521.53;
+    double expectedCashBalance = 421.53;
 
     assertEquals(ledger.getId(), resultLedger.getId());
     assertEquals(expectedAllocated, resultLedger.getAllocated());
     assertEquals(expectedAvailable, resultLedger.getAvailable());
     assertEquals(expectedUnavailable, resultLedger.getUnavailable());
     assertEquals(expectedNetTransfers, resultLedger.getNetTransfers());
+    assertEquals(expectedInitialAllocation, resultLedger.getInitialAllocation());
+    assertEquals(expectedAllocationTo, resultLedger.getAllocationTo());
+    assertEquals(expectedAllocationFrom, resultLedger.getAllocationFrom());
+    assertEquals(expectedEncumbered, resultLedger.getEncumbered());
+    assertEquals(expectedExpenditures, resultLedger.getExpenditures());
+    assertEquals(expectedAwaitingPayment, resultLedger.getAwaitingPayment());
+    assertEquals(expectedTotalFunding, resultLedger.getTotalFunding());
+    assertEquals(expectedCashBalance, resultLedger.getCashBalance());
+    assertEquals(0d, resultLedger.getOverEncumbrance());
+    assertEquals(0d, resultLedger.getOverExpended());
 
     verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
     String expectedQuery = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger.getId(), fiscalYearId);
