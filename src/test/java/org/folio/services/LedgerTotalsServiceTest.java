@@ -1,30 +1,5 @@
 package org.folio.services;
 
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.AwaitingPayment;
-import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetsCollection;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.LedgersCollection;
-import org.folio.services.budget.BudgetService;
-import org.hamcrest.core.IsInstanceOf;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
-
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_NOT_FOUND;
 import static org.folio.services.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
@@ -39,6 +14,29 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
+import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.services.budget.BudgetService;
+import org.hamcrest.core.IsInstanceOf;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class LedgerTotalsServiceTest {
 
