@@ -68,35 +68,20 @@ public class LedgerTotalsService {
 
   private Ledger populateLedgerSummary(Ledger ledger, List<Budget> budgets) {
 
-    double allocatedTotal = HelperUtils.calculateTotals(budgets, Budget::getAllocated);
-    double availableTotal = HelperUtils.calculateTotals(budgets, Budget::getAvailable);
-    double unavailableTotal = HelperUtils.calculateTotals(budgets, Budget::getUnavailable);
-    double netTransfersTotal = HelperUtils.calculateTotals(budgets, Budget::getNetTransfers);
-    double initialAllocation = HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation);
-    double allocationTo = HelperUtils.calculateTotals(budgets, Budget::getAllocationTo);
-    double allocationFrom = HelperUtils.calculateTotals(budgets, Budget::getAllocationFrom);
-    double awaitingPayment = HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment);
-    double encumbered = HelperUtils.calculateTotals(budgets, Budget::getEncumbered);
-    double expenditures = HelperUtils.calculateTotals(budgets, Budget::getExpenditures);
-    double overEncumbrance = HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance);
-    double overExpended = HelperUtils.calculateTotals(budgets, Budget::getOverExpended);
-    double totalFunding = HelperUtils.calculateTotals(budgets, Budget::getTotalFunding);
-    double cashBalance = HelperUtils.calculateTotals(budgets, Budget::getCashBalance);
-
-    return ledger.withAllocated(allocatedTotal)
-      .withAvailable(availableTotal)
-      .withUnavailable(unavailableTotal)
-      .withNetTransfers(netTransfersTotal)
-      .withInitialAllocation(initialAllocation)
-      .withAllocationTo(allocationTo)
-      .withAllocationFrom(allocationFrom)
-      .withAwaitingPayment(awaitingPayment)
-      .withEncumbered(encumbered)
-      .withExpenditures(expenditures)
-      .withOverEncumbrance(overEncumbrance)
-      .withOverExpended(overExpended)
-      .withTotalFunding(totalFunding)
-      .withCashBalance(cashBalance);
+    return ledger.withAllocated(HelperUtils.calculateTotals(budgets, Budget::getAllocated))
+      .withAvailable(HelperUtils.calculateTotals(budgets, Budget::getAvailable))
+      .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
+      .withNetTransfers(HelperUtils.calculateTotals(budgets, Budget::getNetTransfers))
+      .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
+      .withAllocationTo(HelperUtils.calculateTotals(budgets, Budget::getAllocationTo))
+      .withAllocationFrom(HelperUtils.calculateTotals(budgets, Budget::getAllocationFrom))
+      .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
+      .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
+      .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
+      .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))
+      .withCashBalance(HelperUtils.calculateTotals(budgets, Budget::getCashBalance));
   }
 
 }
