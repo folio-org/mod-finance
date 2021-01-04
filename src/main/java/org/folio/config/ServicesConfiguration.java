@@ -6,6 +6,7 @@ import org.folio.rest.core.RestClient;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.FiscalYearService;
 import org.folio.services.GroupExpenseClassTotalsService;
+import org.folio.services.GroupFiscalYearTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerRolloverErrorsService;
@@ -187,5 +188,10 @@ public class ServicesConfiguration {
                                                              FundDetailsService fundDetailsService) {
     return new CreateBudgetService( budgetRestClient, groupFundFiscalYearService, fundFiscalYearService,
                                           budgetExpenseClassService, transactionService,  fundDetailsService);
+  }
+
+  @Bean
+  GroupFiscalYearTotalsService groupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService) {
+    return new GroupFiscalYearTotalsService(budgetRestClient, groupFundFiscalYearService);
   }
 }

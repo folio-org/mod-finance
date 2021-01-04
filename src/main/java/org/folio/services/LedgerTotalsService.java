@@ -1,5 +1,12 @@
 package org.folio.services;
 
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
+
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -8,21 +15,8 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.util.ErrorCodes;
+import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
-import org.javamoney.moneta.Money;
-import org.javamoney.moneta.function.MonetaryFunctions;
-
-import javax.money.CurrencyUnit;
-import javax.money.Monetary;
-import javax.money.MonetaryAmount;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.function.ToDoubleFunction;
-import java.util.stream.Collectors;
-
-import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 public class LedgerTotalsService {
 
@@ -55,7 +49,7 @@ public class LedgerTotalsService {
 
   public CompletableFuture<Ledger> populateLedgerTotals(Ledger ledger, FiscalYear fiscalYear, RequestContext requestContext) {
     return getBudgetsByLedgerIdFiscalYearId(ledger.getId(), fiscalYear.getId(), requestContext)
-        .thenApply(budgets -> populateLedgerSummary(ledger, budgets, fiscalYear.getCurrency()));
+        .thenApply(budgets -> populateLedgerSummary(ledger, budgets));
   }
 
   public CompletableFuture<LedgersCollection> populateLedgersTotals(LedgersCollection ledgersCollection, String fiscalYearId, RequestContext requestContext) {
@@ -72,45 +66,22 @@ public class LedgerTotalsService {
       .thenApply(BudgetsCollection::getBudgets);
   }
 
-  private Ledger populateLedgerSummary(Ledger ledger, List<Budget> budgets, String currencyCode) {
-    CurrencyUnit currency = Monetary.getCurrency(currencyCode);
+  private Ledger populateLedgerSummary(Ledger ledger, List<Budget> budgets) {
 
-    double allocatedTotal = calculateBudgetTotals(budgets, currency, Budget::getAllocated);
-    double availableTotal = calculateBudgetTotals(budgets, currency, Budget::getAvailable);
-    double unavailableTotal = calculateBudgetTotals(budgets, currency, Budget::getUnavailable);
-    double netTransfersTotal = calculateBudgetTotals(budgets, currency, Budget::getNetTransfers);
-    double initialAllocation = calculateBudgetTotals(budgets, currency, Budget::getInitialAllocation);
-    double allocationTo = calculateBudgetTotals(budgets, currency, Budget::getAllocationTo);
-    double allocationFrom = calculateBudgetTotals(budgets, currency, Budget::getAllocationFrom);
-    double awaitingPayment = calculateBudgetTotals(budgets, currency, Budget::getAwaitingPayment);
-    double encumbered = calculateBudgetTotals(budgets, currency, Budget::getEncumbered);
-    double expenditures = calculateBudgetTotals(budgets, currency, Budget::getExpenditures);
-    double overEncumbrance = calculateBudgetTotals(budgets, currency, Budget::getOverEncumbrance);
-    double overExpended = calculateBudgetTotals(budgets, currency, Budget::getOverExpended);
-    double totalFunding = calculateBudgetTotals(budgets, currency, Budget::getTotalFunding);
-    double cashBalance = calculateBudgetTotals(budgets, currency, Budget::getCashBalance);
-
-    return ledger.withAllocated(allocatedTotal)
-      .withAvailable(availableTotal)
-      .withUnavailable(unavailableTotal)
-      .withNetTransfers(netTransfersTotal)
-      .withInitialAllocation(initialAllocation)
-      .withAllocationTo(allocationTo)
-      .withAllocationFrom(allocationFrom)
-      .withAwaitingPayment(awaitingPayment)
-      .withEncumbered(encumbered)
-      .withExpenditures(expenditures)
-      .withOverEncumbrance(overEncumbrance)
-      .withOverExpended(overExpended)
-      .withTotalFunding(totalFunding)
-      .withCashBalance(cashBalance);
-  }
-
-  private double calculateBudgetTotals(List<Budget> budgets, CurrencyUnit currency, ToDoubleFunction<Budget> getBudgetTotal) {
-    return budgets.stream()
-      .map(budget -> (MonetaryAmount) Money.of(getBudgetTotal.applyAsDouble(budget), currency))
-      .reduce(MonetaryFunctions.sum()).orElse(Money.zero(currency))
-      .getNumber().doubleValue();
+    return ledger.withAllocated(HelperUtils.calculateTotals(budgets, Budget::getAllocated))
+      .withAvailable(HelperUtils.calculateTotals(budgets, Budget::getAvailable))
+      .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
+      .withNetTransfers(HelperUtils.calculateTotals(budgets, Budget::getNetTransfers))
+      .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
+      .withAllocationTo(HelperUtils.calculateTotals(budgets, Budget::getAllocationTo))
+      .withAllocationFrom(HelperUtils.calculateTotals(budgets, Budget::getAllocationFrom))
+      .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
+      .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
+      .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
+      .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))
+      .withCashBalance(HelperUtils.calculateTotals(budgets, Budget::getCashBalance));
   }
 
 }

@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -314,5 +315,11 @@ public class HelperUtils {
     CompletableFuture<Void> future = new CompletableFuture<>();
     future.completeExceptionally(new UnsupportedOperationException());
     return future;
+  }
+
+  public static  <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {
+    return budgets.stream()
+            .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
+            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).doubleValue();
   }
 }
