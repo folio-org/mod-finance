@@ -4,6 +4,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
+import org.folio.services.fiscalyear.FiscalYearService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -58,9 +59,9 @@ public class LedgerDetailsService {
 
   private CompletableFuture<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
-      .thenCompose(ledger -> fiscalYearService.getFiscalYear(ledger.getFiscalYearOneId(), requestContext))
+      .thenCompose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
       .thenApply(this::buildCurrentFYQuery)
-      .thenCompose(query -> fiscalYearService.getFiscalYears(3, 0, query, requestContext))
+      .thenCompose(query -> fiscalYearService.getFiscalYears(query, 0, 3, requestContext))
       .thenApply(FiscalYearsCollection::getFiscalYears);
   }
 

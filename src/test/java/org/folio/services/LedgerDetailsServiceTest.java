@@ -27,6 +27,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.services.fiscalyear.FiscalYearService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -49,7 +50,7 @@ public class LedgerDetailsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     Context context = Vertx.vertx().getOrCreateContext();
     Map<String, String> okapiHeaders = new HashMap<>();
     okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
@@ -70,8 +71,8 @@ public class LedgerDetailsServiceTest {
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Collections.singletonList(fiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYear(curFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(curFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
@@ -90,23 +91,23 @@ public class LedgerDetailsServiceTest {
     Date fEndDate = sdf.parse("31/12/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("06/01/" + year);
+    Date sStartDate = sdf.parse("03/01/" + year);
     Date sEndDate = sdf.parse("31/12/" + year);
 
     String ledgerId = UUID.randomUUID().toString();
 
     Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
-    FiscalYear firstfiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYear secfiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
+    FiscalYear firstFiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
+    FiscalYear secFiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
+    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstFiscalYear, secFiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
-    assertThat(actFY.getId(), equalTo(secfiscalYear.getId()));
+    assertThat(actFY.getId(), equalTo(secFiscalYear.getId()));
   }
 
   @Test
@@ -118,7 +119,7 @@ public class LedgerDetailsServiceTest {
 
     String firstCurFiscalId = UUID.randomUUID().toString();
     Date fStartDate = sdf.parse("01/01/" + year);
-    Date fEndDate = sdf.parse("06/31/" + year);
+    Date fEndDate = sdf.parse("03/31/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
     Date sStartDate = sdf.parse("01/01/" + year + 1);
@@ -132,8 +133,8 @@ public class LedgerDetailsServiceTest {
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
     //Then
@@ -163,8 +164,8 @@ public class LedgerDetailsServiceTest {
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, nextfiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then
@@ -189,8 +190,8 @@ public class LedgerDetailsServiceTest {
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then
@@ -209,7 +210,7 @@ public class LedgerDetailsServiceTest {
     Date fEndDate = sdf.parse("31/12/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("06/01/" + year);
+    Date sStartDate = sdf.parse("03/01/" + year);
     Date sEndDate = sdf.parse("31/12/" + year);
 
     String ledgerId = UUID.randomUUID().toString();
@@ -220,8 +221,8 @@ public class LedgerDetailsServiceTest {
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYear(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(eq(3), eq(0), any(String.class), eq(requestContext));
+    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
     //Then

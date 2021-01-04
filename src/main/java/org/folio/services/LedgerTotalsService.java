@@ -17,6 +17,7 @@ import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.fiscalyear.FiscalYearService;
 
 public class LedgerTotalsService {
 
@@ -36,7 +37,7 @@ public class LedgerTotalsService {
   }
 
   private CompletableFuture<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
-    return fiscalYearService.getFiscalYear(fiscalYearId, requestContext)
+    return fiscalYearService.getFiscalYearById(fiscalYearId, requestContext)
       .exceptionally(t -> {
         Throwable cause = t.getCause() == null ? t : t.getCause();
         if (cause instanceof HttpException && ((HttpException) cause).getCode() == 404) {
