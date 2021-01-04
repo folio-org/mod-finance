@@ -90,7 +90,7 @@ public class LedgerDetailsServiceTest {
     Date fEndDate = sdf.parse("31/12/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("06/01/" + year);
+    Date sStartDate = sdf.parse("03/01/" + year);
     Date sEndDate = sdf.parse("31/12/" + year);
 
     String ledgerId = UUID.randomUUID().toString();
@@ -118,7 +118,7 @@ public class LedgerDetailsServiceTest {
 
     String firstCurFiscalId = UUID.randomUUID().toString();
     Date fStartDate = sdf.parse("01/01/" + year);
-    Date fEndDate = sdf.parse("06/31/" + year);
+    Date fEndDate = sdf.parse("03/31/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
     Date sStartDate = sdf.parse("01/01/" + year + 1);
@@ -209,7 +209,7 @@ public class LedgerDetailsServiceTest {
     Date fEndDate = sdf.parse("31/12/" + year);
 
     String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("06/01/" + year);
+    Date sStartDate = sdf.parse("03/01/" + year);
     Date sEndDate = sdf.parse("31/12/" + year);
 
     String ledgerId = UUID.randomUUID().toString();
