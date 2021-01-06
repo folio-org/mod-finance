@@ -30,6 +30,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.fiscalyear.FiscalYearService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ public class LedgerTotalsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
@@ -125,7 +126,7 @@ public class LedgerTotalsServiceTest {
       .withId(UUID.randomUUID().toString());
 
 
-    when(fiscalYearMockService.getFiscalYear(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+    when(fiscalYearMockService.getFiscalYearById(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(budgetsCollection));
 
     Ledger resultLedger = ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContextMock).join();
@@ -159,7 +160,7 @@ public class LedgerTotalsServiceTest {
     assertEquals(0d, resultLedger.getOverEncumbrance());
     assertEquals(0d, resultLedger.getOverExpended());
 
-    verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
+    verify(fiscalYearMockService).getFiscalYearById(eq(fiscalYearId), eq(requestContextMock));
     String expectedQuery = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger.getId(), fiscalYearId);
     verify(budgetMockService).getBudgets(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock));
   }
@@ -179,7 +180,7 @@ public class LedgerTotalsServiceTest {
       .withId(UUID.randomUUID().toString());
 
 
-    when(fiscalYearMockService.getFiscalYear(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+    when(fiscalYearMockService.getFiscalYearById(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(budgetsCollection));
 
     Ledger resultLedger = ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContextMock).join();
@@ -190,7 +191,7 @@ public class LedgerTotalsServiceTest {
     assertEquals(0d, resultLedger.getUnavailable());
     assertEquals(0d, resultLedger.getNetTransfers());
 
-    verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
+    verify(fiscalYearMockService).getFiscalYearById(eq(fiscalYearId), eq(requestContextMock));
     String expectedQuery = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger.getId(), fiscalYearId);
     verify(budgetMockService).getBudgets(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock));
   }
@@ -218,11 +219,11 @@ public class LedgerTotalsServiceTest {
       .withLedgers(ledgers);
 
 
-    when(fiscalYearMockService.getFiscalYear(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+    when(fiscalYearMockService.getFiscalYearById(anyString(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(budgetsCollection));
 
     ledgerTotalsService.populateLedgersTotals(ledgersCollection, fiscalYearId, requestContextMock).join();
-    verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
+    verify(fiscalYearMockService).getFiscalYearById(eq(fiscalYearId), eq(requestContextMock));
     String expectedQuery1 = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger1.getId(), fiscalYearId);
     String expectedQuery2 = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger2.getId(), fiscalYearId);
     String expectedQuery3 = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledger3.getId(), fiscalYearId);
@@ -244,7 +245,7 @@ public class LedgerTotalsServiceTest {
     Ledger ledger = new Ledger()
       .withId(UUID.randomUUID().toString());
 
-    when(fiscalYearMockService.getFiscalYear(anyString(), any())).thenReturn(errorFuture);
+    when(fiscalYearMockService.getFiscalYearById(anyString(), any())).thenReturn(errorFuture);
 
     CompletableFuture<Ledger> resultFuture = ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContextMock);
     ExecutionException executionException = assertThrows(ExecutionException.class, resultFuture::get);
@@ -255,7 +256,7 @@ public class LedgerTotalsServiceTest {
     assertEquals(400, httpException.getCode());
     assertEquals(FISCAL_YEAR_NOT_FOUND.toError(), httpException.getErrors().getErrors().get(0));
 
-    verify(fiscalYearMockService).getFiscalYear(eq(fiscalYearId), eq(requestContextMock));
+    verify(fiscalYearMockService).getFiscalYearById(eq(fiscalYearId), eq(requestContextMock));
    // verify(budgetMockService, never()).getBudgets(any(), any(), any(), any());
   }
 

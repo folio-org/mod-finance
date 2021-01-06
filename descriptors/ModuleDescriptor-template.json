@@ -213,7 +213,7 @@
     },
     {
       "id": "finance.fiscal-years",
-      "version": "1.1",
+      "version": "1.2",
       "handlers": [
         {
           "methods": ["GET"],
@@ -237,7 +237,8 @@
           "pathPattern": "/finance/fiscal-years/{id}",
           "permissionsRequired": ["finance.fiscal-years.item.get"],
           "modulePermissions": [
-            "finance-storage.fiscal-years.item.get"
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.budgets.collection.get"
           ]
         },
         {

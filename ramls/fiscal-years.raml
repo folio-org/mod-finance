@@ -57,3 +57,9 @@ resourceTypes:
         exampleItem: !include acq-models/mod-finance/examples/fiscal_year.sample
     put:
       is: [validate]
+    get:
+      queryParameters:
+        withFinancialSummary:
+          description: Whether the financial information needs to be returned
+          type: boolean
+          default: false

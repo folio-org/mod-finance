@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
@@ -73,6 +74,11 @@ public class RestClientsConfiguration {
   @Bean
   RestClient ledgerRolloverErrorsStorageRestClient() {
     return new RestClient(resourcesPath(LEDGER_ROLLOVERS_ERRORS_STORAGE));
+  }
+
+  @Bean
+  RestClient configEntriesRestClient() {
+    return new RestClient(resourcesPath(CONFIGURATIONS));
   }
 
 }

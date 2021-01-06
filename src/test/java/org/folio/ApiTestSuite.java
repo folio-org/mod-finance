@@ -14,6 +14,7 @@ import org.folio.services.*;
 import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
+import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fund.FundServiceTest;
@@ -156,5 +157,9 @@ public class ApiTestSuite {
 
   @Nested
   class FundServiceTestNested extends FundServiceTest {
+  }
+
+  @Nested
+  class FiscalYearServiceTestNested extends FiscalYearServiceTest {
   }
 }

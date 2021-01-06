@@ -187,50 +187,6 @@ public class HelperUtils {
     return ledger;
   }
 
-
-  /**
-   * Retrieve configuration for localeSettings from mod-configuration.
-   * @param okapiHeaders the headers provided by okapi
-   * @param ctx the context
-   * @param logger logger instance
-   * @return CompletableFuture with JsonObject
-   */
-  public static CompletableFuture<JsonObject> getConfigurationEntries(Map<String, String> okapiHeaders, Context ctx,
-      Logger logger) {
-
-    String okapiURL = StringUtils.trimToEmpty(okapiHeaders.get(OKAPI_URL));
-    String tenant = okapiHeaders.get(OKAPI_HEADER_TENANT);
-    String token = okapiHeaders.get(OKAPI_HEADER_TOKEN);
-    CompletableFuture<JsonObject> future = new VertxCompletableFuture<>(ctx);
-    JsonObject config = new JsonObject();
-
-    ConfigurationsClient configurationsClient = new ConfigurationsClient(okapiURL, tenant, token);
-    try {
-      configurationsClient.getConfigurationsEntries(CONFIG_QUERY, 0, 100, null, null, response -> response.bodyHandler(body -> {
-        if (response.statusCode() != 200) {
-          logger.error(String.format("Expected status code 200, got '%s' :%s", response.statusCode(), body.toString()));
-          future.completeExceptionally(new HttpException(500, ErrorCodes.CURRENCY_NOT_FOUND));
-        }
-
-        JsonObject entries = body.toJsonObject();
-
-        if (logger.isDebugEnabled()) {
-          logger.debug("The response from mod-configuration: {}", entries.encodePrettily());
-        }
-        entries.getJsonArray(CONFIGS)
-          .stream()
-          .map(o -> (JsonObject) o)
-          .forEach(entry -> config.put(entry.getString(CONFIG_NAME), entry.getValue(CONFIG_VALUE)));
-
-        future.complete(config);
-      }));
-    } catch (Exception e) {
-      logger.error("Error while fetching configs", e);
-      future.completeExceptionally(e);
-    }
-    return future;
-  }
-
   public static Void handleErrorResponse(Handler<AsyncResult<javax.ws.rs.core.Response>> handler, AbstractHelper helper, Throwable t) {
     handler.handle(succeededFuture(helper.buildErrorResponse(t)));
     return null;
