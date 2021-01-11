@@ -52,6 +52,9 @@ public class BudgetService {
 
   private SharedBudget mergeBudgets(SharedBudget sharedBudget, Budget budgetFromStorage) {
     return sharedBudget
+      .withInitialAllocation(budgetFromStorage.getInitialAllocation())
+      .withAllocationTo(budgetFromStorage.getAllocationTo())
+      .withAllocationFrom(budgetFromStorage.getAllocationFrom())
       .withAwaitingPayment(budgetFromStorage.getAwaitingPayment())
       .withExpenditures(budgetFromStorage.getExpenditures())
       .withEncumbered(budgetFromStorage.getEncumbered())
