@@ -1,21 +1,16 @@
 package org.folio.services.budget;
 
-import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
-import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import io.vertx.core.json.JsonObject;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.*;
+import org.hamcrest.core.IsInstanceOf;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,23 +19,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import org.folio.rest.core.RestClient;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
-import org.folio.rest.jaxrs.model.BudgetsCollection;
-import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.hamcrest.core.IsInstanceOf;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import io.vertx.core.json.JsonObject;
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 public class BudgetServiceTest {
 
@@ -65,7 +51,7 @@ public class BudgetServiceTest {
     sharedBudget = new SharedBudget()
       .withId(UUID.randomUUID().toString())
       .withFiscalYearId(UUID.randomUUID().toString())
-      .withFundId(UUID.randomUUID().toString());;
+      .withFundId(UUID.randomUUID().toString());
   }
 
   @Test
@@ -131,6 +117,9 @@ public class BudgetServiceTest {
       .withAllocated(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
+      .withInitialAllocation(10000d)
+      .withAllocationTo(1000d)
+      .withAllocationFrom(1000d)
       .withAwaitingPayment(150.60)
       .withEncumbered(7307.4)
       .withExpenditures(2228.55);
