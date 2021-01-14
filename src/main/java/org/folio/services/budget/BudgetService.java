@@ -1,7 +1,11 @@
 package org.folio.services.budget;
 
-import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
-import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.util.BudgetUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -9,15 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.folio.rest.core.RestClient;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.BudgetsCollection;
-import org.folio.rest.jaxrs.model.Error;
-import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.util.BudgetUtils;
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
+import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 
 public class BudgetService {
 
@@ -55,6 +52,9 @@ public class BudgetService {
       .withAllocated(budgetFromStorage.getAllocated())
       .withAvailable(budgetFromStorage.getAvailable())
       .withUnavailable(budgetFromStorage.getUnavailable())
+      .withInitialAllocation(budgetFromStorage.getInitialAllocation())
+      .withAllocationTo(budgetFromStorage.getAllocationTo())
+      .withAllocationFrom(budgetFromStorage.getAllocationFrom())
       .withAwaitingPayment(budgetFromStorage.getAwaitingPayment())
       .withExpenditures(budgetFromStorage.getExpenditures())
       .withEncumbered(budgetFromStorage.getEncumbered())
