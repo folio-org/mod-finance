@@ -21,7 +21,7 @@ public class LedgerRolloverErrorsService {
                                                                                                   int limit,
                                                                                                   String contentType,
                                                                                                   RequestContext requestContext) {
-    if (contentType.equalsIgnoreCase(APPLICATION_JSON)) {
+    if (contentType.toLowerCase().contains(APPLICATION_JSON.toLowerCase())) {
       return ledgerRolloverErrorsStorageRestClient.get(query, offset, limit, requestContext, LedgerFiscalYearRolloverErrorCollection.class);
     } else {
       throw new HttpException(415, "Unsupported Media Type: " + contentType);
