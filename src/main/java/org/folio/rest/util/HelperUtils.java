@@ -6,8 +6,6 @@ import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.RestVerticle.OKAPI_HEADER_TOKEN;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
@@ -21,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -32,9 +29,9 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.Path;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.acq.model.finance.LedgerFY;
-import org.folio.rest.client.ConfigurationsClient;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.Error;
@@ -45,13 +42,10 @@ import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.tools.client.Response;
 
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 import one.util.streamex.StreamEx;
-
 
 public class HelperUtils {
   public static final String ID = "id";
@@ -66,6 +60,7 @@ public class HelperUtils {
 
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
+  private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE);
 
   private HelperUtils() {
   }
@@ -277,5 +272,25 @@ public class HelperUtils {
     return budgets.stream()
             .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
             .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).doubleValue();
+  }
+
+
+  public static String combineCqlExpressions(String operator, String... expressions) {
+    if (ArrayUtils.isEmpty(expressions)) {
+      return EMPTY;
+    }
+
+    String sorting = EMPTY;
+
+    // Check whether last expression contains sorting query. If it does, extract it to be added in the end of the resulting query
+    Matcher matcher = CQL_SORT_BY_PATTERN.matcher(expressions[expressions.length - 1]);
+    if (matcher.find()) {
+      expressions[expressions.length - 1] = matcher.group(1);
+      sorting = matcher.group(2);
+    }
+
+    return StreamEx.of(expressions)
+      .filter(StringUtils::isNotBlank)
+      .joining(") " + operator + " (", "(", ")") + sorting;
   }
 }

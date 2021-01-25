@@ -22,10 +22,9 @@ import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
-import org.folio.services.protection.AcquisitionsUnitsService;
-import org.folio.services.protection.AcquisitionsUnitsServiceImpl;
+import org.folio.services.protection.AcqUnitMembershipsService;
+import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
-import org.folio.services.protection.ProtectionServiceImpl;
 import org.folio.services.transactions.AllocationService;
 import org.folio.services.transactions.BaseTransactionService;
 import org.folio.services.transactions.CommonTransactionService;
@@ -115,7 +114,7 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FundService fundService(RestClient fundStorageRestClient, AcquisitionsUnitsService acquisitionUnitsService) {
+  FundService fundService(RestClient fundStorageRestClient, AcqUnitsService acquisitionUnitsService) {
     return new FundService(fundStorageRestClient, acquisitionUnitsService);
   }
 
@@ -206,12 +205,19 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  public ProtectionService protectionService() {
-    return new ProtectionServiceImpl();
+  public AcqUnitMembershipsService acqUnitMembershipsService(RestClient acqUnitMembershipsRestClient) {
+    return new AcqUnitMembershipsService(acqUnitMembershipsRestClient);
   }
 
   @Bean
-  public AcquisitionsUnitsService acquisitionUnitsService() {
-    return new AcquisitionsUnitsServiceImpl();
+  public AcqUnitsService acqUnitsService(RestClient acqUnitsStorageRestClient, AcqUnitMembershipsService acqUnitMembershipsService) {
+    return new AcqUnitsService(acqUnitsStorageRestClient, acqUnitMembershipsService);
   }
+
+  @Bean
+  public ProtectionService protectionService(AcqUnitsService acqUnitsService, AcqUnitMembershipsService acqUnitMembershipsService) {
+    return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
+  }
+
+
 }

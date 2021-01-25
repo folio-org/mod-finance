@@ -57,7 +57,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx, lang);
 
-    fundService.getFundsWithAcqUnitsRestriction(limit, offset, query, lang, new RequestContext(ctx, headers))
+    fundService.getFundsWithAcqUnitsRestriction(limit, offset, query, new RequestContext(ctx, headers))
       .thenAccept(funds -> handler.handle(succeededFuture(helper.buildOkResponse(funds))))
       .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }

@@ -1,13 +1,12 @@
 package org.folio.services.fund;
 
 import static org.folio.rest.RestConstants.NOT_FOUND;
+import static org.folio.rest.RestConstants.SEARCH_PARAMS;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
-import static org.folio.services.BaseService.SEARCH_PARAMS;
-import static org.folio.services.BaseService.buildQuery;
 
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
@@ -18,24 +17,21 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundsCollection;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
-import org.folio.services.BaseService;
-import org.folio.services.protection.AcquisitionsUnitsService;
+import org.folio.services.protection.AcqUnitsService;
+
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
 
-public class FundService extends BaseService {
+public class FundService {
   private static final Logger logger = LoggerFactory.getLogger(FundService.class);
-  public static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS_STORAGE) + SEARCH_PARAMS;
 
   private final RestClient fundStorageRestClient;
-  private final AcquisitionsUnitsService acquisitionUnitsService;
+  private final AcqUnitsService acqUnitsService;
 
 
-  public FundService(RestClient fundStorageRestClient, AcquisitionsUnitsService acquisitionUnitsService) {
+  public FundService(RestClient fundStorageRestClient, AcqUnitsService acqUnitsService) {
     this.fundStorageRestClient = fundStorageRestClient;
-    this.acquisitionUnitsService = acquisitionUnitsService;
+    this.acqUnitsService = acqUnitsService;
   }
 
   public CompletableFuture<Fund> retrieveFundById(String fundId, RequestContext requestContext) {
@@ -52,9 +48,8 @@ public class FundService extends BaseService {
                                 });
   }
 
-  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(int limit, int offset, String query,
-                                                                            String lang, RequestContext requestContext) {
-   return acquisitionUnitsService.buildAcqUnitsCqlClause(query, offset, limit, lang, requestContext)
+  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(int limit, int offset, String query, RequestContext requestContext) {
+   return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .thenCompose(clause -> {
         String effectiveQuery = StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query);
         return fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class);
