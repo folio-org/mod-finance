@@ -2,7 +2,7 @@ package org.folio.services.protection;
 
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_PERMISSIONS;
 import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
-import static org.folio.rest.util.ErrorCodes.ORGANIZATION_UNITS_NOT_FOUND;
+import static org.folio.rest.util.ErrorCodes.FUND_UNITS_NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.USER_HAS_NO_ACQ_PERMISSIONS;
 import static org.folio.rest.util.ErrorCodes.USER_HAS_NO_PERMISSIONS;
 import static org.folio.services.protection.AcqDesiredPermissions.MANAGE;
@@ -105,7 +105,7 @@ public class ProtectionServiceImpl extends BaseService implements ProtectionServ
 
   private Error buildUnitsNotFoundError(List<String> expectedUnitIds, List<String> availableUnitIds) {
     List<String> missingUnitIds = ListUtils.subtract(expectedUnitIds, availableUnitIds);
-    return ORGANIZATION_UNITS_NOT_FOUND.toError().withAdditionalProperty(ACQUISITIONS_UNIT_IDS, missingUnitIds);
+    return FUND_UNITS_NOT_FOUND.toError().withAdditionalProperty(ACQUISITIONS_UNIT_IDS, missingUnitIds);
   }
 
   /**
