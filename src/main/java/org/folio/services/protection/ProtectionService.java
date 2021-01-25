@@ -51,17 +51,16 @@ public class ProtectionService {
     this.acqUnitMembershipsService = acqUnitMembershipsService;
   }
 
-  public CompletableFuture<Void> checkOperationsRestrictions(List<String> unitIds, Set<ProtectedOperationType> operations,
-                                                             String lang, RequestContext requestContext) {
+  public CompletableFuture<Void> checkOperationsRestrictions(List<String> unitIds, Set<ProtectedOperationType> operations, RequestContext requestContext) {
     if (CollectionUtils.isNotEmpty(unitIds)) {
-      return getUnitsByIds(unitIds, lang, requestContext)
+      return getUnitsByIds(unitIds, requestContext)
         .thenCompose(units -> {
           if (unitIds.size() == units.size()) {
             List<AcquisitionsUnit> activeUnits = units.stream()
               .filter(unit -> !unit.getIsDeleted())
               .collect(Collectors.toList());
             if (!activeUnits.isEmpty() && applyMergingStrategy(activeUnits, operations)) {
-              return verifyUserIsMemberOfOrganizationUnits(extractUnitIds(activeUnits), requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
+              return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
             }
             return CompletableFuture.completedFuture(null);
           } else {
@@ -73,17 +72,17 @@ public class ProtectionService {
     }
   }
 
-  public CompletableFuture<Void> validateAcqUnitsOnUpdate(Fund updatedOrg, Fund currentOrg, String lang, RequestContext requestContext) {
+  public CompletableFuture<Void> validateAcqUnitsOnUpdate(Fund updatedOrg, Fund currentOrg, RequestContext requestContext) {
     List<String> updatedAcqUnitIds = updatedOrg.getAcqUnitIds();
     List<String> currentAcqUnitIds = currentOrg.getAcqUnitIds();
 
     return VertxCompletableFuture.runAsync(requestContext.getContext(), () -> verifyUserHasManagePermission(updatedAcqUnitIds,
                                                     currentAcqUnitIds, getProvidedPermissions(requestContext.getHeaders())))
-    .thenCompose(ok -> verifyIfUnitsAreActive(ListUtils.subtract(updatedAcqUnitIds, currentAcqUnitIds), lang, requestContext))
-    .thenCompose(ok -> checkOperationsRestrictions(currentAcqUnitIds, Collections.singleton(UPDATE), lang, requestContext));
+    .thenCompose(ok -> verifyIfUnitsAreActive(ListUtils.subtract(updatedAcqUnitIds, currentAcqUnitIds), requestContext))
+    .thenCompose(ok -> checkOperationsRestrictions(currentAcqUnitIds, Collections.singleton(UPDATE), requestContext));
   }
 
-  private CompletableFuture<List<AcquisitionsUnit>> getUnitsByIds(List<String> unitIds, String lang, RequestContext requestContext) {
+  private CompletableFuture<List<AcquisitionsUnit>> getUnitsByIds(List<String> unitIds, RequestContext requestContext) {
     String query = combineCqlExpressions("and", ALL_UNITS_CQL, convertIdsToCqlQuery(unitIds));
     return acqUnitsService.getAcquisitionsUnits(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(AcquisitionsUnitCollection::getAcquisitionsUnits);
@@ -93,9 +92,9 @@ public class ProtectionService {
     return units.stream().allMatch(unit -> operations.stream().anyMatch(operation -> operation.isProtected(unit)));
   }
 
-  private CompletableFuture<Void> verifyUserIsMemberOfOrganizationUnits(List<String> unitIdsAssignedToOrg, String currentUserId,
-                                                                        RequestContext requestContext) {
-    String query = String.format("userId==%s AND %s", currentUserId, convertIdsToCqlQuery(unitIdsAssignedToOrg, ACQUISITIONS_UNIT_ID, true));
+  private CompletableFuture<Void> verifyUserIsMemberOfFundUnits(List<String> unitIdsAssignedToFund, String currentUserId,
+                                                                RequestContext requestContext) {
+    String query = String.format("userId==%s AND %s", currentUserId, convertIdsToCqlQuery(unitIdsAssignedToFund, ACQUISITIONS_UNIT_ID, true));
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships(query, 0, Integer.MAX_VALUE, requestContext)
       .thenAccept(unit -> {
         if (unit.getTotalRecords() == 0) {
@@ -153,12 +152,12 @@ public class ProtectionService {
    * @param acqUnitIds list of unit IDs.
    * @return completable future completed successfully if all units exist and active or exceptionally otherwise
    */
-  public CompletableFuture<Void> verifyIfUnitsAreActive(List<String> acqUnitIds, String lang, RequestContext requestContext) {
+  public CompletableFuture<Void> verifyIfUnitsAreActive(List<String> acqUnitIds, RequestContext requestContext) {
     if (acqUnitIds.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
 
-    return getUnitsByIds(acqUnitIds, lang, requestContext).thenAccept(units -> {
+    return getUnitsByIds(acqUnitIds, requestContext).thenAccept(units -> {
       List<String> activeUnitIds = units.stream()
         .filter(unit -> !unit.getIsDeleted())
         .map(AcquisitionsUnit::getId)

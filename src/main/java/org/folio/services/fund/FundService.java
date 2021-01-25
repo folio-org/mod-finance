@@ -1,11 +1,8 @@
 package org.folio.services.fund;
 
 import static org.folio.rest.RestConstants.NOT_FOUND;
-import static org.folio.rest.RestConstants.SEARCH_PARAMS;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -48,16 +45,13 @@ public class FundService {
                                 });
   }
 
-  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(int limit, int offset, String query, RequestContext requestContext) {
+  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .thenCompose(clause -> {
-        String effectiveQuery = StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query);
-        return fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class);
-      });
+      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .thenCompose(effectiveQuery -> fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class));
   }
 
-  public CompletableFuture<FundsCollection> getFundsWithoutAcqUnitsRestriction(int limit, int offset, String query,
-      RequestContext requestContext) {
+  public CompletableFuture<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return fundStorageRestClient.get(query, offset, limit, requestContext, FundsCollection.class);
   }
 }

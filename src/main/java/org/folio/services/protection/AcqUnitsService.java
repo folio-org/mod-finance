@@ -72,7 +72,6 @@ public class AcqUnitsService {
         if (logger.isDebugEnabled()) {
           logger.debug("User belongs to {} acq units: {}", ids.size(), StreamEx.of(ids).joining(", "));
         }
-
         return ids;
       });
   }
