@@ -27,6 +27,8 @@ public class ResourcePathResolver {
   public static final String EXPENSE_CLASSES_STORAGE_URL = "expenseClassStorageUrl";
   public static final String EXPENSE_CLASSES_URL = "expenseClassUrl";
   public static final String BUDGET_EXPENSE_CLASSES = "budgetExpenseClasses";
+  public static final String ACQUISITIONS_UNITS = "acquisitionsUnits";
+  public static final String ACQUISITIONS_MEMBERSHIPS = "acquisitionsMemberships";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
@@ -50,6 +52,8 @@ public class ResourcePathResolver {
     apis.put(EXPENSE_CLASSES_STORAGE_URL, "/finance-storage/expense-classes");
     apis.put(EXPENSE_CLASSES_URL, "/finance/expense-classes");
     apis.put(BUDGET_EXPENSE_CLASSES, "/finance-storage/budget-expense-classes");
+    apis.put(ACQUISITIONS_UNITS, "/acquisitions-units-storage/units");
+    apis.put(ACQUISITIONS_MEMBERSHIPS, "/acquisitions-units-storage/memberships");
 
     SUB_OBJECT_COLLECTION_APIS = Collections.unmodifiableMap(apis);
     SUB_OBJECT_ITEM_APIS = Collections.unmodifiableMap(

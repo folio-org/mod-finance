@@ -227,6 +227,16 @@
               <targetPackage>org.folio.rest.acq.model.finance</targetPackage>
             </configuration>
           </execution>
+          <execution>
+            <id>acquisitions-unit</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${basedir}/ramls/acq-models/acquisitions-unit/schemas</sourceDirectory>
+              <targetPackage>org.folio.rest.acq.model.finance</targetPackage>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>

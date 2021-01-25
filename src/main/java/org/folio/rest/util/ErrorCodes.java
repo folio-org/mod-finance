@@ -27,7 +27,10 @@ public enum ErrorCodes {
   PLANNED_FISCAL_YEAR_NOT_FOUND("plannedFiscalYearNotFound", "Planned fiscal year doesn't exist"),
   MISSING_FISCAL_YEAR_ID("missingFiscalYearId", "fiscalYearId must not be null"),
   NEGATIVE_VALUE("negativeValue", "Value must be greater or equal to zero"),
-  FUND_NOT_FOUND_ERROR("fundNotFoundError", "Fund with UUID %s does not exist");
+  FUND_NOT_FOUND_ERROR("fundNotFoundError", "Fund with UUID %s does not exist"),
+  ORGANIZATION_UNITS_NOT_FOUND("organizationAcqUnitsNotFound", "Acquisitions units assigned to organization cannot be found"),
+  USER_HAS_NO_PERMISSIONS("userHasNoPermission", "User does not have permissions - operation is restricted"),
+  USER_HAS_NO_ACQ_PERMISSIONS("userHasNoAcqUnitsPermission", "User does not have permissions to manage acquisition units assignments - operation is restricted"),;
 
   private final String code;
   private final String description;

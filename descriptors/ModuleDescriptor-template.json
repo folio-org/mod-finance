@@ -130,7 +130,9 @@
           "pathPattern": "/finance/funds",
           "permissionsRequired": ["finance.funds.collection.get"],
           "modulePermissions": [
-            "finance-storage.funds.collection.get"
+            "finance-storage.funds.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {
@@ -154,7 +156,9 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.collection.get"
+            "finance-storage.group-fund-fiscal-years.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {

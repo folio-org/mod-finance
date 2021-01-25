@@ -22,6 +22,10 @@ import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
+import org.folio.services.protection.AcquisitionsUnitsService;
+import org.folio.services.protection.AcquisitionsUnitsServiceImpl;
+import org.folio.services.protection.ProtectionService;
+import org.folio.services.protection.ProtectionServiceImpl;
 import org.folio.services.transactions.AllocationService;
 import org.folio.services.transactions.BaseTransactionService;
 import org.folio.services.transactions.CommonTransactionService;
@@ -111,8 +115,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FundService fundService(RestClient fundStorageRestClient) {
-    return new FundService(fundStorageRestClient);
+  FundService fundService(RestClient fundStorageRestClient, AcquisitionsUnitsService acquisitionUnitsService) {
+    return new FundService(fundStorageRestClient, acquisitionUnitsService);
   }
 
   @Bean
@@ -201,4 +205,13 @@ public class ServicesConfiguration {
     return new ConfigurationService(configEntriesRestClient);
   }
 
+  @Bean
+  public ProtectionService protectionService() {
+    return new ProtectionServiceImpl();
+  }
+
+  @Bean
+  public AcquisitionsUnitsService acquisitionUnitsService() {
+    return new AcquisitionsUnitsServiceImpl();
+  }
 }
