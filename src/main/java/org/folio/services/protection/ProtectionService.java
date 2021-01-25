@@ -7,11 +7,11 @@ import static org.folio.rest.util.ErrorCodes.USER_HAS_NO_ACQ_PERMISSIONS;
 import static org.folio.rest.util.ErrorCodes.USER_HAS_NO_PERMISSIONS;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
-import static org.folio.services.protection.AcqDesiredPermissions.MANAGE;
+import static org.folio.services.protection.models.AcqDesiredPermissions.MANAGE;
 import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_ID;
 import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.ALL_UNITS_CQL;
-import static org.folio.services.protection.ProtectedOperationType.UPDATE;
+import static org.folio.services.protection.models.ProtectedOperationType.UPDATE;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,6 +32,8 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.services.protection.models.AcqDesiredPermissions;
+import org.folio.services.protection.models.ProtectedOperationType;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;

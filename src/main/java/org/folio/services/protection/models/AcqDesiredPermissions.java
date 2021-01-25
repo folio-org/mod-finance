@@ -1,4 +1,4 @@
-package org.folio.services.protection;
+package org.folio.services.protection.models;
 
 import java.util.Arrays;
 import java.util.Collections;

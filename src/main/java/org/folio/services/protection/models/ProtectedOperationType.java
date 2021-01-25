@@ -1,4 +1,4 @@
-package org.folio.services.protection;
+package org.folio.services.protection.models;
 
 
 import org.folio.rest.acq.model.finance.AcquisitionsUnit;
