@@ -756,6 +756,14 @@
     {
      "id": "finance-storage.invoice-transaction-summaries",
       "version":"2.1"
+    },
+    {
+      "id": "acquisitions-units-storage.units",
+      "version": "1.1"
+    },
+    {
+      "id": "acquisitions-units-storage.memberships",
+      "version": "1.0"
     }
   ],
   "permissionSets": [
