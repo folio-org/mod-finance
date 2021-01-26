@@ -767,7 +767,7 @@
       "id": "acquisitions-units-storage.memberships",
       "version": "1.0"
     }
-  ]
+  ],
   "permissionSets": [
     {
       "permissionName": "finance.budgets-expense-classes-totals.collection.get",
