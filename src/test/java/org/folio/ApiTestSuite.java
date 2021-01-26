@@ -20,6 +20,7 @@ import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fund.FundServiceTest;
 import org.folio.services.protection.AcqUnitMembershipsServiceTest;
 import org.folio.services.protection.AcqUnitsServiceTest;
+import org.folio.services.protection.ProtectionServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -171,5 +172,9 @@ public class ApiTestSuite {
 
   @Nested
   class AcqUnitsServiceTestNested  extends AcqUnitsServiceTest {
+  }
+
+  @Nested
+  class ProtectionServiceTestNested  extends ProtectionServiceTest {
   }
 }
