@@ -2,21 +2,33 @@ package org.folio.services.fund;
 
 import static org.folio.rest.RestConstants.NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.services.protection.AcqUnitsService;
+
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 public class FundService {
-  private final RestClient fundStorageRestClient;
+  private static final Logger logger = LoggerFactory.getLogger(FundService.class);
 
-  public FundService(RestClient fundStorageRestClient) {
+  private final RestClient fundStorageRestClient;
+  private final AcqUnitsService acqUnitsService;
+
+
+  public FundService(RestClient fundStorageRestClient, AcqUnitsService acqUnitsService) {
     this.fundStorageRestClient = fundStorageRestClient;
+    this.acqUnitsService = acqUnitsService;
   }
 
   public CompletableFuture<Fund> retrieveFundById(String fundId, RequestContext requestContext) {
@@ -31,5 +43,15 @@ public class FundService {
                                   }
                                   throw new CompletionException(t);
                                 });
+  }
+
+  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+   return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
+      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .thenCompose(effectiveQuery -> fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class));
+  }
+
+  public CompletableFuture<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+    return fundStorageRestClient.get(query, offset, limit, requestContext, FundsCollection.class);
   }
 }

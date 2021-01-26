@@ -4,6 +4,8 @@ import org.folio.rest.core.RestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static org.folio.rest.util.ResourcePathResolver.ACQUISITIONS_MEMBERSHIPS;
+import static org.folio.rest.util.ResourcePathResolver.ACQUISITIONS_UNITS;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
 import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
@@ -81,4 +83,13 @@ public class RestClientsConfiguration {
     return new RestClient(resourcesPath(CONFIGURATIONS));
   }
 
+  @Bean
+  RestClient acqUnitsStorageRestClient() {
+    return new RestClient(resourcesPath(ACQUISITIONS_UNITS));
+  }
+
+  @Bean
+  RestClient acqUnitMembershipsRestClient() {
+    return new RestClient(resourcesPath(ACQUISITIONS_MEMBERSHIPS));
+  }
 }

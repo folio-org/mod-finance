@@ -33,10 +33,9 @@ import org.folio.rest.jaxrs.model.CompositeFund;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
-import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.services.LedgerDetailsService;
 import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +48,6 @@ import one.util.streamex.StreamEx;
 public class FundsHelper extends AbstractHelper {
 
   private static final String GET_FUND_TYPES_BY_QUERY = resourcesPath(FUND_TYPES) + SEARCH_PARAMS;
-  private static final String GET_FUNDS_BY_QUERY = resourcesPath(FUNDS_STORAGE) + SEARCH_PARAMS;
 
   @Autowired
   private RestClient budgetRestClient;
@@ -133,12 +131,6 @@ public class FundsHelper extends AbstractHelper {
       .withBudgetId(budgetId)
       .withFundId(compositeFund.getFund().getId())
       .withFiscalYearId(fiscalYearId);
-  }
-
-  public CompletableFuture<FundsCollection> getFunds(int limit, int offset, String query) {
-    String endpoint = String.format(GET_FUNDS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
-    return handleGetRequest(endpoint)
-      .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundsCollection.class)));
   }
 
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {

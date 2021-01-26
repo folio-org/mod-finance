@@ -8,24 +8,31 @@ import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -42,7 +49,8 @@ public class FundServiceTest {
   private FundService fundService;
   @Mock
   private RestClient fundStorageRestClient;
-
+  @Mock
+  private AcqUnitsService acqUnitsService;
 
   @BeforeEach
   public void initMocks() {
@@ -65,7 +73,7 @@ public class FundServiceTest {
 
     doReturn(completedFuture(fund)).when(fundStorageRestClient).getById(fundId, requestContext, Fund.class);
     //When
-    Fund actFund = fundService.retrieveFundById(fundId,requestContext).join();
+    Fund actFund = fundService.retrieveFundById(fundId, requestContext).join();
     //Then
     assertThat(actFund, equalTo(fund));
     verify(fundStorageRestClient).getById(fundId, requestContext, Fund.class);
@@ -105,5 +113,36 @@ public class FundServiceTest {
     assertEquals(RuntimeException.class, thrown.getCause().getClass());
     //Then
     verify(fundStorageRestClient).getById(fundId, requestContext, Fund.class);
+  }
+
+  @Test
+  void testShouldRetrieveFundsWithAcqUnits() {
+    //Given
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
+    Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
+    FundsCollection fundsCollection = new FundsCollection().withFunds(List.of(fund)).withTotalRecords(1);
+    doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
+    doReturn(completedFuture(fundsCollection)).when(fundStorageRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FundsCollection.class);
+    //When
+    FundsCollection actFunds = fundService.getFundsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext).join();
+    //Then
+    assertThat(fundsCollection, equalTo(actFunds));
+    verify(fundStorageRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FundsCollection.class);
+  }
+
+  @Test
+  void testShouldRetrieveFundsWithoutAcqUnits() {
+    //Given
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
+    Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
+    FundsCollection fundsCollection = new FundsCollection().withFunds(List.of(fund)).withTotalRecords(1);
+    doReturn(completedFuture(fundsCollection)).when(fundStorageRestClient).get("test_query", 0, 10, requestContext, FundsCollection.class);
+    //When
+    FundsCollection actFunds = fundService.getFundsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext).join();
+    //Then
+    assertThat(fundsCollection, equalTo(actFunds));
+    verify(fundStorageRestClient).get("test_query", 0, 10, requestContext, FundsCollection.class);
   }
 }

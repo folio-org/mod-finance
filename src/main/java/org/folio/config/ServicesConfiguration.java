@@ -22,6 +22,9 @@ import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
+import org.folio.services.protection.AcqUnitMembershipsService;
+import org.folio.services.protection.AcqUnitsService;
+import org.folio.services.protection.ProtectionService;
 import org.folio.services.transactions.AllocationService;
 import org.folio.services.transactions.BaseTransactionService;
 import org.folio.services.transactions.CommonTransactionService;
@@ -111,8 +114,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FundService fundService(RestClient fundStorageRestClient) {
-    return new FundService(fundStorageRestClient);
+  FundService fundService(RestClient fundStorageRestClient, AcqUnitsService acquisitionUnitsService) {
+    return new FundService(fundStorageRestClient, acquisitionUnitsService);
   }
 
   @Bean
@@ -200,5 +203,21 @@ public class ServicesConfiguration {
   ConfigurationService configurationService(RestClient configEntriesRestClient) {
     return new ConfigurationService(configEntriesRestClient);
   }
+
+  @Bean
+  public AcqUnitMembershipsService acqUnitMembershipsService(RestClient acqUnitMembershipsRestClient) {
+    return new AcqUnitMembershipsService(acqUnitMembershipsRestClient);
+  }
+
+  @Bean
+  public AcqUnitsService acqUnitsService(RestClient acqUnitsStorageRestClient, AcqUnitMembershipsService acqUnitMembershipsService) {
+    return new AcqUnitsService(acqUnitsStorageRestClient, acqUnitMembershipsService);
+  }
+
+  @Bean
+  public ProtectionService protectionService(AcqUnitsService acqUnitsService, AcqUnitMembershipsService acqUnitMembershipsService) {
+    return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
+  }
+
 
 }

@@ -16,6 +16,7 @@ import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.fund.FundDetailsService;
+import org.folio.services.fund.FundService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,6 +32,8 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Autowired
   private FundDetailsService fundDetailsService;
+  @Autowired
+  private FundService fundService;
 
   public FundsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -54,7 +57,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx, lang);
 
-    helper.getFunds(limit, offset, query)
+    fundService.getFundsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
       .thenAccept(funds -> handler.handle(succeededFuture(helper.buildOkResponse(funds))))
       .exceptionally(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }
