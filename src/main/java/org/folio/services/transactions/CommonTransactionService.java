@@ -4,16 +4,12 @@ import static java.util.stream.Collectors.toList;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
-import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -25,6 +21,8 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import one.util.streamex.StreamEx;
 
 public class CommonTransactionService extends BaseTransactionService {
@@ -98,13 +96,14 @@ public class CommonTransactionService extends BaseTransactionService {
     }
 
     transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
-    return createOrderTransactionSummary(transaction.getEncumbrance().getSourcePurchaseOrderId(), 1, requestContext)
+    return createOrderTransactionSummary(transaction, 1, requestContext)
                     .thenCompose(summary -> updateTransaction(transaction, requestContext));
   }
 
-  public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(String id, int number, RequestContext requestContext) {
+  public CompletableFuture<Void> createOrderTransactionSummary(Transaction transaction, int number, RequestContext requestContext) {
+    String id = transaction.getEncumbrance().getSourcePurchaseOrderId();
     OrderTransactionSummary summary = new OrderTransactionSummary().withId(id).withNumTransactions(number);
-    return orderTransactionSummaryRestClient.post(summary, requestContext, OrderTransactionSummary.class);
+    return orderTransactionSummaryRestClient.put(id, summary, requestContext);
   }
 
 }

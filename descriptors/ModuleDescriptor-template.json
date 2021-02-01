@@ -583,7 +583,7 @@
           "modulePermissions": [
             "finance-storage.transactions.item.get",
             "finance-storage.transactions.item.put",
-            "finance.order-transaction-summaries.item.post"
+            "finance.order-transaction-summaries.item.put"
           ]
         }
       ]
