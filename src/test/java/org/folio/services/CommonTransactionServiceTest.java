@@ -45,13 +45,16 @@ public class CommonTransactionServiceTest {
   @Mock(name = "fiscalYearRestClient")
   private RestClient fiscalYearRestClient;
 
+  @Mock(name = "orderTransactionSummaryRestClient")
+  private RestClient orderTransactionSummaryRestClient;
+
   @Mock
   private RequestContext requestContext;
 
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
-    transactionService = new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
+    transactionService = new CommonTransactionService(transactionRestClient, fiscalYearRestClient, orderTransactionSummaryRestClient);
   }
 
   @Test

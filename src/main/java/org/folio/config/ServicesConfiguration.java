@@ -54,8 +54,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  CommonTransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
-    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
+  CommonTransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient, RestClient orderTransactionSummaryRestClient) {
+    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient, orderTransactionSummaryRestClient);
   }
 
   @Bean
@@ -169,8 +169,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  TransactionService commonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
-    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient);
+  TransactionService commonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient, RestClient orderTransactionSummaryRestClient) {
+    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient, orderTransactionSummaryRestClient);
   }
 
   @Bean

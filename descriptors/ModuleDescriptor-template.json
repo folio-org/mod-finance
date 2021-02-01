@@ -582,7 +582,8 @@
           "permissionsRequired": ["finance.release-encumbrance.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.get",
-            "finance-storage.transactions.item.put"
+            "finance-storage.transactions.item.put",
+            "finance.order-transaction-summaries.item.put"
           ]
         }
       ]
@@ -756,7 +757,7 @@
     {
      "id": "finance-storage.invoice-transaction-summaries",
       "version":"2.1"
-    }    
+    }
   ],
   "optional": [
     {

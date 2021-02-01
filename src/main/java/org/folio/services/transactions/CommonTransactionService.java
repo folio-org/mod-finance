@@ -10,18 +10,19 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import one.util.streamex.StreamEx;
 
 public class CommonTransactionService extends BaseTransactionService {
@@ -29,10 +30,12 @@ public class CommonTransactionService extends BaseTransactionService {
   private static final Logger logger = LoggerFactory.getLogger(CommonTransactionService.class);
 
   private final RestClient fiscalYearRestClient;
+  private final RestClient orderTransactionSummaryRestClient;
 
-  public CommonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient) {
+  public CommonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient, RestClient orderTransactionSummaryRestClient) {
     super(transactionRestClient);
     this.fiscalYearRestClient = fiscalYearRestClient;
+    this.orderTransactionSummaryRestClient = orderTransactionSummaryRestClient;
   }
 
   public CompletableFuture<List<Transaction>> retrieveTransactions(Budget budget, RequestContext requestContext) {
@@ -93,7 +96,14 @@ public class CommonTransactionService extends BaseTransactionService {
     }
 
     transaction.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
-    return updateTransaction(transaction, requestContext);
+    return createOrderTransactionSummary(transaction, 1, requestContext)
+                    .thenCompose(summary -> updateTransaction(transaction, requestContext));
+  }
+
+  public CompletableFuture<Void> createOrderTransactionSummary(Transaction transaction, int number, RequestContext requestContext) {
+    String id = transaction.getEncumbrance().getSourcePurchaseOrderId();
+    OrderTransactionSummary summary = new OrderTransactionSummary().withId(id).withNumTransactions(number);
+    return orderTransactionSummaryRestClient.put(id, summary, requestContext);
   }
 
 }
