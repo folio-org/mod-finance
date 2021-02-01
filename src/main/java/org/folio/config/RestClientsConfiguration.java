@@ -17,6 +17,7 @@ import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_PROGRESS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -91,5 +92,10 @@ public class RestClientsConfiguration {
   @Bean
   RestClient acqUnitMembershipsRestClient() {
     return new RestClient(resourcesPath(ACQUISITIONS_MEMBERSHIPS));
+  }
+
+  @Bean
+  RestClient orderTransactionSummaryRestClient() {
+    return new RestClient(resourcesPath(ORDER_TRANSACTION_SUMMARIES));
   }
 }
