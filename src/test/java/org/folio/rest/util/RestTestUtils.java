@@ -62,7 +62,7 @@ public class RestTestUtils {
     return verifyGet(url, headers, expectedContentType, expectedCode);
   }
 
-  static Response verifyGet(String url, Headers headers, String expectedContentType, int expectedCode) {
+  public static Response verifyGet(String url, Headers headers, String expectedContentType, int expectedCode) {
     final RequestSpecification specification = RestAssured.with()
       .headers(headers);
     return verifyGet(specification, url, expectedContentType, expectedCode);
