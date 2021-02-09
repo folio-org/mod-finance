@@ -42,9 +42,10 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class GroupFiscalYearTotalsService {
   private static final Logger LOG = LoggerFactory.getLogger(GroupFiscalYearTotalsService.class);
-  public static int MAX_FUND_PER_QUERY = 5;
-  public static final String ALLOCATION_TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==Allocation) AND (%s) AND (%s)";
-  public static final String ALLOCATION_TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==Allocation) AND (%s) AND (%s)";
+  private static final int MAX_FUND_PER_QUERY = 4;
+  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND ((%s) AND (((%s) AND (cql.allRecords=1 NOT fromFundId==\"\")) OR (%s)))";
+  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND ((%s) AND (((%s) AND (cql.allRecords=1 NOT toFundId==\"\")) OR (%s)))";
+
   private final RestClient budgetRestClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final TransactionService transactionService;
@@ -79,27 +80,73 @@ public class GroupFiscalYearTotalsService {
               .withTotalRecords(summaries.size());
             return buildHolderSkeletons(collection, groupFundFiscalYearCollection);
           })
-      .thenCompose(holders -> updateHoldersWithAllocation(holders, requestContext)
-                              .thenApply(holder -> updateGroupSummaryWithAllocations(holders)));
+      .thenCompose(holders -> updateHoldersWithAllocations(holders, requestContext)
+                                  .thenAccept(holder -> updateGroupSummaryWithAllocation(holders))
+                                  .thenCompose(v -> updateHoldersWithTransfers(holders, requestContext))
+                                  .thenAccept(v -> updateGroupSummaryWithCalculatedFields(holders))
+                                  .thenApply(v -> convertHolders(holders)));
   }
 
-  private GroupFiscalYearSummaryCollection updateGroupSummaryWithAllocations(List<GroupFiscalYearTransactionsHolder> holders) {
+  //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
+  //    #totalFunding = allocated.add(netTransfers)
+  //    #available = totalFunding.subtract(unavailable).max(BigDecimal.ZERO)
+  //    #cashBalance = totalFunding.subtract(expended)
+  //    #overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  private void updateGroupSummaryWithCalculatedFields(List<GroupFiscalYearTransactionsHolder> holders) {
     holders.forEach(holder -> {
-      removeInitialAllocationByFunds(holder);
       GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
-      summary.withAllocationTo(HelperUtils.calculateTotals(holder.getToTransactions(), Transaction::getAmount))
-             .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromTransactions(), Transaction::getAmount));
+      double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
+      double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), Transaction::getAmount);
+      BigDecimal netTransfers = BigDecimal.valueOf(toTransfer).subtract(BigDecimal.valueOf(fromTransfer));
+      summary.withNetTransfers(netTransfers.doubleValue());
+
+      BigDecimal initialAllocation = BigDecimal.valueOf(summary.getInitialAllocation());
+      BigDecimal allocationTo = BigDecimal.valueOf(summary.getAllocationTo());
+      BigDecimal allocationFrom = BigDecimal.valueOf(summary.getAllocationFrom());
+      BigDecimal allocated = initialAllocation.add(allocationTo).subtract(allocationFrom);
+      summary.withAllocated(allocated.doubleValue());
+
+      BigDecimal totalFunding = allocated.add(netTransfers);
+      summary.withTotalFunding(totalFunding.doubleValue());
+
+      BigDecimal unavailable = BigDecimal.valueOf(summary.getUnavailable());
+      BigDecimal available = totalFunding.subtract(unavailable).max(BigDecimal.ZERO);
+      summary.withAvailable(available.doubleValue());
+
+      BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());
+      summary.withCashBalance(totalFunding.subtract(expended).doubleValue());
+
+      BigDecimal encumbered = BigDecimal.valueOf(summary.getEncumbered());
+      BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      summary.withOverEncumbrance(overEncumbered.doubleValue());
+
+      BigDecimal awaitingPayment = BigDecimal.valueOf(summary.getAwaitingPayment());
+      BigDecimal overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      summary.withOverExpended(overExpended.doubleValue());
     });
+  }
+
+  private GroupFiscalYearSummaryCollection convertHolders(List<GroupFiscalYearTransactionsHolder> holders) {
     List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).collect(toList());
     return  new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
   }
 
+  private void updateGroupSummaryWithAllocation(List<GroupFiscalYearTransactionsHolder> holders) {
+    holders.forEach(holder -> {
+      removeInitialAllocationByFunds(holder);
+      GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
+      summary.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), Transaction::getAmount))
+             .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
+    });
+  }
+
   private void removeInitialAllocationByFunds(GroupFiscalYearTransactionsHolder holder) {
-    Map<String, List<Transaction>> fundToTransactions = holder.getToTransactions().stream().collect(groupingBy(Transaction::getToFundId));
+    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
     fundToTransactions.forEach((fundToId, transactions) -> {
        transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
       if (CollectionUtils.isNotEmpty(transactions)) {
-        transactions.remove(0);
+        holder.getToAllocations().remove(transactions.get(0));
       }
     });
   }
@@ -155,18 +202,12 @@ public class GroupFiscalYearTotalsService {
   private GroupFiscalYearSummary buildGroupFiscalYearSummary(String fiscalYearId, String groupId, List<Budget> budgets) {
     GroupFiscalYearSummary summary = buildDefaultGroupFiscalYearSummary(fiscalYearId, groupId);
 
-    summary.withAllocated(HelperUtils.calculateTotals(budgets, Budget::getAllocated))
-      .withAvailable(HelperUtils.calculateTotals(budgets, Budget::getAvailable))
+    summary
       .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
-      .withNetTransfers(HelperUtils.calculateTotals(budgets, Budget::getNetTransfers))
       .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
-      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
-      .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
-      .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
-      .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))
-      .withCashBalance(HelperUtils.calculateTotals(budgets, Budget::getCashBalance));
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures));
     return summary;
   }
 
@@ -192,47 +233,72 @@ public class GroupFiscalYearTotalsService {
     return holders;
   }
 
-  private CompletableFuture<Void> updateHoldersWithAllocation(List<GroupFiscalYearTransactionsHolder> holders,
-                                                              RequestContext requestContext) {
+  private CompletableFuture<Void> updateHoldersWithAllocations(List<GroupFiscalYearTransactionsHolder> holders,
+                                                               RequestContext requestContext) {
     List<CompletableFuture<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
-    holders.forEach(holder -> {
-       List<String> groupFundIds = holder.getGroupFundIds();
-       String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
-       futures.add(getToTransactionsByFundIds(groupFundIds, fiscalYearId, requestContext)
-                       .thenCombine(getFromTransactionsByFundIds(groupFundIds, fiscalYearId, requestContext), (toTransactions, fromTransactions) -> {
-                                 return holder.withToTransactions(toTransactions).withFromTransactions(fromTransactions);
-                        }));
-    });
-    return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated : " + result.size()));
+    holders.forEach(holder ->
+       futures.add(updateHolderWithAllocations(requestContext, holder))
+    );
+    return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with allocations: " + result.size()));
   }
 
-  private CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> groupFundIds, String fiscalYearId, RequestContext requestContext) {
+  private CompletableFuture<Void> updateHoldersWithTransfers(List<GroupFiscalYearTransactionsHolder> holders,
+                                                               RequestContext requestContext) {
+    List<CompletableFuture<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
+    holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
+    return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with transfers: " + result.size()));
+  }
+
+  private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithAllocations(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
+    List<String> groupFundIds = holder.getGroupFundIds();
+    String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
+    return getToTransactionsByFundIds(groupFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext)
+                    .thenCombine(getFromTransactionsByFundIds(groupFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext),
+                      (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
+                     );
+  }
+
+  private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
+    List<String> groupFundIds = holder.getGroupFundIds();
+    String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
+    return getToTransactionsByFundIds(groupFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext)
+                    .thenCombine(getFromTransactionsByFundIds(groupFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext),
+                      (toAllocations, fromAllocations) -> holder.withToTransfers(toAllocations).withFromTransfers(fromAllocations)
+                    );
+  }
+
+  private CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> groupFundIds, String fiscalYearId,
+                                                                      Transaction.TransactionType trType, RequestContext requestContext) {
     String toFundQuery = convertIdsToCqlQuery(groupFundIds, "toFundId", "==", " OR ");
     String fromFundQuery = convertIdsToCqlQuery(groupFundIds, "fromFundId", "<>", " AND ");
-    String query = String.format(ALLOCATION_TRANSACTION_TO_QUERY, fiscalYearId, toFundQuery, fromFundQuery);
+    String query = String.format(TRANSACTION_TO_QUERY, fiscalYearId, trType.value(), toFundQuery, toFundQuery, fromFundQuery);
     return transactionService.retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
-                             .thenApply(trCollection -> trCollection.getTransactions().stream().skip(1).collect(Collectors.toList()));
+                             .thenApply(TransactionCollection::getTransactions);
   }
 
-  private CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> groupFundIds, String fiscalYearId, RequestContext requestContext) {
+  private CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> groupFundIds, String fiscalYearId,
+                                                                        Transaction.TransactionType trType, RequestContext requestContext) {
     String fromFundQuery = convertIdsToCqlQuery(groupFundIds, "fromFundId", "==", " OR ");
     String toFundQuery = convertIdsToCqlQuery(groupFundIds, "toFundId", "<>", " AND ");
-    String query = String.format(ALLOCATION_TRANSACTION_FROM_QUERY, fiscalYearId, toFundQuery, fromFundQuery);
+    String query = String.format(TRANSACTION_FROM_QUERY, fiscalYearId, trType.value(), fromFundQuery, fromFundQuery, toFundQuery);
     return transactionService.retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
 
-  private CompletableFuture<List<Transaction>> getFromTransactionsByFundIds(List<String> groupFundIds, String fiscalYearId, RequestContext requestContext) {
+  private CompletableFuture<List<Transaction>> getFromTransactionsByFundIds(List<String> groupFundIds, String fiscalYearId,
+                                                                            Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
-      ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY).map(ids -> retrieveFromTransactions(groupFundIds, fiscalYearId, requestContext))
+      ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY).map(ids -> retrieveFromTransactions(groupFundIds, fiscalYearId, trType, requestContext))
         .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
-  private CompletableFuture<List<Transaction>> getToTransactionsByFundIds(List<String> groupFundIds, String fiscalYearId, RequestContext requestContext) {
+  private CompletableFuture<List<Transaction>> getToTransactionsByFundIds(List<String> groupFundIds, String fiscalYearId,
+                                                                          Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
-      ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY).map(ids -> retrieveToTransactions(groupFundIds, fiscalYearId, requestContext))
+      ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY).map(ids -> retrieveToTransactions(groupFundIds, fiscalYearId, trType, requestContext))
         .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
+
 
   private void updateGroupFiscalYearSummary(GroupFiscalYearSummary original, GroupFiscalYearSummary update) {
     original.setAllocated(BigDecimal.valueOf(original.getAllocated())

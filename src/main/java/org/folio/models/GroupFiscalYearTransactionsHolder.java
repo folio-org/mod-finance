@@ -9,30 +9,36 @@ import org.folio.rest.jaxrs.model.Transaction;
 public class GroupFiscalYearTransactionsHolder {
   private final GroupFiscalYearSummary groupFiscalYearSummary;
   private List<String> groupFundIds;
-  private List<Transaction> toTransactions;
-  private List<Transaction> fromTransactions;
+  private List<Transaction> toAllocations;
+  private List<Transaction> fromAllocations;
+  private List<Transaction> toTransfers;
+  private List<Transaction> fromTransfers;
 
   public GroupFiscalYearTransactionsHolder(GroupFiscalYearSummary groupFiscalYearSummary) {
     this.groupFiscalYearSummary = groupFiscalYearSummary;
-    this.toTransactions = new ArrayList<>();
-    this.fromTransactions = new ArrayList<>();
+    this.toAllocations = new ArrayList<>();
+    this.fromAllocations = new ArrayList<>();
+    this.toTransfers = new ArrayList<>();
+    this.fromTransfers = new ArrayList<>();
   }
 
-  public void addToTransaction(Transaction toTransaction) {
-    this.toTransactions.add(toTransaction);
-  }
-
-  public void addFromTransaction(Transaction fromTransaction) {
-    this.fromTransactions.add(fromTransaction);
-  }
-
-  public GroupFiscalYearTransactionsHolder withToTransactions(List<Transaction> toTransactions) {
-    this.toTransactions = toTransactions;
+  public GroupFiscalYearTransactionsHolder withToAllocations(List<Transaction> allocations) {
+    this.toAllocations = allocations;
     return this;
   }
 
-  public GroupFiscalYearTransactionsHolder withFromTransactions(List<Transaction> fromTransactions) {
-    this.fromTransactions = fromTransactions;
+  public GroupFiscalYearTransactionsHolder withFromAllocations(List<Transaction> allocations) {
+    this.fromAllocations = allocations;
+    return this;
+  }
+
+  public GroupFiscalYearTransactionsHolder withToTransfers(List<Transaction> transfers) {
+    this.toTransfers = transfers;
+    return this;
+  }
+
+  public GroupFiscalYearTransactionsHolder withFromTransfers(List<Transaction> transfers) {
+    this.fromTransfers = transfers;
     return this;
   }
 
@@ -45,12 +51,20 @@ public class GroupFiscalYearTransactionsHolder {
     return groupFiscalYearSummary;
   }
 
-  public List<Transaction> getFromTransactions() {
-    return fromTransactions;
+  public List<Transaction> getFromAllocations() {
+    return fromAllocations;
   }
 
-  public List<Transaction> getToTransactions() {
-    return toTransactions;
+  public List<Transaction> getToAllocations() {
+    return toAllocations;
+  }
+
+  public List<Transaction> getToTransfers() {
+    return toTransfers;
+  }
+
+  public List<Transaction> getFromTransfers() {
+    return fromTransfers;
   }
 
   public List<String> getGroupFundIds() {
