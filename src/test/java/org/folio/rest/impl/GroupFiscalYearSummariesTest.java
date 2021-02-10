@@ -13,6 +13,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.Metadata;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.resource.FinanceGroupFiscalYearSummaries;
 import org.folio.rest.util.HelperUtils;
@@ -134,15 +137,17 @@ public class GroupFiscalYearSummariesTest {
     addMockEntry(BUDGET.name(), JsonObject.mapFrom(thirdBudget));
 
     Transaction transactionFirst = new Transaction().withId(UUID.randomUUID().toString()).withTransactionType(Transaction.TransactionType.ALLOCATION)
-      .withAmount(300d).withCurrency("USD").withToFundId(secondGroupFundFiscalYear.getFundId())
+      .withAmount(30d).withCurrency("USD").withToFundId(secondGroupFundFiscalYear.getFundId())
       .withFromFundId(firstGroupFundFiscalYear.getFundId())
-      .withSourceFiscalYearId(secondGroupFundFiscalYear.getFiscalYearId());
+      .withSourceFiscalYearId(secondGroupFundFiscalYear.getFiscalYearId())
+      .withMetadata(new Metadata().withCreatedDate(new Date()));
     addMockEntry(TO_ALLOCATION_FIRST_DIF_GROUP, JsonObject.mapFrom(transactionFirst));
 
     Transaction transactionSecond = new Transaction().withId(UUID.randomUUID().toString()).withTransactionType(Transaction.TransactionType.ALLOCATION)
       .withAmount(120d).withCurrency("USD").withToFundId(secondGroupFundFiscalYear.getFundId())
       .withFromFundId(firstGroupFundFiscalYear.getFundId())
-      .withSourceFiscalYearId(secondGroupFundFiscalYear.getFiscalYearId());
+      .withSourceFiscalYearId(secondGroupFundFiscalYear.getFiscalYearId())
+      .withMetadata(new Metadata().withCreatedDate(new Date()));
     addMockEntry(TO_ALLOCATION_SECOND_DIF_GROUP, JsonObject.mapFrom(transactionSecond));
 
     GroupFiscalYearSummaryCollection response = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
@@ -155,35 +160,35 @@ public class GroupFiscalYearSummariesTest {
 
     GroupFiscalYearSummary groupFiscalYearSummary1 = actualSummariesMap.get(firstGroupFundFiscalYear.getGroupId()).get(0);
 
-    assertEquals(400.01, groupFiscalYearSummary1.getAllocated());
-    assertEquals(240.97, groupFiscalYearSummary1.getAvailable());
-    assertEquals(160.01, groupFiscalYearSummary1.getUnavailable());
+    assertEquals(100.01, groupFiscalYearSummary1.getAllocated());
     assertEquals(0d, groupFiscalYearSummary1.getNetTransfers());
+    assertEquals(100.01, groupFiscalYearSummary1.getTotalFunding());
+    assertEquals(160.01, groupFiscalYearSummary1.getUnavailable());
+    assertEquals(0.0, groupFiscalYearSummary1.getAvailable());
     assertEquals(250.01, groupFiscalYearSummary1.getInitialAllocation());
     assertEquals(0d, groupFiscalYearSummary1.getAllocationTo());
-    assertEquals(420d, groupFiscalYearSummary1.getAllocationFrom());
+    assertEquals(150d, groupFiscalYearSummary1.getAllocationFrom());
     assertEquals(40.01, groupFiscalYearSummary1.getEncumbered());
     assertEquals(20d, groupFiscalYearSummary1.getAwaitingPayment());
     assertEquals(100d, groupFiscalYearSummary1.getExpenditures());
-    assertEquals(400.98, groupFiscalYearSummary1.getTotalFunding());
-    assertEquals(300.98, groupFiscalYearSummary1.getCashBalance());
+    assertEquals(0.01, groupFiscalYearSummary1.getCashBalance());
 
     GroupFiscalYearSummary groupFiscalYearSummary2 = actualSummariesMap.get(secondGroupFundFiscalYear.getGroupId()).get(0);
 
-    assertEquals(0d, groupFiscalYearSummary2.getAllocated());
-    assertEquals(120.55, groupFiscalYearSummary2.getAvailable());
+    assertEquals(270d, groupFiscalYearSummary2.getAllocated());
+    assertEquals(0.0, groupFiscalYearSummary2.getNetTransfers());
+    assertEquals(270.0, groupFiscalYearSummary2.getTotalFunding());
     assertEquals(0d, groupFiscalYearSummary2.getUnavailable());
-    assertEquals(120.55, groupFiscalYearSummary2.getNetTransfers());
+    assertEquals(270.0, groupFiscalYearSummary2.getAvailable());
     assertEquals(150, groupFiscalYearSummary2.getInitialAllocation());
     assertEquals(120d, groupFiscalYearSummary2.getAllocationTo());
     assertEquals(0d, groupFiscalYearSummary2.getAllocationFrom());
     assertEquals(0d, groupFiscalYearSummary2.getEncumbered());
     assertEquals(0d, groupFiscalYearSummary2.getAwaitingPayment());
     assertEquals(0d, groupFiscalYearSummary2.getExpenditures());
-    assertEquals(120.55, groupFiscalYearSummary2.getTotalFunding());
-    assertEquals(120.55, groupFiscalYearSummary2.getCashBalance());
+    assertEquals(0d, groupFiscalYearSummary2.getOverExpended());
+    assertEquals(270.0, groupFiscalYearSummary2.getCashBalance());
     assertEquals(0d, groupFiscalYearSummary2.getOverEncumbrance());
-    assertEquals(2d, groupFiscalYearSummary2.getOverExpended());
   }
 
   @Test
@@ -246,9 +251,9 @@ public class GroupFiscalYearSummariesTest {
     Map<String, List<GroupFiscalYearSummary>> actualSummariesMap = actualSummaries.stream().collect(Collectors.groupingBy(GroupFiscalYearSummary::getGroupId));
 
     GroupFiscalYearSummary groupFiscalYearSummary = actualSummariesMap.get(firstGroupFundFiscalYear.getGroupId()).get(0);
-
-    assertEquals(500d, groupFiscalYearSummary.getAllocated());
-    assertEquals(500d, groupFiscalYearSummary.getAvailable());
+    assertEquals(200d, groupFiscalYearSummary.getAllocated());
+    assertEquals(200d, groupFiscalYearSummary.getTotalFunding());
+    assertEquals(0d, groupFiscalYearSummary.getAvailable());
     assertEquals(500d, groupFiscalYearSummary.getUnavailable());
     assertEquals(0d, groupFiscalYearSummary.getNetTransfers());
     assertEquals(200d, groupFiscalYearSummary.getInitialAllocation());
@@ -257,8 +262,7 @@ public class GroupFiscalYearSummariesTest {
     assertEquals(200d, groupFiscalYearSummary.getEncumbered());
     assertEquals(250d, groupFiscalYearSummary.getAwaitingPayment());
     assertEquals(100d, groupFiscalYearSummary.getExpenditures());
-    assertEquals(1050d, groupFiscalYearSummary.getTotalFunding());
-    assertEquals(950d, groupFiscalYearSummary.getCashBalance());
+    assertEquals(100d, groupFiscalYearSummary.getCashBalance());
 
   }
 

@@ -78,7 +78,7 @@ public class GroupFiscalYearTotalsService {
 
             GroupFiscalYearSummaryCollection collection = new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries)
               .withTotalRecords(summaries.size());
-            return buildHolderSkeletons(collection, groupFundFiscalYearCollection);
+            return buildHolderSkeletons(fundIdFiscalYearIdBudgetsMap, collection, groupFundFiscalYearCollection);
           })
       .thenCompose(holders -> updateHoldersWithAllocations(holders, requestContext)
                                   .thenAccept(holder -> updateGroupSummaryWithAllocation(holders))
@@ -211,8 +211,9 @@ public class GroupFiscalYearTotalsService {
     return summary;
   }
 
-  private List<GroupFiscalYearTransactionsHolder> buildHolderSkeletons(GroupFiscalYearSummaryCollection groupFiscalYearSummaryCollection,
-                                                                        GroupFundFiscalYearCollection groupFundFiscalYearCollection) {
+  private List<GroupFiscalYearTransactionsHolder> buildHolderSkeletons(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap,
+                                                                       GroupFiscalYearSummaryCollection groupFiscalYearSummaryCollection,
+                                                                       GroupFundFiscalYearCollection groupFundFiscalYearCollection) {
     List<GroupFiscalYearTransactionsHolder> holders = new ArrayList<>();
     if (groupFiscalYearSummaryCollection != null
       && groupFundFiscalYearCollection != null
@@ -226,6 +227,7 @@ public class GroupFiscalYearTotalsService {
           .filter(groupFundFiscalYear -> groupFundFiscalYear.getGroupId().equals(groupId)
                                          && groupFundFiscalYear.getFiscalYearId().equals(fiscalYearId))
           .map(GroupFundFiscalYear::getFundId)
+          .filter(fundId -> isBudgetExists(fundIdFiscalYearIdBudgetsMap, fundId, fiscalYearId))
           .collect(Collectors.toList());
         holders.add( new GroupFiscalYearTransactionsHolder(groupFiscalYearSummary).withGroupFundIds(groupFundIds));
       });
@@ -346,8 +348,7 @@ public class GroupFiscalYearTotalsService {
 
   }
 
-  private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId,
-      String fiscalYearId) {
+  private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId,  String fiscalYearId) {
     return Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)) && Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)
       .get(fiscalYearId));
   }
