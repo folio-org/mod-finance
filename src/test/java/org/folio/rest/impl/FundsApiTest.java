@@ -68,12 +68,12 @@ import org.junit.jupiter.api.Test;
 import io.restassured.http.Headers;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class FundsApiTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(FundsApiTest.class);
+  private static final Logger logger = LogManager.getLogger(FundsApiTest.class);
   public static final String FUND_FIELD_NAME = "fund";
   public static final String GROUP_ID_FIELD_NAME = "groupId";
   public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";

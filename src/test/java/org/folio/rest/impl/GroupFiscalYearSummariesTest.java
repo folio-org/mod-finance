@@ -35,13 +35,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 public class GroupFiscalYearSummariesTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(GroupFiscalYearSummariesTest.class);
+  private static final Logger logger = LogManager.getLogger(GroupFiscalYearSummariesTest.class);
   private static boolean runningOnOwn;
 
   @BeforeAll

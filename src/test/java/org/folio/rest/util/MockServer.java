@@ -6,17 +6,6 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
-import static org.folio.rest.util.TestConstants.BAD_QUERY;
-import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.ERROR_TENANT;
-import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
-import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
@@ -28,10 +17,21 @@ import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -50,6 +50,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -80,8 +82,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -89,7 +89,7 @@ import one.util.streamex.StreamEx;
 
 public class MockServer {
 
-  private static final Logger logger = LoggerFactory.getLogger(MockServer.class);
+  private static final Logger logger = LogManager.getLogger(MockServer.class);
   private static final String QUERY = "query";
   private static final String ID_PATH_PARAM = "/:" + ID;
   static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
@@ -749,16 +749,16 @@ public class MockServer {
   }
 
   private <T> Optional<List<T>> getMockEntries(String objName, Class<T> tClass) {
-    List<T> entryList =  getRqRsEntries(HttpMethod.OTHER, objName).stream()
+    List<T> entryList =  getRqRsEntries(HttpMethod.SEARCH, objName).stream()
       .map(entries -> entries.mapTo(tClass))
       .collect(toList());
     return Optional.ofNullable(entryList.isEmpty()? null: entryList);
   }
 
   public static void addMockEntry(String objName, JsonObject data) {
-    List<JsonObject> entries = getRqRsEntries(HttpMethod.OTHER, objName);
+    List<JsonObject> entries = getRqRsEntries(HttpMethod.SEARCH, objName);
     entries.add(data);
-    serverRqRs.put(objName, HttpMethod.OTHER, entries);
+    serverRqRs.put(objName, HttpMethod.SEARCH, entries);
   }
 
   private static void addServerRqRsData(HttpMethod method, String objName, JsonObject data) {

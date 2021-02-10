@@ -44,7 +44,7 @@ import org.folio.rest.tools.client.Response;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
+import org.apache.logging.log4j.Logger;
 import one.util.streamex.StreamEx;
 
 public class HelperUtils {

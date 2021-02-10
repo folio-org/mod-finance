@@ -9,7 +9,7 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class GroupFundFiscalYearService {
 
@@ -37,7 +37,7 @@ public class GroupFundFiscalYearService {
   }
 
   private CompletableFuture<Void> processGroupFundFyUpdate(Budget budget, GroupFundFiscalYearCollection gffyCollection, RequestContext requestContext) {
-     return VertxCompletableFuture.allOf(requestContext.getContext(), gffyCollection.getGroupFundFiscalYears()
+     return FolioVertxCompletableFuture.allOf(requestContext.getContext(), gffyCollection.getGroupFundFiscalYears()
       .stream()
       .map(gffy -> groupFundFiscalYearRestClient.put(gffy.getId(), gffy.withBudgetId(budget.getId()), requestContext))
       .toArray(CompletableFuture[]::new));

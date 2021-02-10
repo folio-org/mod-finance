@@ -19,12 +19,12 @@ import org.folio.rest.acq.model.finance.AcquisitionsUnitMembership;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import one.util.streamex.StreamEx;
 
 public class AcqUnitsService {
-  public final Logger logger = LoggerFactory.getLogger(AcqUnitsService.class);
+  public final Logger logger = LogManager.getLogger(AcqUnitsService.class);
 
   private final RestClient acqUnitsStorageRestClient;
   private final AcqUnitMembershipsService acqUnitMembershipsService;

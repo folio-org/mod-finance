@@ -15,7 +15,7 @@ import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.util.ErrorCodes;
 
 import io.vertx.core.Context;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class TransactionSummariesHelper extends AbstractHelper {
 
@@ -24,13 +24,13 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
+    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary))
       .thenApply(orderSummary::withId);
   }
 
   public CompletableFuture<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return VertxCompletableFuture
+    return FolioVertxCompletableFuture
       .runAsync(ctx,
           () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
       .thenCompose(ok -> handleCreateRequest(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary))
@@ -57,12 +57,12 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Void> updateOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
+    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
       .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId(), lang), orderSummary));
   }
 
   public CompletableFuture<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return VertxCompletableFuture.runAsync(ctx, () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
+    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
       .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId(), lang), invoiceSummary));
   }
 }

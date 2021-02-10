@@ -6,11 +6,11 @@ import org.folio.rest.acq.model.finance.AcquisitionsUnitMembershipCollection;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class AcqUnitMembershipsService {
-  public final Logger logger = LoggerFactory.getLogger(AcqUnitMembershipsService.class);
+  public final Logger logger = LogManager.getLogger(AcqUnitMembershipsService.class);
 
   private final RestClient acqUnitMembershipsRestClient;
 

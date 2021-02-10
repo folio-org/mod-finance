@@ -21,7 +21,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.services.transactions.CommonTransactionService;
 
 public class BudgetExpenseClassService {
@@ -87,7 +87,7 @@ public class BudgetExpenseClassService {
       return CompletableFuture.completedFuture(null);
     }
     return checkNoTransactionsAssigned(deleteList, budget, requestContext)
-      .thenCompose(vVoid -> VertxCompletableFuture.allOf(requestContext.getContext(), deleteList.stream()
+      .thenCompose(vVoid -> FolioVertxCompletableFuture.allOf(requestContext.getContext(), deleteList.stream()
         .map(budgetExpenseClass -> budgetExpenseClassRestClient.delete(budgetExpenseClass.getId(), requestContext))
         .toArray(CompletableFuture[]::new)));
   }
@@ -105,7 +105,7 @@ public class BudgetExpenseClassService {
     if (updateList.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
-    return VertxCompletableFuture.allOf(requestContext.getContext(), updateList.stream()
+    return FolioVertxCompletableFuture.allOf(requestContext.getContext(), updateList.stream()
       .map(budgetExpenseClass -> budgetExpenseClassRestClient.put(budgetExpenseClass.getId(), budgetExpenseClass, requestContext))
       .toArray(CompletableFuture[]::new));
   }
@@ -114,7 +114,7 @@ public class BudgetExpenseClassService {
     if (createList.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
-    return VertxCompletableFuture.allOf(requestContext.getContext(), createList.stream()
+    return FolioVertxCompletableFuture.allOf(requestContext.getContext(), createList.stream()
       .map(budgetExpenseClass -> budgetExpenseClassRestClient.post(budgetExpenseClass, requestContext, BudgetExpenseClass.class))
       .toArray(CompletableFuture[]::new));
   }

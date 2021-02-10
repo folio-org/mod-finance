@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class PendingPaymentService implements TransactionTypeManagingStrategy {
 
@@ -17,14 +17,14 @@ public class PendingPaymentService implements TransactionTypeManagingStrategy {
 
   @Override
   public CompletableFuture<Transaction> createTransaction(Transaction pendingPayment, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT))
       .thenCompose(aVoid -> transactionService.createTransaction(pendingPayment, requestContext));
   }
 
   @Override
   public CompletableFuture<Void> updateTransaction(Transaction pendingPayment, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT))
       .thenCompose(aVoid -> transactionService.updateTransaction(pendingPayment, requestContext));
   }
