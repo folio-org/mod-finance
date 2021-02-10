@@ -21,13 +21,13 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import one.util.streamex.StreamEx;
 
 public class CommonTransactionService extends BaseTransactionService {
 
-  private static final Logger logger = LoggerFactory.getLogger(CommonTransactionService.class);
+  private static final Logger logger = LogManager.getLogger(CommonTransactionService.class);
 
   private final RestClient fiscalYearRestClient;
   private final RestClient orderTransactionSummaryRestClient;

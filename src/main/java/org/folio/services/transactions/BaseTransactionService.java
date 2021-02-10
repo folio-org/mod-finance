@@ -3,8 +3,8 @@ package org.folio.services.transactions;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -16,7 +16,7 @@ import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 
 public class BaseTransactionService implements TransactionService {
 
-  private static final Logger logger = LoggerFactory.getLogger(BaseTransactionService.class);
+  private static final Logger logger = LogManager.getLogger(BaseTransactionService.class);
 
   private final RestClient transactionRestClient;
 

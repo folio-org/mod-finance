@@ -63,12 +63,12 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class BudgetsApiTest  {
 
-  private static final Logger logger = LoggerFactory.getLogger(BudgetsApiTest.class);
+  private static final Logger logger = LogManager.getLogger(BudgetsApiTest.class);
   public static final String BUDGET_WITH_BOUNDED_TRANSACTION_ID = "34fe0c8b-2b99-4fe2-81a5-4ed6872a32e8";
   @Autowired
   public BudgetExpenseClassTotalsService budgetExpenseClassTotalsMockService;

@@ -35,9 +35,9 @@ import org.folio.rest.util.HelperUtils;
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public abstract class AbstractHelper {
 
@@ -45,7 +45,7 @@ public abstract class AbstractHelper {
   static final String CALLING_ENDPOINT_WITH_BODY_MSG = "Sending {} {} with body: {}";
   static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s&lang=%s";
 
-  protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+  protected final Logger logger = LogManager.getLogger(this.getClass());
   protected final String lang;
   protected final Context ctx;
   protected final HttpClientInterface httpClient;
@@ -122,7 +122,7 @@ public abstract class AbstractHelper {
    * @return completable future holding id of newly created entity Record or an exception if process failed
    */
   protected CompletableFuture<String> handleCreateRequest(String endpoint, Object recordData) {
-    CompletableFuture<String> future = new VertxCompletableFuture<>(ctx);
+    CompletableFuture<String> future = new FolioVertxCompletableFuture<>(ctx);
     try {
       JsonObject json = convertToJson(recordData);
 
@@ -155,7 +155,7 @@ public abstract class AbstractHelper {
    * @param recordData json to use for update operation
    */
   protected CompletableFuture<Void> handleUpdateRequest(String endpoint, Object recordData) {
-    CompletableFuture<Void> future = new VertxCompletableFuture<>(ctx);
+    CompletableFuture<Void> future = new FolioVertxCompletableFuture<>(ctx);
     try {
       JsonObject json = convertToJson(recordData);
 
@@ -188,7 +188,7 @@ public abstract class AbstractHelper {
    * @param endpoint endpoint
    */
   protected CompletableFuture<Void> handleDeleteRequest(String endpoint) {
-    CompletableFuture<Void> future = new VertxCompletableFuture<>(ctx);
+    CompletableFuture<Void> future = new FolioVertxCompletableFuture<>(ctx);
 
     logger.debug(CALLING_ENDPOINT_MSG, HttpMethod.DELETE, endpoint);
 
@@ -210,7 +210,7 @@ public abstract class AbstractHelper {
   }
 
   public CompletableFuture<JsonObject> handleGetRequest(String endpoint) {
-    CompletableFuture<JsonObject> future = new VertxCompletableFuture<>(ctx);
+    CompletableFuture<JsonObject> future = new FolioVertxCompletableFuture<>(ctx);
     try {
       logger.info(CALLING_ENDPOINT_MSG, HttpMethod.GET, endpoint);
 

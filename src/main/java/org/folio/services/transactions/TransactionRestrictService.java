@@ -10,7 +10,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.services.fund.FundService;
 
 public class TransactionRestrictService {
@@ -34,7 +34,7 @@ public class TransactionRestrictService {
   }
 
   private CompletableFuture<Transaction> checkFundsAllocatedIds(Transaction transaction, RequestContext requestContext) {
-    CompletableFuture<Transaction> future = new VertxCompletableFuture<>(requestContext.getContext());
+    CompletableFuture<Transaction> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
     if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
 
       return fundService.retrieveFundById(transaction.getFromFundId(), requestContext)

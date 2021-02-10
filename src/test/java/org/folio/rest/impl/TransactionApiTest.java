@@ -32,11 +32,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class TransactionApiTest {
-  private static final Logger logger = LoggerFactory.getLogger(TransactionApiTest.class);
+  private static final Logger logger = LogManager.getLogger(TransactionApiTest.class);
   private static boolean runningOnOwn;
 
   private final String dollars = "USD";

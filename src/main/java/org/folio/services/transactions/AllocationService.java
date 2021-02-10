@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.util.HelperUtils;
 
 public class AllocationService implements TransactionTypeManagingStrategy {
@@ -20,7 +20,7 @@ public class AllocationService implements TransactionTypeManagingStrategy {
 
   @Override
   public CompletableFuture<Transaction> createTransaction(Transaction allocation, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(allocation, Transaction.TransactionType.ALLOCATION))
       .thenCompose(aVoid -> transactionRestrictService.checkAllocation(allocation, requestContext))
       .thenCompose(transaction -> transactionService.createTransaction(transaction, requestContext));

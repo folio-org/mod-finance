@@ -25,11 +25,11 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.services.protection.models.ProtectedOperationType;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class ProtectionService {
-  public final Logger logger = LoggerFactory.getLogger(ProtectionService.class);
+  public final Logger logger = LogManager.getLogger(ProtectionService.class);
 
   private final AcqUnitsService acqUnitsService;
   private final AcqUnitMembershipsService acqUnitMembershipsService;
