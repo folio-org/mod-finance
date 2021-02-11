@@ -6,6 +6,23 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DIFFERENT_GROUP;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_SAME_GROUP;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_FIRST_DIF_GROUP;
+import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_SECOND_DIF_GROUP;
+import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
@@ -17,21 +34,10 @@ import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
-import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
-import static org.folio.rest.util.TestConstants.BAD_QUERY;
-import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.ERROR_TENANT;
-import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
-import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestUtils.getMockData;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -94,6 +100,8 @@ public class MockServer {
   private static final String ID_PATH_PARAM = "/:" + ID;
   static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
   private static final String LEDGER_FYS_MOCK_PATH = BASE_MOCK_DATA_PATH + "ledger-fiscal-year/ledger-fiscal-years.json";
+  public static final String TRANSACTION_ALLOCATION_TO_QUERY = ".+transactionType==Allocation.+toFundId==.+(cql.allRecords=1 NOT fromFundId==\"\").+";
+  public static final String TRANSACTION_ALLOCATION_FROM_QUERY = ".+transactionType==Allocation.+fromFundId==.+cql.allRecords=1 NOT toFundId==\"\".+";
 
   private final int port;
   private final Vertx vertx;
@@ -198,7 +206,7 @@ public class MockServer {
     router.route(HttpMethod.GET, resourcesPath(GROUPS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
-      .handler(ctx -> handleGetCollection(ctx, TestEntities.TRANSACTIONS));
+      .handler(ctx -> handleGetTransactionsCollection(ctx, TestEntities.TRANSACTIONS));
     router.route(HttpMethod.GET, resourcesPath(CONFIGURATIONS))
       .handler(this::handleConfigurationModuleResponse);
     router.route(HttpMethod.GET, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
@@ -261,6 +269,53 @@ public class MockServer {
     router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.EXPENSE_CLASSES.name()));
     return router;
+  }
+
+  private void handleGetTransactionsCollection(RoutingContext ctx, TestEntities testEntity) {
+    logger.info("handleGetTransactionsCollection got: " + ctx.request().path());
+
+    String query = StringUtils.trimToEmpty(ctx.request().getParam(QUERY));
+    addServerRqQuery(testEntity.name(), query);
+    if (query.contains(ID_FOR_INTERNAL_SERVER_ERROR)) {
+      serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+    } else if (query.contains(BAD_QUERY)) {
+      serverResponse(ctx, 400, APPLICATION_JSON, BAD_REQUEST.getReasonPhrase());
+    } else if (query.contains(ID_DOES_NOT_EXIST)) {
+      JsonObject emptyCollection = new JsonObject().put(testEntity.getName(), new JsonArray());
+      emptyCollection.put(TOTAL_RECORDS, 0);
+      serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
+    } else if (query.contains(FUND_ID_FIRST_SAME_GROUP) || query.contains(FUND_ID_SECOND_SAME_GROUP)
+                  || (query.contains(FUND_ID_SECOND_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_FROM_QUERY)))
+                    || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))) {
+      JsonObject emptyCollection = new JsonObject().put("transactions", new JsonArray());
+      emptyCollection.put(TOTAL_RECORDS, 0);
+      serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
+    } else if ( (query.contains(FUND_ID_SECOND_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))
+                  || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_FROM_QUERY)))) {
+      Optional<List<Transaction>> allocation1 = getMockEntries(TO_ALLOCATION_FIRST_DIF_GROUP, Transaction.class);
+      Optional<List<Transaction>> allocation2 = getMockEntries(TO_ALLOCATION_SECOND_DIF_GROUP, Transaction.class);
+      List<Transaction> allocations = List.of(allocation1.get().get(0), allocation2.get().get(0));
+      JsonObject jsonObject = JsonObject.mapFrom(new TransactionCollection().withTransactions(allocations).withTotalRecords(2));
+      jsonObject.put(TOTAL_RECORDS, allocations.size());
+      serverResponse(ctx,200, APPLICATION_JSON, jsonObject.encodePrettily());
+      addServerRqRsData(HttpMethod.GET, testEntity.name(), jsonObject);
+    } else {
+      try {
+        List<String> ids = Collections.emptyList();
+        if (query.startsWith("id==")) {
+          ids = extractIdsFromQuery(query);
+        }
+        JsonObject collection = getCollectionOfRecords(testEntity, ids);
+        addServerRqRsData(HttpMethod.GET, testEntity.name(), collection);
+
+        ctx.response()
+          .setStatusCode(200)
+          .putHeader(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+          .end(collection.encodePrettily());
+      } catch (Exception e) {
+        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
+      }
+    }
   }
 
   private void handleGetCollection(RoutingContext ctx, TestEntities testEntity) {

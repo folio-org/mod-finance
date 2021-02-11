@@ -141,6 +141,19 @@ public class HelperUtils {
   }
 
   /**
+   * Transform list of values for some property to CQL query using 'or' operation
+   * @param values list of field values
+   * @param fieldName the property name to search by
+   * @param logicConnector operation between ids
+   * @param op global operator
+   * @return String representing CQL query to get records by some property values
+   */
+  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, String op, String logicConnector) {
+    String prefix = fieldName + op + "(";
+    return StreamEx.of(values).joining(logicConnector, prefix, ")");
+  }
+
+  /**
    * Wait for all requests completion and collect all resulting objects. In case any failed, complete resulting future with the exception
    * @param futures list of futures and each produces resulting object on completion
    * @param <T> resulting objects type

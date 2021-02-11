@@ -7,7 +7,7 @@ import org.folio.services.ConfigurationService;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.GroupExpenseClassTotalsService;
-import org.folio.services.GroupFiscalYearTotalsService;
+import org.folio.services.group.GroupFiscalYearTotalsService;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.LedgerDetailsService;
 import org.folio.services.LedgerRolloverErrorsService;
@@ -195,8 +195,9 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  GroupFiscalYearTotalsService groupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService) {
-    return new GroupFiscalYearTotalsService(budgetRestClient, groupFundFiscalYearService);
+  GroupFiscalYearTotalsService groupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService,
+                                                            TransactionService baseTransactionService) {
+    return new GroupFiscalYearTotalsService(budgetRestClient, groupFundFiscalYearService, baseTransactionService);
   }
 
   @Bean
@@ -218,6 +219,5 @@ public class ServicesConfiguration {
   public ProtectionService protectionService(AcqUnitsService acqUnitsService, AcqUnitMembershipsService acqUnitMembershipsService) {
     return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
   }
-
 
 }

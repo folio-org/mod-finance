@@ -18,6 +18,7 @@ import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fund.FundServiceTest;
+import org.folio.services.group.GroupFundFiscalYearServiceTest;
 import org.folio.services.protection.AcqUnitMembershipsServiceTest;
 import org.folio.services.protection.AcqUnitsServiceTest;
 import org.folio.services.protection.ProtectionServiceTest;

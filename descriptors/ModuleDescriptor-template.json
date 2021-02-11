@@ -612,7 +612,7 @@
     },
     {
       "id": "finance.group-fiscal-year-summaries",
-      "version": "1.2",
+      "version": "1.3",
       "handlers": [
         {
           "methods": ["GET"],
@@ -620,7 +620,8 @@
           "permissionsRequired": ["finance.group-fiscal-year-summaries.collection.get"],
           "modulePermissions": [
             "finance-storage.budgets.collection.get",
-            "finance-storage.group-fund-fiscal-years.collection.get"
+            "finance-storage.group-fund-fiscal-years.collection.get",
+            "finance-storage.transactions.collection.get"
           ]
         }
       ]
