@@ -48,6 +48,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -80,13 +81,14 @@ import io.restassured.response.Response;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import javax.swing.text.html.Option;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EntitiesCrudBasicsTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(EntitiesCrudBasicsTest.class);
+  private static final Logger logger = LogManager.getLogger(EntitiesCrudBasicsTest.class);
   private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_ENCUMBRANCE
       , TRANSACTIONS_TRANSFER, TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT
         , TRANSACTIONS_CREDIT, ORDER_TRANSACTION_SUMMARY, INVOICE_TRANSACTION_SUMMARY);
@@ -438,10 +440,9 @@ public class EntitiesCrudBasicsTest {
     // remove "metadata" before comparing
     JsonObject entry = rqRsEntries.get(0);
     entry.remove("metadata");
-    entry.remove(ignoreProperties);
+    Optional.ofNullable(ignoreProperties).ifPresent(p -> entry.remove(ignoreProperties));
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
-
-    record.remove(ignoreProperties);
+    Optional.ofNullable(ignoreProperties).ifPresent(p -> record.remove(ignoreProperties));
     assertThat(recordToStorage, SamePropertyValuesAs.samePropertyValuesAs(record.mapTo(testEntity.getClazz())));
   }
 

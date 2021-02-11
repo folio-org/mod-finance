@@ -12,7 +12,7 @@ import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupsCollection;
 
 import io.vertx.core.Context;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.tools.client.interfaces.HttpClientInterface;
 
 public class GroupsHelper extends AbstractHelper {
@@ -35,7 +35,7 @@ public class GroupsHelper extends AbstractHelper {
   public CompletableFuture<GroupsCollection> getGroups(int limit, int offset, String query) {
     String endpoint = String.format(GET_GROUPS_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint)
-      .thenCompose(json -> VertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(GroupsCollection.class)));
+      .thenCompose(json -> FolioVertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(GroupsCollection.class)));
   }
 
   public CompletableFuture<Group> getGroup(String id) {

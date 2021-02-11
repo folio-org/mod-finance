@@ -2,7 +2,7 @@ package org.folio.rest.helper;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static me.escoffier.vertx.completablefuture.VertxCompletableFuture.supplyBlockingAsync;
+
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.GROUP_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import one.util.streamex.StreamEx;
 
 public class FundsHelper extends AbstractHelper {
@@ -73,7 +73,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<FundTypesCollection> getFundTypes(int limit, int offset, String query) {
     String endpoint = String.format(GET_FUND_TYPES_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
     return handleGetRequest(endpoint)
-      .thenCompose(json -> supplyBlockingAsync(ctx, () -> json.mapTo(FundTypesCollection.class)));
+      .thenCompose(json -> FolioVertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(FundTypesCollection.class)));
   }
 
   public CompletableFuture<FundType> getFundType(String id) {
@@ -111,7 +111,7 @@ public class FundsHelper extends AbstractHelper {
 
   private CompletableFuture<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {
     List<GroupFundFiscalYear> groupFundFiscalYears = buildGroupFundFiscalYears(compositeFund, fiscalYearId);
-    return VertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
+    return FolioVertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }
@@ -148,13 +148,13 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private CompletableFuture<Void> assignFundToGroups(List<GroupFundFiscalYear> groupFundFiscalYears) {
-    return VertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
+    return FolioVertxCompletableFuture.allOf(ctx, groupFundFiscalYears.stream()
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }
 
   private CompletableFuture<Void> unassignGroupsForFund(Collection<String> groupFundFiscalYearIds) {
-    return VertxCompletableFuture.allOf(ctx, groupFundFiscalYearIds.stream()
+    return FolioVertxCompletableFuture.allOf(ctx, groupFundFiscalYearIds.stream()
       .map(id -> groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, okapiHeaders)))
       .toArray(CompletableFuture[]::new));
   }

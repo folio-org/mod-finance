@@ -16,11 +16,11 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.services.protection.AcqUnitsService;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class FundService {
-  private static final Logger logger = LoggerFactory.getLogger(FundService.class);
+  private static final Logger logger = LogManager.getLogger(FundService.class);
 
   private final RestClient fundStorageRestClient;
   private final AcqUnitsService acqUnitsService;

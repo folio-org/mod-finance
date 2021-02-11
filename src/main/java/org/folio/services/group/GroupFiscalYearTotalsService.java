@@ -22,6 +22,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.models.GroupFiscalYearTransactionsHolder;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -37,11 +39,8 @@ import org.folio.rest.util.HelperUtils;
 import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.transactions.TransactionService;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-
 public class GroupFiscalYearTotalsService {
-  private static final Logger LOG = LoggerFactory.getLogger(GroupFiscalYearTotalsService.class);
+  private static final Logger LOG = LogManager.getLogger(GroupFiscalYearTotalsService.class);
   private static final int MAX_FUND_PER_QUERY = 5;
   private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId==\"\") OR %s)";
   private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId==\"\") OR %s)";

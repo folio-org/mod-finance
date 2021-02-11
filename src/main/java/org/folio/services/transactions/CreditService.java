@@ -8,7 +8,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.HelperUtils;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class CreditService implements TransactionTypeManagingStrategy {
 
@@ -20,7 +20,7 @@ public class CreditService implements TransactionTypeManagingStrategy {
 
   @Override
   public CompletableFuture<Transaction> createTransaction(Transaction credit, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> {
         transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
         HelperUtils.validateAmount(credit.getAmount(), "amount");

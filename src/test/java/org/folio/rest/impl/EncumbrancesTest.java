@@ -31,12 +31,12 @@ import org.junit.jupiter.api.Test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class EncumbrancesTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(EncumbrancesTest.class);
+  private static final Logger logger = LogManager.getLogger(EncumbrancesTest.class);
   private static boolean runningOnOwn;
 
   @BeforeAll

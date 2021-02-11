@@ -13,7 +13,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +21,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Budget;
@@ -39,13 +40,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 
 
 public class GroupFiscalYearSummariesTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(GroupFiscalYearSummariesTest.class);
+  private static final Logger logger = LogManager.getLogger(GroupFiscalYearSummariesTest.class);
   public static final String TO_ALLOCATION_FIRST_DIF_GROUP = "toAllocationFirstDifGroup";
   public static final String TO_ALLOCATION_SECOND_DIF_GROUP = "toAllocationSecondDifGroup";
   public static final String FUND_ID_FIRST_SAME_GROUP = UUID.randomUUID().toString();

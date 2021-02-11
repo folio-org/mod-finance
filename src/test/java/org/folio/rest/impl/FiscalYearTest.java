@@ -54,11 +54,11 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class FiscalYearTest {
-  private static final Logger logger = LoggerFactory.getLogger(FiscalYearTest.class);
+  private static final Logger logger = LogManager.getLogger(FiscalYearTest.class);
   private static boolean runningOnOwn;
 
   @BeforeAll

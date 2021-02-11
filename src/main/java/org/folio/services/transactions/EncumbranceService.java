@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class EncumbranceService implements TransactionTypeManagingStrategy {
 
@@ -17,14 +17,14 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
 
   @Override
   public CompletableFuture<Transaction> createTransaction(Transaction encumbrance, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> transactionService.createTransaction(encumbrance, requestContext));
   }
 
   @Override
   public CompletableFuture<Void> updateTransaction(Transaction encumbrance, RequestContext requestContext) {
-    return VertxCompletableFuture.runAsync(requestContext.getContext(),
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> transactionService.updateTransaction(encumbrance, requestContext));
   }

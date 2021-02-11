@@ -17,11 +17,11 @@ import org.folio.rest.jaxrs.model.Errors;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class BaseApi {
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final Logger logger = LogManager.getLogger(this.getClass());
 
   public Response buildOkResponse(Object body) {
     return Response.ok(body, APPLICATION_JSON)

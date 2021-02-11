@@ -56,6 +56,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -86,8 +88,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -95,7 +95,7 @@ import one.util.streamex.StreamEx;
 
 public class MockServer {
 
-  private static final Logger logger = LoggerFactory.getLogger(MockServer.class);
+  private static final Logger logger = LogManager.getLogger(MockServer.class);
   private static final String QUERY = "query";
   private static final String ID_PATH_PARAM = "/:" + ID;
   static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
@@ -804,16 +804,16 @@ public class MockServer {
   }
 
   private <T> Optional<List<T>> getMockEntries(String objName, Class<T> tClass) {
-    List<T> entryList =  getRqRsEntries(HttpMethod.OTHER, objName).stream()
+    List<T> entryList =  getRqRsEntries(HttpMethod.SEARCH, objName).stream()
       .map(entries -> entries.mapTo(tClass))
       .collect(toList());
     return Optional.ofNullable(entryList.isEmpty()? null: entryList);
   }
 
   public static void addMockEntry(String objName, JsonObject data) {
-    List<JsonObject> entries = getRqRsEntries(HttpMethod.OTHER, objName);
+    List<JsonObject> entries = getRqRsEntries(HttpMethod.SEARCH, objName);
     entries.add(data);
-    serverRqRs.put(objName, HttpMethod.OTHER, entries);
+    serverRqRs.put(objName, HttpMethod.SEARCH, entries);
   }
 
   private static void addServerRqRsData(HttpMethod method, String objName, JsonObject data) {

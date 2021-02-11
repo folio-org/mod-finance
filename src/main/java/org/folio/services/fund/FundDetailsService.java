@@ -22,12 +22,12 @@ import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class FundDetailsService {
-  private static final Logger logger = LoggerFactory.getLogger(FundDetailsService.class);
+  private static final Logger logger = LogManager.getLogger(FundDetailsService.class);
   private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
   private static final String CURRENT_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
@@ -68,7 +68,7 @@ public class FundDetailsService {
   }
 
   public CompletableFuture<List<ExpenseClass>> retrieveCurrentExpenseClasses(String fundId, String status, RequestContext rqContext) {
-    CompletableFuture<List<ExpenseClass>> future = new VertxCompletableFuture<>(rqContext.getContext());
+    CompletableFuture<List<ExpenseClass>> future = new FolioVertxCompletableFuture<>(rqContext.getContext());
     retrieveCurrentBudget(fundId, null, rqContext)
       .thenCompose(currentBudget -> {
         logger.debug("Is Current budget for fund found : " + currentBudget.getId());

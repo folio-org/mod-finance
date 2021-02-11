@@ -58,13 +58,13 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 public class LedgersApiTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(LedgersApiTest.class);
+  private static final Logger logger = LogManager.getLogger(LedgersApiTest.class);
   private static boolean runningOnOwn;
 
   @Autowired

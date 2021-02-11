@@ -21,12 +21,12 @@ import org.folio.rest.util.HelperUtils;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import me.escoffier.vertx.completablefuture.VertxCompletableFuture;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class RestClient {
-  private static final Logger logger = LoggerFactory.getLogger(RestClient.class);
+  private static final Logger logger = LogManager.getLogger(RestClient.class);
   private static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
   private static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
 
@@ -49,7 +49,7 @@ public class RestClient {
   }
 
   public <T> CompletableFuture<T> post(T entity, RequestContext requestContext, Class<T> responseType) {
-    CompletableFuture<T> future = new VertxCompletableFuture<>(requestContext.getContext());
+    CompletableFuture<T> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
     String endpoint = baseEndpoint;
     JsonObject recordData = JsonObject.mapFrom(entity);
 
@@ -86,7 +86,7 @@ public class RestClient {
   }
 
   public <T> CompletableFuture<Void> put(String id, T entity, RequestContext requestContext) {
-    CompletableFuture<Void> future = new VertxCompletableFuture<>(requestContext.getContext());
+    CompletableFuture<Void> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
     String endpoint = String.format(endpointById, id);
     JsonObject recordData = JsonObject.mapFrom(entity);
 
@@ -120,7 +120,7 @@ public class RestClient {
   }
 
   public CompletableFuture<Void> delete(String id, RequestContext requestContext) {
-    CompletableFuture<Void> future = new VertxCompletableFuture<>(requestContext.getContext());
+    CompletableFuture<Void> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
     String endpoint = String.format(endpointById, id);
     if (logger.isDebugEnabled()) {
       logger.debug(CALLING_ENDPOINT_MSG, HttpMethod.DELETE, endpoint);
@@ -151,7 +151,7 @@ public class RestClient {
   }
 
   private <S> CompletableFuture<S> get(RequestContext requestContext, String endpoint, Class<S> responseType) {
-    CompletableFuture<S> future = new VertxCompletableFuture<>(requestContext.getContext());
+    CompletableFuture<S> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
     HttpClientInterface client = getHttpClient(requestContext.getHeaders());
     if (logger.isDebugEnabled()) {
       logger.debug("Calling GET {}", endpoint);
