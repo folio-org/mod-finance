@@ -42,9 +42,9 @@ import io.vertx.core.logging.LoggerFactory;
 
 public class GroupFiscalYearTotalsService {
   private static final Logger LOG = LoggerFactory.getLogger(GroupFiscalYearTotalsService.class);
-  private static final int MAX_FUND_PER_QUERY = 4;
-  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND ((%s) AND (((%s) AND (cql.allRecords=1 NOT fromFundId==\"\")) OR (%s)))";
-  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND ((%s) AND (((%s) AND (cql.allRecords=1 NOT toFundId==\"\")) OR (%s)))";
+  private static final int MAX_FUND_PER_QUERY = 5;
+  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId==\"\") OR %s)";
+  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId==\"\") OR %s)";
 
   private final RestClient budgetRestClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
@@ -273,7 +273,7 @@ public class GroupFiscalYearTotalsService {
                                                                       Transaction.TransactionType trType, RequestContext requestContext) {
     String toFundQuery = convertIdsToCqlQuery(groupFundIds, "toFundId", "==", " OR ");
     String fromFundQuery = convertIdsToCqlQuery(groupFundIds, "fromFundId", "<>", " AND ");
-    String query = String.format(TRANSACTION_TO_QUERY, fiscalYearId, trType.value(), toFundQuery, toFundQuery, fromFundQuery);
+    String query = String.format(TRANSACTION_TO_QUERY, fiscalYearId, trType.value(), toFundQuery, fromFundQuery);
     return transactionService.retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
                              .thenApply(TransactionCollection::getTransactions);
   }
@@ -282,7 +282,7 @@ public class GroupFiscalYearTotalsService {
                                                                         Transaction.TransactionType trType, RequestContext requestContext) {
     String fromFundQuery = convertIdsToCqlQuery(groupFundIds, "fromFundId", "==", " OR ");
     String toFundQuery = convertIdsToCqlQuery(groupFundIds, "toFundId", "<>", " AND ");
-    String query = String.format(TRANSACTION_FROM_QUERY, fiscalYearId, trType.value(), fromFundQuery, fromFundQuery, toFundQuery);
+    String query = String.format(TRANSACTION_FROM_QUERY, fiscalYearId, trType.value(), fromFundQuery, toFundQuery);
     return transactionService.retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(TransactionCollection::getTransactions);
   }
