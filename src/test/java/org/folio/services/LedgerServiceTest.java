@@ -4,6 +4,8 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.services.ledger.LedgerService;
+import org.folio.services.ledger.LedgerTotalsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

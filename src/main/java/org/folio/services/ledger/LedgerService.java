@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 

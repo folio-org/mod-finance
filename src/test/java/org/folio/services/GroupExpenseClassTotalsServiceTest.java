@@ -25,6 +25,8 @@ import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.group.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

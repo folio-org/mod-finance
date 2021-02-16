@@ -36,7 +36,6 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.folio.rest.util.HelperUtils;
-import org.folio.services.GroupFundFiscalYearService;
 import org.folio.services.transactions.TransactionService;
 
 public class GroupFiscalYearTotalsService {

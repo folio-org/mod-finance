@@ -17,7 +17,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
-import org.folio.services.LedgerRolloverProgressService;
+import org.folio.services.ledger.LedgerRolloverProgressService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

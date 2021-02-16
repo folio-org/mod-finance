@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.spring.SpringContextUtil;

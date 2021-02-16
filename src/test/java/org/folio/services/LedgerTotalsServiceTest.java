@@ -2,7 +2,7 @@ package org.folio.services;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_NOT_FOUND;
-import static org.folio.services.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
+import static org.folio.services.ledger.LedgerTotalsService.LEDGER_ID_AND_FISCAL_YEAR_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +31,7 @@ import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.ledger.LedgerTotalsService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

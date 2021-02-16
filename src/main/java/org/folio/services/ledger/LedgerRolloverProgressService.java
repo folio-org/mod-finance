@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import java.util.concurrent.CompletableFuture;
 import org.folio.rest.core.RestClient;

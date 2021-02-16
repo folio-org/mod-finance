@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.group;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
+import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;

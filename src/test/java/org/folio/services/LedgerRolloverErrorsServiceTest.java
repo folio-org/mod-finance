@@ -4,6 +4,7 @@ import org.folio.rest.acq.model.finance.LedgerFiscalYearRolloverErrorCollection;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.services.ledger.LedgerRolloverErrorsService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.runner.JUnitPlatform;

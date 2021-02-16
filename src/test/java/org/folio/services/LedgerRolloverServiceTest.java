@@ -16,6 +16,7 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverCollection;
+import org.folio.services.ledger.LedgerRolloverService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.runner.JUnitPlatform;
