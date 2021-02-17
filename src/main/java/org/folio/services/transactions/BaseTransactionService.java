@@ -59,34 +59,34 @@ public class BaseTransactionService implements TransactionService {
     }
   }
 
-  public CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> groupFundIds, String fiscalYearId,
+  public CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> fundIds, String fiscalYearId,
                                                                        Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
-            ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveFromTransactionsChunk(groupFundIds, fiscalYearId, trType, requestContext))
+            ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
+                    .map(ids -> retrieveFromTransactionsChunk(fundIds, fiscalYearId, trType, requestContext))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
-  public CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> groupFundIds, String fiscalYearId,
+  public CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> fundIds, String fiscalYearId,
                                                                      Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
-            ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveToTransactionsChunk(groupFundIds, fiscalYearId, trType, requestContext))
+            ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
+                    .map(ids -> retrieveToTransactionsChunk(fundIds, fiscalYearId, trType, requestContext))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
-  private CompletableFuture<List<Transaction>> retrieveToTransactionsChunk(List<String> ledgetFundIds, String fiscalYearId,
+  private CompletableFuture<List<Transaction>> retrieveToTransactionsChunk(List<String> fundIds, String fiscalYearId,
                                                                       Transaction.TransactionType trType, RequestContext requestContext) {
-    String toFundQuery = convertIdsToCqlQuery(ledgetFundIds, "toFundId", "==", " OR ");
-    String fromFundQuery = convertIdsToCqlQuery(ledgetFundIds, "fromFundId", "<>", " AND ");
+    String toFundQuery = convertIdsToCqlQuery(fundIds, "toFundId", "==", " OR ");
+    String fromFundQuery = convertIdsToCqlQuery(fundIds, "fromFundId", "<>", " AND ");
     String query = String.format(TRANSACTION_TO_QUERY, fiscalYearId, trType.value(), toFundQuery, fromFundQuery);
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).thenApply(TransactionCollection::getTransactions);
   }
 
-  private CompletableFuture<List<Transaction>> retrieveFromTransactionsChunk(List<String> ledgetFundIds, String fiscalYearId,
+  private CompletableFuture<List<Transaction>> retrieveFromTransactionsChunk(List<String> fundIds, String fiscalYearId,
                                                                         Transaction.TransactionType trType, RequestContext requestContext) {
-    String fromFundQuery = convertIdsToCqlQuery(ledgetFundIds, "fromFundId", "==", " OR ");
-    String toFundQuery = convertIdsToCqlQuery(ledgetFundIds, "toFundId", "<>", " AND ");
+    String fromFundQuery = convertIdsToCqlQuery(fundIds, "fromFundId", "==", " OR ");
+    String toFundQuery = convertIdsToCqlQuery(fundIds, "toFundId", "<>", " AND ");
     String query = String.format(TRANSACTION_FROM_QUERY, fiscalYearId, trType.value(), fromFundQuery, toFundQuery);
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).thenApply(TransactionCollection::getTransactions);
   }
