@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
@@ -28,8 +28,6 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.ledger.LedgerDetailsService;
-import org.folio.services.ledger.LedgerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

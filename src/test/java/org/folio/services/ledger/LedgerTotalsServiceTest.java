@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +39,6 @@ import org.folio.rest.jaxrs.model.Metadata;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.ledger.LedgerTotalsService;
 import org.folio.services.transactions.BaseTransactionService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.group;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -25,6 +25,7 @@ import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.ExpenseClassService;
 import org.folio.services.group.GroupExpenseClassTotalsService;
 import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
