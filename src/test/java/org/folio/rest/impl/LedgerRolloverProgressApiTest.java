@@ -30,6 +30,7 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgressCollection;
 import org.folio.rest.util.TestEntities;
+import org.folio.services.ledger.LedgerRolloverProgressService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
