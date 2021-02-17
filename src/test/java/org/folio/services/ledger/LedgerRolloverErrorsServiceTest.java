@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import org.folio.rest.acq.model.finance.LedgerFiscalYearRolloverErrorCollection;
 import org.folio.rest.core.RestClient;

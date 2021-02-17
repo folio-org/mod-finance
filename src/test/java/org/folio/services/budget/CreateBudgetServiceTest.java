@@ -25,7 +25,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.GroupFundFiscalYearService;
+import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;

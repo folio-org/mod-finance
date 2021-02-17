@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;

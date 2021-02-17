@@ -17,8 +17,8 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.services.LedgerDetailsService;
-import org.folio.services.LedgerService;
+import org.folio.services.ledger.LedgerDetailsService;
+import org.folio.services.ledger.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;

@@ -9,7 +9,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
-import org.folio.services.LedgerDetailsService;
+import org.folio.services.ledger.LedgerDetailsService;
 
 public class FundFiscalYearService {
   private final LedgerDetailsService ledgerDetailsService;

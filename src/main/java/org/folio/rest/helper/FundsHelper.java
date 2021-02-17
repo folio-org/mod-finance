@@ -34,9 +34,9 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.services.GroupFundFiscalYearService;
-import org.folio.services.LedgerDetailsService;
-import org.folio.services.LedgerService;
+import org.folio.services.group.GroupFundFiscalYearService;
+import org.folio.services.ledger.LedgerDetailsService;
+import org.folio.services.ledger.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

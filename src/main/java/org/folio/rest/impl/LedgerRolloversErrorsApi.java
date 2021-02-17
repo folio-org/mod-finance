@@ -7,7 +7,7 @@ import io.vertx.core.Vertx;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversErrors;
-import org.folio.services.LedgerRolloverErrorsService;
+import org.folio.services.ledger.LedgerRolloverErrorsService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

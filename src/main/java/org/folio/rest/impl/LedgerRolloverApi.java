@@ -14,7 +14,7 @@ import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
-import org.folio.services.LedgerRolloverService;
+import org.folio.services.ledger.LedgerRolloverService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

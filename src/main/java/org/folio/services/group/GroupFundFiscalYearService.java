@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.group;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

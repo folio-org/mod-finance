@@ -6,15 +6,15 @@ import org.folio.rest.core.RestClient;
 import org.folio.services.ConfigurationService;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupExpenseClassTotalsService;
 import org.folio.services.group.GroupFiscalYearTotalsService;
-import org.folio.services.GroupFundFiscalYearService;
-import org.folio.services.LedgerDetailsService;
-import org.folio.services.LedgerRolloverErrorsService;
-import org.folio.services.LedgerRolloverProgressService;
-import org.folio.services.LedgerRolloverService;
-import org.folio.services.LedgerService;
-import org.folio.services.LedgerTotalsService;
+import org.folio.services.group.GroupFundFiscalYearService;
+import org.folio.services.ledger.LedgerDetailsService;
+import org.folio.services.ledger.LedgerRolloverErrorsService;
+import org.folio.services.ledger.LedgerRolloverProgressService;
+import org.folio.services.ledger.LedgerRolloverService;
+import org.folio.services.ledger.LedgerService;
+import org.folio.services.ledger.LedgerTotalsService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
@@ -109,8 +109,9 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  LedgerTotalsService ledgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService) {
-    return new LedgerTotalsService(fiscalYearService, budgetService);
+  LedgerTotalsService ledgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService,
+                                          BaseTransactionService baseTransactionService) {
+    return new LedgerTotalsService(fiscalYearService, budgetService, baseTransactionService);
   }
 
   @Bean
@@ -196,7 +197,7 @@ public class ServicesConfiguration {
 
   @Bean
   GroupFiscalYearTotalsService groupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService,
-                                                            TransactionService baseTransactionService) {
+                                                            BaseTransactionService baseTransactionService) {
     return new GroupFiscalYearTotalsService(budgetRestClient, groupFundFiscalYearService, baseTransactionService);
   }
 

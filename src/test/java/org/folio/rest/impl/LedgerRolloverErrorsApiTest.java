@@ -6,7 +6,7 @@ import org.folio.rest.acq.model.finance.LedgerFiscalYearRolloverErrorCollection;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.util.TestEntities;
-import org.folio.services.LedgerRolloverErrorsService;
+import org.folio.services.ledger.LedgerRolloverErrorsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

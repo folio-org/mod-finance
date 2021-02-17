@@ -1,4 +1,4 @@
-package org.folio.services;
+package org.folio.services.ledger;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
