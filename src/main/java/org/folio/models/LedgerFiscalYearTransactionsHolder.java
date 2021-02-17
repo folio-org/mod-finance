@@ -2,7 +2,6 @@ package org.folio.models;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.folio.rest.jaxrs.model.Budget;
@@ -13,7 +12,7 @@ public class LedgerFiscalYearTransactionsHolder {
   private final String fiscalYearId;
   private final Ledger ledger;
   private final List<Budget> ledgerBudgets;
-  private final Set<String> ledgerFundIds;
+  private final List<String> ledgerFundIds;
   private List<Transaction> toAllocations;
   private List<Transaction> fromAllocations;
   private List<Transaction> toTransfers;
@@ -23,7 +22,7 @@ public class LedgerFiscalYearTransactionsHolder {
     this.fiscalYearId = fiscalYearId;
     this.ledger = ledger;
     this.ledgerBudgets = ledgerBudgets;
-    this.ledgerFundIds = ledgerBudgets.stream().map(Budget::getFundId).collect(Collectors.toSet());
+    this.ledgerFundIds = ledgerBudgets.stream().map(Budget::getFundId).collect(Collectors.toList());
     this.toAllocations = new ArrayList<>();
     this.fromAllocations = new ArrayList<>();
     this.toTransfers = new ArrayList<>();
@@ -50,7 +49,6 @@ public class LedgerFiscalYearTransactionsHolder {
     return this;
   }
 
-
   public String getFiscalYearId() {
     return fiscalYearId;
   }
@@ -75,11 +73,11 @@ public class LedgerFiscalYearTransactionsHolder {
     return fromTransfers;
   }
 
-    public List<Budget> getLedgerBudgets() {
+  public List<Budget> getLedgerBudgets() {
     return ledgerBudgets;
   }
 
-  public Set<String> getLedgerFundIds() {
+  public List<String> getLedgerFundIds() {
     return ledgerFundIds;
   }
 }

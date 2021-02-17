@@ -1,10 +1,19 @@
 package org.folio.services.transactions;
 
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import static one.util.streamex.StreamEx.ofSubLists;
+import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 
-import org.apache.logging.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -12,11 +21,11 @@ import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
-import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
-
 public class BaseTransactionService implements TransactionService {
-
   private static final Logger logger = LogManager.getLogger(BaseTransactionService.class);
+  private static final int MAX_FUND_PER_QUERY = 5;
+  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId==\"\") OR %s)";
+  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId==\"\") OR %s)";
 
   private final RestClient transactionRestClient;
 
@@ -50,4 +59,35 @@ public class BaseTransactionService implements TransactionService {
     }
   }
 
+  public CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> groupFundIds, String fiscalYearId,
+                                                                       Transaction.TransactionType trType, RequestContext requestContext) {
+    return collectResultsOnSuccess(
+            ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY)
+                    .map(ids -> retrieveFromTransactionsChunk(groupFundIds, fiscalYearId, trType, requestContext))
+                    .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> groupFundIds, String fiscalYearId,
+                                                                     Transaction.TransactionType trType, RequestContext requestContext) {
+    return collectResultsOnSuccess(
+            ofSubLists(new ArrayList<>(groupFundIds), MAX_FUND_PER_QUERY)
+                    .map(ids -> retrieveToTransactionsChunk(groupFundIds, fiscalYearId, trType, requestContext))
+                    .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+  }
+
+  private CompletableFuture<List<Transaction>> retrieveToTransactionsChunk(List<String> ledgetFundIds, String fiscalYearId,
+                                                                      Transaction.TransactionType trType, RequestContext requestContext) {
+    String toFundQuery = convertIdsToCqlQuery(ledgetFundIds, "toFundId", "==", " OR ");
+    String fromFundQuery = convertIdsToCqlQuery(ledgetFundIds, "fromFundId", "<>", " AND ");
+    String query = String.format(TRANSACTION_TO_QUERY, fiscalYearId, trType.value(), toFundQuery, fromFundQuery);
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).thenApply(TransactionCollection::getTransactions);
+  }
+
+  private CompletableFuture<List<Transaction>> retrieveFromTransactionsChunk(List<String> ledgetFundIds, String fiscalYearId,
+                                                                        Transaction.TransactionType trType, RequestContext requestContext) {
+    String fromFundQuery = convertIdsToCqlQuery(ledgetFundIds, "fromFundId", "==", " OR ");
+    String toFundQuery = convertIdsToCqlQuery(ledgetFundIds, "toFundId", "<>", " AND ");
+    String query = String.format(TRANSACTION_FROM_QUERY, fiscalYearId, trType.value(), fromFundQuery, toFundQuery);
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).thenApply(TransactionCollection::getTransactions);
+  }
 }

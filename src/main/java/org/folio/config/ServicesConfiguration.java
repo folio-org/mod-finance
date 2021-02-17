@@ -110,7 +110,7 @@ public class ServicesConfiguration {
 
   @Bean
   LedgerTotalsService ledgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService,
-                                          TransactionService baseTransactionService) {
+                                          BaseTransactionService baseTransactionService) {
     return new LedgerTotalsService(fiscalYearService, budgetService, baseTransactionService);
   }
 
@@ -197,7 +197,7 @@ public class ServicesConfiguration {
 
   @Bean
   GroupFiscalYearTotalsService groupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService,
-                                                            TransactionService baseTransactionService) {
+                                                            BaseTransactionService baseTransactionService) {
     return new GroupFiscalYearTotalsService(budgetRestClient, groupFundFiscalYearService, baseTransactionService);
   }
 
