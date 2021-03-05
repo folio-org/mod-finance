@@ -28,7 +28,8 @@
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.budget-expense-classes.item.post",
             "finance-storage.funds.item.get",
-            "finance-storage.ledgers.item.get"
+            "finance-storage.ledgers.item.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -132,7 +133,8 @@
           "modulePermissions": [
             "finance-storage.funds.collection.get",
             "acquisitions-units-storage.units.collection.get",
-            "acquisitions-units-storage.memberships.collection.get"
+            "acquisitions-units-storage.memberships.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -144,7 +146,8 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.item.post"
+            "finance-storage.group-fund-fiscal-years.item.post",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -158,7 +161,8 @@
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "acquisitions-units-storage.units.collection.get",
-            "acquisitions-units-storage.memberships.collection.get"
+            "acquisitions-units-storage.memberships.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -174,7 +178,8 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.post",
-            "finance-storage.group-fund-fiscal-years.item.delete"
+            "finance-storage.group-fund-fiscal-years.item.delete",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -296,7 +301,7 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.7",
+      "version": "1.8",
       "handlers": [
         {
           "methods": ["GET"],
@@ -351,7 +356,8 @@
           "modulePermissions": [
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
-            "finance-storage.fiscal-years.collection.get"
+            "finance-storage.fiscal-years.collection.get",
+            "configuration.entries.collection.get"
           ]
         }
       ]
