@@ -28,7 +28,8 @@
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.budget-expense-classes.item.post",
             "finance-storage.funds.item.get",
-            "finance-storage.ledgers.item.get"
+            "finance-storage.ledgers.item.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -296,7 +297,7 @@
     },
     {
       "id": "finance.ledgers",
-      "version": "1.7",
+      "version": "1.8",
       "handlers": [
         {
           "methods": ["GET"],
@@ -351,7 +352,8 @@
           "modulePermissions": [
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
-            "finance-storage.fiscal-years.collection.get"
+            "finance-storage.fiscal-years.collection.get",
+            "configuration.entries.collection.get"
           ]
         }
       ]
