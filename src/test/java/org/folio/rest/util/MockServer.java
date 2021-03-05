@@ -6,6 +6,8 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.impl.FundsApiTest.ORG_CONFIG_HEADER;
+import static org.folio.rest.impl.FundsApiTest.X_CONFIG_HEADER_NAME;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DIFFERENT_GROUP;
@@ -38,6 +40,7 @@ import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.services.configuration.ConfigurationEntriesService.SYSTEM_CONFIG_MODULE_NAME;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -851,13 +854,15 @@ public class MockServer {
   private void handleConfigurationModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
+      String orgConfig = ctx.request().getHeader(X_CONFIG_HEADER_NAME) ;
+
       String fileName = StringUtils.EMPTY;
       if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
-      } else if (X_OKAPI_TENANT.getValue().equals(tenant)) {
-        fileName = "config_localeSEK";
       } else if (INVALID_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = "invalid_config";
+      } else if (X_OKAPI_TENANT.getValue().equals(tenant) || (ctx.request().absoluteURI().contains(SYSTEM_CONFIG_MODULE_NAME))) {
+        fileName = "config_localeSEK";
       }
 
       serverResponse(ctx, 200, APPLICATION_JSON, TestUtils.getMockData(String.format(CONFIG_MOCK_PATH, fileName)));

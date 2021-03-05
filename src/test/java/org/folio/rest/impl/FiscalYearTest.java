@@ -21,6 +21,7 @@ import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
+import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -147,20 +148,18 @@ public class FiscalYearTest {
     JsonObject body = FISCAL_YEAR.getMockObject();
 
     RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body.toString(), headers, "",
-        INTERNAL_SERVER_ERROR.getStatusCode());
+        NO_CONTENT.getStatusCode());
   }
 
   @Test
-  void testPostFiscalYearWithInvalidConfig() {
+  void testPostFiscalYearWithIfSystemCurrencyNotSetInConfigThenUSDAsDefault() {
     logger.info("=== Test create FiscalYear with currency not present in config===");
 
     Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, INVALID_CONFIG_X_OKAPI_TENANT, X_OKAPI_TOKEN);
 
-    Errors errors = RestTestUtils.verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject(), headers, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+    FiscalYear fiscalYear = RestTestUtils.verifyPostResponse(FISCAL_YEAR.getEndpoint(), FISCAL_YEAR.getMockObject(), headers, APPLICATION_JSON, CREATED.getStatusCode()).as(FiscalYear.class);
 
-    assertThat(errors.getErrors()
-      .get(0)
-      .getCode(), equalTo(ErrorCodes.CURRENCY_NOT_FOUND.getCode()));
+    assertThat(fiscalYear.getCurrency(), equalTo(DEFAULT_CURRENCY));
   }
 
   @Test

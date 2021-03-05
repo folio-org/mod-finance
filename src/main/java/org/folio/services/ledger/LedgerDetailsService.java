@@ -1,16 +1,18 @@
 package org.folio.services.ledger;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
+import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class LedgerDetailsService {
 
@@ -18,11 +20,12 @@ public class LedgerDetailsService {
 
   private final FiscalYearService fiscalYearService;
   private final LedgerService ledgerService;
+  private ConfigurationEntriesService configurationEntriesService;
 
-
-  public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
+  public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, ConfigurationEntriesService configurationEntriesService) {
     this.fiscalYearService = fiscalYearService;
     this.ledgerService = ledgerService;
+    this.configurationEntriesService = configurationEntriesService;
   }
 
   public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
@@ -60,7 +63,7 @@ public class LedgerDetailsService {
   private CompletableFuture<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
       .thenCompose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
-      .thenApply(this::buildCurrentFYQuery)
+      .thenCombine(configurationEntriesService.getSystemTimeZone(requestContext), this::buildCurrentFYQuery)
       .thenCompose(query -> fiscalYearService.getFiscalYears(query, 0, 3, requestContext))
       .thenApply(FiscalYearsCollection::getFiscalYears);
   }
@@ -72,8 +75,8 @@ public class LedgerDetailsService {
       && firstYear.getPeriodEnd().after(secondYear.getPeriodStart());
   }
 
-  private String buildCurrentFYQuery(FiscalYear fiscalYearOne) {
-    Instant now = Instant.now().truncatedTo(ChronoUnit.DAYS);
+  private String buildCurrentFYQuery(FiscalYear fiscalYearOne, String timeZone) {
+    LocalDate now = Instant.now().atZone(ZoneId.of(timeZone)).toLocalDate();
     return String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
   }
 }

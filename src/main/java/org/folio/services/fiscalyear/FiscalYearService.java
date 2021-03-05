@@ -10,23 +10,23 @@ import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.util.HelperUtils;
-import org.folio.services.ConfigurationService;
+import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.budget.BudgetService;
 
 public class FiscalYearService {
 
   private final RestClient fiscalYearRestClient;
-  private final ConfigurationService configurationService;
+  private final ConfigurationEntriesService configurationEntriesService;
   private final BudgetService budgetService;
 
-  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationService configurationService, BudgetService budgetService) {
+  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService) {
     this.fiscalYearRestClient = fiscalYearRestClient;
-    this.configurationService = configurationService;
+    this.configurationEntriesService = configurationEntriesService;
     this.budgetService = budgetService;
   }
 
   public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    return configurationService.getSystemCurrency(requestContext)
+    return configurationEntriesService.getSystemCurrency(requestContext)
       .thenCompose(currency -> {
         fiscalYear.setCurrency(currency);
         return fiscalYearRestClient.post(fiscalYear, requestContext, FiscalYear.class);
@@ -52,7 +52,7 @@ public class FiscalYearService {
   }
 
   public CompletableFuture<Void> updateFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    return configurationService.getSystemCurrency(requestContext)
+    return configurationEntriesService.getSystemCurrency(requestContext)
       .thenCompose(currency -> {
         fiscalYear.setCurrency(currency);
         return fiscalYearRestClient.put(fiscalYear.getId(), fiscalYear, requestContext);

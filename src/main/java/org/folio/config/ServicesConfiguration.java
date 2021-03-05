@@ -3,7 +3,7 @@ package org.folio.config;
 import java.util.Set;
 
 import org.folio.rest.core.RestClient;
-import org.folio.services.ConfigurationService;
+import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.group.GroupExpenseClassTotalsService;
@@ -84,8 +84,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FiscalYearService fiscalYearService(RestClient fiscalYearRestClient, ConfigurationService configurationService, BudgetService budgetService){
-    return new FiscalYearService(fiscalYearRestClient, configurationService, budgetService);
+  FiscalYearService fiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService){
+    return new FiscalYearService(fiscalYearRestClient, configurationEntriesService, budgetService);
   }
 
   @Bean
@@ -125,8 +125,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  LedgerDetailsService ledgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService) {
-    return new LedgerDetailsService(fiscalYearService, ledgerService);
+  LedgerDetailsService ledgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, ConfigurationEntriesService configurationEntriesService) {
+    return new LedgerDetailsService(fiscalYearService, ledgerService, configurationEntriesService);
   }
 
   @Bean
@@ -202,8 +202,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  ConfigurationService configurationService(RestClient configEntriesRestClient) {
-    return new ConfigurationService(configEntriesRestClient);
+  ConfigurationEntriesService configurationService(RestClient configEntriesRestClient) {
+    return new ConfigurationEntriesService(configEntriesRestClient);
   }
 
   @Bean

@@ -7,6 +7,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
@@ -15,6 +16,7 @@ import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.SERIES_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
@@ -29,6 +31,7 @@ import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.services.ledger.LedgerDetailsService.SEARCH_CURRENT_FISCAL_YEAR_QUERY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -39,6 +42,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -65,6 +69,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -79,6 +84,8 @@ public class FundsApiTest {
   public static final String GROUP_ID_FOR_DELETION = "f33ed99b-852a-4f90-9891-5efe0feab165";
   public static final String GROUP_ID = "e9285a1c-1dfc-4380-868c-e74073003f43";
   public static final String FUND_BUDGET_ENDPOINT = "finance/funds/%s/budget";
+  public static final String X_CONFIG_HEADER_NAME = "X-Config";
+  public static final Header ORG_CONFIG_HEADER = new Header(X_CONFIG_HEADER_NAME, "ORG");
   private static boolean runningOnOwn;
 
   @BeforeAll
@@ -718,6 +725,8 @@ public class FundsApiTest {
   }
 
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {
+  //  LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
+  //  String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
     String query = getQueryParams(FISCAL_YEAR.name()).get(0);
     String now = LocalDate.now(Clock.systemUTC()).toString();
     assertThat(query, containsString(fiscalYearOne.getSeries()));
