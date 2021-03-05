@@ -133,7 +133,8 @@
           "modulePermissions": [
             "finance-storage.funds.collection.get",
             "acquisitions-units-storage.units.collection.get",
-            "acquisitions-units-storage.memberships.collection.get"
+            "acquisitions-units-storage.memberships.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -145,7 +146,8 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.item.post"
+            "finance-storage.group-fund-fiscal-years.item.post",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -159,7 +161,8 @@
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "acquisitions-units-storage.units.collection.get",
-            "acquisitions-units-storage.memberships.collection.get"
+            "acquisitions-units-storage.memberships.collection.get",
+            "configuration.entries.collection.get"
           ]
         },
         {
@@ -175,7 +178,8 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.post",
-            "finance-storage.group-fund-fiscal-years.item.delete"
+            "finance-storage.group-fund-fiscal-years.item.delete",
+            "configuration.entries.collection.get"
           ]
         },
         {
