@@ -215,7 +215,8 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
-            "finance-storage.budgets.collection.get"
+            "finance-storage.budgets.collection.get",
+            "configuration.entries.collection.get"
           ]
         }
       ]
