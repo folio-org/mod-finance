@@ -1,4 +1,35 @@
-## 4.1.0 - Unreleased
+## 4.2.0 - Unreleased
+
+## 4.1.0 - Released
+The focus of this release was to update RMB, support ledger fiscal year rollover. 
+Add financial summary for the fiscal year, ledger and budget. 
+
+[Full Changelog](https://github.com/folio-org/mod-invoice/compare/v4.0.1...v4.1.0)
+
+### Technical tasks
+* [MODFIN-171](https://issues.folio.org/browse/MODFIN-171) - mod-finance: Update RMB
+
+### Stories
+* [MODFIN-188](https://issues.folio.org/browse/MODFIN-188) - Verify fiscal year start date and end date, Times
+* [MODFIN-187](https://issues.folio.org/browse/MODFIN-187) - Align fetching current fiscal year to FOLIO's timezone
+* [MODFIN-183](https://issues.folio.org/browse/MODFIN-183) - Update API with addition call to order-transaction-summaries
+* [MODFIN-175](https://issues.folio.org/browse/MODFIN-175) - Support PUT for the Budget
+* [MODFIN-173](https://issues.folio.org/browse/MODFIN-173) - Update /finance/group-fiscal-year-summaries API to include more summary information
+* [MODFIN-170](https://issues.folio.org/browse/MODFIN-170) - Update business API for retrieving fiscal year by Id with financial summary
+* [MODFIN-168](https://issues.folio.org/browse/MODFIN-168) - Update logic with financial detail in the Ledger summary to improve the users ability to manage financial activity
+* [MODFIN-166](https://issues.folio.org/browse/MODFIN-166) - Restrict search/view of Fund records based upon acquisitions unit
+* [MODFIN-162](https://issues.folio.org/browse/MODFIN-162) - Define business API for starting building Error Report
+* [MODFIN-161](https://issues.folio.org/browse/MODFIN-161) - Add fields to the group expense classes schema
+* [MODFIN-159](https://issues.folio.org/browse/MODFIN-159) - Update logic for calculating group expense classes totals with encumbered and awaiting payment
+* [MODFIN-158](https://issues.folio.org/browse/MODFIN-158) - Define business API for retrieving rollover status/progress
+* [MODFIN-157](https://issues.folio.org/browse/MODFIN-157) - Define business API for the ledger fiscal yea rollover
+
+### Bug Fixes
+* [MODFIN-194](https://issues.folio.org/browse/MODFIN-194) - Field "allocated" must be required In the shared budget schema
+* [MODFIN-189](https://issues.folio.org/browse/MODFIN-189) - Incorrect calculation total finance information for Ledger
+* [MODFIN-174](https://issues.folio.org/browse/MODFIN-174) - Incorrect Group "Decrease in allocation" value
+* [MODFIN-165](https://issues.folio.org/browse/MODFIN-165) - Some transactions are not considered when calculating group expense-class-totals
+
 
 ## 4.0.1 - Released
 The focus of this release was to fix logging issues
