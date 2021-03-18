@@ -4,7 +4,7 @@
 The focus of this release was to update RMB, support ledger fiscal year rollover. 
 Add financial summary for the fiscal year, ledger and budget. 
 
-[Full Changelog](https://github.com/folio-org/mod-invoice/compare/v4.0.1...v4.1.0)
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.0.1...v4.1.0)
 
 ### Technical tasks
 * [MODFIN-171](https://issues.folio.org/browse/MODFIN-171) - mod-finance: Update RMB
