@@ -1,4 +1,11 @@
 ## 4.2.0 - Unreleased
+## 4.1.1 - Released
+The focus of this release was to fix Unable to complete fiscal year rollover issue
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.1.0...v4.1.1)
+
+### Bug Fixes
+* [MODFIN-195](https://issues.folio.org/browse/MODFIN-195) - Unable to complete fiscal year rollover
 
 ## 4.1.0 - Released
 The focus of this release was to update RMB, support ledger fiscal year rollover. 
