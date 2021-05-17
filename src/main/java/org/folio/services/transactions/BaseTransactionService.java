@@ -63,7 +63,7 @@ public class BaseTransactionService implements TransactionService {
                                                                        Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveFromTransactionsChunk(fundIds, fiscalYearId, trType, requestContext))
+                    .map(ids -> retrieveFromTransactionsChunk(ids, fiscalYearId, trType, requestContext))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
@@ -71,7 +71,7 @@ public class BaseTransactionService implements TransactionService {
                                                                      Transaction.TransactionType trType, RequestContext requestContext) {
     return collectResultsOnSuccess(
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveToTransactionsChunk(fundIds, fiscalYearId, trType, requestContext))
+                    .map(ids -> retrieveToTransactionsChunk(ids, fiscalYearId, trType, requestContext))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
