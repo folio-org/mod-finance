@@ -1,4 +1,19 @@
 ## 4.2.0 - Unreleased
+## 4.1.2 - Released
+The focus of this release was to fix issue with many budgets for ledger
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.1.1...v4.1.2)
+
+### Bug Fixes
+* [MODFIN-197](https://issues.folio.org/browse/MODFIN-197) - "Request-URI Too Long" error occurs when attempting to view a ledger when there are more than a few budgets
+
+## 4.1.1 - Released
+The focus of this release was to fix Unable to complete fiscal year rollover issue
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.1.0...v4.1.1)
+
+### Bug Fixes
+* [MODFIN-195](https://issues.folio.org/browse/MODFIN-195) - Unable to complete fiscal year rollover
 
 ## 4.1.0 - Released
 The focus of this release was to update RMB, support ledger fiscal year rollover. 
