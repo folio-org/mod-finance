@@ -66,9 +66,9 @@ import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.TestEntities;
 import org.hamcrest.beans.SamePropertyValuesAs;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -416,7 +416,7 @@ public class EntitiesCrudBasicsTest {
 
     Pattern pattern = Pattern.compile("(uniqueField.*Error)");
     Matcher matcher = pattern.matcher(response.getBody().asString());
-    Assert.assertTrue(matcher.find());
+    Assertions.assertTrue(matcher.find());
   }
 
   void verifyRecordNotSentToStorage(HttpMethod method, TestEntities testEntity) {
