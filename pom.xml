@@ -32,26 +32,41 @@
     <aspectj.version>1.9.6</aspectj.version>
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas
     </jsonschema_paths>
-    <raml-module-builder.version>32.1.0</raml-module-builder.version>
-    <vertx.version>4.0.0</vertx.version>
-    <rest-assured.version>4.3.0</rest-assured.version>
+    <raml-module-builder.version>33.0.0</raml-module-builder.version>
+    <vertx.version>4.1.0.CR1</vertx.version>
+    <rest-assured.version>4.3.2</rest-assured.version>
     <generated_sources_dir>${project.build.directory}/generated-sources</generated_sources_dir>
     <jsonschema2pojo_output_dir>${generated_sources_dir}/jsonschema2pojo</jsonschema2pojo_output_dir>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <mod-configuration-client.version>5.4.0</mod-configuration-client.version>
+    <mod-configuration-client.version>5.5.0</mod-configuration-client.version>
     <spring.version>5.2.7.RELEASE</spring.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <argLine />
   </properties>
 
+  <repositories>
+    <repository>
+      <id>folio-nexus</id>
+      <name>FOLIO Maven Repository</name>
+      <url>https://repository.folio.org/repository/maven-folio</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>folio-nexus</id>
+      <name>FOLIO Maven repository</name>
+      <url>https://repository.folio.org/repository/maven-folio</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.6.2</version>
+        <version>5.7.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -99,6 +114,11 @@
       <version>0.7.2</version>
     </dependency>
     <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
       <groupId>org.folio</groupId>
       <artifactId>mod-configuration-client</artifactId>
       <version>${mod-configuration-client.version}</version>
@@ -106,11 +126,6 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-runner</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -261,38 +276,42 @@
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.0.0</version>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <property>
+                  <name>jsonschema2pojo.config.includeHashcodeAndEquals</name>
+                  <value>true</value>
+                </property>
+              </properties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.folio</groupId>
+        <artifactId>domain-models-maven-plugin</artifactId>
+        <version>${raml-module-builder.version}</version>
         <executions>
           <execution>
             <id>generate_interfaces</id>
-            <phase>generate-sources</phase>
             <goals>
               <goal>java</goal>
             </goals>
-            <configuration>
-              <mainClass>org.folio.rest.tools.GenerateRunner</mainClass>
-              <cleanupDaemonThreads>false</cleanupDaemonThreads>
-              <systemProperties>
-                <systemProperty>
-                  <key>project.basedir</key>
-                  <value>${basedir}</value>
-                </systemProperty>
-                <systemProperty>
-                  <key>schema_paths</key>
-                  <value>${jsonschema_paths}</value>
-                </systemProperty>
-                <systemProperty>
-                  <key>raml_files</key>
-                  <value>${ramlfiles_path}</value>
-                </systemProperty>
-                <systemProperty>
-                  <key>jsonschema2pojo.config.includeHashcodeAndEquals</key>
-                  <value>true</value>
-                </systemProperty>
-              </systemProperties>
-            </configuration>
           </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
           <execution>
             <id>git submodule update</id>
             <phase>initialize</phase>
@@ -511,13 +530,6 @@
     <tag>HEAD</tag>
   </scm>
 
-  <repositories>
-    <repository>
-      <id>folio-nexus</id>
-      <name>FOLIO Maven Repository</name>
-      <url>https://repository.folio.org/repository/maven-folio</url>
-    </repository>
-  </repositories>
 
   <distributionManagement>
     <repository>

@@ -1,7 +1,7 @@
 package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.getEndpoint;

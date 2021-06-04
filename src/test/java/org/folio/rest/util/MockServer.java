@@ -6,7 +6,6 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.impl.FundsApiTest.ORG_CONFIG_HEADER;
 import static org.folio.rest.impl.FundsApiTest.X_CONFIG_HEADER_NAME;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
@@ -41,7 +40,7 @@ import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARI
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.services.configuration.ConfigurationEntriesService.SYSTEM_CONFIG_MODULE_NAME;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.ArrayList;

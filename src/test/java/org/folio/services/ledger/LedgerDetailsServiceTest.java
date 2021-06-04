@@ -9,7 +9,7 @@ import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
 import static org.folio.services.ledger.LedgerDetailsService.SEARCH_CURRENT_FISCAL_YEAR_QUERY;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;

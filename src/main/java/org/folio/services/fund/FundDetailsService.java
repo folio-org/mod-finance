@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
