@@ -1,33 +1,38 @@
 package org.folio.services.budget;
 
-import static java.lang.Integer.MAX_VALUE;
-import static java.util.function.UnaryOperator.identity;
-import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
+import one.util.streamex.StreamEx;
 import org.apache.commons.collections4.CollectionUtils;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.models.BudgetExpenseClassHolder;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
-
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.services.transactions.CommonTransactionService;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.MAX_VALUE;
+import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
+import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR;
 
 public class BudgetExpenseClassService {
 
   private final RestClient budgetExpenseClassRestClient;
   private final CommonTransactionService transactionService;
+  private static final String ENDPOINT = "/finance-storage/budget-expense-classes";
+  public static final String ID = "id";
 
   public BudgetExpenseClassService(RestClient budgetExpenseClassRestClient, CommonTransactionService transactionService) {
     this.budgetExpenseClassRestClient = budgetExpenseClassRestClient;
@@ -128,5 +133,23 @@ public class BudgetExpenseClassService {
       .withBudgetId(budgetId)
       .withExpenseClassId(statusExpenseClass.getExpenseClassId())
       .withStatus(BudgetExpenseClass.Status.fromValue(statusExpenseClass.getStatus().value()));
+  }
+
+  public CompletableFuture<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(Collection<String> ids, RequestContext requestContext) {
+    String query = convertIdsToCqlQuery(ids);
+    RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
+      .withLimit(MAX_IDS_FOR_GET_RQ)
+      .withOffset(0);
+    return budgetExpenseClassRestClient.get(requestEntry, requestContext, BudgetExpenseClassCollection.class)
+      .thenApply(BudgetExpenseClassCollection::getBudgetExpenseClasses);
+  }
+
+  public static String convertIdsToCqlQuery(Collection<String> ids) {
+    return convertIdsToCqlQuery(ids, ID, true);
+  }
+
+  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
+    String prefix = fieldName + (strictMatch ? "==(" : "=(");
+    return StreamEx.of(values).joining(" or ", prefix, ")");
   }
 }

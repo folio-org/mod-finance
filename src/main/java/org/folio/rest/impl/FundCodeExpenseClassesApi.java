@@ -4,6 +4,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.spring.SpringContextUtil;
@@ -29,6 +30,7 @@ public class FundCodeExpenseClassesApi implements FinanceFundCodesExpenseClasses
                                                 Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler,
                                                 Context vertxContext) {
+    fundDetailsService.retrieveCombinationFundCodeExpClasses(fiscalYearCode, new RequestContext(vertxContext, okapiHeaders));
     //fundDetailsService.retrieveCombinationFundCodeExpClasses(query, offset, limit, new RequestContext(ctx, headers));
   }
 }
