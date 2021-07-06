@@ -1,5 +1,22 @@
 package org.folio.rest.core;
 
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
+import org.folio.rest.RestConstants;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.tools.client.HttpClientFactory;
+import org.folio.rest.tools.client.interfaces.HttpClientInterface;
+import org.folio.rest.tools.utils.TenantTool;
+import org.folio.rest.util.HelperUtils;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
 import static java.util.Objects.nonNull;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
@@ -7,23 +24,6 @@ import static org.folio.rest.RestConstants.SEARCH_ENDPOINT;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.util.HelperUtils.buildQueryParam;
 import static org.folio.rest.util.HelperUtils.verifyAndExtractBody;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
-import org.folio.rest.RestConstants;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.tools.client.HttpClientFactory;
-import org.folio.rest.tools.client.interfaces.HttpClientInterface;
-import org.folio.rest.tools.utils.TenantTool;
-import org.folio.rest.util.HelperUtils;
-
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class RestClient {
   private static final Logger logger = LogManager.getLogger(RestClient.class);
@@ -147,6 +147,45 @@ public class RestClient {
       future.completeExceptionally(e);
     }
 
+    return future;
+  }
+
+  public <S> CompletableFuture<S> get(RequestEntry requestEntry, RequestContext requestContext, Class<S> responseType) {
+    CompletableFuture<S> future = new CompletableFuture<>();
+    String endpoint = requestEntry.buildEndpoint();
+    HttpClientInterface client = getHttpClient(requestContext.getHeaders());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Calling GET {}", endpoint);
+    }
+
+    try {
+      client
+        .request(HttpMethod.GET, endpoint, requestContext.getHeaders())
+        .thenApply(response -> {
+          if (logger.isDebugEnabled()) {
+            logger.debug("Validating response for GET {}", endpoint);
+          }
+          return verifyAndExtractBody(response);
+        })
+        .thenAccept(body -> {
+          client.closeClient();
+          if (logger.isDebugEnabled()) {
+            logger.debug("The response body for GET {}: {}", endpoint, nonNull(body) ? body.encodePrettily() : null);
+          }
+          S responseEntity = body.mapTo(responseType);
+          future.complete(responseEntity);
+        })
+        .exceptionally(t -> {
+          client.closeClient();
+          logger.error(String.format(EXCEPTION_CALLING_ENDPOINT_MSG, HttpMethod.GET, endpoint, requestContext), t);
+          future.completeExceptionally(t.getCause());
+          return null;
+        });
+    } catch (Exception e) {
+      logger.error(String.format(EXCEPTION_CALLING_ENDPOINT_MSG, HttpMethod.GET, requestEntry.getBaseEndpoint(), requestContext), e);
+      client.closeClient();
+      future.completeExceptionally(e);
+    }
     return future;
   }
 

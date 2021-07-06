@@ -42,6 +42,17 @@
           ]
         },
         {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fund-codes-expense-classes",
+          "permissionsRequired": ["finance.budgets.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledgers.collection.get",
+            "finance-storage.fiscal-years.collection.get",
+            "finance-storage.budgets.collection.get",
+            "finance-storage.budget-expense-classes.collection.get"
+          ]
+        },
+        {
           "methods": ["PUT"],
           "pathPattern": "/finance/budgets/{id}",
           "permissionsRequired": ["finance.budgets.item.put"],

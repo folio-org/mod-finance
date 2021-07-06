@@ -34,10 +34,8 @@ public class FundFiscalYearService {
 
   private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext rqContext) {
     return ledgerDetailsService.getCurrentFiscalYear(budgetLedgerId, rqContext)
-      .thenApply(fiscalYear ->
-        Optional.ofNullable(fiscalYear)
-          .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError()))
-      );
+      .thenApply(fiscalYear -> Optional.ofNullable(fiscalYear)
+        .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError())));
   }
 
   private CompletableFuture<FiscalYear> getPlannedFiscalYear(String budgetLedgerId, RequestContext rqContext) {

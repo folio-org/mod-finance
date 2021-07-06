@@ -1,0 +1,45 @@
+#%RAML 1.0
+
+title: Collection of the pairs <fund code, expense classes>
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/folio-org/mod-finance
+
+documentation:
+  - title: API for retrieving combination of fund code and expense classes
+    content: Return collection of the pairs  <fund code, expense classes>
+
+types:
+  fundCode_expenseClasses_collection: !include acq-models/mod-finance/schemas/fund_code_vs_expense_classes_type_collection.json
+  errors: !include raml-util/schemas/errors.schema
+
+traits:
+  pageable:  !include raml-util/traits/pageable.raml
+  validate: !include raml-util/traits/validation.raml
+  language: !include raml-util/traits/language.raml
+
+resourceTypes:
+    get-only: !include raml-util/rtypes/get-only-with-json-response.raml
+
+/finance/fund-codes-expense-classes:
+  type:
+    get-only:
+      schema: fundCode_expenseClasses_collection
+      exampleCollection: !include acq-models/mod-finance/examples/fund_code_vs_expense_classes_type_collection.sample
+  get:
+    queryParameters:
+      fiscalYearCode:
+        description: Optional Fiscal Year Code
+        type: string
+        required: false
+        example: "FY2021"
+        default: null
+    is: [
+       pageable,
+       validate
+    ]
+
+
+
+
+

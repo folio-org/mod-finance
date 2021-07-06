@@ -1,45 +1,29 @@
 package org.folio.config;
 
-import java.util.Set;
-
 import org.folio.rest.core.RestClient;
-import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.ExpenseClassService;
-import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.group.GroupExpenseClassTotalsService;
-import org.folio.services.group.GroupFiscalYearTotalsService;
-import org.folio.services.group.GroupFundFiscalYearService;
-import org.folio.services.ledger.LedgerDetailsService;
-import org.folio.services.ledger.LedgerRolloverErrorsService;
-import org.folio.services.ledger.LedgerRolloverProgressService;
-import org.folio.services.ledger.LedgerRolloverService;
-import org.folio.services.ledger.LedgerService;
-import org.folio.services.ledger.LedgerTotalsService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
+import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
+import org.folio.services.group.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupFiscalYearTotalsService;
+import org.folio.services.group.GroupFundFiscalYearService;
+import org.folio.services.ledger.*;
 import org.folio.services.protection.AcqUnitMembershipsService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
-import org.folio.services.transactions.AllocationService;
-import org.folio.services.transactions.BaseTransactionService;
-import org.folio.services.transactions.CommonTransactionService;
-import org.folio.services.transactions.CreditService;
-import org.folio.services.transactions.EncumbranceService;
-import org.folio.services.transactions.PaymentService;
-import org.folio.services.transactions.PendingPaymentService;
-import org.folio.services.transactions.TransactionManagingService;
-import org.folio.services.transactions.TransactionRestrictService;
-import org.folio.services.transactions.TransactionService;
-import org.folio.services.transactions.TransactionStrategyFactory;
-import org.folio.services.transactions.TransactionTypeManagingStrategy;
-import org.folio.services.transactions.TransferService;
+import org.folio.services.transactions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import java.util.Set;
 
 public class ServicesConfiguration {
   @Bean
@@ -221,4 +205,11 @@ public class ServicesConfiguration {
     return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
   }
 
+  @Bean
+  FundCodeExpenseClassesService fundCodeExpenseClassesService(BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService,
+                                                              RestClient budgetExpenseClassRestClient, FundService fundService, LedgerService ledgerService,
+                                                              FiscalYearService fiscalYearService, LedgerDetailsService ledgerDetailsService) {
+    return new FundCodeExpenseClassesService(budgetService, budgetExpenseClassService, budgetExpenseClassRestClient,
+      fundService, ledgerService, fiscalYearService, ledgerDetailsService);
+  }
 }
