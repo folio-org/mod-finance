@@ -8,6 +8,7 @@ import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
@@ -56,11 +57,8 @@ public class ServicesConfiguration {
 
   @Bean
   FundDetailsService fundDetailsService(BudgetService budgetService, ExpenseClassService expenseClassService,
-                                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService,
-                                        RestClient budgetExpenseClassRestClient, FundService fundService, LedgerService ledgerService,
-                                        FiscalYearService fiscalYearService){
-    return new FundDetailsService(budgetService, expenseClassService, budgetExpenseClassService, fundFiscalYearService,
-      budgetExpenseClassRestClient, fundService, ledgerService, fiscalYearService);
+                                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService){
+    return new FundDetailsService(budgetService, expenseClassService, budgetExpenseClassService, fundFiscalYearService);
   }
 
   @Bean
@@ -207,4 +205,11 @@ public class ServicesConfiguration {
     return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
   }
 
+  @Bean
+  FundCodeExpenseClassesService fundCodeExpenseClassesService(BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService,
+                                                              RestClient budgetExpenseClassRestClient, FundService fundService, LedgerService ledgerService,
+                                                              FiscalYearService fiscalYearService, LedgerDetailsService ledgerDetailsService) {
+    return new FundCodeExpenseClassesService(budgetService, budgetExpenseClassService, budgetExpenseClassRestClient,
+      fundService, ledgerService, fiscalYearService, ledgerDetailsService);
+  }
 }
