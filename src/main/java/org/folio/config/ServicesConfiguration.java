@@ -8,6 +8,7 @@ import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
@@ -204,4 +205,12 @@ public class ServicesConfiguration {
     return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
   }
 
+  @Bean
+  FundCodeExpenseClassesService fundCodeExpenseClassesService(BudgetService budgetService, BudgetExpenseClassService budgetExpenseClassService,
+                                                              FundService fundService, LedgerService ledgerService,
+                                                              FiscalYearService fiscalYearService, LedgerDetailsService ledgerDetailsService,
+                                                              ExpenseClassService expenseClassService) {
+    return new FundCodeExpenseClassesService(budgetService, budgetExpenseClassService,
+      fundService, ledgerService, fiscalYearService, ledgerDetailsService, expenseClassService);
+  }
 }
