@@ -13,15 +13,20 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.services.protection.AcqUnitsService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static java.util.stream.Collectors.toList;
+import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.RestConstants.NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
+import static org.folio.rest.util.HelperUtils.*;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class FundService {
   private static final Logger logger = LogManager.getLogger(FundService.class);
@@ -76,5 +81,23 @@ public class FundService {
   public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
     String prefix = fieldName + (strictMatch ? "==(" : "=(");
     return StreamEx.of(values).joining(" or ", prefix, ")");
+  }
+
+  public CompletableFuture<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
+    return collectResultsOnSuccess(
+      ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ).map(ids -> getFundsByIds(ids, requestContext))
+        .toList()).thenApply(
+      lists -> lists.stream()
+        .flatMap(Collection::stream)
+        .collect(toList()));
+  }
+
+  private CompletableFuture<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
+    String query = convertIdsToCqlQuery(ids);
+    RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE)).withQuery(query)
+      .withOffset(0)
+      .withLimit(MAX_IDS_FOR_GET_RQ);
+    return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
+      .thenApply(FundsCollection::getFunds);
   }
 }
