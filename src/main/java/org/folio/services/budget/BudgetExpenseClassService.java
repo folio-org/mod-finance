@@ -1,6 +1,5 @@
 package org.folio.services.budget;
 
-import one.util.streamex.StreamEx;
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.models.BudgetExpenseClassHolder;
@@ -14,6 +13,7 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.services.transactions.CommonTransactionService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +22,21 @@ import java.util.stream.Collectors;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static one.util.streamex.StreamEx.ofSubLists;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
+import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class BudgetExpenseClassService {
 
   private final RestClient budgetExpenseClassRestClient;
   private final CommonTransactionService transactionService;
-  private static final String ENDPOINT = "/finance-storage/budget-expense-classes";
-  public static final String ID = "id";
 
   public BudgetExpenseClassService(RestClient budgetExpenseClassRestClient, CommonTransactionService transactionService) {
     this.budgetExpenseClassRestClient = budgetExpenseClassRestClient;
@@ -135,21 +139,22 @@ public class BudgetExpenseClassService {
       .withStatus(BudgetExpenseClass.Status.fromValue(statusExpenseClass.getStatus().value()));
   }
 
-  public CompletableFuture<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(Collection<String> ids, RequestContext requestContext) {
-    String query = convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
-      .withLimit(MAX_IDS_FOR_GET_RQ)
-      .withOffset(0);
+  public CompletableFuture<List<BudgetExpenseClass>> getBudgetExpensesClass(List<String> budgetsIds, RequestContext requestContext) {
+    return collectResultsOnSuccess(
+      ofSubLists(new ArrayList<>(budgetsIds), MAX_IDS_FOR_GET_RQ).map(ids -> getBudgetExpensesClassByIds(ids, requestContext))
+        .toList()).thenApply(
+      lists -> lists.stream()
+        .flatMap(Collection::stream)
+        .collect(toList()));
+  }
+
+  public  CompletableFuture<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(List<String> ids, RequestContext requestContext) {
+    String budgetId = "budgetId";
+    String query = convertIdsToCqlQuery(ids, budgetId);
+    RequestEntry requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES)).withQuery(query)
+      .withOffset(0)
+      .withLimit(MAX_IDS_FOR_GET_RQ);
     return budgetExpenseClassRestClient.get(requestEntry, requestContext, BudgetExpenseClassCollection.class)
       .thenApply(BudgetExpenseClassCollection::getBudgetExpenseClasses);
-  }
-
-  public static String convertIdsToCqlQuery(Collection<String> ids) {
-    return convertIdsToCqlQuery(ids, ID, true);
-  }
-
-  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
-    String prefix = fieldName + (strictMatch ? "==(" : "=(");
-    return StreamEx.of(values).joining(" or ", prefix, ")");
   }
 }
