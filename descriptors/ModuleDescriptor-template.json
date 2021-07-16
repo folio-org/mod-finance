@@ -44,10 +44,11 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/fund-codes-expense-classes",
-          "permissionsRequired": ["finance.budgets.item.get"],
+          "permissionsRequired": ["finance.fund-codes-expense-classes.collection.get"],
           "modulePermissions": [
             "finance-storage.ledgers.collection.get",
             "finance-storage.fiscal-years.collection.get",
+            "finance-storage.funds.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.budget-expense-classes.collection.get"
           ]
@@ -609,7 +610,7 @@
       ]
     },
     {
-    "id": "finance.order-transaction-summaries",
+      "id": "finance.order-transaction-summaries",
       "version": "1.2",
       "handlers": [
         {
@@ -647,7 +648,7 @@
       ]
     },
     {
-    "id": "finance.invoice-transaction-summaries",
+      "id": "finance.invoice-transaction-summaries",
       "version": "2.1",
       "handlers": [
         {
@@ -764,19 +765,19 @@
       "version": "3.0"
     },
     {
-     "id": "finance-storage.transactions",
+      "id": "finance-storage.transactions",
       "version":"3.1"
     },
     {
-     "id": "configuration",
+      "id": "configuration",
       "version":"2.0"
     },
     {
-     "id": "finance-storage.order-transaction-summaries",
+      "id": "finance-storage.order-transaction-summaries",
       "version":"1.1"
     },
     {
-     "id": "finance-storage.invoice-transaction-summaries",
+      "id": "finance-storage.invoice-transaction-summaries",
       "version":"2.1"
     }
   ],
@@ -1218,6 +1219,11 @@
       "description" : "Get Exchange Rate"
     },
     {
+      "permissionName" : "finance.fund-codes-expense-classes.collection.get",
+      "displayName" : "Pairs fund code - expense class code",
+      "description" : "Return collection of the pairs  <fund code, expense classes>"
+    },
+    {
       "permissionName": "finance.all",
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
@@ -1230,6 +1236,7 @@
         "finance.fiscal-years.all",
         "finance.groups.all",
         "finance.transactions.all",
+        "finance.fund-codes-expense-classes.collection.get",
         "finance.group-fiscal-year-summaries.collection.get",
         "finance.order-transaction-summaries.item.post",
         "finance.order-transaction-summaries.item.put",
