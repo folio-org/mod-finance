@@ -56,11 +56,8 @@ public class ServicesConfiguration {
 
   @Bean
   FundDetailsService fundDetailsService(BudgetService budgetService, ExpenseClassService expenseClassService,
-                                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService,
-                                        RestClient budgetExpenseClassRestClient, FundService fundService, LedgerService ledgerService,
-                                        FiscalYearService fiscalYearService){
-    return new FundDetailsService(budgetService, expenseClassService, budgetExpenseClassService, fundFiscalYearService,
-      budgetExpenseClassRestClient, fundService, ledgerService, fiscalYearService);
+                                        BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService){
+    return new FundDetailsService(budgetService, expenseClassService, budgetExpenseClassService, fundFiscalYearService);
   }
 
   @Bean
