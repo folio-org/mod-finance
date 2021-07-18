@@ -1,7 +1,9 @@
 package org.folio.services.fiscalyear;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -12,6 +14,8 @@ import org.folio.services.configuration.ConfigurationEntriesService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 
 public class FiscalYearService {
 
@@ -49,9 +53,14 @@ public class FiscalYearService {
 
   public CompletableFuture<FiscalYear> getFiscalYearByFiscalYearCode(String fiscalYearCode, RequestContext requestContext) {
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
-    return fiscalYearRestClient.get(query, 0, Integer.MAX_VALUE, requestContext, FiscalYear.class);
+    return fiscalYearRestClient.get(query, 0, Integer.MAX_VALUE, requestContext, FiscalYearsCollection.class)
+      .thenApply(collection -> {
+        if (CollectionUtils.isNotEmpty(collection.getFiscalYears())) {
+          return collection.getFiscalYears().get(0);
+        }
+        throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
+      });
   }
-
   public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
     return String.format("code=%s", fiscalYearCode);
   }
