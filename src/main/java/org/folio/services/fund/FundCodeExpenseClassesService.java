@@ -12,7 +12,9 @@ import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.ledger.LedgerDetailsService;
 import org.folio.services.ledger.LedgerService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -45,7 +47,6 @@ public class FundCodeExpenseClassesService {
 
   public CompletableFuture<FundCodeExpenseClassesCollection> retrieveCombinationFundCodeExpClasses(String fiscalYearCode,
                                                                                                    RequestContext requestContext) {
-    List<CompletableFuture<FiscalYear>> fiscalYear;
     FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder = new FundCodeExpenseClassesHolder();
     if (fiscalYearCode != null) {
       FiscalYear fiscalYearUnit = new FiscalYear();
@@ -69,7 +70,16 @@ public class FundCodeExpenseClassesService {
 
   private CompletableFuture<List<FundCodeExpenseClassesCollection>> buildCollectionList(List<FiscalYear> fiscalYearList,
                                                                                         FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder, RequestContext requestContext) {
-    List<CompletableFuture<FundCodeExpenseClassesCollection>> completeFutures = fiscalYearList.stream()
+    List<FiscalYear> separatedFiscalYears = new ArrayList<>();
+    separatedFiscalYears.add(fiscalYearList.get(0));
+    for (FiscalYear fiscalYear : fiscalYearList) {
+      for (FiscalYear separatedFiscalYear : separatedFiscalYears) {
+        if (!Objects.equals(separatedFiscalYear.getId(), fiscalYear.getId())) {
+          separatedFiscalYears.add(fiscalYear);
+        }
+      }
+    }
+    List<CompletableFuture<FundCodeExpenseClassesCollection>> completeFutures = separatedFiscalYears.stream()
       .map(fiscalYr -> getFundCodeVsExpenseClassesWithFiscalYear(fiscalYr, fundCodeExpenseClassesHolder, requestContext))
       .collect(Collectors.toList());
     return collectResultsOnSuccess(completeFutures);
