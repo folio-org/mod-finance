@@ -131,9 +131,8 @@ public class FundCodeExpenseClassesService {
   }
 
   private CompletableFuture<BudgetsCollection> getActiveBudgetsByFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    return budgetService.getBudgets(
-      queryBudgetStatusAndFiscalYearId(Budget.BudgetStatus.ACTIVE.value(), fiscalYear.getId()), 0, Integer.MAX_VALUE,
-      requestContext);
+    return budgetService.getBudgets(queryBudgetStatusAndFiscalYearId(Budget.BudgetStatus.ACTIVE.value(),
+       fiscalYear.getId()), 0, Integer.MAX_VALUE, requestContext);
   }
 
   public String queryBudgetStatusAndFiscalYearId(String budgetStatus, String fiscalYearId) {
