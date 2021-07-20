@@ -11,6 +11,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.rest.util.HelperUtils;
 import org.folio.services.protection.AcqUnitsService;
 
 import java.util.ArrayList;
@@ -24,7 +25,8 @@ import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.RestConstants.NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
-import static org.folio.rest.util.HelperUtils.*;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -66,16 +68,12 @@ public class FundService {
   }
 
   public CompletableFuture<List<Fund>> getFundsByIds(Collection<String> ids, RequestContext requestContext) {
-    String query = convertIdsToCqlQuery(ids);
+    String query = HelperUtils.convertIdsToCqlQuery(ids);
     RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
       .withLimit(MAX_IDS_FOR_GET_RQ)
       .withOffset(0);
     return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
       .thenApply(FundsCollection::getFunds);
-  }
-
-  public static String convertIdsToCqlQuery(Collection<String> ids) {
-    return convertIdsToCqlQuery(ids, ID, true);
   }
 
   public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
@@ -93,7 +91,7 @@ public class FundService {
   }
 
   private CompletableFuture<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
-    String query = convertIdsToCqlQuery(ids);
+    String query = HelperUtils.convertIdsToCqlQuery(ids);
     RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE)).withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
