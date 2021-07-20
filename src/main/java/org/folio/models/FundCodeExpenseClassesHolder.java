@@ -114,13 +114,13 @@ public class FundCodeExpenseClassesHolder {
     List<String> activeStatus = new ArrayList<>();
     List<Budget> budgetListByFundId = new ArrayList<>();
     for (Budget budget : budgetList) {
-      if (Objects.equals(budget.getFundId(), fund.getId())) {
+      if (budget.getFundId().equals(fund.getId())) {
         budgetListByFundId.add(budget);
       }
     }
     for (Budget budget : budgetListByFundId) {
       for (BudgetExpenseClass budgetExpenseClass : budgetExpenseClassList) {
-        if (Objects.equals(budget.getId(), budgetExpenseClass.getBudgetId())) {
+        if (budget.getId().equals(budgetExpenseClass.getBudgetId())) {
           if (budgetExpenseClass.getStatus().equals(BudgetExpenseClass.Status.fromValue("Active"))) {
             activeStatus.add(addFundCodeAndExpanseClassCode(budgetExpenseClass, fund));
           }
@@ -145,13 +145,13 @@ public class FundCodeExpenseClassesHolder {
     List<String> inActiveStatus = new ArrayList<>();
     List<Budget> budgetListByFundId = new ArrayList<>();
     for (Budget budget : budgetList) {
-      if (Objects.equals(budget.getFundId(), fund.getId())) {
+      if (budget.getFundId().equals(fund.getId())) {
         budgetListByFundId.add(budget);
       }
     }
     for (Budget budget : budgetListByFundId) {
       for (BudgetExpenseClass budgetExpenseClass : budgetExpenseClassList) {
-        if (Objects.equals(budget.getId(), budgetExpenseClass.getBudgetId())) {
+        if (budget.getId().equals(budgetExpenseClass.getBudgetId())) {
           if (budgetExpenseClass.getStatus().equals(BudgetExpenseClass.Status.fromValue("Inactive"))) {
             inActiveStatus.add(addFundCodeAndExpanseClassCode(budgetExpenseClass, fund));
           }
