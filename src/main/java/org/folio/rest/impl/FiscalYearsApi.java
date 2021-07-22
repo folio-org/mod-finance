@@ -42,7 +42,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    if (!isPeriodValid(fiscalYear, handler)) {
+    if (!isPeriodValid(fiscalYear)) {
+      handleInvalidPeriod(handler);
       return;
     }
 
@@ -70,7 +71,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    if (!isPeriodValid(fiscalYearRequest, handler)) {
+    if (!isPeriodValid(fiscalYearRequest)) {
+      handleInvalidPeriod(handler);
       return;
     }
 
@@ -114,11 +116,11 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
   }
 
-  private boolean isPeriodValid(FiscalYear fiscalYear, Handler<AsyncResult<Response>> handler) {
-    if (fiscalYear.getPeriodStart().after(fiscalYear.getPeriodEnd())) {
-      handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, FISCAL_YEAR_INVALID_PERIOD.toError()))));
-      return false;
-    }
-    return true;
+  private boolean isPeriodValid(FiscalYear fiscalYear) {
+    return fiscalYear.getPeriodStart().before(fiscalYear.getPeriodEnd());
+  }
+
+  private void handleInvalidPeriod(Handler<AsyncResult<Response>> handler) {
+    handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, FISCAL_YEAR_INVALID_PERIOD.toError()))));
   }
 }
