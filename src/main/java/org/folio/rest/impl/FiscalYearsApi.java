@@ -2,6 +2,7 @@ package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
@@ -41,6 +42,11 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
+    if (fiscalYear.getPeriodStart().after(fiscalYear.getPeriodEnd())) {
+      handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, FISCAL_YEAR_INVALID_PERIOD.toError()))));
+      return;
+    }
+
     // series should always be calculated
     setFYearWithSeries(fiscalYear);
 
@@ -64,6 +70,11 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   @Override
   public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
+
+    if (fiscalYearRequest.getPeriodStart().after(fiscalYearRequest.getPeriodEnd())) {
+      handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, FISCAL_YEAR_INVALID_PERIOD.toError()))));
+      return;
+    }
 
     // Set id if this is available only in path
     if (isEmpty(fiscalYearRequest.getId())) {
