@@ -10,13 +10,16 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.PERIOD_END;
+import static org.folio.rest.util.TestConstants.PERIOD_START;
 import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2020;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2021;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
@@ -123,6 +126,20 @@ public class FiscalYearTest {
     List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
     assertThat(rqRsPostFund.get(0)
       .getString("currency"), notNullValue());
+  }
+
+  @Test
+  void testPutFiscalYearWithInvalidPeriod() {
+    logger.info("=== Test update FiscalYear with invalid period ===");
+
+    JsonObject body = FISCAL_YEAR.getMockObject();
+
+    body.remove(PERIOD_START);
+    body.put(PERIOD_START, VALID_DATE_2021);
+    body.remove(PERIOD_END);
+    body.put(PERIOD_END, VALID_DATE_2020);
+
+    RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, APPLICATION_JSON, 422);
   }
 
   @Test
