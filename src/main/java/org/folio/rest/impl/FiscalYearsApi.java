@@ -114,10 +114,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     fiscalYear.withSeries(code.substring(0, code.length() - FISCAL_YEAR_LENGTH));
   }
 
-  private boolean isPeriodValid(FiscalYear fiscalYearRequest, Handler<AsyncResult<Response>> handler)
-  {
-    if (fiscalYearRequest.getPeriodStart().after(fiscalYearRequest.getPeriodEnd()))
-    {
+  private boolean isPeriodValid(FiscalYear fiscalYear, Handler<AsyncResult<Response>> handler) {
+    if (fiscalYear.getPeriodStart().after(fiscalYear.getPeriodEnd())) {
       handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, FISCAL_YEAR_INVALID_PERIOD.toError()))));
       return false;
     }
