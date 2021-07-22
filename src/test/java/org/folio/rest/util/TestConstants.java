@@ -27,6 +27,10 @@ public final class TestConstants {
   public static final String SERIES_INTERNAL_SERVER_ERROR = ID_FOR_INTERNAL_SERVER_ERROR;
   public static final String BASE_MOCK_DATA_PATH = "mockdata/";
   public static final String TOTAL_RECORDS = "totalRecords";
+  public static final String PERIOD_START = "periodStart";
+  public static final String PERIOD_END = "periodEnd";
+  public static final String VALID_DATE_2020 = "2020-01-01T00:00:00Z";
+  public static final String VALID_DATE_2021 = "2021-01-01T00:00:00Z";
   public static final Header X_OKAPI_USER_ID = new Header(OKAPI_USERID_HEADER, "d1d0a10b-c563-4c4b-ae22-e5a0c11623eb");
 
 }
