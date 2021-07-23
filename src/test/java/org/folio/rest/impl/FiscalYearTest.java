@@ -6,17 +6,21 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getRqRsEntries;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.PERIOD_END;
+import static org.folio.rest.util.TestConstants.PERIOD_START;
 import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2020;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2021;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
@@ -24,6 +28,7 @@ import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -123,6 +128,24 @@ public class FiscalYearTest {
     List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
     assertThat(rqRsPostFund.get(0)
       .getString("currency"), notNullValue());
+  }
+
+  @Test
+  void testPutFiscalYearWithInvalidPeriod() {
+    logger.info("=== Test update FiscalYear with invalid period ===");
+
+    JsonObject body = FISCAL_YEAR.getMockObject();
+
+    body.remove(PERIOD_START);
+    body.put(PERIOD_START, VALID_DATE_2021);
+    body.remove(PERIOD_END);
+    body.put(PERIOD_END, VALID_DATE_2020);
+
+    Errors errors = RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, APPLICATION_JSON, 422)
+      .as(Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(1));
+    assertEquals(FISCAL_YEAR_INVALID_PERIOD.toError().getCode(), errors.getErrors().get(0).getCode());
   }
 
   @Test
