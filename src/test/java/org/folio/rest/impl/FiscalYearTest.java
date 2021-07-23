@@ -6,6 +6,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getRqRsEntries;
@@ -27,6 +28,7 @@ import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -139,7 +141,11 @@ public class FiscalYearTest {
     body.remove(PERIOD_END);
     body.put(PERIOD_END, VALID_DATE_2020);
 
-    RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, APPLICATION_JSON, 422);
+    Errors errors = RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, APPLICATION_JSON, 422)
+      .as(Errors.class);
+
+    assertThat(errors.getErrors(), hasSize(1));
+    assertEquals(FISCAL_YEAR_INVALID_PERIOD.toError().getCode(), errors.getErrors().get(0).getCode());
   }
 
   @Test
