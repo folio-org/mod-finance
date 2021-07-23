@@ -6,6 +6,7 @@ import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
 import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
+import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.junit.jupiter.api.AfterAll;
@@ -24,12 +25,12 @@ import java.util.concurrent.TimeoutException;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.EntityForTest.FUND_CODE_EXPENSE_CLASS;
 import static org.folio.rest.util.RestTestUtils.verifyGetWithParam;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
-import static org.folio.rest.util.TestEntities.FUND_CODE_EXPENSE_CLASS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,7 +93,7 @@ public class FundCodeExpenseClassesApiTest {
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(fiscalYearCode), any()))
       .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
 
-    FundCodeExpenseClassesCollection resultFundCodeCollection = verifyGetWithParam(FUND_CODE_EXPENSE_CLASS.getEndpoint(),
+    FundCodeExpenseClassesCollection resultFundCodeCollection = verifyGetWithParam(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode(), "fiscalYearCode", fiscalYearCode).as(FundCodeExpenseClassesCollection.class);
 
     assertThat(resultFundCodeCollection.getFundCodeVsExpClassesTypes(), hasSize(1));
@@ -114,7 +115,7 @@ public class FundCodeExpenseClassesApiTest {
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(null), any()))
       .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
 
-    FundCodeExpenseClassesCollection resultFundCodeCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(),
+    FundCodeExpenseClassesCollection resultFundCodeCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode()).as(FundCodeExpenseClassesCollection.class);
 
     assertThat(resultFundCodeCollection.getFundCodeVsExpClassesTypes(), hasSize(1));
