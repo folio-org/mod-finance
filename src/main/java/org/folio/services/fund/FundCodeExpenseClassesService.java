@@ -87,6 +87,7 @@ public class FundCodeExpenseClassesService {
 
   private FundCodeExpenseClassesCollection buildCollection(List<FundCodeExpenseClassesCollection> fundCodeExpenseClassesCollectionList) {
     FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionObject = new FundCodeExpenseClassesCollection();
+    fundCodeExpenseClassesCollectionObject.setDelimiter(":");
     for (FundCodeExpenseClassesCollection fundCodeExpenseClasses : fundCodeExpenseClassesCollectionList) {
       List<FundCodeVsExpClassesType> fundCodeVsExpClassesTypesObject = fundCodeExpenseClassesCollectionObject.getFundCodeVsExpClassesTypes();
       List<FundCodeVsExpClassesType> fundCodeVsExpClassesTypes = fundCodeExpenseClasses.getFundCodeVsExpClassesTypes();
