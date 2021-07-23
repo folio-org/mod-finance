@@ -1,16 +1,13 @@
 package org.folio.rest.impl;
 
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
 import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
-import org.folio.rest.util.MockServer;
-import org.folio.rest.util.TestEntities;
+import org.folio.rest.util.RestTestUtils;
 import org.folio.services.fund.FundCodeExpenseClassesService;
-import org.folio.services.ledger.LedgerDetailsService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -65,16 +62,13 @@ public class FundCodeExpenseClassesApiTest {
   @AfterEach
   void resetMocks() {
     reset(fundCodeExpenseClassesService);
-    //reset()
   }
 
 
   @Test
-  public void testGetFinanceFundCodesExpenseClasses() {
+  public void testGetFinanceFundCodesExpenseClassesWithFiscalYearCode() {
     logger.info("=== Test Get Finance Fund Codes And ExpenseClass Codes By Fiscal Year Code ===");
     String fiscalYearCode = "FY2021";
-    /*FundCodeExpenseClassesCollection fundCodeExpenseClassesCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(),
-      APPLICATION_JSON, OK.getStatusCode()).as(FundCodeExpenseClassesCollection.class); */
 
     FundCodeExpenseClassesCollection fundCodeExpenseClassesCollection = new FundCodeExpenseClassesCollection();
     FundCodeVsExpClassesType fundCodeVsExpClassesType = new FundCodeVsExpClassesType();
@@ -90,12 +84,30 @@ public class FundCodeExpenseClassesApiTest {
     FundCodeExpenseClassesCollection resultFundCodeCollection = verifyGetWithParam(FUND_CODE_EXPENSE_CLASS.getEndpoint(),
       APPLICATION_JSON, OK.getStatusCode(), "fiscalYearCode", fiscalYearCode).as(FundCodeExpenseClassesCollection.class);
 
-    //assertThat(fundCodeExpenseClassesCollection.getFundCodeVsExpClassesTypes(), hasSize(1));
+    assertThat(resultFundCodeCollection.getFundCodeVsExpClassesTypes(), hasSize(1));
+    verify(fundCodeExpenseClassesService).retrieveCombinationFundCodeExpClasses(eq(fiscalYearCode), any(RequestContext.class));
   }
 
-  private void verifyRsEntitiesQuantity(HttpMethod httpMethod, TestEntities entity, int expectedQuantity) {
-    List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(httpMethod, entity.name());
-    assertThat(rqRsPostFund, hasSize(expectedQuantity));
+  @Test
+  public void testGetFinanceFundCodeExpenseClassesEmptyFiscalYearCode() {
+    logger.info("=== Test Get Finance Fund Codes And ExpenseClass Codes Without Fiscal Year Code ===");
+
+    FundCodeExpenseClassesCollection fundCodeExpenseClassesCollection = new FundCodeExpenseClassesCollection();
+    FundCodeVsExpClassesType fundCodeVsExpClassesType = new FundCodeVsExpClassesType();
+    fundCodeVsExpClassesType.setFundCode("GIFT-SUBN");
+    fundCodeVsExpClassesType.setLedgerCode("ONGOING");
+    List<FundCodeVsExpClassesType> fundCodeVsExpClassesTypeList = new ArrayList<>();
+    fundCodeVsExpClassesTypeList.add(fundCodeVsExpClassesType);
+    fundCodeExpenseClassesCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpClassesTypeList);
+
+    when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(null), any()))
+      .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
+
+    FundCodeExpenseClassesCollection resultFundCodeCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(),
+      APPLICATION_JSON, OK.getStatusCode()).as(FundCodeExpenseClassesCollection.class);
+
+    assertThat(resultFundCodeCollection.getFundCodeVsExpClassesTypes(), hasSize(1));
+    verify(fundCodeExpenseClassesService).retrieveCombinationFundCodeExpClasses(eq(null), any(RequestContext.class));
   }
 
   static class ContextConfiguration {
@@ -105,9 +117,5 @@ public class FundCodeExpenseClassesApiTest {
       return mock(FundCodeExpenseClassesService.class);
     }
 
-    @Bean
-    public LedgerDetailsService currentFiscalYearService() {
-      return mock(LedgerDetailsService.class);
-    }
   }
 }
