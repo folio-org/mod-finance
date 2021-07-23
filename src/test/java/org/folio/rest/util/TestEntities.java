@@ -12,7 +12,6 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.TestUtils.getMockData;
 
 public enum TestEntities {
-  FUND_CODE_EXPENSE_CLASS("expenseClass", getEndpoint(FinanceFundCodesExpenseClasses.class), FundCodeExpenseClassesCollection.class, "mockdata/finance/fund-codes-expense-class.json", "fund-codes-expense-class[0]", "name", "Updated name", 5, "allocated"),
   BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),
   FUND("funds", getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE("fundTypes", getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
