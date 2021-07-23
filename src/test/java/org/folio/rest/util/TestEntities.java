@@ -1,44 +1,18 @@
 package org.folio.rest.util;
 
-import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.rest.util.HelperUtils.ID;
+import io.vertx.core.json.JsonObject;
+import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.resource.*;
+import org.folio.rest.tools.parser.JsonPathParser;
 
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import org.folio.rest.jaxrs.model.Budget;
-import org.folio.rest.jaxrs.model.ExpenseClass;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.Fund;
-import org.folio.rest.jaxrs.model.FundType;
-import org.folio.rest.jaxrs.model.Group;
-import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
-import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
-import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
-import org.folio.rest.jaxrs.model.OrderTransactionSummary;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.jaxrs.resource.Finance;
-import org.folio.rest.jaxrs.resource.FinanceBudgets;
-import org.folio.rest.jaxrs.resource.FinanceExpenseClasses;
-import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
-import org.folio.rest.jaxrs.resource.FinanceFundTypes;
-import org.folio.rest.jaxrs.resource.FinanceFunds;
-import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
-import org.folio.rest.jaxrs.resource.FinanceGroups;
-import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
-import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
-import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversErrors;
-import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
-import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
-import org.folio.rest.tools.parser.JsonPathParser;
-
-import io.vertx.core.json.JsonObject;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestUtils.getMockData;
 
 public enum TestEntities {
+  FUND_CODE_EXPENSE_CLASS("expenseClass", getEndpoint(FinanceFundCodesExpenseClasses.class), FundCodeExpenseClassesCollection.class, "mockdata/finance/fund-codes-expense-class.json", "fund-codes-expense-class[0]", "name", "Updated name", 5, "allocated"),
   BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),
   FUND("funds", getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE("fundTypes", getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
