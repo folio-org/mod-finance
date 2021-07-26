@@ -1,22 +1,28 @@
 package org.folio;
 
-import static org.folio.rest.util.TestConfig.closeMockServer;
-import static org.folio.rest.util.TestConfig.closeVertx;
-import static org.folio.rest.util.TestConfig.deployVerticle;
-import static org.folio.rest.util.TestConfig.startMockServer;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
-import org.folio.rest.impl.*;
+import org.folio.rest.impl.BudgetsApiTest;
+import org.folio.rest.impl.EncumbrancesTest;
+import org.folio.rest.impl.EntitiesCrudBasicsTest;
+import org.folio.rest.impl.ExchangeRateTest;
+import org.folio.rest.impl.FiscalYearTest;
+import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
+import org.folio.rest.impl.FundsApiTest;
+import org.folio.rest.impl.GroupFiscalYearSummariesTest;
+import org.folio.rest.impl.GroupsApiTest;
+import org.folio.rest.impl.LedgerRolloverApiTest;
+import org.folio.rest.impl.LedgerRolloverErrorsApiTest;
+import org.folio.rest.impl.LedgerRolloverProgressApiTest;
+import org.folio.rest.impl.LedgersApiTest;
+import org.folio.rest.impl.TransactionApiTest;
 import org.folio.rest.util.HelperUtilsTest;
-import org.folio.services.*;
+import org.folio.services.CommonTransactionServiceTest;
+import org.folio.services.ExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
+import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
-import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.fund.FundServiceTest;
 import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
@@ -32,6 +38,14 @@ import org.folio.services.protection.ProtectionServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import static org.folio.rest.util.TestConfig.closeMockServer;
+import static org.folio.rest.util.TestConfig.closeVertx;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.startMockServer;
 
 public class ApiTestSuite {
 
@@ -181,5 +195,9 @@ public class ApiTestSuite {
 
   @Nested
   class ProtectionServiceTestNested  extends ProtectionServiceTest {
+  }
+
+  @Nested
+  class FundCodeExpenseClassesApiTestNested extends FundCodeExpenseClassesApiTest {
   }
 }

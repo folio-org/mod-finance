@@ -394,7 +394,6 @@ public class FundCodeExpenseClassesServiceTest {
     List<ExpenseClass> expenseClassList = Arrays.asList(expenseClass1, expenseClass2);
     when(expenseClassService.getExpenseClassesByBudgetIds(eq(budgetIds), eq(requestContext)))
       .thenReturn(CompletableFuture.completedFuture(expenseClassList));
-
     FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionReceived;
 
     fundCodeExpenseClassesCollectionReceived = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(null, requestContext).join();

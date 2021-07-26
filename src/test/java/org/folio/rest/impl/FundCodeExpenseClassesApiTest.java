@@ -128,6 +128,5 @@ public class FundCodeExpenseClassesApiTest {
     public FundCodeExpenseClassesService fundCodeExpenseClassesService() {
       return mock(FundCodeExpenseClassesService.class);
     }
-
   }
 }
