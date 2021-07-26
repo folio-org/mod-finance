@@ -1,8 +1,20 @@
 package org.folio.models;
 
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetExpenseClass;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
+import org.folio.rest.jaxrs.model.ExpenseClass;
+import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
+import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
+import org.folio.rest.jaxrs.model.Ledger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 
 public class FundCodeExpenseClassesHolder {
 
