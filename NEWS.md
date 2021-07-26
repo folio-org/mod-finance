@@ -1,4 +1,12 @@
-## 4.2.0 - Unreleased
+## 4.3.0 - Unreleased
+
+## 4.2.1 - Released
+The focus of this release was to fix issue with many budgets for ledger
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.2.0...v4.2.1)
+
+### Bug Fixes
+* [MODFIN-201](https://issues.folio.org/browse/MODFIN-201) - The fiscal year is successfully saved with wrong date in the "Period End Date" field after clicking on the "Close & save" button
 
 ## 4.2.0 - Released
 The focus of this release was to update RMB up to v33.0.0 and fix rollover procedure
