@@ -1,11 +1,14 @@
 package org.folio.services.fiscalyear;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.services.budget.BudgetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,10 +16,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -160,8 +166,20 @@ public class FiscalYearServiceTest {
     void testGetFiscalYearByFiscalYearCode() {
       FiscalYear fiscalYear = new FiscalYear()
         .withCode("FUND CODE");
+      List<FiscalYear> fiscalYearList = new ArrayList<>();
+      fiscalYearList.add(fiscalYear);
+      FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
+      fiscalYearsCollection.setTotalRecords(10);
+      fiscalYearsCollection.setFiscalYears(fiscalYearList);
       when(fiscalYearRestClient.get(any(), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), any()))
-        .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+        .thenReturn(CompletableFuture.completedFuture(checkFiscalYear(fiscalYearsCollection)));
       assertEquals("FUND CODE", fiscalYear.getCode());
+    }
+
+    public FiscalYear checkFiscalYear(FiscalYearsCollection fiscalYearsCollection) {
+      if (CollectionUtils.isNotEmpty(fiscalYearsCollection.getFiscalYears())) {
+        return fiscalYearsCollection.getFiscalYears().get(0);
+      }
+      throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
     }
 }
