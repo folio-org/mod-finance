@@ -166,20 +166,25 @@ public class FiscalYearServiceTest {
     void testGetFiscalYearByFiscalYearCode() {
       FiscalYear fiscalYear = new FiscalYear()
         .withCode("FUND CODE");
+      String fiscalYearCode = "FiscalCode";
+      String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
       List<FiscalYear> fiscalYearList = new ArrayList<>();
       fiscalYearList.add(fiscalYear);
       FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
       fiscalYearsCollection.setTotalRecords(10);
       fiscalYearsCollection.setFiscalYears(fiscalYearList);
-      when(fiscalYearRestClient.get(any(), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), any()))
+      when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), any()))
         .thenReturn(CompletableFuture.completedFuture(checkFiscalYear(fiscalYearsCollection)));
       assertEquals("FUND CODE", fiscalYear.getCode());
     }
 
+  public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
+    return String.format("code=%s", fiscalYearCode);
+  }
 //    @Test
 //    public void testGetFiscalYear() {
 //      String fiscalYearCode = "fiscalYearCode";
-//      when(fiscalYearService.getFiscalYearByFiscalYearCode(any())).thenReturn(fiscalYearCode);
+//      when(fiscalYearService.getFiscalYearByFiscalYearCode(anyString())).thenReturn(fiscalYearCode);
 //      assertEquals("fiscalYearCode", fiscalYearCode);
 //    }
 
