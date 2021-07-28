@@ -61,7 +61,7 @@ public class FiscalYearService {
         throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
       });
   }
-  private String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
+  public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
     return String.format("code=%s", fiscalYearCode);
   }
 
