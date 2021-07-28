@@ -1,19 +1,5 @@
 package org.folio.services.fiscalyear;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -26,6 +12,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FiscalYearServiceTest {
 
@@ -154,5 +154,14 @@ public class FiscalYearServiceTest {
         FinancialSummary summary = resultFY.getFinancialSummary();
         assertNull(summary);
         verify(budgetService, never()).getBudgets(any(), anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testGetFiscalYearByFiscalYearCode() {
+      FiscalYear fiscalYear = new FiscalYear()
+        .withCode("FUND CODE");
+      when(fiscalYearRestClient.get(any(), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), any()))
+        .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      assertEquals("FUND CODE", fiscalYear.getCode());
     }
 }
