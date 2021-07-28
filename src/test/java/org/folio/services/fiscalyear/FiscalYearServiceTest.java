@@ -176,6 +176,13 @@ public class FiscalYearServiceTest {
       assertEquals("FUND CODE", fiscalYear.getCode());
     }
 
+//    @Test
+//    public void testGetFiscalYear() {
+//      String fiscalYearCode = "fiscalYearCode";
+//      when(fiscalYearService.getFiscalYearByFiscalYearCode(any())).thenReturn(fiscalYearCode);
+//      assertEquals("fiscalYearCode", fiscalYearCode);
+//    }
+
     public FiscalYear checkFiscalYear(FiscalYearsCollection fiscalYearsCollection) {
       if (CollectionUtils.isNotEmpty(fiscalYearsCollection.getFiscalYears())) {
         return fiscalYearsCollection.getFiscalYears().get(0);
