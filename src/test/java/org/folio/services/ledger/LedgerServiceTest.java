@@ -1,5 +1,7 @@
 package org.folio.services.ledger;
 
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Ledger;
@@ -10,11 +12,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.folio.rest.RestConstants.OKAPI_URL;
+import static org.folio.rest.util.TestConfig.mockPort;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -35,12 +45,18 @@ public class LedgerServiceTest {
   @Mock
   private LedgerTotalsService ledgerTotalsMockService;
 
-  @Mock
   private RequestContext requestContextMock;
 
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.initMocks(this);
+    Context context = Vertx.vertx().getOrCreateContext();
+    Map<String, String> okapiHeaders = new HashMap<>();
+    okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
+    okapiHeaders.put(X_OKAPI_TOKEN.getName(), X_OKAPI_TOKEN.getValue());
+    okapiHeaders.put(X_OKAPI_TENANT.getName(), X_OKAPI_TENANT.getValue());
+    okapiHeaders.put(X_OKAPI_USER_ID.getName(), X_OKAPI_USER_ID.getValue());
+    requestContextMock = new RequestContext(context, okapiHeaders);
   }
 
   @Test
@@ -157,5 +173,24 @@ public class LedgerServiceTest {
     ledgerService.deleteLedger(ledgerId, requestContextMock).join();
 
     verify(ledgerStorageRestClientMock).delete(eq(ledgerId), eq(requestContextMock));
+  }
+
+  @Test
+  void testGetLedgers() {
+    //Given
+    LedgersCollection ledgersCollection = new LedgersCollection();
+    Ledger ledger1 = new Ledger().withId("5");
+    Ledger ledger2 = new Ledger().withId("7");
+    List<String> ids = Arrays.asList("5", "7");
+    List<Ledger> ledgerList = new ArrayList<>();
+    ledgerList.add(ledger1);
+    ledgerList.add(ledger2);
+    ledgersCollection.setLedgers(ledgerList);
+    //When
+    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    List<Ledger> ledgers = ledgerService.getLedgers(ids, requestContextMock).join();
+    //Then
+    assertEquals(ledgersCollection.getLedgers().get(0).getId(), ledgers.get(0).getId());
+    assertEquals(ledgersCollection.getLedgers().get(1).getId(), ledgers.get(1).getId());
   }
 }
