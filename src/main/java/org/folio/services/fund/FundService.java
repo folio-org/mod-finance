@@ -76,7 +76,7 @@ public class FundService {
      .thenApply(FundsCollection::getFunds);
  }
 
- public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
+  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
    String prefix = fieldName + (strictMatch ? "==(" : "=(");
    return StreamEx.of(values).joining(" or ", prefix, ")");
  }
