@@ -2,6 +2,7 @@ package org.folio.services.fund;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.EventLoopContext;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -27,10 +28,17 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static org.folio.rest.RestConstants.OKAPI_URL;
+import static org.folio.rest.util.TestConfig.mockPort;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,18 +71,23 @@ public class FundCodeExpenseClassesServiceTest {
   @Mock
   private ExpenseClassService expenseClassService;
 
-  @Mock
   private RequestContext requestContext;
+  @Mock
+  private EventLoopContext context;
 
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.openMocks(this);
+    Map<String, String> okapiHeaders = new HashMap<>();
+    okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
+    okapiHeaders.put(X_OKAPI_TOKEN.getName(), X_OKAPI_TOKEN.getValue());
+    okapiHeaders.put(X_OKAPI_TENANT.getName(), X_OKAPI_TENANT.getValue());
+    okapiHeaders.put(X_OKAPI_USER_ID.getName(), X_OKAPI_USER_ID.getValue());
+    requestContext = new RequestContext(context, okapiHeaders);
   }
 
   @Test
   public void shouldRetrieveCombinationFundCodeExpClassesWithFiscalYear() {
-    Context context = Vertx.vertx().getOrCreateContext();
-    when(requestContext.getContext()).thenReturn(context);
 
     String fiscalYearCode = "FY2021";
     String fiscalYearId = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
