@@ -1,7 +1,5 @@
 package org.folio.services.fund;
 
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
 import io.vertx.core.impl.EventLoopContext;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.core.models.RequestContext;
@@ -251,8 +249,6 @@ public class FundCodeExpenseClassesServiceTest {
 
   @Test
   public void shouldRetrieveCombinationFundCodeExpClassesWithoutFiscalYear() {
-    Context context = Vertx.vertx().getOrCreateContext();
-    when(requestContext.getContext()).thenReturn(context);
 
     String ledgerId1 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d61";
     String ledgerId2 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d63";
