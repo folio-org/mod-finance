@@ -172,7 +172,7 @@ public class FundServiceTest {
   }
 
   @Test
-  void testGetFundsById() {
+  void testGetFundsByIdsTwo() {
     //Given
     FundsCollection fundsCollection = new FundsCollection();
     Fund fund1 = new Fund().withId("5");
@@ -190,5 +190,24 @@ public class FundServiceTest {
     assertEquals(fund2.getId(), fundsCollection.getFunds().get(1).getId());
     assertEquals(funds.get(0).getId(), fundsCollection.getFunds().get(0).getId());
     assertEquals(funds.get(1).getId(), fundsCollection.getFunds().get(1).getId());
+  }
+
+  @Test
+  void testGetFunds() {
+    //Given
+    FundsCollection fundsCollection = new FundsCollection();
+    Fund fund1 = new Fund().withId("5");
+    Fund fund2 = new Fund().withId("7");
+    List<String> ids = Arrays.asList("5", "7");
+    List<Fund> fundsList = new ArrayList<>();
+    fundsList.add(fund1);
+    fundsList.add(fund2);
+    fundsCollection.setFunds(fundsList);
+    //When
+    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    List<Fund> funds = fundService.getFunds(ids, requestContext).join();
+    //Then
+    assertEquals(fundsCollection.getFunds().get(0).getId(), funds.get(0).getId());
+    assertEquals(fundsCollection.getFunds().get(1).getId(), funds.get(1).getId());
   }
 }
