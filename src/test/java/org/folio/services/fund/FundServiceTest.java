@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,15 +152,22 @@ public class FundServiceTest {
 
   @Test
   void testGetFundsByIds() {
+    //Given
     FundsCollection fundsCollection = new FundsCollection();
-    Fund fund1 = new Fund().withId("6");
+    Fund fund1 = new Fund().withId("5");
     Fund fund2 = new Fund().withId("7");
+    Collection<String> ids = Arrays.asList("5", "7");
     List<Fund> fundsList = new ArrayList<>();
     fundsList.add(fund1);
     fundsList.add(fund2);
     fundsCollection.setFunds(fundsList);
+    //When
     when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    List<Fund> funds = fundService.getFundsByIds(ids, requestContext).join();
+    //Then
     assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
     assertEquals(fund2.getId(), fundsCollection.getFunds().get(1).getId());
+    assertEquals(funds.get(0).getId(), fundsCollection.getFunds().get(0).getId());
+    assertEquals(funds.get(1).getId(), fundsCollection.getFunds().get(1).getId());
   }
 }
