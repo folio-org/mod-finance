@@ -1,30 +1,7 @@
 package org.folio.services.fund;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.folio.rest.RestConstants.NOT_FOUND;
-import static org.folio.rest.RestConstants.OKAPI_URL;
-import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
-import static org.folio.rest.util.TestConfig.mockPort;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
-import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletionException;
-
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -39,8 +16,33 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.folio.rest.RestConstants.NOT_FOUND;
+import static org.folio.rest.RestConstants.OKAPI_URL;
+import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
+import static org.folio.rest.util.TestConfig.mockPort;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FundServiceTest {
   private RequestContext requestContext;
@@ -144,5 +146,19 @@ public class FundServiceTest {
     //Then
     assertThat(fundsCollection, equalTo(actFunds));
     verify(fundStorageRestClient).get("test_query", 0, 10, requestContext, FundsCollection.class);
+  }
+
+  @Test
+  void testGetFundsByIds() {
+    FundsCollection fundsCollection = new FundsCollection();
+    Fund fund1 = new Fund().withId("6");
+    Fund fund2 = new Fund().withId("7");
+    List<Fund> fundsList = new ArrayList<>();
+    fundsList.add(fund1);
+    fundsList.add(fund2);
+    fundsCollection.setFunds(fundsList);
+    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
+    assertEquals(fund2.getId(), fundsCollection.getFunds().get(1).getId());
   }
 }
