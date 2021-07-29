@@ -45,20 +45,20 @@ public class FundService {
 
   public CompletableFuture<Fund> retrieveFundById(String fundId, RequestContext requestContext) {
     return fundStorageRestClient.getById(fundId, requestContext, Fund.class)
-                                .exceptionally(t -> {
-                                  if (t instanceof HttpException) {
-                                    HttpException httpException = (HttpException) t;
-                                    if (httpException.getCode() == NOT_FOUND) {
-                                      Error error = new Error().withCode(FUND_NOT_FOUND_ERROR.getCode()).withMessage(String.format(FUND_NOT_FOUND_ERROR.getDescription(), fundId));
-                                      throw new CompletionException(new HttpException(NOT_FOUND, error));
-                                    }
-                                  }
-                                  throw new CompletionException(t);
-                                });
+      .exceptionally(t -> {
+        if (t instanceof HttpException) {
+          HttpException httpException = (HttpException) t;
+          if (httpException.getCode() == NOT_FOUND) {
+            Error error = new Error().withCode(FUND_NOT_FOUND_ERROR.getCode()).withMessage(String.format(FUND_NOT_FOUND_ERROR.getDescription(), fundId));
+            throw new CompletionException(new HttpException(NOT_FOUND, error));
+          }
+        }
+        throw new CompletionException(t);
+      });
   }
 
   public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-   return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
+    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .thenCompose(effectiveQuery -> fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class));
   }
@@ -68,18 +68,18 @@ public class FundService {
   }
 
   public CompletableFuture<List<Fund>> getFundsByIds(Collection<String> ids, RequestContext requestContext) {
-   String query = HelperUtils.convertIdsToCqlQuery(ids);
-   RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
-     .withLimit(MAX_IDS_FOR_GET_RQ)
-     .withOffset(0);
-   return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
-     .thenApply(FundsCollection::getFunds);
- }
+    String query = HelperUtils.convertIdsToCqlQuery(ids);
+    RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
+      .withLimit(MAX_IDS_FOR_GET_RQ)
+      .withOffset(0);
+    return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
+      .thenApply(FundsCollection::getFunds);
+  }
 
   public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
-   String prefix = fieldName + (strictMatch ? "==(" : "=(");
-   return StreamEx.of(values).joining(" or ", prefix, ")");
- }
+    String prefix = fieldName + (strictMatch ? "==(" : "=(");
+    return StreamEx.of(values).joining(" or ", prefix, ")");
+  }
 
   public CompletableFuture<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
