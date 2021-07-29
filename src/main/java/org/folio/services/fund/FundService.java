@@ -13,11 +13,13 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.protection.AcqUnitsService;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+
 import static java.util.stream.Collectors.toList;
 import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
