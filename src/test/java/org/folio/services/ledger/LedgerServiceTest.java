@@ -193,4 +193,23 @@ public class LedgerServiceTest {
     assertEquals(ledgersCollection.getLedgers().get(0).getId(), ledgers.get(0).getId());
     assertEquals(ledgersCollection.getLedgers().get(1).getId(), ledgers.get(1).getId());
   }
+
+  @Test
+  void testGetLedgersByIds() {
+    //Given
+    LedgersCollection ledgersCollection = new LedgersCollection();
+    Ledger ledger1 = new Ledger().withId("5");
+    Ledger ledger2 = new Ledger().withId("7");
+    List<String> ids = Arrays.asList("5", "7");
+    List<Ledger> ledgerList = new ArrayList<>();
+    ledgerList.add(ledger1);
+    ledgerList.add(ledger2);
+    ledgersCollection.setLedgers(ledgerList);
+    //When
+    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    List<Ledger> ledgers = ledgerService.getLedgersByIds(ids, requestContextMock).join();
+    //Then
+    assertEquals(ledgersCollection.getLedgers().get(0).getId(), ledgers.get(0).getId());
+    assertEquals(ledgersCollection.getLedgers().get(1).getId(), ledgers.get(1).getId());
+  }
 }

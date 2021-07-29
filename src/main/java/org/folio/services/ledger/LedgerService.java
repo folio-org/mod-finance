@@ -80,7 +80,7 @@ public class LedgerService {
         .collect(toList()));
   }
 
-  private CompletableFuture<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
+  public CompletableFuture<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
     String query = convertIdsToCqlQuery(ids);
     RequestEntry requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE)).withQuery(query)
       .withOffset(0)
