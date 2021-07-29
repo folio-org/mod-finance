@@ -173,9 +173,11 @@ public class FiscalYearServiceTest {
       FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
       fiscalYearsCollection.setTotalRecords(10);
       fiscalYearsCollection.setFiscalYears(fiscalYearList);
-      when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), any()))
-        .thenReturn(CompletableFuture.completedFuture(checkFiscalYear(fiscalYearsCollection)));
-      assertEquals("FUND CODE", fiscalYear.getCode());
+      when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
+        .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
+      FiscalYear fiscalYear1 = checkFiscalYear(fiscalYearsCollection);
+      FiscalYear fiscalYearCodeRetrieve = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext).join();
+      assertEquals("FUND CODE", fiscalYearCodeRetrieve.getCode());
     }
 
     public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
