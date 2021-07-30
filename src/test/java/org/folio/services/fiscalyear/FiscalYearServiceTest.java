@@ -26,6 +26,7 @@ import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -179,6 +180,21 @@ public class FiscalYearServiceTest {
       FiscalYear fiscalYearCodeRetrieve = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext).join();
       assertEquals("FUND CODE", fiscalYearCodeRetrieve.getCode());
     }
+
+  @Test
+  void testGetFiscalYearByFiscalYearCodeWithEmptyCollection() {
+    FiscalYear fiscalYear = new FiscalYear()
+      .withCode("FUND CODE");
+    String fiscalYearCode = "FiscalCode";
+    String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
+    FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
+    when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
+      .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
+    Throwable thrown = assertThrows(HttpException.class, () -> {
+      checkFiscalYear(fiscalYearsCollection);
+    });
+    assertNotNull(thrown.getMessage());
+  }
 
     public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
       return String.format("code=%s", fiscalYearCode);
