@@ -118,7 +118,7 @@ public class FundDetailsService {
       .value());
   }
 
-  private boolean isBudgetExpenseClassWithStatus(BudgetExpenseClass budgetExpenseClass, String status) {
+  public boolean isBudgetExpenseClassWithStatus(BudgetExpenseClass budgetExpenseClass, String status) {
     if (Objects.nonNull(status)) {
       return budgetExpenseClass.getStatus()
         .equals(Status.fromValue(status));
