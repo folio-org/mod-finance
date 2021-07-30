@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -183,16 +184,14 @@ public class FiscalYearServiceTest {
 
   @Test
   void testGetFiscalYearByFiscalYearCodeWithEmptyCollection() {
-    FiscalYear fiscalYear = new FiscalYear()
-      .withCode("FUND CODE");
     String fiscalYearCode = "FiscalCode";
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
     when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
       .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
-    HttpException httpException = assertThrows(HttpException.class, () -> {
-      checkFiscalYear(fiscalYearsCollection);
-    });
+    CompletableFuture<FiscalYear> result = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
+    CompletionException expectedException = assertThrows(CompletionException.class, result::join);
+    HttpException httpException = (HttpException) expectedException.getCause();
     assertEquals(400, httpException.getCode());
   }
 
