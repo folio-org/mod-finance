@@ -99,15 +99,18 @@ public class FundDetailsServiceTest {
     String fundId = UUID.randomUUID().toString();
     String budgetId = UUID.randomUUID().toString();
     String expenseClassId = UUID.randomUUID().toString();
+    String status = "Active";
+    boolean statusBoolean = true;
 
     String query = String.format(X_ACTIVE_BUDGET_QUERY, fundId, fiscalId);
     Budget expBudget = new Budget().withId(budgetId).withFundId(fundId).withFiscalYearId(fiscalId);
     BudgetsCollection budgetsCollection = new BudgetsCollection().withBudgets(singletonList(expBudget));
-    BudgetExpenseClass budgetExpenseClass = new BudgetExpenseClass().withBudgetId(budgetId).withExpenseClassId(expenseClassId);
+    BudgetExpenseClass budgetExpenseClass = new BudgetExpenseClass().withBudgetId(budgetId).withExpenseClassId(expenseClassId).withStatus(BudgetExpenseClass.Status.ACTIVE);
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
+    boolean answer = fundDetailsService.isBudgetExpenseClassWithStatus(budgetExpenseClass, status);
     doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
     doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
@@ -117,6 +120,7 @@ public class FundDetailsServiceTest {
 
     List<ExpenseClass> actClasses = fundDetailsService.retrieveCurrentExpenseClasses(fundId, null,requestContext).join();
     //Then
+    assertEquals(statusBoolean, answer);
     assertEquals(expClasses.getId(), actClasses.get(0).getId());
     verify(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
