@@ -4,6 +4,7 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
 import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 
 public class FundCodeExpenseClassesHolder {
@@ -25,6 +27,7 @@ public class FundCodeExpenseClassesHolder {
   private List<String> budgetIds = new ArrayList<>();
   private BudgetsCollection budgetsCollection;
   private List<ExpenseClass> expenseClassList = new ArrayList<>();
+  private FiscalYear fiscalYear;
 
   public FundCodeExpenseClassesHolder withExpenseClassList(List<ExpenseClass> expenseClassList) {
     this.expenseClassList = expenseClassList;
@@ -178,5 +181,19 @@ public class FundCodeExpenseClassesHolder {
     fundCodeVsExpenseClassesTypeCollection.setDelimiter(":");
     fundCodeVsExpenseClassesTypeCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpenseClassesTypeList);
     return fundCodeVsExpenseClassesTypeCollection;
+  }
+
+  public CompletableFuture<FiscalYear> getFiscalYearFuture() {
+    CompletableFuture<FiscalYear> f2 = CompletableFuture.supplyAsync(() -> fiscalYear);
+    return f2;
+  }
+
+  public FiscalYear getFiscalYear() {
+    return fiscalYear;
+  }
+
+  public FundCodeExpenseClassesHolder setFiscalYear(FiscalYear fiscalYear) {
+    this.fiscalYear = fiscalYear;
+    return this;
   }
 }
