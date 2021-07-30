@@ -1,6 +1,5 @@
 package org.folio.services.fund;
 
-import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,11 +73,6 @@ public class FundService {
       .withOffset(0);
     return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
       .thenApply(FundsCollection::getFunds);
-  }
-
-  public static String convertIdsToCqlQuery(Collection<String> values, String fieldName, boolean strictMatch) {
-    String prefix = fieldName + (strictMatch ? "==(" : "=(");
-    return StreamEx.of(values).joining(" or ", prefix, ")");
   }
 
   public CompletableFuture<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
