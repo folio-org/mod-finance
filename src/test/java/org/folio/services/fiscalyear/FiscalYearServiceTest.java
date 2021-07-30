@@ -190,10 +190,10 @@ public class FiscalYearServiceTest {
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
     when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
       .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
-    Throwable thrown = assertThrows(HttpException.class, () -> {
+    HttpException httpException = assertThrows(HttpException.class, () -> {
       checkFiscalYear(fiscalYearsCollection);
     });
-    assertNotNull(thrown.getMessage());
+    assertEquals(400, httpException.getCode());
   }
 
     public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
