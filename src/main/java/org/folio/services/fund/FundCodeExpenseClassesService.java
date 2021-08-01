@@ -108,11 +108,11 @@ public class FundCodeExpenseClassesService {
       .thenApply(holder -> holder.getFundList().stream().map(Fund::getLedgerId).collect(toList()))
       .thenCompose(ledgerIds -> ledgerService.getLedgers(ledgerIds, requestContext))
       .thenApply(fundCodeExpenseClassesHolder::withLedgerList)
-      .thenCompose(v -> retrieveFundCodeVsExpenseClasses(fiscalYearCode, requestContext, fundCodeExpenseClassesHolder));
+      .thenCompose(v -> retrieveFundCodeVsExpenseClasses(requestContext, fundCodeExpenseClassesHolder));
   }
 
-  public CompletableFuture<FundCodeExpenseClassesCollection> retrieveFundCodeVsExpenseClasses(String fiscalYearCode,
-                                                                                              RequestContext requestContext, FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder) {
+  public CompletableFuture<FundCodeExpenseClassesCollection> retrieveFundCodeVsExpenseClasses(RequestContext requestContext,
+                                                                                              FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder) {
     return fundCodeExpenseClassesHolder.getFiscalYearFuture()
       .thenCompose(fiscalYear -> getActiveBudgetsByFiscalYear(fiscalYear, requestContext))
       // CompletableFuture<BudgetsCollection>
