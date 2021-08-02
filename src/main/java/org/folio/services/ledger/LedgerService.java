@@ -1,17 +1,29 @@
 package org.folio.services.ledger;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
-import java.util.concurrent.CompletableFuture;
-
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.stream.Collectors.toList;
+import static one.util.streamex.StreamEx.ofSubLists;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class LedgerService {
   private final RestClient ledgerStorageRestClient;
   private final LedgerTotalsService ledgerTotalsService;
+  public static final String ID = "id";
 
   public LedgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService) {
     this.ledgerStorageRestClient = ledgerStorageRestClient;
@@ -58,4 +70,23 @@ public class LedgerService {
   public CompletableFuture<Void> deleteLedger(String id, RequestContext requestContext) {
     return ledgerStorageRestClient.delete(id, requestContext);
   }
+
+  public CompletableFuture<List<Ledger>> getLedgers(Collection<String> ledgerIds, RequestContext requestContext) {
+    return collectResultsOnSuccess(
+      ofSubLists(new ArrayList<>(ledgerIds), MAX_IDS_FOR_GET_RQ).map(ids -> getLedgersByIds(ids, requestContext))
+        .toList()).thenApply(
+      lists -> lists.stream()
+        .flatMap(Collection::stream)
+        .collect(toList()));
+  }
+
+  public CompletableFuture<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
+    String query = convertIdsToCqlQuery(ids);
+    RequestEntry requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE)).withQuery(query)
+      .withOffset(0)
+      .withLimit(MAX_IDS_FOR_GET_RQ);
+    return ledgerStorageRestClient.get(requestEntry, requestContext, LedgersCollection.class)
+      .thenApply(LedgersCollection::getLedgers);
+  }
+
 }

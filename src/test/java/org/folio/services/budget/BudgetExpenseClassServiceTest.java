@@ -1,5 +1,31 @@
 package org.folio.services.budget;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.impl.EventLoopContext;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.BudgetExpenseClass;
+import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
+import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.StatusExpenseClass;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import static java.util.Collections.emptyList;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClass.Status.INACTIVE;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClass.Status.fromValue;
@@ -25,34 +51,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.folio.rest.core.RestClient;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
-import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
-import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.budget.BudgetExpenseClassService;
-import org.folio.services.transactions.CommonTransactionService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import io.vertx.core.Vertx;
-import io.vertx.core.impl.EventLoopContext;
 
 public class BudgetExpenseClassServiceTest {
 
@@ -367,6 +365,51 @@ public class BudgetExpenseClassServiceTest {
     assertEquals(budgetExpenseClassToBeUpdated, budgetExpenseClass);
     assertThat(budgetExpenseClass, hasProperty("status", is(INACTIVE)));
 
+  }
+
+  @Test
+  public void testGetBudgetExpensesClass() {
+    //Given
+    List<String> budgetsIds = Arrays.asList("1", "2", "3");
+    List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList<>();
+    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass().withId("1");
+    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass().withId("2");
+    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass().withId("3");
+    budgetExpenseClassList.add(budgetExpenseClass1);
+    budgetExpenseClassList.add(budgetExpenseClass2);
+    budgetExpenseClassList.add(budgetExpenseClass3);
+    BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
+    budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
+    //When
+    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+    List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
+
+    List<BudgetExpenseClass> budgetExpenseClassListFrom = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock).join();
+
+    //Then
+    assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListFrom.get(0).getId());
+    assertEquals(budgetExpenseClass2.getId(), budgetExpenseClassListFrom.get(1).getId());
+    assertEquals(budgetExpenseClass3.getId(), budgetExpenseClassListFrom.get(2).getId());
+  }
+
+  @Test
+  public void testGetBudgetExpensesClassByIds() {
+    //Given
+    List<String> budgetsIds = Arrays.asList("1", "2", "3");
+    List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList<>();
+    BudgetExpenseClass budgetExpenseClass1 = new BudgetExpenseClass().withId("1");
+    BudgetExpenseClass budgetExpenseClass2 = new BudgetExpenseClass().withId("2");
+    BudgetExpenseClass budgetExpenseClass3 = new BudgetExpenseClass().withId("3");
+    budgetExpenseClassList.add(budgetExpenseClass1);
+    budgetExpenseClassList.add(budgetExpenseClass2);
+    budgetExpenseClassList.add(budgetExpenseClass3);
+    BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
+    budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
+    //When
+    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+    List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
+    //Then
+    assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListReceived.get(0).getId());
   }
 
   private BudgetExpenseClass getNewBudgetExpenseClass() {

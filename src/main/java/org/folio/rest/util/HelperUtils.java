@@ -1,14 +1,23 @@
 package org.folio.rest.util;
 
-import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.allOf;
-import static java.util.stream.Collectors.toList;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
-import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import one.util.streamex.StreamEx;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
+import org.folio.rest.acq.model.finance.LedgerFY;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.helper.AbstractHelper;
+import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.Ledger;
+import org.folio.rest.jaxrs.model.Parameter;
+import org.folio.rest.tools.client.Response;
 
+import javax.ws.rs.Path;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -27,25 +36,14 @@ import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.Path;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.folio.rest.acq.model.finance.LedgerFY;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.helper.AbstractHelper;
-import org.folio.rest.jaxrs.model.Error;
-import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.Parameter;
-import org.folio.rest.tools.client.Response;
-
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.Logger;
-import one.util.streamex.StreamEx;
+import static io.vertx.core.Future.succeededFuture;
+import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.stream.Collectors.toList;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 public class HelperUtils {
   public static final String ID = "id";
@@ -92,16 +90,16 @@ public class HelperUtils {
     if (!Response.isSuccess(response.getCode())) {
       String errorMsg = response.getError().getString(ERROR_MESSAGE);
       HttpException httpException = getErrorByCode(errorMsg)
-                                            .map(errorCode -> new HttpException(response.getCode(), errorCode))
-                                            .orElse(new HttpException(response.getCode(), errorMsg));
+        .map(errorCode -> new HttpException(response.getCode(), errorCode))
+        .orElse(new HttpException(response.getCode(), errorMsg));
       throw new CompletionException(httpException);
     }
   }
 
   public static Optional<ErrorCodes> getErrorByCode(String errorCode){
     return EnumSet.allOf(ErrorCodes.class).stream()
-                 .filter(errorCodes -> errorCodes.getCode().equals(errorCode))
-                 .findAny();
+      .filter(errorCodes -> errorCodes.getCode().equals(errorCode))
+      .findAny();
   }
 
   public static JsonObject verifyAndExtractBody(Response response) {
@@ -128,6 +126,9 @@ public class HelperUtils {
     return convertIdsToCqlQuery(ids, ID, true);
   }
 
+  public static String convertIdsToCqlQuery(Collection<String> ids, String fieldName) {
+    return convertIdsToCqlQuery(ids, fieldName, true);
+  }
   /**
    * Transform list of values for some property to CQL query using 'or' operation
    * @param values list of field values
@@ -283,8 +284,8 @@ public class HelperUtils {
 
   public static  <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {
     return budgets.stream()
-            .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
-            .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).doubleValue();
+      .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
+      .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).doubleValue();
   }
 
 

@@ -1,11 +1,6 @@
 package org.folio.rest.util;
 
-import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.rest.util.HelperUtils.ID;
-
-import java.io.IOException;
-import java.util.function.Supplier;
-
+import io.vertx.core.json.JsonObject;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -36,7 +31,11 @@ import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
 import org.folio.rest.tools.parser.JsonPathParser;
 
-import io.vertx.core.json.JsonObject;
+import java.io.IOException;
+import java.util.function.Supplier;
+
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestUtils.getMockData;
 
 public enum TestEntities {
   BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),

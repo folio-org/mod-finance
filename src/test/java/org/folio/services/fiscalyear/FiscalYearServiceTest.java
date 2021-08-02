@@ -1,31 +1,39 @@
 package org.folio.services.fiscalyear;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.services.budget.BudgetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FiscalYearServiceTest {
 
@@ -154,5 +162,47 @@ public class FiscalYearServiceTest {
         FinancialSummary summary = resultFY.getFinancialSummary();
         assertNull(summary);
         verify(budgetService, never()).getBudgets(any(), anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testGetFiscalYearByFiscalYearCode() {
+      FiscalYear fiscalYear = new FiscalYear()
+        .withCode("FUND CODE");
+      String fiscalYearCode = "FiscalCode";
+      String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
+      List<FiscalYear> fiscalYearList = new ArrayList<>();
+      fiscalYearList.add(fiscalYear);
+      FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
+      fiscalYearsCollection.setTotalRecords(10);
+      fiscalYearsCollection.setFiscalYears(fiscalYearList);
+      when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
+        .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
+      FiscalYear fiscalYear1 = checkFiscalYear(fiscalYearsCollection);
+      FiscalYear fiscalYearCodeRetrieve = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext).join();
+      assertEquals("FUND CODE", fiscalYearCodeRetrieve.getCode());
+    }
+
+  @Test
+  void testGetFiscalYearByFiscalYearCodeWithEmptyCollection() {
+    String fiscalYearCode = "FiscalCode";
+    String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
+    FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
+    when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
+      .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
+    CompletableFuture<FiscalYear> result = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
+    CompletionException expectedException = assertThrows(CompletionException.class, result::join);
+    HttpException httpException = (HttpException) expectedException.getCause();
+    assertEquals(400, httpException.getCode());
+  }
+
+    public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
+      return String.format("code=%s", fiscalYearCode);
+    }
+
+    public FiscalYear checkFiscalYear(FiscalYearsCollection fiscalYearsCollection) {
+      if (CollectionUtils.isNotEmpty(fiscalYearsCollection.getFiscalYears())) {
+        return fiscalYearsCollection.getFiscalYears().get(0);
+      }
+      throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
     }
 }

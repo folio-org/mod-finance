@@ -1,0 +1,37 @@
+{
+  "delimiter": ":",
+  "fundCodeVsExpClassesTypes": [
+    {
+      "fundCode": "GIFT-SUBN",
+      "ledgerCode": "ONGOING",
+      "activeFundCodeVsExpClasses": [],
+      "inactiveFundCodeVsExpClasses": []
+    },
+    {
+      "fundCode": "EXCH-SUBN",
+      "ledgerCode": "ONGOING",
+      "activeFundCodeVsExpClasses": [],
+      "inactiveFundCodeVsExpClasses": []
+    },
+    {
+      "fundCode": "ENDOW-SUBN",
+      "ledgerCode": "ONGOING",
+      "activeFundCodeVsExpClasses": [],
+      "inactiveFundCodeVsExpClasses": []
+    },
+    {
+      "fundCode": "UNIV-SUBN",
+      "ledgerCode": "ONGOING",
+      "activeFundCodeVsExpClasses": [],
+      "inactiveFundCodeVsExpClasses": []
+    },
+    {
+      "fundCode": "AFRICAHIST",
+      "ledgerCode": "ONETIME",
+      "activeFundCodeVsExpClasses": [
+        "AFRICAHIST:Elec"
+      ],
+      "inactiveFundCodeVsExpClasses": []
+    }
+  ]
+}
