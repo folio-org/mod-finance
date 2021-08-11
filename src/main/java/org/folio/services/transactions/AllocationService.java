@@ -32,6 +32,11 @@ public class AllocationService implements TransactionTypeManagingStrategy {
   }
 
   @Override
+  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+    return HelperUtils.unsupportedOperationExceptionFuture();
+  }
+
+  @Override
   public Transaction.TransactionType getStrategyName() {
     return Transaction.TransactionType.ALLOCATION;
   }

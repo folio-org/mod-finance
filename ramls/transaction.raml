@@ -74,6 +74,9 @@ resourceTypes:
         body:
           application/json:
             type: transaction
+      delete:
+        is: [validate, language]
+        description: Delete an encumbrance with given transactionId
 
   /payments:
     displayName: Create a transaction payment

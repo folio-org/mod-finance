@@ -156,8 +156,9 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  TransactionManagingService encumbranceService(BaseTransactionService transactionService) {
-    return new EncumbranceService(transactionService);
+  TransactionManagingService encumbranceService(BaseTransactionService transactionService,
+      CommonTransactionService commonTransactionService) {
+    return new EncumbranceService(transactionService, commonTransactionService);
   }
 
   @Bean

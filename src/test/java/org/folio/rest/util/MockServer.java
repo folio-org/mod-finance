@@ -13,6 +13,8 @@ import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DI
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_FIRST_DIF_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_SECOND_DIF_GROUP;
+import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
+import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTION_ID;
 import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.TestConstants.BAD_QUERY;
 import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
@@ -60,6 +62,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.rest.jaxrs.model.AwaitingPayment;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -245,6 +248,8 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUPS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP.name()));
+    router.route(HttpMethod.DELETE, resourceByIdPath(TRANSACTIONS))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.TRANSACTIONS.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.EXPENSE_CLASSES.name()));
 
@@ -288,8 +293,9 @@ public class MockServer {
       serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
     } else if (query.contains(FUND_ID_FIRST_SAME_GROUP) || query.contains(FUND_ID_SECOND_SAME_GROUP)
                   || (query.contains(FUND_ID_SECOND_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_FROM_QUERY)))
-                    || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))) {
-      JsonObject emptyCollection = new JsonObject().put("transactions", new JsonArray());
+                  || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))
+                  || query.contains(DELETE_TRANSACTION_ID)) {
+      JsonObject emptyCollection = new JsonObject().put(testEntity.getName(), new JsonArray());
       emptyCollection.put(TOTAL_RECORDS, 0);
       serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
     } else if ( (query.contains(FUND_ID_SECOND_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))
@@ -299,8 +305,14 @@ public class MockServer {
       List<Transaction> allocations = List.of(allocation1.get().get(0), allocation2.get().get(0));
       JsonObject jsonObject = JsonObject.mapFrom(new TransactionCollection().withTransactions(allocations).withTotalRecords(2));
       jsonObject.put(TOTAL_RECORDS, allocations.size());
-      serverResponse(ctx,200, APPLICATION_JSON, jsonObject.encodePrettily());
+      serverResponse(ctx, 200, APPLICATION_JSON, jsonObject.encodePrettily());
       addServerRqRsData(HttpMethod.GET, testEntity.name(), jsonObject);
+    } else if (query.contains(DELETE_CONNECTED_TRANSACTION_ID)) {
+      Transaction transaction = new Transaction().withAwaitingPayment((new AwaitingPayment()).withEncumbranceId(DELETE_CONNECTED_TRANSACTION_ID));
+      List<Transaction> transactions = List.of(transaction);
+      JsonObject collection = JsonObject.mapFrom(new TransactionCollection().withTransactions(transactions).withTotalRecords(1));
+      collection.put(TOTAL_RECORDS, 1);
+      serverResponse(ctx,200, APPLICATION_JSON, collection.encodePrettily());
     } else {
       try {
         List<String> ids = Collections.emptyList();
