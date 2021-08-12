@@ -11,6 +11,7 @@ import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import static org.folio.rest.util.TestUtils.getMockData;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
+import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.RestTestUtils;
@@ -45,6 +47,9 @@ public class TransactionApiTest {
   private final String CANHIST_ID = "68872d8a-bf16-420b-829f-206da38f6c10";
   private final String LATHIST_ID = "e6d7e91a-4dbc-4a70-9b38-e000d2fbdc79";
   private final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
+
+  public static final String DELETE_TRANSACTION_ID = UUID.randomUUID().toString();
+  public static final String DELETE_CONNECTED_TRANSACTION_ID = UUID.randomUUID().toString();
 
   @BeforeAll
   static void before() throws InterruptedException, ExecutionException, TimeoutException {
@@ -238,6 +243,42 @@ public class TransactionApiTest {
     Transaction transaction = createTransaction(PAYMENT);
     transaction.setId(id);
     RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testDeleteEncumbrance() {
+    logger.info("=== Test delete encumbrance - Success ===");
+    String id = DELETE_TRANSACTION_ID;
+    Transaction transaction = createTransaction(ENCUMBRANCE)
+      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.UNRELEASED));
+    transaction.setId(id);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
+    RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 204);
+  }
+
+  @Test
+  void testDeleteExpendedEncumbrance() {
+    logger.info("=== Test delete encumbrance with expended amount - Unprocessable entity ===");
+    String id = DELETE_TRANSACTION_ID;
+    Transaction transaction = createTransaction(ENCUMBRANCE)
+      .withEncumbrance(new Encumbrance()
+        .withStatus(Encumbrance.Status.UNRELEASED)
+        .withAmountExpended(1.0)
+      );
+    transaction.setId(id);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
+    RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 422);
+  }
+
+  @Test
+  void testDeleteEncumbranceConnectedToInvoice() {
+    logger.info("=== Test delete encumbrance connected to an invoice - Unprocessable entity ===");
+    String id = DELETE_CONNECTED_TRANSACTION_ID;
+    Transaction transaction = createTransaction(ENCUMBRANCE)
+      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.UNRELEASED));
+    transaction.setId(id);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
+    RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 422);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {

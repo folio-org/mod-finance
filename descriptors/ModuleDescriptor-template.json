@@ -513,7 +513,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "4.1",
+      "version": "4.2",
       "handlers": [
         {
           "methods": ["POST"],
@@ -538,6 +538,18 @@
           "permissionsRequired": ["finance.encumbrances.item.put"],
           "modulePermissions": [
             "finance-storage.transactions.item.put"
+          ]
+        },
+        {
+          "methods": ["DELETE"],
+          "pathPattern": "/finance/encumbrances/{id}",
+          "permissionsRequired": ["finance.encumbrances.item.delete"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.get",
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.delete",
+            "finance-storage.transactions.collection.get",
+            "finance-storage.order-transaction-summaries.item.put"
           ]
         },
         {
@@ -1131,6 +1143,11 @@
       "description" : "Update an encumbrance"
     },
     {
+      "permissionName" : "finance.encumbrances.item.delete",
+      "displayName" : "Encumbrances - delete transaction of type encumbrance",
+      "description" : "Delete an encumbrance"
+    },
+    {
       "permissionName" : "finance.transfers.item.post",
       "displayName" : "Transfers - create a new transaction of type transfer",
       "description" : "Create a new transfer"
@@ -1173,6 +1190,7 @@
         "finance.allocations.item.post",
         "finance.encumbrances.item.post",
         "finance.encumbrances.item.put",
+        "finance.encumbrances.item.delete",
         "finance.transfers.item.post",
         "finance.payments.item.post",
         "finance.pending-payments.item.post",

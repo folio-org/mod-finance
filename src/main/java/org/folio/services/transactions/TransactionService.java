@@ -11,4 +11,5 @@ public interface TransactionService extends TransactionManagingService {
   CompletableFuture<TransactionCollection> retrieveTransactions(String query, int offset, int limit, RequestContext requestContext);
   CompletableFuture<Transaction> retrieveTransactionById(String id, RequestContext requestContext);
   void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType);
+  CompletableFuture<Boolean> isConnectedToInvoice(String transactionId, RequestContext requestContext);
 }

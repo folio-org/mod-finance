@@ -6,6 +6,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 
 import org.folio.completablefuture.FolioVertxCompletableFuture;
+import org.folio.rest.util.HelperUtils;
 
 public class PendingPaymentService implements TransactionTypeManagingStrategy {
 
@@ -27,6 +28,11 @@ public class PendingPaymentService implements TransactionTypeManagingStrategy {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT))
       .thenCompose(aVoid -> transactionService.updateTransaction(pendingPayment, requestContext));
+  }
+
+  @Override
+  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+    return HelperUtils.unsupportedOperationExceptionFuture();
   }
 
   @Override

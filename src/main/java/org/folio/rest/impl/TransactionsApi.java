@@ -91,6 +91,17 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
+  public void deleteFinanceEncumbrancesById(String id, String lang, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    transactionService.retrieveTransactionById(id, new RequestContext(vertxContext, okapiHeaders))
+        .thenCompose(transaction -> transactionStrategyFactory.deleteTransaction(Transaction.TransactionType.ENCUMBRANCE,
+          transaction, new RequestContext(vertxContext, okapiHeaders)))
+        .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+        .exceptionally(fail -> handleErrorResponse(asyncResultHandler,  fail));
+  }
+
+  @Validate
+  @Override
   public void getFinanceTransactions(String query, int offset, int limit, String lang, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 

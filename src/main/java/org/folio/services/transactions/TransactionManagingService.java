@@ -8,4 +8,5 @@ import java.util.concurrent.CompletableFuture;
 public interface TransactionManagingService {
   CompletableFuture<Transaction> createTransaction(Transaction transaction, RequestContext requestContext);
   CompletableFuture<Void> updateTransaction(Transaction transaction, RequestContext requestContext);
+  CompletableFuture<Void> deleteTransaction(Transaction transaction, RequestContext requestContext);
 }

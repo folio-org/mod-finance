@@ -34,4 +34,8 @@ public class TransactionStrategyFactory {
     return findStrategy(type).updateTransaction(transaction, requestContext);
   }
 
+  public CompletableFuture<Void> deleteTransaction(Transaction.TransactionType type, Transaction transaction, RequestContext requestContext) {
+    return findStrategy(type).deleteTransaction(transaction, requestContext);
+  }
+
 }

@@ -26,6 +26,7 @@ public class BaseTransactionService implements TransactionService {
   private static final int MAX_FUND_PER_QUERY = 5;
   private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId==\"\") OR %s)";
   private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId==\"\") OR %s)";
+  private static final String AWAITING_PAYMENT_WITH_ENCUMBRANCE = "awaitingPayment.encumbranceId==%s";
 
   private final RestClient transactionRestClient;
 
@@ -51,6 +52,10 @@ public class BaseTransactionService implements TransactionService {
     return transactionRestClient.put(transaction.getId(), transaction, requestContext);
   }
 
+  public CompletableFuture<Void> deleteTransaction(Transaction transaction, RequestContext requestContext) {
+    return transactionRestClient.delete(transaction.getId(), requestContext);
+  }
+
   public void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType) {
     if (transaction.getTransactionType() != transactionType) {
       logger.info("Transaction {} type mismatch. {} expected", transaction.getId(), transactionType) ;
@@ -73,6 +78,14 @@ public class BaseTransactionService implements TransactionService {
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
                     .map(ids -> retrieveToTransactionsChunk(ids, fiscalYearId, trType, requestContext))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+  }
+
+  public CompletableFuture<Boolean> isConnectedToInvoice(String transactionId, RequestContext requestContext) {
+    // We want to know if the order with the given encumbrance is connected to an invoice.
+    // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction
+    String query = String.format(AWAITING_PAYMENT_WITH_ENCUMBRANCE, transactionId);
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
+      .thenApply(collection -> collection.getTotalRecords() > 0);
   }
 
   private CompletableFuture<List<Transaction>> retrieveToTransactionsChunk(List<String> fundIds, String fiscalYearId,

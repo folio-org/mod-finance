@@ -86,7 +86,7 @@ public class CommonTransactionService extends BaseTransactionService {
       .thenCompose(transaction -> releaseTransaction(transaction, requestContext));
   }
 
-  private CompletableFuture<Void> releaseTransaction(Transaction transaction, RequestContext requestContext) {
+  public CompletableFuture<Void> releaseTransaction(Transaction transaction, RequestContext requestContext) {
     logger.info("Start releasing transaction {}", transaction.getId()) ;
 
     validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
