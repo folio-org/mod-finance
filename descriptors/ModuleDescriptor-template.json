@@ -757,6 +757,10 @@
       "version": "2.2"
     },
     {
+      "id": "finance-storage.expense-classes",
+      "version": "2.0"
+    },
+    {
       "id": "finance-storage.fund-types",
       "version": "1.0"
     },
