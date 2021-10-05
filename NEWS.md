@@ -6,8 +6,10 @@ This release contains implementation of two new endpoints for deleting encumbran
 [Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.2.0...v4.3.0)
 ### Stories
 * [MODFIN-207](https://issues.folio.org/browse/MODFIN-207) - Create business API for removing Encumbrance transactions
-* [MODFIN-201](https://issues.folio.org/browse/MODFIN-201) - The fiscal year is successfully saved with wrong date
 * [MODFIN-199](https://issues.folio.org/browse/MODFIN-199) - Create API for retrieving combination of fund code and expense classes
+
+### Bug Fixes
+* [MODFIN-201](https://issues.folio.org/browse/MODFIN-201) - The fiscal year is successfully saved with wrong date
 
 
 ## 4.2.0 - Released
