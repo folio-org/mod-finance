@@ -1,4 +1,16 @@
-## 4.2.0 - Unreleased
+## 4.4.0 - Unreleased
+
+## 4.3.0 - Released
+This release contains implementation of two new endpoints for deleting encumbrances and retrieving combination of funds info
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.2.0...v4.3.0)
+### Stories
+* [MODFIN-207](https://issues.folio.org/browse/MODFIN-207) - Create business API for removing Encumbrance transactions
+* [MODFIN-199](https://issues.folio.org/browse/MODFIN-199) - Create API for retrieving combination of fund code and expense classes
+
+### Bug Fixes
+* [MODFIN-201](https://issues.folio.org/browse/MODFIN-201) - The fiscal year is successfully saved with wrong date
+
 
 ## 4.2.0 - Released
 The focus of this release was to update RMB up to v33.0.0 and fix rollover procedure
