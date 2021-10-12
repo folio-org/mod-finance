@@ -12,6 +12,8 @@ import io.vertx.core.Vertx;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import javax.money.convert.MonetaryConversions;
+
 /**
  * The class initializes vertx context adding spring context
  */
@@ -22,6 +24,7 @@ public class InitAPIs implements InitAPI {
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> resultHandler) {
     vertx.executeBlocking(
       promise -> {
+        logger.info("Available currency rates providers {}", MonetaryConversions.getConversionProviderNames());
         SpringContextUtil.init(vertx, context, ApplicationConfig.class);
         promise.complete();
       },
