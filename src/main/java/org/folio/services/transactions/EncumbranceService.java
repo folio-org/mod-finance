@@ -1,19 +1,20 @@
 package org.folio.services.transactions;
 
+import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
+import static org.folio.rest.util.ErrorCodes.DELETE_WITH_EXPENDED_AMOUNT;
+import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
+
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.jaxrs.model.Transaction;
-
-import org.folio.completablefuture.FolioVertxCompletableFuture;
-
-import static org.folio.rest.util.ErrorCodes.DELETE_WITH_EXPENDED_AMOUNT;
-import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 
 public class EncumbranceService implements TransactionTypeManagingStrategy {
 
@@ -45,7 +46,6 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
         () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> validateDeletion(encumbrance, requestContext))
-      .thenCompose(aVoid -> commonTransactionService.releaseTransaction(encumbrance, requestContext))
       .thenCompose(aVoid -> transactionService.deleteTransaction(encumbrance, requestContext));
   }
 
@@ -55,6 +55,8 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   }
 
   private CompletableFuture<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
+    checkEncumbranceStatusNotReleased(encumbrance);
+
     if (encumbrance.getEncumbrance() != null && encumbrance.getEncumbrance().getAmountExpended() > 0) {
       logger.info("Tried to delete transaction {} but it has an expended amount.", encumbrance.getId()) ;
       Parameter parameter = new Parameter().withKey("id").withValue(encumbrance.getId());
@@ -68,5 +70,14 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
           throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError().withParameters(Collections.singletonList(parameter)));
         }
       });
+  }
+
+  private void checkEncumbranceStatusNotReleased(Transaction encumbrance) {
+    if (encumbrance.getEncumbrance().getStatus() != Encumbrance.Status.RELEASED) {
+      logger.info("Transaction {} should be released before deletion", encumbrance.getId());
+      Parameter parameter = new Parameter().withKey("id").withValue(encumbrance.getId());
+      throw new HttpException(400, TRANSACTION_NOT_RELEASED.toError().withParameters(Collections.singletonList(parameter)));
+
+    }
   }
 }
