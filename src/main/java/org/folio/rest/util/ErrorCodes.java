@@ -34,7 +34,8 @@ public enum ErrorCodes {
   USER_HAS_NO_ACQ_PERMISSIONS("userHasNoAcqUnitsPermission", "User does not have permissions to manage acquisition units assignments - operation is restricted"),
   FISCAL_YEAR_INVALID_PERIOD("fiscalYearInvalidPeriod", "Fiscal year period end date is earlier than start date"),
   DELETE_WITH_EXPENDED_AMOUNT("deleteWithExpendedAmount", "Cannot delete en encumbrance with an expended amount"),
-  DELETE_CONNECTED_TO_INVOICE("deleteConnectedToInvoice", "Cannot delete an encumbrance connected to an invoice");
+  DELETE_CONNECTED_TO_INVOICE("deleteConnectedToInvoice", "Cannot delete an encumbrance connected to an invoice"),
+  TRANSACTION_NOT_RELEASED("transactionNotReleased", "Encumbrance should be released before deletion");
 
   private final String code;
   private final String description;
