@@ -6,6 +6,7 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
+import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
@@ -250,7 +251,7 @@ public class TransactionApiTest {
     logger.info("=== Test delete encumbrance - Success ===");
     String id = DELETE_TRANSACTION_ID;
     Transaction transaction = createTransaction(ENCUMBRANCE)
-      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.UNRELEASED));
+      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.RELEASED));
     transaction.setId(id);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
     RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 204);
@@ -262,7 +263,7 @@ public class TransactionApiTest {
     String id = DELETE_TRANSACTION_ID;
     Transaction transaction = createTransaction(ENCUMBRANCE)
       .withEncumbrance(new Encumbrance()
-        .withStatus(Encumbrance.Status.UNRELEASED)
+        .withStatus(Encumbrance.Status.RELEASED)
         .withAmountExpended(1.0)
       );
     transaction.setId(id);
@@ -275,10 +276,24 @@ public class TransactionApiTest {
     logger.info("=== Test delete encumbrance connected to an invoice - Unprocessable entity ===");
     String id = DELETE_CONNECTED_TRANSACTION_ID;
     Transaction transaction = createTransaction(ENCUMBRANCE)
-      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.UNRELEASED));
+      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.RELEASED));
     transaction.setId(id);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
     RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 422);
+  }
+
+  @Test
+  void testDeleteUnreleasedEncumbrance() {
+    logger.info("=== Test delete unreleased encumbrance===");
+    String id = DELETE_CONNECTED_TRANSACTION_ID;
+    Transaction transaction = createTransaction(ENCUMBRANCE)
+      .withEncumbrance(new Encumbrance().withStatus(Encumbrance.Status.UNRELEASED));
+    transaction.setId(id);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
+    Errors err = RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 400)
+      .as(Errors.class);
+
+    assertEquals(TRANSACTION_NOT_RELEASED.getCode(), err.getErrors().get(0).getCode());
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {
