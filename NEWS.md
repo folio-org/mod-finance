@@ -1,5 +1,15 @@
 ## 4.4.0 - Unreleased
 
+## 4.3.1 - Released
+The focus of this release was to fix deletion of financial records
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.3.0...v4.3.1)
+
+### Bug Fixes
+* [MODFIN-217](https://issues.folio.org/browse/MODFIN-217) - Incorrect usage of all-or-nothing mechanism while removing transactions
+* [MODFIN-215](https://issues.folio.org/browse/MODFIN-215) - DELETE /fund randomly fails
+* [MODFIN-213](https://issues.folio.org/browse/MODFIN-213) - Exchange rates update completes with error
+
 ## 4.3.0 - Released
 This release contains implementation of two new endpoints for deleting encumbrances and retrieving combination of funds info
 
