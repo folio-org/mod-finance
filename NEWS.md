@@ -1,5 +1,13 @@
 ## 4.4.0 - Unreleased
 
+## 4.3.2 - Released
+This bugfix release focused on fixing Log4j vulnerability
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.3.1...v4.3.2)
+
+### Bug Fixes
+* [MODFIN-220](https://issues.folio.org/browse/MODFIN-220) - Kiwi R3 2021 - Log4j vulnerability verification and correction
+
 ## 4.3.1 - Released
 The focus of this release was to fix deletion of financial records
 
