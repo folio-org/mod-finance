@@ -1,5 +1,13 @@
 ## 4.3.0 - Unreleased
 
+## 4.2.2 - Released
+The focus of this release was to fix Log4j vulnerability
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.2.1...v4.2.2)
+
+### Bug Fixes
+* [MODFIN-221](https://issues.folio.org/browse/MODFIN-221) - Juniper R2 2021 - Log4j vulnerability verification and correction
+
 ## 4.2.1 - Released
 The focus of this release was to fix issue with many budgets for ledger
 
