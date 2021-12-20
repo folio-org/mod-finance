@@ -81,15 +81,15 @@ public class BudgetService {
   }
 
   private List<Error> checkRemainingEncumbrance(SharedBudget budget) {
-    BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
     BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
+    BigDecimal totalFunding = BigDecimal.valueOf(budget.getTotalFunding());
 
     //[remaining amount we can encumber] = (allocated * allowableEncumbered) - (encumbered + awaitingPayment + expended)
     if (budget.getAllowableEncumbrance() != null) {
       BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
-      if (allocated.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
+      if (totalFunding.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
         return Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
     }
