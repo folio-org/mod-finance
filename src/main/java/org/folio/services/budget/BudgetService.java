@@ -60,7 +60,8 @@ public class BudgetService {
       .withEncumbered(budgetFromStorage.getEncumbered())
       .withOverEncumbrance(budgetFromStorage.getOverEncumbrance())
       .withOverExpended(budgetFromStorage.getOverExpended())
-      .withNetTransfers(budgetFromStorage.getNetTransfers());
+      .withNetTransfers(budgetFromStorage.getNetTransfers())
+      .withTotalFunding(budgetFromStorage.getTotalFunding());
   }
 
   public CompletableFuture<Void> deleteBudget(String id, RequestContext requestContext) {
