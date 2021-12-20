@@ -115,7 +115,6 @@ public class BudgetServiceTest {
 
     Budget budgetFromStorage = new Budget()
       .withAllocated(25000d)
-      .withTotalFunding(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withInitialAllocation(10000d)
@@ -152,7 +151,6 @@ public class BudgetServiceTest {
     budgetFromStorage.setOverEncumbrance(5d);
     budgetFromStorage.setOverExpended(5d);
     budgetFromStorage.setNetTransfers(1d);
-    budgetFromStorage.setTotalFunding(budgetFromStorage.getAllocated() + budgetFromStorage.getNetTransfers());
 
     when(budgetMockRestClient.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
     when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
@@ -178,7 +176,6 @@ public class BudgetServiceTest {
     assertEquals(budgetFromStorage.getNetTransfers(), sharedBudget.getNetTransfers());
     assertEquals(budgetFromStorage.getOverExpended(), sharedBudget.getOverExpended());
     assertEquals(budgetFromStorage.getOverEncumbrance(), sharedBudget.getOverEncumbrance());
-    assertEquals(budgetFromStorage.getTotalFunding(), sharedBudget.getTotalFunding());
   }
 
   @Test
@@ -189,7 +186,6 @@ public class BudgetServiceTest {
 
     Budget budgetFromStorage = new Budget()
       .withAllocated(25000d)
-      .withTotalFunding(25000d)
       .withAvailable(15313.45)
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
