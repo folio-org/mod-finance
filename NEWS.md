@@ -1,5 +1,14 @@
 ## 4.4.0 - Unreleased
 
+## 4.3.3 - Released
+This bugfix release focused on fixing not calculating correctly encumbrance limit
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.3.2...v4.3.3)
+
+### Bug Fixes
+
+* [MODFIN-224](https://issues.folio.org/browse/MODFIN-224) - Encumbrance limit not calculating correctly when expense classes are involved
+
 ## 4.3.2 - Released
 This bugfix release focused on fixing Log4j vulnerability
 
