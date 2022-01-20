@@ -1,10 +1,7 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.*;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 import static org.folio.rest.util.MockServer.addMockEntry;
@@ -306,6 +303,27 @@ public class TransactionApiTest {
   }
 
   @Test
+  void testUpdatePaymentWithoutId() {
+    logger.info("=== Test update payment without id - Success ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
+    String id = transaction.getId();
+    transaction.setId(null);
+    transaction.setInvoiceCancelled(true);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_PAYMENT.getEndpointWithId(id),
+      JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdatePaymentIdsMismatch() {
+    logger.info("=== Test update payment with ids mismatch - Unprocessable entity ===");
+    String id = UUID.randomUUID().toString();
+    Transaction transaction = createTransaction(PAYMENT);
+    transaction.setId(UUID.randomUUID().toString());
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_PAYMENT.getEndpointWithId(id), JsonObject.mapFrom(transaction),
+      APPLICATION_JSON, 422);
+  }
+
+  @Test
   void testUpdatePaymentWithAnotherChange() {
     logger.info("=== Test update payment with another change - Unprocessable entity ===");
     Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
@@ -329,6 +347,27 @@ public class TransactionApiTest {
     transaction.setInvoiceCancelled(true);
     RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(transaction.getId()),
       JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdateCreditWithoutId() {
+    logger.info("=== Test update credit without id - Success ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
+    String id = transaction.getId();
+    transaction.setId(null);
+    transaction.setInvoiceCancelled(true);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(id),
+      JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdateCreditIdsMismatch() {
+    logger.info("=== Test update credit with ids mismatch - Unprocessable entity ===");
+    String id = UUID.randomUUID().toString();
+    Transaction transaction = createTransaction(CREDIT);
+    transaction.setId(UUID.randomUUID().toString());
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(id), JsonObject.mapFrom(transaction),
+      APPLICATION_JSON, 422);
   }
 
   @Test
