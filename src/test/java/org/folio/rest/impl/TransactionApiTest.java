@@ -296,6 +296,58 @@ public class TransactionApiTest {
     assertEquals(TRANSACTION_NOT_RELEASED.getCode(), err.getErrors().get(0).getCode());
   }
 
+  @Test
+  void testUpdatePayment() {
+    logger.info("=== Test update payment - Success ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
+    transaction.setInvoiceCancelled(true);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_PAYMENT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdatePaymentWithAnotherChange() {
+    logger.info("=== Test update payment with another change - Unprocessable entity ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
+    transaction.setDescription("Test fail");
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_PAYMENT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testUpdatePaymentWithoutInvoiceCancelled() {
+    logger.info("=== Test update payment without invoiceCancelled - Unprocessable entity ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_PAYMENT.getMockObject().mapTo(Transaction.class);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_PAYMENT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testUpdateCredit() {
+    logger.info("=== Test update credit - Success ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
+    transaction.setInvoiceCancelled(true);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), "", 204);
+  }
+
+  @Test
+  void testUpdateCreditWithAnotherChange() {
+    logger.info("=== Test update credit with another change - Unprocessable entity ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
+    transaction.setDescription("Test fail");
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testUpdateCreditWithoutInvoiceCancelled() {
+    logger.info("=== Test update credit without invoiceCancelled - Unprocessable entity ===");
+    Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
+    RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(transaction.getId()),
+      JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
   private Transaction createTransaction(Transaction.TransactionType type) {
     return new Transaction()
       .withAmount(25.0)

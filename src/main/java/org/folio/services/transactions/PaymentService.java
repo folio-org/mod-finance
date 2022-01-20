@@ -3,12 +3,13 @@ package org.folio.services.transactions;
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.HelperUtils;
 
 import org.folio.completablefuture.FolioVertxCompletableFuture;
 
-import static org.folio.rest.util.HelperUtils.unsupportedOperationExceptionFuture;
+import static org.folio.rest.util.ErrorCodes.UPDATE_PAYMENT_TO_CANCEL_INVOICE;
 
 public class PaymentService implements TransactionTypeManagingStrategy {
 
@@ -29,8 +30,20 @@ public class PaymentService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction transaction, RequestContext requestContext) {
-    return unsupportedOperationExceptionFuture();
+  public CompletableFuture<Void> updateTransaction(Transaction payment, RequestContext requestContext) {
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(), () -> {
+        transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
+        if (!Boolean.TRUE.equals(payment.getInvoiceCancelled()))
+          throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
+      })
+      .thenCompose(v -> transactionService.retrieveTransactionById(payment.getId(), requestContext))
+      .thenAccept(existingTransaction -> {
+        existingTransaction.setInvoiceCancelled(true);
+        existingTransaction.setMetadata(payment.getMetadata());
+        if (!existingTransaction.equals(payment))
+          throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
+      })
+      .thenCompose(v -> transactionService.updateTransaction(payment, requestContext));
   }
 
   @Override
