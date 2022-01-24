@@ -38,6 +38,8 @@ public class CreditService implements TransactionTypeManagingStrategy {
       })
       .thenCompose(v -> transactionService.retrieveTransactionById(credit.getId(), requestContext))
       .thenAccept(existingTransaction -> {
+        if (Boolean.TRUE.equals(existingTransaction.getInvoiceCancelled()))
+          throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
         // compare new transaction with existing one: ignore invoiceCancelled and metadata changes
         existingTransaction.setInvoiceCancelled(true);
         existingTransaction.setMetadata(credit.getMetadata());
