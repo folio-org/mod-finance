@@ -38,6 +38,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
       })
       .thenCompose(v -> transactionService.retrieveTransactionById(payment.getId(), requestContext))
       .thenAccept(existingTransaction -> {
+        // compare new transaction with existing one: ignore invoiceCancelled and metadata changes
         existingTransaction.setInvoiceCancelled(true);
         existingTransaction.setMetadata(payment.getMetadata());
         if (!existingTransaction.equals(payment))

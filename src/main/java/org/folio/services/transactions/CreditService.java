@@ -1,7 +1,6 @@
 package org.folio.services.transactions;
 
 import static org.folio.rest.util.ErrorCodes.UPDATE_CREDIT_TO_CANCEL_INVOICE;
-import static org.folio.rest.util.ErrorCodes.UPDATE_PAYMENT_TO_CANCEL_INVOICE;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +38,7 @@ public class CreditService implements TransactionTypeManagingStrategy {
       })
       .thenCompose(v -> transactionService.retrieveTransactionById(credit.getId(), requestContext))
       .thenAccept(existingTransaction -> {
+        // compare new transaction with existing one: ignore invoiceCancelled and metadata changes
         existingTransaction.setInvoiceCancelled(true);
         existingTransaction.setMetadata(credit.getMetadata());
         if (!existingTransaction.equals(credit))
