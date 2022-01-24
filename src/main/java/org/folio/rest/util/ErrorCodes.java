@@ -35,7 +35,9 @@ public enum ErrorCodes {
   FISCAL_YEAR_INVALID_PERIOD("fiscalYearInvalidPeriod", "Fiscal year period end date is earlier than start date"),
   DELETE_WITH_EXPENDED_AMOUNT("deleteWithExpendedAmount", "Cannot delete en encumbrance with an expended amount"),
   DELETE_CONNECTED_TO_INVOICE("deleteConnectedToInvoice", "Cannot delete an encumbrance connected to an invoice"),
-  TRANSACTION_NOT_RELEASED("transactionNotReleased", "Encumbrance should be released before deletion");
+  TRANSACTION_NOT_RELEASED("transactionNotReleased", "Encumbrance should be released before deletion"),
+  UPDATE_PAYMENT_TO_CANCEL_INVOICE("updatePaymentToCancelInvoice", "A payment can only be updated to cancel an invoice"),
+  UPDATE_CREDIT_TO_CANCEL_INVOICE("updateCreditToCancelInvoice", "A credit can only be updated to cancel an invoice");
 
   private final String code;
   private final String description;
