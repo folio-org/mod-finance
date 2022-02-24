@@ -574,7 +574,8 @@
           "pathPattern": "/finance/payments/{id}",
           "permissionsRequired": ["finance.payments.item.put"],
           "modulePermissions": [
-            "finance-storage.transactions.item.put"
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.get"
           ]
         },
         {
@@ -606,7 +607,8 @@
           "pathPattern": "/finance/credits/{id}",
           "permissionsRequired": ["finance.credits.item.put"],
           "modulePermissions": [
-            "finance-storage.transactions.item.put"
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.get"
           ]
         },
         {
