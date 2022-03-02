@@ -1256,6 +1256,11 @@
       "description" : "Put Order Transaction Summary"
     },
     {
+      "permissionName" : "finance.order-transaction-summaries.item.get",
+      "displayName" : "Finances - Get Order transaction Summaries",
+      "description" : "Get Order Transaction Summary"
+    },
+    {
       "permissionName" : "finance.invoice-transaction-summaries.item.post",
       "displayName" : "Finances - Post Invoice transaction Summaries",
       "description" : "Post Invoice Transaction Summary"
