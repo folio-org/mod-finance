@@ -1,10 +1,11 @@
 package org.folio.services.transactions;
 
-import static org.folio.rest.util.HelperUtils.unsupportedOperationExceptionFuture;
+import static org.folio.rest.util.ErrorCodes.UPDATE_CREDIT_TO_CANCEL_INVOICE;
 
 import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.HelperUtils;
 
@@ -29,8 +30,23 @@ public class CreditService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction transaction, RequestContext requestContext) {
-    return unsupportedOperationExceptionFuture();
+  public CompletableFuture<Void> updateTransaction(Transaction credit, RequestContext requestContext) {
+    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(), () -> {
+        transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
+        if (!Boolean.TRUE.equals(credit.getInvoiceCancelled()))
+          throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
+      })
+      .thenCompose(v -> transactionService.retrieveTransactionById(credit.getId(), requestContext))
+      .thenAccept(existingTransaction -> {
+        if (Boolean.TRUE.equals(existingTransaction.getInvoiceCancelled()))
+          throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
+        // compare new transaction with existing one: ignore invoiceCancelled and metadata changes
+        existingTransaction.setInvoiceCancelled(true);
+        existingTransaction.setMetadata(credit.getMetadata());
+        if (!existingTransaction.equals(credit))
+          throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
+      })
+      .thenCompose(v -> transactionService.updateTransaction(credit, requestContext));
   }
 
   @Override

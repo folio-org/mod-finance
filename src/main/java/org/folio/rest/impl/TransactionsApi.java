@@ -131,6 +131,21 @@ public class TransactionsApi extends BaseApi implements Finance {
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
+  @Override
+  public void putFinancePaymentsById(String id, String lang, Transaction payment,
+      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    if (isEmpty(payment.getId())) {
+      payment.setId(id);
+    } else if (!id.equals(payment.getId())) {
+      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
+      return;
+    }
+    transactionStrategyFactory.updateTransaction(
+        TransactionType.PAYMENT, payment, new RequestContext(vertxContext, okapiHeaders))
+      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
+
   @Validate
   @Override
   public void postFinancePendingPayments(String lang, Transaction pendingPayment, Map<String, String> okapiHeaders,
@@ -167,4 +182,20 @@ public class TransactionsApi extends BaseApi implements Finance {
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
+
+  @Override
+  public void putFinanceCreditsById(String id, String lang, Transaction credit,
+      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    if (isEmpty(credit.getId())) {
+      credit.setId(id);
+    } else if (!id.equals(credit.getId())) {
+      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
+      return;
+    }
+    transactionStrategyFactory.updateTransaction(
+        TransactionType.CREDIT, credit, new RequestContext(vertxContext, okapiHeaders))
+      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
+
 }

@@ -1,25 +1,6 @@
 {
   "transactions": [
     {
-      "id": "12ac70a4-5c9d-112f-9acb-852adf67d7e1",
-      "amount": 140.80,
-      "currency": "USD",
-      "description": "PO_Line: History of Incas",
-      "fiscalYearId": "4438bc3b-4b4a-4e5e-9886-5f69b48a7a32",
-      "fromFundId": "27f27438-3197-4281-a353-511829421d6e",
-      "paymentEncumbranceId": "80c28fb4-c34e-48d6-b8c2-de6660c3e0aa",
-      "source": "Invoice",
-      "sourceFiscalYearId": "01705ce5-3c3d-4c30-b23d-a36feec28259",
-      "sourceInvoiceId": "b360db6c-b825-4d74-ac63-5be506892e2b",
-      "tags": {
-        "tagList": [
-          "important"
-        ]
-      },
-      "toFundId": "2e51c019-97f3-4523-87e9-59250e3b48bc",
-      "transactionType": "Payment"
-    },
-    {
       "id": "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0",
       "amount": 25.17,
       "currency": "USD",
@@ -48,7 +29,41 @@
       },
       "toFundId": "69640328-788e-43fc-9c3c-af39e243f3b7",
       "transactionType": "Encumbrance"
+    },
+    {
+      "id": "c21333a0-ddc7-4156-9feb-b0f8432fc64f",
+      "amount": 25.17,
+      "currency": "USD",
+      "description": "PO_Line: History of Incas",
+      "fiscalYearId": "684b5dc5-92f6-4db7-b996-b549d88f5e4e",
+      "fromFundId": "67cd0046-e4f1-4e4f-9024-adf0b0039d09",
+      "paymentEncumbranceId": "80c28fb4-c34e-48d6-b8c2-de6660c3e0aa",
+      "source": "Invoice",
+      "tags": {
+        "tagList": [
+          "important"
+        ]
+      },
+      "toFundId": "69640328-788e-43fc-9c3c-af39e243f3b7",
+      "transactionType": "Payment"
+    },
+    {
+      "id": "1d005509-ce25-4bd6-80d1-52fadf2dfc83",
+      "amount": 25.17,
+      "currency": "USD",
+      "description": "PO_Line: History of Incas",
+      "fiscalYearId": "684b5dc5-92f6-4db7-b996-b549d88f5e4e",
+      "fromFundId": "67cd0046-e4f1-4e4f-9024-adf0b0039d09",
+      "paymentEncumbranceId": "80c28fb4-c34e-48d6-b8c2-de6660c3e0aa",
+      "source": "Invoice",
+      "tags": {
+        "tagList": [
+          "important"
+        ]
+      },
+      "toFundId": "69640328-788e-43fc-9c3c-af39e243f3b7",
+      "transactionType": "Credit"
     }
   ],
-  "totalRecords": 2
+  "totalRecords": 3
 }

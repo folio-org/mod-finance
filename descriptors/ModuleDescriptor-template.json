@@ -513,7 +513,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "4.2",
+      "version": "4.3",
       "handlers": [
         {
           "methods": ["POST"],
@@ -570,6 +570,15 @@
           ]
         },
         {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/payments/{id}",
+          "permissionsRequired": ["finance.payments.item.put"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.get"
+          ]
+        },
+        {
           "methods": ["POST"],
           "pathPattern": "/finance/pending-payments",
           "permissionsRequired": ["finance.pending-payments.item.post"],
@@ -591,6 +600,15 @@
           "permissionsRequired": ["finance.credits.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.post"
+          ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/credits/{id}",
+          "permissionsRequired": ["finance.credits.item.put"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.put",
+            "finance-storage.transactions.item.get"
           ]
         },
         {
@@ -1162,6 +1180,11 @@
       "description" : "Create a new payment"
     },
     {
+      "permissionName" : "finance.payments.item.put",
+      "displayName" : "Payments - update a transaction of type payment",
+      "description" : "Update a payment"
+    },
+    {
       "permissionName" : "finance.pending-payments.item.post",
       "displayName" : "Pending payments - create a new transaction of type pending payment",
       "description" : "Create a new pending payment"
@@ -1175,6 +1198,11 @@
       "permissionName" : "finance.credits.item.post",
       "displayName" : "Credits - create a new transaction of type credit",
       "description" : "Create a new credit"
+    },
+    {
+      "permissionName" : "finance.credits.item.put",
+      "displayName" : "Credits - update a transaction of type credit",
+      "description" : "Update a credit"
     },
     {
       "permissionName": "finance.transactions.collection.get",
@@ -1197,9 +1225,11 @@
         "finance.encumbrances.item.delete",
         "finance.transfers.item.post",
         "finance.payments.item.post",
+        "finance.payments.item.put",
         "finance.pending-payments.item.post",
         "finance.pending-payments.item.put",
         "finance.credits.item.post",
+        "finance.credits.item.put",
         "finance.transactions.collection.get",
         "finance.transactions.item.get",
         "finance.release-encumbrance.item.post"
