@@ -1,4 +1,12 @@
-## 4.4.0 - Unreleased
+## 4.5.0 - Unreleased
+
+## 4.4.0 - Released
+This release contains updates for supporting transactions cancel
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.3.0...v4.4.0)
+### Stories
+* [MODFIN-230](https://issues.folio.org/browse/MODFIN-230) - Allow PUT for payments/credits to cancel invoices
+
 
 ## 4.3.0 - Released
 This release contains implementation of two new endpoints for deleting encumbrances and retrieving combination of funds info
