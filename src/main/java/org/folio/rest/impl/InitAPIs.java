@@ -1,5 +1,9 @@
 package org.folio.rest.impl;
 
+import javax.money.convert.MonetaryConversions;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.resource.interfaces.InitAPI;
 import org.folio.spring.SpringContextUtil;
@@ -9,10 +13,6 @@ import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
-import javax.money.convert.MonetaryConversions;
 
 /**
  * The class initializes vertx context adding spring context
@@ -40,7 +40,7 @@ public class InitAPIs implements InitAPI {
 
   private void initJavaMoney() {
     try {
-      logger.info("Available currency rates providers {}", MonetaryConversions.getConversionProviderNames());
+      logger.info("Available currency rates providers {}", MonetaryConversions.getDefaultConversionProviderChain());
     } catch (Exception e){
       logger.error("Java Money API preload failed", e);
     }
