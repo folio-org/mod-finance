@@ -1,15 +1,15 @@
 package org.folio.rest.helper;
 
-import io.vertx.core.Context;
-import org.folio.rest.jaxrs.model.ExchangeRate;
-import org.folio.rest.exception.HttpException;
+import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
+import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
 
-import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
-import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
-import static org.javamoney.moneta.convert.ExchangeRateType.IMF;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.ExchangeRate;
+
+import io.vertx.core.Context;
 
 public class ExchangeRateHelper extends AbstractHelper {
   public ExchangeRateHelper(Context ctx) {
@@ -18,7 +18,7 @@ public class ExchangeRateHelper extends AbstractHelper {
 
   public ExchangeRate getExchangeRate(String from, String to) {
     try {
-      double exchangeRate = MonetaryConversions.getExchangeRateProvider(IDENTITY, ECB, IMF)
+      double exchangeRate = MonetaryConversions.getExchangeRateProvider(IDENTITY, ECB)
         .getExchangeRate(from, to)
         .getFactor()
         .doubleValue();

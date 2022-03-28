@@ -149,6 +149,12 @@
       <groupId>org.javamoney</groupId>
       <artifactId>moneta</artifactId>
       <version>1.4.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javamoney.moneta</groupId>
+          <artifactId>moneta-convert-imf</artifactId>
+        </exclusion>
+      </exclusions>
       <type>pom</type>
     </dependency>
     <dependency>
@@ -500,6 +506,12 @@
                   <excludes>
                     <exclude>**/log4j.properties</exclude>
                     <exclude>**/Log4j2Plugins.dat</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.javamoney.moneta:moneta-convert*</artifact>
+                  <excludes>
+                    <exclude>**/javamoney.properties</exclude>
                   </excludes>
                 </filter>
               </filters>
