@@ -1,5 +1,13 @@
 ## 4.5.0 - Unreleased
 
+## 4.4.1 - Released
+This release contains fix of java money API configuration
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.4.0...v4.4.1)
+### Bug Fixes
+* [MODFIN-237](https://issues.folio.org/browse/MODFIN-237) - Fix memory leaks of Java money API
+
+
 ## 4.4.0 - Released
 This release contains updates for supporting transactions cancel
 
