@@ -7,6 +7,9 @@ import org.folio.rest.util.ErrorCodes;
 
 import java.util.Collections;
 
+import static org.folio.rest.util.ErrorCodes.CONFLICT;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+
 public class HttpException extends RuntimeException {
   private static final long serialVersionUID = 8109197948434861504L;
 
@@ -14,10 +17,11 @@ public class HttpException extends RuntimeException {
   private final transient Errors errors;
 
   public HttpException(int code, String message) {
-    super(StringUtils.isNotEmpty(message) ? message : ErrorCodes.GENERIC_ERROR_CODE.getDescription());
+    super(StringUtils.isNotEmpty(message) ? message : GENERIC_ERROR_CODE.getDescription());
     this.code = code;
+    ErrorCodes ec = code == 409 ? CONFLICT : GENERIC_ERROR_CODE;
     this.errors = new Errors()
-      .withErrors(Collections.singletonList(new Error().withCode(ErrorCodes.GENERIC_ERROR_CODE.getCode()).withMessage(message)))
+      .withErrors(Collections.singletonList(new Error().withCode(ec.getCode()).withMessage(message)))
       .withTotalRecords(1);
   }
 
