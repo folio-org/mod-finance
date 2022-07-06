@@ -1,6 +1,6 @@
 ## 4.6.0 - Unreleased
 
-## 4.5.0 - Released
+## 4.5.0 Morning Glory R2 2022 - Released
 This release contains RMB upgrade and fixes for updating budget metadata when transferring between funds
 
 [Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.4.0...v4.5.0)
