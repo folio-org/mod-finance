@@ -1,4 +1,15 @@
-## 4.5.0 - Unreleased
+## 4.6.0 - Unreleased
+
+## 4.5.0 Morning Glory R2 2022 - Released
+This release contains RMB upgrade and fixes for updating budget metadata when transferring between funds
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.4.0...v4.5.0)
+
+### Stories
+* [MODFIN-254](https://issues.folio.org/browse/MODFIN-254) - Upgrade RAML Module Builder to 34.1.0
+
+### Bug Fixes
+* [MODFIN-250](https://issues.folio.org/browse/MODFIN-250) - Budget metadata not updated when transferring between Funds
 
 ## 4.4.0 - Released
 This release contains updates for supporting transactions cancel

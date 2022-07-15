@@ -37,7 +37,8 @@ public enum ErrorCodes {
   DELETE_CONNECTED_TO_INVOICE("deleteConnectedToInvoice", "Cannot delete an encumbrance connected to an invoice"),
   TRANSACTION_NOT_RELEASED("transactionNotReleased", "Encumbrance should be released before deletion"),
   UPDATE_PAYMENT_TO_CANCEL_INVOICE("updatePaymentToCancelInvoice", "A payment can only be updated to cancel an invoice"),
-  UPDATE_CREDIT_TO_CANCEL_INVOICE("updateCreditToCancelInvoice", "A credit can only be updated to cancel an invoice");
+  UPDATE_CREDIT_TO_CANCEL_INVOICE("updateCreditToCancelInvoice", "A credit can only be updated to cancel an invoice"),
+  CONFLICT("conflict", "Conflict when updating a record");
 
   private final String code;
   private final String description;
