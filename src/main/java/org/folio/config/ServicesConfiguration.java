@@ -7,6 +7,7 @@ import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.email.EmailService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
@@ -82,6 +83,11 @@ public class ServicesConfiguration {
   BudgetService budgetService(RestClient budgetRestClient,
                               BudgetExpenseClassService budgetExpenseClassService) {
     return new BudgetService(budgetRestClient, budgetExpenseClassService);
+  }
+
+  @Bean
+  EmailService emailService(RestClient emailRestClient) {
+    return new EmailService(emailRestClient);
   }
 
   @Bean
