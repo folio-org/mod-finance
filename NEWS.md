@@ -1,5 +1,14 @@
 ## 4.6.0 - Unreleased
 
+## 4.5.1 (Bug Fix) - Released
+This release contains fix for case when a user with certain permission can not create planned budget
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.5.0...v4.5.1)
+
+### Bug Fixes
+* [MODFIN-263](https://issues.folio.org/browse/MODFIN-263) - A user with certain permission can not create planned budget
+
+
 ## 4.5.0 Morning Glory R2 2022 - Released
 This release contains RMB upgrade and fixes for updating budget metadata when transferring between funds
 
