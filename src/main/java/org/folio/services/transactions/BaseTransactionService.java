@@ -24,8 +24,8 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 public class BaseTransactionService implements TransactionService {
   private static final Logger logger = LogManager.getLogger(BaseTransactionService.class);
   private static final int MAX_FUND_PER_QUERY = 5;
-  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId==\"\") OR %s)";
-  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId==\"\") OR %s)";
+  private static final String TRANSACTION_TO_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT fromFundId=\"\") OR %s)";
+  private static final String TRANSACTION_FROM_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s AND ((cql.allRecords=1 NOT toFundId=\"\") OR %s)";
   private static final String AWAITING_PAYMENT_WITH_ENCUMBRANCE = "awaitingPayment.encumbranceId==%s";
 
   private final RestClient transactionRestClient;
