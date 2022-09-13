@@ -105,8 +105,8 @@ public class MockServer {
   private static final String ID_PATH_PARAM = "/:" + ID;
   static final String CONFIG_MOCK_PATH = BASE_MOCK_DATA_PATH + "configurationEntries/%s.json";
   private static final String LEDGER_FYS_MOCK_PATH = BASE_MOCK_DATA_PATH + "ledger-fiscal-year/ledger-fiscal-years.json";
-  public static final String TRANSACTION_ALLOCATION_TO_QUERY = ".+transactionType==Allocation.+toFundId==.+(cql.allRecords=1 NOT fromFundId==\"\").+";
-  public static final String TRANSACTION_ALLOCATION_FROM_QUERY = ".+transactionType==Allocation.+fromFundId==.+cql.allRecords=1 NOT toFundId==\"\".+";
+  public static final String TRANSACTION_ALLOCATION_TO_QUERY = ".+transactionType==Allocation.+toFundId==.+(cql.allRecords=1 NOT fromFundId=\"\").+";
+  public static final String TRANSACTION_ALLOCATION_FROM_QUERY = ".+transactionType==Allocation.+fromFundId==.+cql.allRecords=1 NOT toFundId=\"\".+";
 
   private final int port;
   private final Vertx vertx;
