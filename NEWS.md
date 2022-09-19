@@ -1,5 +1,14 @@
 ## 4.6.0 - Unreleased
 
+## 4.5.2 (Bug Fix) - Released
+This release contains fix for calculations of transaction amounts
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.5.1...v4.5.2)
+
+### Bug Fixes
+* [MODFIN-274](https://issues.folio.org/browse/MODFIN-274) - Replace filtering logic group transactions
+* [MODFIN-272](https://issues.folio.org/browse/MODFIN-272) - Increase/decrease in allocation amounts for funds related to the same ledger are displayed in ledger Financial summary
+
 ## 4.5.1 (Bug Fix) - Released
 This release contains fix for case when a user with certain permission can not create planned budget
 
