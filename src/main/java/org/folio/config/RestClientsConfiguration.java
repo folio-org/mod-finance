@@ -14,6 +14,7 @@ import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_LOGS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_PROGRESS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
@@ -67,6 +68,11 @@ public class RestClientsConfiguration {
   @Bean
   RestClient ledgerRolloverStorageRestClient() {
     return new RestClient(resourcesPath(LEDGER_ROLLOVERS_STORAGE));
+  }
+
+  @Bean
+  RestClient ledgerRolloverLogsStorageRestClient() {
+    return new RestClient(resourcesPath(LEDGER_ROLLOVERS_LOGS_STORAGE));
   }
 
   @Bean
