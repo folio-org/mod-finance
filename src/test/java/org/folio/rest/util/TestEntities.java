@@ -11,6 +11,7 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
+import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
@@ -25,6 +26,7 @@ import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
+import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversLogs;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversErrors;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
@@ -56,6 +58,7 @@ public enum TestEntities {
   INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", -1, 1),
   EXPENSE_CLASSES("expenseClasses", getEndpoint(FinanceExpenseClasses.class), ExpenseClass.class, "mockdata/expense-classes/expense-classes.json", "expenseClasses[0]", "externalAccountNumberExt", 1, 1),
   LEDGER_ROLLOVER("ledgerRollover", getEndpoint(FinanceLedgerRollovers.class), LedgerFiscalYearRollover.class, "mockdata/ledger-rollovers/ledger-rollovers.json", "ledgerFiscalYearRollovers[0]", "toFiscalYearId", 1, 1),
+  LEDGER_ROLLOVER_LOGS("ledgerRolloverLogs", getEndpoint(FinanceLedgerRolloversLogs.class), LedgerFiscalYearRolloverLog.class, "", "", "", 1, 1),
   LEDGER_ROLLOVER_PROGRESS("ledgerRolloverProgress", getEndpoint(FinanceLedgerRolloversProgress.class), LedgerFiscalYearRolloverProgress.class, "", "", "", 1, 1),
   LEDGER_ROLLOVER_ERRORS("ledgerRolloverErrors", getEndpoint(FinanceLedgerRolloversErrors.class), LedgerFiscalYearRolloverError.class, "", "", "", 1, 1);
 
