@@ -26,6 +26,7 @@ import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
+import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
@@ -83,7 +84,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import javax.swing.text.html.Option;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EntitiesCrudBasicsTest {
@@ -105,6 +105,7 @@ public class EntitiesCrudBasicsTest {
       .filter(e -> !e.equals(FUND))
       .filter(e -> !e.equals(BUDGET))
       .filter(e -> !e.equals(LEDGER_ROLLOVER))
+      .filter(e -> !e.equals(LEDGER_ROLLOVER_LOGS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_PROGRESS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_ERRORS))
       .filter(e -> !e.equals(LEDGER));
