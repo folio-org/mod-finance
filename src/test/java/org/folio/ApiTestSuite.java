@@ -10,6 +10,7 @@ import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
 import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgerRolloverApiTest;
+import org.folio.rest.impl.LedgerRolloverLogsApiTest;
 import org.folio.rest.impl.LedgerRolloverErrorsApiTest;
 import org.folio.rest.impl.LedgerRolloverProgressApiTest;
 import org.folio.rest.impl.LedgersApiTest;
@@ -28,6 +29,7 @@ import org.folio.services.fund.FundServiceTest;
 import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
 import org.folio.services.ledger.LedgerDetailsServiceTest;
+import org.folio.services.ledger.LedgerRolloverLogsServiceTest;
 import org.folio.services.ledger.LedgerRolloverErrorsServiceTest;
 import org.folio.services.ledger.LedgerRolloverProgressServiceTest;
 import org.folio.services.ledger.LedgerRolloverServiceTest;
@@ -95,6 +97,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class LedgerRolloversLogsApiTestNested extends LedgerRolloverLogsApiTest {
+  }
+
+  @Nested
   class LedgerRolloversErrorsApiTestNested extends LedgerRolloverErrorsApiTest {
   }
 
@@ -156,6 +162,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloverServiceTestNested extends LedgerRolloverServiceTest {
+  }
+
+  @Nested
+  class LedgerRolloverLogsServiceTestNested extends LedgerRolloverLogsServiceTest {
   }
 
   @Nested
