@@ -27,6 +27,7 @@ import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
+import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_BUDGETS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
@@ -106,6 +107,7 @@ public class EntitiesCrudBasicsTest {
       .filter(e -> !e.equals(BUDGET))
       .filter(e -> !e.equals(LEDGER_ROLLOVER))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_LOGS))
+      .filter(e -> !e.equals(LEDGER_ROLLOVER_BUDGETS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_PROGRESS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_ERRORS))
       .filter(e -> !e.equals(LEDGER));
