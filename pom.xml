@@ -241,6 +241,12 @@
             <exclude>encumbrance_rollover.json</exclude>
             <exclude>ledger_fiscal_year_rollover.json</exclude>
             <exclude>ledger_fiscal_year_rollover_collection.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_log.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_log_collection.json</exclude>
+            <exclude>ledger_rollover_type.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_progress.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_progress_collection.json</exclude>
+            <exclude>rollover_status.json</exclude>
           </excludes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
           <generateBuilders>true</generateBuilders>

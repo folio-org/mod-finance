@@ -21,6 +21,7 @@ import org.folio.services.ledger.LedgerRolloverProgressService;
 import org.folio.services.ledger.LedgerRolloverService;
 import org.folio.services.ledger.LedgerService;
 import org.folio.services.ledger.LedgerTotalsService;
+import org.folio.services.ledger.LedgerRolloverLogsService;
 import org.folio.services.protection.AcqUnitMembershipsService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
@@ -107,6 +108,11 @@ public class ServicesConfiguration {
   @Bean
   LedgerRolloverProgressService ledgerRolloverProgressService(RestClient ledgerRolloverProgressStorageRestClient) {
     return new LedgerRolloverProgressService(ledgerRolloverProgressStorageRestClient);
+  }
+
+  @Bean
+  LedgerRolloverLogsService ledgerRolloverLogsService(RestClient ledgerRolloverLogsStorageRestClient) {
+    return new LedgerRolloverLogsService(ledgerRolloverLogsStorageRestClient);
   }
 
   @Bean
