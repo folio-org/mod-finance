@@ -18,6 +18,7 @@ public class ResourcePathResolver {
   public static final String LEDGERS_STORAGE = "ledgers";
   public static final String LEDGER_ROLLOVERS_STORAGE = "ledgerRollovers";
   public static final String LEDGER_ROLLOVERS_LOGS_STORAGE = "ledgerRolloverLogs";
+  public static final String LEDGER_ROLLOVERS_BUDGETS_STORAGE = "ledgerRolloverBudgets";
   public static final String LEDGER_ROLLOVERS_ERRORS_STORAGE = "ledgerRolloverErrors";
   public static final String LEDGER_ROLLOVERS_PROGRESS_STORAGE = "ledgerRolloverProgress";
   public static final String GROUPS = "groups";
@@ -43,6 +44,7 @@ public class ResourcePathResolver {
     apis.put(FISCAL_YEARS_STORAGE, "/finance-storage/fiscal-years");
     apis.put(LEDGERS_STORAGE, "/finance-storage/ledgers");
     apis.put(LEDGER_ROLLOVERS_STORAGE, "/finance-storage/ledger-rollovers");
+    apis.put(LEDGER_ROLLOVERS_BUDGETS_STORAGE, "/finance-storage/ledger-rollovers-budgets");
     apis.put(LEDGER_ROLLOVERS_LOGS_STORAGE, "/finance-storage/ledger-rollovers-logs");
     apis.put(LEDGER_ROLLOVERS_ERRORS_STORAGE, "/finance-storage/ledger-rollovers-errors");
     apis.put(LEDGER_ROLLOVERS_PROGRESS_STORAGE, "/finance-storage/ledger-rollovers-progress");
