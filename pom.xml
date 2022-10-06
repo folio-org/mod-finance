@@ -246,6 +246,8 @@
             <exclude>ledger_rollover_type.json</exclude>
             <exclude>ledger_fiscal_year_rollover_progress.json</exclude>
             <exclude>ledger_fiscal_year_rollover_progress_collection.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_budget.json</exclude>
+            <exclude>ledger_fiscal_year_rollover_budget_collection.json</exclude>
             <exclude>rollover_status.json</exclude>
           </excludes>
           <outputDirectory>${jsonschema2pojo_output_dir}</outputDirectory>
