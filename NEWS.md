@@ -1,4 +1,13 @@
-## 4.6.0 - Unreleased
+## 4.7.0 - Unreleased
+
+## 4.6.0 Nolana R3 2022 - Released
+This release contains RMB upgrade and implement new business API
+
+### Stories
+* [FOLIO-3604](https://issues.folio.org/browse/FOLIO-3604) - FolioVertxCompletableFuture copyright violation
+* [MODFIN-279](https://issues.folio.org/browse/MODFIN-279) - Upgrade RAML Module Builder
+* [MODFIN-270](https://issues.folio.org/browse/MODFIN-270) - Define and implement Business API : Ledger Rollover Logs
+* [MODFIN-256](https://issues.folio.org/browse/MODFIN-256) - Define and implement Business API : Ledger Rollover Budgets
 
 ## 4.5.0 Morning Glory R2 2022 - Released
 This release contains RMB upgrade and fixes for updating budget metadata when transferring between funds
