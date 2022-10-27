@@ -1,5 +1,15 @@
 ## 4.6.0 - Unreleased
 
+
+## 4.5.3 - Released Morning Glory 2022 R2 Hot Fix 1
+The focus of this release was to add copyright notice for FolioVertxCompletableFuture
+
+[Full Changelog](https://github.com/folio-org/mod-invoice/compare/v4.5.2...v4.5.3)
+
+### Stories
+* [FOLIO-3604](https://issues.folio.org/browse/FOLIO-3604) - FolioVertxCompletableFuture copyright violation
+
+
 ## 4.5.2 (Bug Fix) - Released
 This release contains fix for calculations of transaction amounts
 
