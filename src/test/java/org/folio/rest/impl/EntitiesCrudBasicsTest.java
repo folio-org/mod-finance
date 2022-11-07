@@ -106,7 +106,6 @@ public class EntitiesCrudBasicsTest {
     return Arrays.stream(TestEntities.values())
       .filter(e -> !e.equals(FUND))
       .filter(e -> !e.equals(BUDGET))
-      .filter(e -> !e.equals(GROUP))
       .filter(e -> !e.equals(LEDGER_ROLLOVER))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_LOGS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_BUDGETS))
@@ -122,6 +121,10 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithGetEndpoint() {
     return getTestEntities().filter(e -> !transactionEntities.contains(e));
+  }
+
+  static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
+    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(GROUP));
   }
 
   /**
@@ -189,7 +192,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollection(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
@@ -219,7 +222,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionInternalServerError(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Internal Server Error ===", testEntity.name());
 
@@ -228,7 +231,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionBadQuery(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Bad Request error ===", testEntity.name());
 
