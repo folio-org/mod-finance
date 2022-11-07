@@ -51,7 +51,8 @@
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.funds.collection.get",
             "finance-storage.budgets.collection.get",
-            "finance-storage.budget-expense-classes.collection.get"
+            "finance-storage.budget-expense-classes.collection.get",
+            "finance-storage.expense-classes.collection.get"
           ]
         },
         {
