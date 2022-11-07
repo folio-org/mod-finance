@@ -19,6 +19,7 @@ import org.folio.rest.helper.GroupsHelper;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.services.group.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,6 +34,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Autowired
   private GroupExpenseClassTotalsService groupExpenseClassTotalsService;
+  @Autowired
+  private GroupService groupService;
 
   public GroupsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -53,8 +56,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
   public void getFinanceGroups(int offset, int limit, String query, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
 
-    helper.getGroups(limit, offset, query)
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildOkResponse(types))))
+    groupService.getGroupsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
+      .thenAccept(groups -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(groups))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 

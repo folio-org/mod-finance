@@ -15,6 +15,7 @@ import org.folio.services.fund.FundService;
 import org.folio.services.group.GroupExpenseClassTotalsService;
 import org.folio.services.group.GroupFiscalYearTotalsService;
 import org.folio.services.group.GroupFundFiscalYearService;
+import org.folio.services.group.GroupService;
 import org.folio.services.ledger.LedgerDetailsService;
 import org.folio.services.ledger.LedgerRolloverErrorsService;
 import org.folio.services.ledger.LedgerRolloverProgressService;
@@ -92,8 +93,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  LedgerService ledgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService) {
-    return new LedgerService(ledgerStorageRestClient, ledgerTotalsService);
+  LedgerService ledgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
+    return new LedgerService(ledgerStorageRestClient, ledgerTotalsService, acqUnitsService);
   }
 
   @Bean
@@ -130,6 +131,11 @@ public class ServicesConfiguration {
   @Bean
   FundService fundService(RestClient fundStorageRestClient, AcqUnitsService acquisitionUnitsService) {
     return new FundService(fundStorageRestClient, acquisitionUnitsService);
+  }
+
+  @Bean
+  GroupService groupService(RestClient groupStorageRestClient, AcqUnitsService acquisitionUnitsService) {
+    return new GroupService(groupStorageRestClient, acquisitionUnitsService);
   }
 
   @Bean
