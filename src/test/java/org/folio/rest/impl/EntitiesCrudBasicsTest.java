@@ -22,6 +22,7 @@ import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
@@ -105,6 +106,7 @@ public class EntitiesCrudBasicsTest {
     return Arrays.stream(TestEntities.values())
       .filter(e -> !e.equals(FUND))
       .filter(e -> !e.equals(BUDGET))
+      .filter(e -> !e.equals(GROUP))
       .filter(e -> !e.equals(LEDGER_ROLLOVER))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_LOGS))
       .filter(e -> !e.equals(LEDGER_ROLLOVER_BUDGETS))

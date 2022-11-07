@@ -29,6 +29,7 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.services.group.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,6 +43,8 @@ public class GroupsApiTest {
   private static boolean runningOnOwn;
   @Autowired
   private GroupExpenseClassTotalsService groupExpenseClassTotalsServiceMock;
+  @Autowired
+  private GroupService groupServiceMock;
 
   @BeforeAll
   static void before() throws InterruptedException, ExecutionException, TimeoutException {
@@ -68,6 +71,7 @@ public class GroupsApiTest {
   @AfterEach
   void resetMocks() {
     reset(groupExpenseClassTotalsServiceMock);
+    reset(groupServiceMock);
   }
 
   @Test
@@ -107,6 +111,11 @@ public class GroupsApiTest {
     @Bean
     public GroupExpenseClassTotalsService groupExpenseClassTotalsService() {
       return mock(GroupExpenseClassTotalsService.class);
+    }
+
+    @Bean
+    public GroupService groupServiceMock() {
+      return mock(GroupService.class);
     }
   }
 }
