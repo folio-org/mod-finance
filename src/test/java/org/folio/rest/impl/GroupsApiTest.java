@@ -1,15 +1,18 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
+import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
 import static org.folio.rest.util.TestConfig.initSpringContext;
-import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
+import static org.folio.rest.util.TestEntities.GROUP;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -18,17 +21,23 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
+import org.folio.rest.acq.model.finance.Group;
+import org.folio.rest.acq.model.finance.GroupCollection;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.services.group.GroupExpenseClassTotalsService;
+import org.folio.services.group.GroupService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,11 +46,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
+import io.vertx.core.json.JsonObject;
+
 public class GroupsApiTest {
 
   private static boolean runningOnOwn;
   @Autowired
   private GroupExpenseClassTotalsService groupExpenseClassTotalsServiceMock;
+  @Autowired
+  private GroupService groupServiceMock;
+
+  public static final String GROUP_ENDPOINT = "finance/groups";
 
   @BeforeAll
   static void before() throws InterruptedException, ExecutionException, TimeoutException {
@@ -68,6 +83,7 @@ public class GroupsApiTest {
   @AfterEach
   void resetMocks() {
     reset(groupExpenseClassTotalsServiceMock);
+    reset(groupServiceMock);
   }
 
   @Test
@@ -84,6 +100,21 @@ public class GroupsApiTest {
 
     assertEquals(groupExpenseClassTotalsCollection, result);
     verify(groupExpenseClassTotalsServiceMock).getExpenseClassTotals(eq(groupId), eq(fiscalYearId) , any(RequestContext.class));
+  }
+
+  @Test
+  void testGetGroups() {
+    Group group = GROUP.getMockObject().mapTo(Group.class);
+    GroupCollection groupCollection = new GroupCollection().withGroups(List.of(group)).withTotalRecords(1);
+    addMockEntry(GROUP.name(), JsonObject.mapFrom(groupCollection));
+    when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(groupCollection));
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("query", "status=Active");
+    params.put("limit", 10);
+    params.put("offset", 10);
+
+    RestTestUtils.verifyGetWithParam(GROUP_ENDPOINT, APPLICATION_JSON, 200, params).as(GroupCollection.class);
   }
 
   @Test
@@ -107,6 +138,11 @@ public class GroupsApiTest {
     @Bean
     public GroupExpenseClassTotalsService groupExpenseClassTotalsService() {
       return mock(GroupExpenseClassTotalsService.class);
+    }
+
+    @Bean
+    public GroupService groupServiceMock() {
+      return mock(GroupService.class);
     }
   }
 }

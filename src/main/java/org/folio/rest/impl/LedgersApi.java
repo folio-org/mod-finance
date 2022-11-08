@@ -55,7 +55,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   public void getFinanceLedgers(String fiscalYearId, int offset, int limit, String query, String lang, Map<String, String> headers,
      Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    ledgerService.retrieveLedgersWithTotals(query, offset, limit, fiscalYearId, new RequestContext(ctx, headers))
+    ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(query, offset, limit, fiscalYearId, new RequestContext(ctx, headers))
       .thenAccept(ledgersCollection -> handler.handle(succeededFuture(buildOkResponse(ledgersCollection))))
       .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
