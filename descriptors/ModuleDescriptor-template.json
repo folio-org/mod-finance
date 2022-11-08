@@ -326,7 +326,9 @@
             "finance-storage.ledgers.collection.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
-            "finance-storage.transactions.collection.get"
+            "finance-storage.transactions.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {
@@ -345,7 +347,9 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
-            "finance-storage.transactions.collection.get"
+            "finance-storage.transactions.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {
@@ -510,7 +514,9 @@
           "pathPattern": "/finance/groups",
           "permissionsRequired": ["finance.groups.collection.get"],
           "modulePermissions": [
-            "finance-storage.groups.collection.get"
+            "finance-storage.groups.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {
@@ -526,7 +532,9 @@
           "pathPattern": "/finance/groups/{id}",
           "permissionsRequired": ["finance.groups.item.get"],
           "modulePermissions": [
-            "finance-storage.groups.item.get"
+            "finance-storage.groups.item.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
           ]
         },
         {
