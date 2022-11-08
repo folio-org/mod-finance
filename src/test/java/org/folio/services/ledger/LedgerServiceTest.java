@@ -50,8 +50,6 @@ public class LedgerServiceTest {
   @Mock
   private LedgerTotalsService ledgerTotalsMockService;
   @Mock
-  private RestClient ledgerStorageRestClient;
-  @Mock
   private AcqUnitsService acqUnitsService;
 
   private RequestContext requestContextMock;
@@ -90,7 +88,7 @@ public class LedgerServiceTest {
     Ledger ledger = new Ledger().withId(ledgerId);
     LedgersCollection ledgersCollection = new LedgersCollection().withLedgers(List.of(ledger)).withTotalRecords(1);
     doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContextMock);
-    doReturn(completedFuture(ledgersCollection)).when(ledgerStorageRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContextMock, LedgersCollection.class);
+    doReturn(completedFuture(ledgersCollection)).when(ledgerStorageRestClientMock).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContextMock, LedgersCollection.class);
 
     when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
     when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
