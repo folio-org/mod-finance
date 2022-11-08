@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static java.util.stream.Collectors.toList;
 import static one.util.streamex.StreamEx.ofSubLists;
@@ -58,7 +57,7 @@ public class LedgerService {
       });
   }
 
-  public CompletionStage<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
+  public CompletableFuture<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .thenCompose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));

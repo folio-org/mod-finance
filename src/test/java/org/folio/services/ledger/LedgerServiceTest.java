@@ -2,10 +2,12 @@ package org.folio.services.ledger;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,16 +22,21 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,12 +45,14 @@ public class LedgerServiceTest {
 
   @InjectMocks
   private LedgerService ledgerService;
-
   @Mock
   private RestClient ledgerStorageRestClientMock;
-
   @Mock
   private LedgerTotalsService ledgerTotalsMockService;
+  @Mock
+  private RestClient ledgerStorageRestClient;
+  @Mock
+  private AcqUnitsService acqUnitsService;
 
   private RequestContext requestContextMock;
 
@@ -72,7 +81,24 @@ public class LedgerServiceTest {
 
     assertEquals(ledger, resultLedger);
     verify(ledgerStorageRestClientMock).post(eq(ledger), eq(requestContextMock), eq(Ledger.class));
+  }
 
+  @Test
+  void testShouldRetrieveFundsWithAcqUnits() {
+    String ledgerId = UUID.randomUUID().toString();
+    String fiscalYearId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId);
+    LedgersCollection ledgersCollection = new LedgersCollection().withLedgers(List.of(ledger)).withTotalRecords(1);
+    doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContextMock);
+    doReturn(completedFuture(ledgersCollection)).when(ledgerStorageRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContextMock, LedgersCollection.class);
+
+    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+
+    LedgersCollection actLedgers = ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(StringUtils.EMPTY, 0,10, fiscalYearId, requestContextMock).join();
+
+    assertThat(ledgersCollection, equalTo(actLedgers));
+    verify(ledgerTotalsMockService).populateLedgersTotals(eq(ledgersCollection), eq(fiscalYearId), eq(requestContextMock));
   }
 
   @Test
