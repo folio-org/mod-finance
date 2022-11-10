@@ -22,6 +22,7 @@ import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
@@ -122,6 +123,10 @@ public class EntitiesCrudBasicsTest {
     return getTestEntities().filter(e -> !transactionEntities.contains(e));
   }
 
+  static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
+    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(GROUP));
+  }
+
   /**
    * Test entities except for all TransactionTypes, GROUP_FUND_FISCAL_YEAR
    *
@@ -187,7 +192,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollection(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
@@ -217,7 +222,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionInternalServerError(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Internal Server Error ===", testEntity.name());
 
@@ -226,7 +231,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionBadQuery(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Bad Request error ===", testEntity.name());
 

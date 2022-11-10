@@ -29,6 +29,7 @@ import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.fund.FundServiceTest;
 import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
+import org.folio.services.group.GroupServiceTest;
 import org.folio.services.ledger.LedgerDetailsServiceTest;
 import org.folio.services.ledger.LedgerRolloverLogsServiceTest;
 import org.folio.services.ledger.LedgerRolloverBudgetsServiceTest;
@@ -225,5 +226,8 @@ public class ApiTestSuite {
   @Nested
   class FundCodeExpenseClassesServiceTestNested extends FundCodeExpenseClassesServiceTest {
   }
+
+  @Nested
+  class GroupServiceNested extends GroupServiceTest {}
 
 }

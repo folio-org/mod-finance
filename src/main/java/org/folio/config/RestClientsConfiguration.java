@@ -12,6 +12,7 @@ import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_LOGS_STORAGE;
@@ -59,6 +60,11 @@ public class RestClientsConfiguration {
   @Bean
   RestClient fundStorageRestClient() {
     return new RestClient(resourcesPath(FUNDS_STORAGE));
+  }
+
+  @Bean
+  RestClient groupStorageRestClient() {
+    return new RestClient(resourcesPath(GROUPS));
   }
 
   @Bean

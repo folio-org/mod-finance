@@ -3,18 +3,20 @@ package org.folio.rest.impl;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
-import static org.folio.rest.util.TestConfig.autowireDependencies;
-import static org.folio.rest.util.TestConfig.clearVertxContext;
-import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
+import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.RestTestUtils.verifyDeleteResponse;
 import static org.folio.rest.util.RestTestUtils.verifyGet;
 import static org.folio.rest.util.RestTestUtils.verifyGetWithParam;
 import static org.folio.rest.util.RestTestUtils.verifyPostResponse;
 import static org.folio.rest.util.RestTestUtils.verifyPut;
+import static org.folio.rest.util.TestConfig.autowireDependencies;
+import static org.folio.rest.util.TestConfig.clearVertxContext;
+import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
@@ -33,12 +35,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -46,9 +51,11 @@ import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestEntities;
 import org.folio.services.ledger.LedgerDetailsService;
 import org.folio.services.ledger.LedgerService;
+import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,8 +65,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import io.vertx.core.json.JsonObject;
 
 
 public class LedgersApiTest {
@@ -71,6 +77,8 @@ public class LedgersApiTest {
   public LedgerService ledgerMockService;
   @Autowired
   public LedgerDetailsService currentFiscalYearMockService;
+  @Autowired
+  public AcqUnitsService acqUnitsService;
 
   @BeforeAll
   static void init() throws InterruptedException, ExecutionException, TimeoutException {
@@ -98,6 +106,7 @@ public class LedgersApiTest {
   void resetMocks() {
     reset(ledgerMockService);
     reset(currentFiscalYearMockService);
+    reset(acqUnitsService);
   }
 
   @Test
@@ -192,7 +201,8 @@ public class LedgersApiTest {
     ledgersCollection.getLedgers().add(ledger2);
     ledgersCollection.setTotalRecords(2);
 
-    when(ledgerMockService.retrieveLedgersWithTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(CompletableFuture.completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
     String query = "status==Active";
     int limit = 5;
     int offset = 1;
@@ -208,8 +218,25 @@ public class LedgersApiTest {
 
     assertEquals(ledgersCollection, response);
 
-    verify(ledgerMockService).retrieveLedgersWithTotals(eq(query), eq(offset), eq(limit), eq(fiscalYearId), any(RequestContext.class));
+    verify(ledgerMockService).retrieveLedgersWithAcqUnitsRestrictionAndTotals(eq(query), eq(offset), eq(limit), eq(fiscalYearId), any(RequestContext.class));
 
+  }
+
+  @Test
+  void testGetLedger() {
+    String fiscalYearId = UUID.randomUUID().toString();
+    Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
+    LedgersCollection ledgerCollection = new LedgersCollection().withLedgers(List.of(ledger)).withTotalRecords(1);
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledgerCollection));
+    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgerCollection));
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("query", "status=Active");
+    params.put("fiscalYear", fiscalYearId);
+    params.put("limit", 10);
+    params.put("offset", 10);
+
+    RestTestUtils.verifyGetWithParam(TestEntities.LEDGER.getEndpoint(), APPLICATION_JSON, 200, params).as(LedgersCollection.class);
   }
 
   @Test
@@ -219,9 +246,10 @@ public class LedgersApiTest {
     CompletableFuture<LedgersCollection> errorFuture = new  CompletableFuture<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
-    when(ledgerMockService.retrieveLedgersWithTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(errorFuture);
+    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(errorFuture);
+    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(CompletableFuture.completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
 
-    String query = "id==" + UUID.randomUUID().toString();
+    String query = "id==" + UUID.randomUUID();
     Map<String, Object> params = new HashMap<>();
     params.put("query", query);
     params.put("fiscalYear", UUID.randomUUID().toString());
@@ -312,6 +340,10 @@ public class LedgersApiTest {
     @Bean
     public LedgerDetailsService currentFiscalYearService() {
       return mock(LedgerDetailsService.class);
+    }
+
+    @Bean AcqUnitsService acqUnitsService() {
+      return mock(AcqUnitsService.class);
     }
   }
 
