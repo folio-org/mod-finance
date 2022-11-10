@@ -1,5 +1,15 @@
 ## 4.7.0 - Unreleased
 
+## 4.6.1 Nolana R3 2022 Bug Fix - Released
+The focus of this release was to fix issue with restriction by acq unit in Ledger and Group
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.6.0...v4.6.1)
+
+### Bug Fixes
+* [MODFIN-273](https://issues.folio.org/browse/MODFIN-273) Ledger and Group search results not restricted by acq unit
+* [MODFIN-241](https://issues.folio.org/browse/MODFIN-241) User with only FIN settings perms cannot export fund and expense class codes
+
+
 ## 4.6.0 Nolana R3 2022 - Released
 This release contains RMB upgrade and implement new business API
 
