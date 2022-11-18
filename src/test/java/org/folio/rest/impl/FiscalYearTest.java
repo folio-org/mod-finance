@@ -22,8 +22,7 @@ import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.VALID_DATE_2020;
 import static org.folio.rest.util.TestConstants.VALID_DATE_2021;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
-import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.rest.util.TestEntities.*;
 import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -97,6 +96,14 @@ public class FiscalYearTest {
     assertThat(response.getBody()
       .as(FiscalYear.class)
       .getCurrency(), notNullValue());
+  }
+
+  @Test
+  void testPostFiscalYearWithInvalidCode() {
+    logger.info("=== Test create FiscalYear with invalid FiscalYearCode===");
+
+    RestTestUtils.verifyPostResponse(FISCAL_YEAR_INVALID_CODE.getEndpoint(), FISCAL_YEAR_INVALID_CODE.getMockObject(), APPLICATION_JSON,
+      422).as(Errors.class);
   }
 
   @Test
