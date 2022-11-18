@@ -102,8 +102,9 @@ public class FiscalYearTest {
   @Test
   void testPostFiscalYearWithInvalidCode() {
     logger.info("=== Test create FiscalYear with invalid FiscalYearCode===");
-    String id = UUID.randomUUID().toString();
-    FiscalYear fiscalYear = new FiscalYear().withId(id).withPeriodStart(new Date()).withPeriodEnd(new Date()).withCode("Test");
+
+    FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYear.setCode("dcscs");
     RestTestUtils.verifyPostResponse(FISCAL_YEAR.getEndpoint(), fiscalYear, APPLICATION_JSON,
       422).as(Errors.class);
   }
