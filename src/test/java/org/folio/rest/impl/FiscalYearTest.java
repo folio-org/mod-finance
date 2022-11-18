@@ -33,6 +33,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -101,8 +102,9 @@ public class FiscalYearTest {
   @Test
   void testPostFiscalYearWithInvalidCode() {
     logger.info("=== Test create FiscalYear with invalid FiscalYearCode===");
-
-    RestTestUtils.verifyPostResponse(FISCAL_YEAR_INVALID_CODE.getEndpoint(), FISCAL_YEAR_INVALID_CODE.getMockObject(), APPLICATION_JSON,
+    String id = UUID.randomUUID().toString();
+    FiscalYear fiscalYear = new FiscalYear().withId(id).withPeriodStart(new Date()).withPeriodEnd(new Date()).withCode("Test");
+    RestTestUtils.verifyPostResponse(FISCAL_YEAR.getEndpoint(), fiscalYear, APPLICATION_JSON,
       422).as(Errors.class);
   }
 
