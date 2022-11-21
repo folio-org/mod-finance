@@ -80,6 +80,11 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
+    if (!isFiscalYearValid(fiscalYearRequest)) {
+      handleInvalidFiscalYearCode(handler);
+      return;
+    }
+
     if (!isPeriodValid(fiscalYearRequest)) {
       handleInvalidPeriod(handler);
       return;

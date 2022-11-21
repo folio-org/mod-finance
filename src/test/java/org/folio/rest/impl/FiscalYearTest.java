@@ -303,6 +303,16 @@ public class FiscalYearTest {
     assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
   }
 
+  @Test
+  void testPutFiscalYearWithInvalidCode() {
+    logger.info("=== Test put FiscalYear with invalid FiscalYearCode===");
+
+    JsonObject body = FISCAL_YEAR.getMockObject();
+    body.put("code","test");
+
+    RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", 422);
+  }
+
   private String getCurrentFiscalYearEndpoint(String ledgerId) {
     return HelperUtils.getEndpoint(FinanceLedgers.class) + "/" + ledgerId + "/current-fiscal-year";
   }
