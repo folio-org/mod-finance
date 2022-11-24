@@ -1,5 +1,14 @@
 ## 4.7.0 - Unreleased
 
+## 4.6.2 Nolana R3 2022 Bug Fix - Released
+The focus of this release was to fix issue with fiscal year code validation error missing
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.6.1...v4.6.2)
+
+### Bug Fixes
+* [MODFIN-291](https://issues.folio.org/browse/MODFIN-291) Fiscal year code validation error missing
+
+
 ## 4.6.1 Nolana R3 2022 Bug Fix - Released
 The focus of this release was to fix issue with restriction by acq unit in Ledger and Group
 
