@@ -1,6 +1,6 @@
 <!--
   If you have a relevant JIRA issue number, please put it in the issue title.
-  Example: MODFIN-70 Logging Improvement
+  Example: MODFIN-70 - Logging Improvement
 
   TL;DR
     - https://www.youtube.com/watch?v=5aHmO_S8FQ4
