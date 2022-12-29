@@ -61,7 +61,7 @@ public class AcqUnitsService {
         .toList());
   }
 
-  private CompletableFuture<List<String>> getAcqUnitIdsForUser(String userId, RequestContext requestContext) {
+  public CompletableFuture<List<String>> getAcqUnitIdsForUser(String userId, RequestContext requestContext) {
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships("userId==" + userId, 0, Integer.MAX_VALUE, requestContext)
       .thenApply(memberships -> {
         List<String> ids = memberships.getAcquisitionsUnitMemberships()

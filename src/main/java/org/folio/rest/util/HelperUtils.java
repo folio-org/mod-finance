@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -42,6 +43,7 @@ import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
@@ -307,5 +309,9 @@ public class HelperUtils {
     return StreamEx.of(expressions)
       .filter(StringUtils::isNotBlank)
       .joining(") " + operator + " (", "(", ")") + sorting;
+  }
+
+  public static String getCurrentUserId(Map<String, String> okapiHeaders) {
+    return okapiHeaders.get(OKAPI_USERID_HEADER);
   }
 }
