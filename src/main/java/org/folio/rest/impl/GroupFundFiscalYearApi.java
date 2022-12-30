@@ -33,7 +33,7 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
 
   @Override
   @Validate
-  public void postFinanceGroupFundFiscalYears(String lang, GroupFundFiscalYear entity, Map<String, String> headers,
+  public void postFinanceGroupFundFiscalYears(GroupFundFiscalYear entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.createGroupFundFiscalYear(entity,  new RequestContext(ctx, headers))
@@ -44,7 +44,7 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
 
   @Override
   @Validate
-  public void getFinanceGroupFundFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceGroupFundFiscalYears(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
     Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.getGroupFundFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
@@ -54,7 +54,7 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
 
   @Override
   @Validate
-  public void deleteFinanceGroupFundFiscalYearsById(String id, String lang, Map<String, String> headers,
+  public void deleteFinanceGroupFundFiscalYearsById(String id, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, headers))

@@ -18,7 +18,7 @@ import java.util.Map;
 public class ExchangeRateApi implements FinanceExchangeRate {
   @Override
   @Validate
-  public void getFinanceExchangeRate(String from, String to, String lang, Map<String, String> okapiHeaders,
+  public void getFinanceExchangeRate(String from, String to, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
     FolioVertxCompletableFuture.supplyBlockingAsync(vertxContext, () -> helper.getExchangeRate(from, to))

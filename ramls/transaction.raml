@@ -68,13 +68,12 @@ resourceTypes:
     /{id}:
       displayName: Transaction instance
       put:
-        is: [language]
         description: Update a Transaction instance
         body:
           application/json:
             type: transaction
       delete:
-        is: [validate, language]
+        is: [validate]
         description: Delete an encumbrance with given transactionId
 
   /payments:

@@ -27,7 +27,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
 
   @Override
   @Validate
-  public void getFinanceLedgerRolloversErrors(String query, int offset, int limit, String lang, String accept,
+  public void getFinanceLedgerRolloversErrors(String query, String totalRecords, int offset, int limit, String accept,
                                               Map<String, String> okapiHeaders,
                                               Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 

@@ -31,7 +31,7 @@ public class LedgerRolloverApi extends BaseApi implements FinanceLedgerRollovers
 
   @Override
   @Validate
-  public void getFinanceLedgerRollovers(String query, int offset, int limit, String lang,
+  public void getFinanceLedgerRollovers(String query, String totalRecords, int offset, int limit,
     Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverService.retrieveLedgerRollovers(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(ledgerRollovers -> asyncResultHandler.handle(succeededFuture(buildOkResponse(ledgerRollovers))))
@@ -40,7 +40,7 @@ public class LedgerRolloverApi extends BaseApi implements FinanceLedgerRollovers
 
   @Override
   @Validate
-  public void postFinanceLedgerRollovers(String lang, LedgerFiscalYearRollover entity, Map<String, String> okapiHeaders,
+  public void postFinanceLedgerRollovers(LedgerFiscalYearRollover entity, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverService.createLedger(entity, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(rollover -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(
@@ -50,7 +50,7 @@ public class LedgerRolloverApi extends BaseApi implements FinanceLedgerRollovers
 
   @Override
   @Validate
-  public void getFinanceLedgerRolloversById(String id, String lang, Map<String, String> okapiHeaders,
+  public void getFinanceLedgerRolloversById(String id, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverService.retrieveLedgerRolloverById(id, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(rollover -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rollover))))

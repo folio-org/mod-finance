@@ -42,7 +42,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void postFinanceLedgers(String lang, Ledger entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void postFinanceLedgers(Ledger entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
     ledgerService.createLedger(entity, new RequestContext(ctx, headers))
       .thenAccept(type -> handler
@@ -52,7 +52,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void getFinanceLedgers(String fiscalYearId, int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceLedgers(String fiscalYearId, String totalRecords, int offset, int limit, String query, Map<String, String> headers,
      Handler<AsyncResult<Response>> handler, Context ctx) {
 
     ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(query, offset, limit, fiscalYearId, new RequestContext(ctx, headers))
@@ -62,7 +62,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void putFinanceLedgersById(String id, String lang, Ledger entity, Map<String, String> headers,
+  public void putFinanceLedgersById(String id, Ledger entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     // Set id if this is available only in path
@@ -80,7 +80,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void getFinanceLedgersById(String ledgerId, String fiscalYearId, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceLedgersById(String ledgerId, String fiscalYearId, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
     ledgerService.retrieveLedgerWithTotals(ledgerId, fiscalYearId, new RequestContext(ctx, headers))
@@ -90,7 +90,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void deleteFinanceLedgersById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void deleteFinanceLedgersById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
     ledgerService.deleteLedger(id, new RequestContext(ctx, headers))
@@ -100,7 +100,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
 
   @Validate
   @Override
-  public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
+  public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
 
     ledgerDetailsService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(currentFiscalYear -> {

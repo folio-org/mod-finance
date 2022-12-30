@@ -46,32 +46,28 @@ public abstract class AbstractHelper {
   static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s&lang=%s";
 
   protected final Logger logger = LogManager.getLogger(this.getClass());
-  protected final String lang;
   protected final Context ctx;
   protected final HttpClientInterface httpClient;
   protected final Map<String, String> okapiHeaders;
   private final Errors processingErrors = new Errors();
 
 
-  AbstractHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx, String lang) {
+  AbstractHelper(HttpClientInterface httpClient, Map<String, String> okapiHeaders, Context ctx) {
     setDefaultHeaders(httpClient);
     this.httpClient = httpClient;
     this.okapiHeaders = okapiHeaders;
     this.ctx = ctx;
-    this.lang = lang;
   }
 
-  AbstractHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
+  AbstractHelper(Map<String, String> okapiHeaders, Context ctx) {
     this.httpClient = getHttpClient(okapiHeaders, true);
     this.okapiHeaders = okapiHeaders;
     this.ctx = ctx;
-    this.lang = lang;
   }
 
   protected AbstractHelper(Context ctx) {
     this.httpClient = null;
     this.okapiHeaders = null;
-    this.lang = null;
     this.ctx = ctx;
   }
 
