@@ -21,15 +21,16 @@ import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
-import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_BUDGETS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
+import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
@@ -124,7 +125,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(GROUP));
+    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(FISCAL_YEAR) && !e.equals(GROUP));
   }
 
   /**

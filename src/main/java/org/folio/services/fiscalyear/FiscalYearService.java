@@ -8,7 +8,6 @@ import org.folio.rest.jaxrs.model.*;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
-import org.folio.services.protection.AcqUnitsService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,13 +19,11 @@ public class FiscalYearService {
   private final RestClient fiscalYearRestClient;
   private final ConfigurationEntriesService configurationEntriesService;
   private final BudgetService budgetService;
-  private final AcqUnitsService acqUnitsService;
 
-  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService, AcqUnitsService acqUnitsService) {
+  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService) {
     this.fiscalYearRestClient = fiscalYearRestClient;
     this.configurationEntriesService = configurationEntriesService;
     this.budgetService = budgetService;
-    this.acqUnitsService = acqUnitsService;
   }
 
   public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
