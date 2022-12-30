@@ -1,59 +1,59 @@
 package org.folio.rest.impl;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static org.folio.rest.RestConstants.OKAPI_URL;
+import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getRqRsEntries;
-import static org.folio.rest.util.TestConfig.*;
-import static org.folio.rest.util.TestConstants.*;
-import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.rest.util.TestConfig.clearServiceInteractions;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.PERIOD_END;
+import static org.folio.rest.util.TestConstants.PERIOD_START;
+import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2020;
+import static org.folio.rest.util.TestConstants.VALID_DATE_2021;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestEntities.*;
+import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
-import static org.folio.services.ledger.LedgerDetailsService.SEARCH_CURRENT_FISCAL_YEAR_QUERY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.jaxrs.model.*;
+import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.util.HelperUtils;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.rest.util.TestConfig;
 import org.folio.rest.util.TestEntities;
-import org.folio.services.configuration.ConfigurationEntriesService;
-import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.ledger.LedgerDetailsService;
-import org.folio.services.ledger.LedgerService;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -61,50 +61,27 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 public class FiscalYearTest {
-
-  private RequestContext requestContext;
-
   private static final Logger logger = LogManager.getLogger(FiscalYearTest.class);
-
   private static boolean runningOnOwn;
 
-  @InjectMocks
-  private LedgerDetailsService ledgerDetailsService;
-
-  @Mock
-  private FiscalYearService fiscalYearService;
-
-  @Mock
-  private LedgerService ledgerService;
-
-  @Mock
-  private ConfigurationEntriesService configurationEntriesService;
-
-  @BeforeEach
-  public void initMocks() throws ExecutionException, InterruptedException, TimeoutException {
+  @BeforeAll
+  static void before() throws InterruptedException, ExecutionException, TimeoutException {
     if (isVerticleNotDeployed()) {
       ApiTestSuite.before();
       runningOnOwn = true;
     }
     initSpringContext(ApplicationConfig.class);
-    MockitoAnnotations.openMocks(this);
-    Context context = Vertx.vertx().getOrCreateContext();
-    Map<String, String> okapiHeaders = new HashMap<>();
-    okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
-    okapiHeaders.put(X_OKAPI_TOKEN.getName(), X_OKAPI_TOKEN.getValue());
-    okapiHeaders.put(X_OKAPI_TENANT.getName(), X_OKAPI_TENANT.getValue());
-    okapiHeaders.put(X_OKAPI_USER_ID.getName(), X_OKAPI_USER_ID.getValue());
-    requestContext = new RequestContext(context, okapiHeaders);
   }
 
   @AfterEach
   void afterEach() {
     clearServiceInteractions();
+  }
+
+  @AfterAll
+  static void after() {
     if (runningOnOwn) {
       ApiTestSuite.after();
     }
@@ -218,100 +195,69 @@ public class FiscalYearTest {
   }
 
   @Test
-  void testOneFiscalYear() throws ParseException {
+  void testOneFiscalYear() {
 
     logger.info("=== Test Get Current Fiscal Year - One Fiscal Year ===");
 
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    Calendar calendar = Calendar.getInstance();
-    int year = calendar.get(Calendar.YEAR);
-
-    String firstCurFiscalId = UUID.randomUUID().toString();
-    Date fStartDate = sdf.parse("01/01/" + year);
-    Date fEndDate = sdf.parse("31/12/" + year);
+    FiscalYear year = new FiscalYear().withId(UUID.randomUUID().toString());
 
     String ledgerId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(year.getId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(year));
 
-    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
-    FiscalYear firstfiscalYear = new FiscalYear().withSeries("FY").withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear));
-
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("America/Los_Angeles")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
-    //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), Matchers.equalTo(firstfiscalYear.getId()));
-    LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
-    String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, "FY", now);
-    verify(fiscalYearService).getFiscalYears(eq(expQuery), eq(0), eq(3), eq(requestContext));
+    FiscalYear response = RestTestUtils.verifyGet(getCurrentFiscalYearEndpoint(ledgerId), APPLICATION_JSON, OK.getStatusCode()).as(FiscalYear.class);
+    assertThat(response.getId(), is(year.getId()));
   }
 
   @Test
-  void testTwoOverlappedFiscalYears() throws ParseException {
+  void testTwoOverlappedFiscalYears() {
+
     logger.info("=== Test Get Current Fiscal Year - Two Overlapped Fiscal Years ===");
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    Calendar calendar = Calendar.getInstance();
-    int year = calendar.get(Calendar.YEAR);
 
-    String firstCurFiscalId = UUID.randomUUID().toString();
-    Date fStartDate = sdf.parse("01/01/" + year);
-    Date fEndDate = sdf.parse("31/12/" + year);
+    LocalDateTime now = LocalDateTime.now();
 
-    String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("03/01/" + year);
-    Date sEndDate = sdf.parse("31/12/" + year);
+    FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    firstYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    firstYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
+    FiscalYear secondYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    secondYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(5)));
+    secondYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
 
     String ledgerId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstYear.getId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(firstYear));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(secondYear));
 
-    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
-    FiscalYear firstFiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYear secFiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstFiscalYear, secFiscalYear));
-
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
-    //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), Matchers.equalTo(secFiscalYear.getId()));
+    FiscalYear response = RestTestUtils.verifyGet(getCurrentFiscalYearEndpoint(ledgerId), APPLICATION_JSON, OK.getStatusCode()).as(FiscalYear.class);
+    assertThat(response.getId(), is(secondYear.getId()));
   }
 
   @Test
-  void testTwoNonOverlappedFiscalYears() throws ParseException {
+  void testTwoNonOverlappedFiscalYears() {
 
     logger.info("=== Test Get Current Fiscal Year - Two Non-Overlapped Fiscal Years ===");
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    Calendar calendar = Calendar.getInstance();
-    int year = calendar.get(Calendar.YEAR);
-    int nextYear = year + 1;
-    String firstCurFiscalId = UUID.randomUUID().toString();
-    Date fStartDate = sdf.parse("01/01/" + year);
-    Date fEndDate = sdf.parse("03/31/" + year);
 
-    String secCurFiscalId = UUID.randomUUID().toString();
-    Date sStartDate = sdf.parse("01/01/" + nextYear);
-    Date sEndDate = sdf.parse("31/12/" + nextYear);
+    LocalDateTime now = LocalDateTime.now();
+
+    FiscalYear firstYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    firstYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    firstYear.setPeriodEnd(convertLocalDateTimeToDate(now));
+
+    FiscalYear secondYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    secondYear.setPeriodStart(convertLocalDateTimeToDate(now.plusDays(10)));
+    secondYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(20)));
 
     String ledgerId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstYear.getId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(firstYear));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(secondYear));
 
-    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
-    FiscalYear firstfiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYear secfiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
-
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
-    //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), Matchers.equalTo(firstfiscalYear.getId()));
+    FiscalYear response = RestTestUtils.verifyGet(getCurrentFiscalYearEndpoint(ledgerId), APPLICATION_JSON, OK.getStatusCode()).as(FiscalYear.class);
+    assertThat(response.getId(), is(firstYear.getId()));
   }
 
   @Test

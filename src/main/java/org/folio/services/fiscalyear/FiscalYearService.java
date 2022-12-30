@@ -1,7 +1,6 @@
 package org.folio.services.fiscalyear;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 
 public class FiscalYearService {
 
@@ -40,9 +38,7 @@ public class FiscalYearService {
   }
 
   public CompletableFuture<FiscalYearsCollection> getFiscalYears(String query, int offset, int limit, RequestContext requestContext) {
-    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .thenCompose(effectiveQuery -> fiscalYearRestClient.get(effectiveQuery, offset, limit, requestContext, FiscalYearsCollection.class));
+    return fiscalYearRestClient.get(query, offset, limit, requestContext, FiscalYearsCollection.class);
   }
 
   public CompletableFuture<FiscalYear> getFiscalYearById(String id, boolean withFinancialSummary, RequestContext requestContext) {
