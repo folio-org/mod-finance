@@ -22,7 +22,6 @@ public class FiscalYearService {
   private final RestClient fiscalYearRestClient;
   private final ConfigurationEntriesService configurationEntriesService;
   private final BudgetService budgetService;
-
   private final AcqUnitsService acqUnitsService;
 
   public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService, AcqUnitsService acqUnitsService) {

@@ -73,8 +73,10 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   @Override
   public void getFinanceFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
+
     fiscalYearService.getFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
-      .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))));
+      .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
