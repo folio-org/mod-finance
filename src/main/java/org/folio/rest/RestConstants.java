@@ -3,7 +3,7 @@ package org.folio.rest;
 public final class RestConstants {
   public static final String OKAPI_URL = "x-okapi-url";
   public static final String SEARCH_ENDPOINT = "%s?limit=%s&offset=%s%s";
-  public static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s&lang=%s";
+  public static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s";
   public static final int MAX_IDS_FOR_GET_RQ = 15;
   public static final int BAD_REQUEST = 400;
   public static final int ACCESS_DENIED = 401;

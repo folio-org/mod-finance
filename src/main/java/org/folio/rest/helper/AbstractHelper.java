@@ -43,7 +43,7 @@ public abstract class AbstractHelper {
 
   static final String EXCEPTION_CALLING_ENDPOINT_WITH_BODY_MSG = "{} {} request failed. Request body: {}";
   static final String CALLING_ENDPOINT_WITH_BODY_MSG = "Sending {} {} with body: {}";
-  static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s&lang=%s";
+  static final String SEARCH_PARAMS = "?limit=%s&offset=%s%s";
 
   protected final Logger logger = LogManager.getLogger(this.getClass());
   protected final Context ctx;
