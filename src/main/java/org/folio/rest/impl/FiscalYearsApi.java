@@ -6,10 +6,7 @@ import static org.folio.rest.util.ErrorCodes.*;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.ws.rs.core.Response;
 
@@ -18,7 +15,6 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
-import org.folio.rest.util.HelperUtils;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.spring.SpringContextUtil;
@@ -77,21 +73,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   @Override
   public void getFinanceFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
-
-    acqUnitsService.getAcqUnitIdsForUser(HelperUtils.getCurrentUserId(headers), new RequestContext(ctx, headers))
-      .thenAccept(ids ->
-        fiscalYearService.getFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
-          .thenAccept(fiscalYears -> {
-
-            List<FiscalYear> nonAcqFiscalYears = fiscalYears.getFiscalYears().stream().filter(fYear -> !fYear.getAcqUnitIds().isEmpty())
-              .filter(e -> e.getAcqUnitIds().stream().anyMatch(p -> ids.stream().anyMatch(p::equals))).collect(Collectors.toList());
-
-            List<FiscalYear> acqFiscalYear = fiscalYears.getFiscalYears().stream().filter(o -> o.getAcqUnitIds().isEmpty()).collect(Collectors.toList());
-
-            fiscalYears.withFiscalYears(Stream.concat(nonAcqFiscalYears.stream(),acqFiscalYear.stream()).collect(Collectors.toList()));
-            handler.handle(succeededFuture(buildOkResponse(fiscalYears)));})
-      )
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+    fiscalYearService.getFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
+      .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))));
   }
 
   @Validate

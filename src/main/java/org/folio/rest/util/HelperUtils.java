@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +42,6 @@ import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
@@ -53,10 +51,6 @@ public class HelperUtils {
   public static final String OKAPI_URL = "X-Okapi-Url";
   public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
   public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
-  private static final String CONFIG_QUERY = "(module=ORG and configName=localeSettings)";
-  public static final String CONFIGS = "configs";
-  public static final String CONFIG_NAME = "configName";
-  public static final String CONFIG_VALUE = "value";
 
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
@@ -309,9 +303,5 @@ public class HelperUtils {
     return StreamEx.of(expressions)
       .filter(StringUtils::isNotBlank)
       .joining(") " + operator + " (", "(", ")") + sorting;
-  }
-
-  public static String getCurrentUserId(Map<String, String> okapiHeaders) {
-    return okapiHeaders.get(OKAPI_USERID_HEADER);
   }
 }
