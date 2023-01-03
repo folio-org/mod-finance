@@ -6,14 +6,12 @@ import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_CODE;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
 import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -37,9 +35,6 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Autowired
   private FiscalYearService fiscalYearService;
-
-  @Autowired
-  private AcqUnitsService acqUnitsService;
 
   public FiscalYearsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -78,11 +73,9 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void getFinanceFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-     acqUnitsService.buildAcqUnitsCqlClause(new RequestContext(ctx, headers))
-      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .thenCompose(effectiveQuery -> fiscalYearService.getFiscalYears(effectiveQuery, offset, limit, new RequestContext(ctx, headers))
-        .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
-        .exceptionally(fail -> handleErrorResponse(handler, fail)));
+    fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
+      .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
+      .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate

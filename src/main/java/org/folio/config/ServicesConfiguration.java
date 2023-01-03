@@ -88,8 +88,9 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FiscalYearService fiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService){
-    return new FiscalYearService(fiscalYearRestClient, configurationEntriesService, budgetService);
+  FiscalYearService fiscalYearService(RestClient fiscalYearRestClient,ConfigurationEntriesService configurationEntriesService,
+                                      BudgetService budgetService, AcqUnitsService acqUnitsService){
+    return new FiscalYearService(fiscalYearRestClient, configurationEntriesService, budgetService, acqUnitsService);
   }
 
   @Bean
