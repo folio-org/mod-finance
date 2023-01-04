@@ -18,7 +18,6 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.protection.AcqUnitsService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
