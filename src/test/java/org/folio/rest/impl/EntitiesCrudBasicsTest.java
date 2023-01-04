@@ -126,7 +126,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> ObjectUtils.notEqual(e,GROUP) && ObjectUtils.notEqual(e,FISCAL_YEAR));
+    return getTestEntitiesWithGetEndpoint().filter(e -> ObjectUtils.notEqual(e, GROUP) && ObjectUtils.notEqual(e, FISCAL_YEAR));
   }
 
   /**
