@@ -64,7 +64,7 @@ public class LedgerDetailsService {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
       .thenCompose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
       .thenCombine(configurationEntriesService.getSystemTimeZone(requestContext), this::buildCurrentFYQuery)
-      .thenCompose(query -> fiscalYearService.getFiscalYears(query, 0, 3, requestContext))
+      .thenCompose(query -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(query, 0, 3, requestContext))
       .thenApply(FiscalYearsCollection::getFiscalYears);
   }
 
