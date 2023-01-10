@@ -22,8 +22,7 @@ import static org.folio.rest.util.TestConstants.SERIES_DOES_NOT_EXIST;
 import static org.folio.rest.util.TestConstants.VALID_DATE_2020;
 import static org.folio.rest.util.TestConstants.VALID_DATE_2021;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
-import static org.folio.rest.util.TestEntities.LEDGER;
+import static org.folio.rest.util.TestEntities.*;
 import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
 import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -34,7 +33,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
-import java.util.List;
+  import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -45,7 +44,6 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.rest.util.MockServer;
 import org.folio.rest.util.RestTestUtils;
@@ -97,6 +95,16 @@ public class FiscalYearTest {
     assertThat(response.getBody()
       .as(FiscalYear.class)
       .getCurrency(), notNullValue());
+  }
+
+  @Test
+  void testPostFiscalYearWithInvalidCode() {
+    logger.info("=== Test create FiscalYear with invalid FiscalYearCode===");
+
+    FiscalYear fiscalYear = FISCAL_YEAR.getMockObject().mapTo(FiscalYear.class);
+    fiscalYear.setCode("dcscs");
+    RestTestUtils.verifyPostResponse(FISCAL_YEAR.getEndpoint(), fiscalYear, APPLICATION_JSON,
+      422).as(Errors.class);
   }
 
   @Test
@@ -291,6 +299,16 @@ public class FiscalYearTest {
 
     RestTestUtils.verifyPut(TestEntities.FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
     assertThat(getRqRsEntries(HttpMethod.PUT, TestEntities.FISCAL_YEAR.toString()).get(0).getString("series"), is(notNullValue()));
+  }
+
+  @Test
+  void testPutFiscalYearWithInvalidCode() {
+    logger.info("=== Test put FiscalYear with invalid FiscalYearCode===");
+
+    JsonObject body = FISCAL_YEAR.getMockObject();
+    body.put("code","test");
+
+    RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", 422);
   }
 
   private String getCurrentFiscalYearEndpoint(String ledgerId) {

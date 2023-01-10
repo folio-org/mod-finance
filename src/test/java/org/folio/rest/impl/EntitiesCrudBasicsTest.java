@@ -21,14 +21,16 @@ import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
-import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_BUDGETS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
+import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
 import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
@@ -58,6 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Errors;
@@ -120,6 +123,10 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithGetEndpoint() {
     return getTestEntities().filter(e -> !transactionEntities.contains(e));
+  }
+
+  static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
+    return getTestEntitiesWithGetEndpoint().filter(e -> ObjectUtils.notEqual(e, GROUP) && ObjectUtils.notEqual(e, FISCAL_YEAR));
   }
 
   /**
@@ -187,7 +194,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollection(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} ===", testEntity.name());
 
@@ -217,7 +224,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionInternalServerError(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Internal Server Error ===", testEntity.name());
 
@@ -226,7 +233,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getTestEntitiesWithGetEndpoint")
+  @MethodSource("getTestEntitiesWithGetEndpointWithoutGroup")
   void testGetCollectionBadQuery(TestEntities testEntity) {
     logger.info("=== Test Get collection of {} records - Bad Request error ===", testEntity.name());
 

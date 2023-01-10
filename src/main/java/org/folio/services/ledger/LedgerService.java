@@ -1,10 +1,12 @@
 package org.folio.services.ledger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
+import org.folio.services.protection.AcqUnitsService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,6 +18,7 @@ import static one.util.streamex.StreamEx.ofSubLists;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -23,11 +26,13 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 public class LedgerService {
   private final RestClient ledgerStorageRestClient;
   private final LedgerTotalsService ledgerTotalsService;
+  private final AcqUnitsService acqUnitsService;
   public static final String ID = "id";
 
-  public LedgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService) {
+  public LedgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
     this.ledgerStorageRestClient = ledgerStorageRestClient;
     this.ledgerTotalsService = ledgerTotalsService;
+    this.acqUnitsService = acqUnitsService;
   }
 
   public CompletableFuture<Ledger> createLedger(Ledger ledger, RequestContext requestContext) {
@@ -50,6 +55,12 @@ public class LedgerService {
         }
         return ledgerTotalsService.populateLedgersTotals(ledgersCollection, fiscalYearId, requestContext);
       });
+  }
+
+  public CompletableFuture<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
+    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
+      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .thenCompose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));
   }
 
   public CompletableFuture<Ledger> retrieveLedgerWithTotals(String ledgerId, String fiscalYearId, RequestContext requestContext) {

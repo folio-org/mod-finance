@@ -81,7 +81,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(curFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
@@ -113,7 +113,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
@@ -145,7 +145,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
@@ -177,7 +177,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
@@ -204,7 +204,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
@@ -236,7 +236,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
@@ -269,7 +269,7 @@ public class LedgerDetailsServiceTest {
 
     doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYears(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
     doReturn(completedFuture("America/Los_Angeles")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
     FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
@@ -277,6 +277,6 @@ public class LedgerDetailsServiceTest {
     assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
     LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
     String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, "FY", now);
-    verify(fiscalYearService).getFiscalYears(eq(expQuery), eq(0), eq(3), eq(requestContext));
+    verify(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(eq(expQuery), eq(0), eq(3), eq(requestContext));
   }
 }

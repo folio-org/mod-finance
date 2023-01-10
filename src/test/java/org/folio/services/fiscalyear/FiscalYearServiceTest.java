@@ -1,6 +1,7 @@
 package org.folio.services.fiscalyear;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -10,6 +11,7 @@ import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -23,7 +25,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +55,9 @@ public class FiscalYearServiceTest {
 
     @Mock
     private RequestContext requestContext;
+
+    @Mock
+    private AcqUnitsService acqUnitsService;
 
     @BeforeEach
     public void initMocks() {
@@ -195,7 +205,34 @@ public class FiscalYearServiceTest {
     assertEquals(400, httpException.getCode());
   }
 
-    public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
+  @Test
+  void testShouldRetrieveFiscalYearsWithAcqUnits() {
+    //Given
+    FiscalYear fiscalYear = new FiscalYear().withId(UUID.randomUUID().toString()).withCode("TST");
+    FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
+    doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
+    doReturn(completedFuture(fiscalYearsCollection)).when(fiscalYearRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FiscalYearsCollection.class);
+    //When
+    FiscalYearsCollection actFiscalYears = fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext).join();
+    //Then
+    assertThat(fiscalYearsCollection, equalTo(actFiscalYears));
+    verify(fiscalYearRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FiscalYearsCollection.class);
+  }
+
+  @Test
+  void testShouldRetrieveFiscalYearsWithoutAcqUnits() {
+    //Given
+    FiscalYear fiscalYear = new FiscalYear().withId(UUID.randomUUID().toString()).withCode("TST");
+    FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
+    doReturn(completedFuture(fiscalYearsCollection)).when(fiscalYearRestClient).get("test_query", 0, 10, requestContext, FiscalYearsCollection.class);
+    //When
+    FiscalYearsCollection actFiscalYears = fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext).join();
+    //Then
+    assertThat(fiscalYearsCollection, equalTo(actFiscalYears));
+    verify(fiscalYearRestClient).get("test_query", 0, 10, requestContext, FiscalYearsCollection.class);
+  }
+
+  public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
       return String.format("code=%s", fiscalYearCode);
     }
 

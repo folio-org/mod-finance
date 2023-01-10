@@ -1,6 +1,7 @@
 package org.folio.services.fiscalyear;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -11,22 +12,26 @@ import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.protection.AcqUnitsService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 
 public class FiscalYearService {
 
   private final RestClient fiscalYearRestClient;
   private final ConfigurationEntriesService configurationEntriesService;
   private final BudgetService budgetService;
+  private final AcqUnitsService acqUnitsService;
 
-  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService) {
+  public FiscalYearService(RestClient fiscalYearRestClient, ConfigurationEntriesService configurationEntriesService, BudgetService budgetService, AcqUnitsService acqUnitsService) {
     this.fiscalYearRestClient = fiscalYearRestClient;
     this.configurationEntriesService = configurationEntriesService;
     this.budgetService = budgetService;
+    this.acqUnitsService = acqUnitsService;
   }
 
   public CompletableFuture<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
@@ -37,8 +42,14 @@ public class FiscalYearService {
       });
   }
 
-  public CompletableFuture<FiscalYearsCollection> getFiscalYears(String query, int offset, int limit, RequestContext requestContext) {
+  public CompletableFuture<FiscalYearsCollection> getFiscalYearsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return fiscalYearRestClient.get(query, offset, limit, requestContext, FiscalYearsCollection.class);
+  }
+
+  public CompletableFuture<FiscalYearsCollection> getFiscalYearsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
+      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .thenCompose(effectiveQuery -> fiscalYearRestClient.get(effectiveQuery, offset, limit, requestContext, FiscalYearsCollection.class));
   }
 
   public CompletableFuture<FiscalYear> getFiscalYearById(String id, boolean withFinancialSummary, RequestContext requestContext) {
