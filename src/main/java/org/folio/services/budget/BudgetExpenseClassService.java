@@ -63,9 +63,9 @@ public class BudgetExpenseClassService {
 
     return getBudgetExpenseClasses(sharedBudget.getId(), requestContext)
       .thenApply(budgetExpenseClasses -> mapBudgetExpenseClassesByOperation(budgetExpenseClasses, sharedBudget))
-      .thenCompose(budgetExpenseClassHolder -> deleteBudgetExpenseClasses(budgetExpenseClassHolder.getDeleteList(), sharedBudget, requestContext)
+      .thenCompose(budgetExpenseClassHolder -> createBudgetExpenseClasses(budgetExpenseClassHolder.getCreateList(), requestContext)
         .thenCompose(aVoid -> updateBudgetExpenseClasses(budgetExpenseClassHolder.getUpdateList(), requestContext))
-        .thenCompose(aVoid -> createBudgetExpenseClasses(budgetExpenseClassHolder.getCreateList(), requestContext)));
+        .thenCompose(aVoid -> deleteBudgetExpenseClasses(budgetExpenseClassHolder.getDeleteList(), sharedBudget, requestContext)));
   }
 
   private BudgetExpenseClassHolder mapBudgetExpenseClassesByOperation(List<BudgetExpenseClass> budgetExpenseClasses, SharedBudget sharedBudget) {
