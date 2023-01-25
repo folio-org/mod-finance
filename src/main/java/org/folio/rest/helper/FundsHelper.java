@@ -247,8 +247,9 @@ public class FundsHelper extends AbstractHelper {
     if (t1 == null) {
       return CompletableFuture.completedFuture(null);
     }
-    fundFromStorage.setVersion(fundFromStorage.getVersion() + 1);
-    return handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fundFromStorage.getId(), lang), fundFromStorage)
+    return getFund(fundFromStorage.getId())
+      .thenAccept(latestFund -> fundFromStorage.setVersion(latestFund.getVersion()))
+      .thenCompose(v -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fundFromStorage.getId(), lang), fundFromStorage))
       .handle((v2, t2) -> {
         throw new CompletionException((t1.getCause()));
       });

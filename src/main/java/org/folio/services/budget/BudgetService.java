@@ -72,8 +72,9 @@ public class BudgetService {
     if (t1 == null) {
       return CompletableFuture.completedFuture(null);
     }
-    budgetFromStorage.setVersion(budgetFromStorage.getVersion() + 1);
-    return budgetRestClient.put(budgetFromStorage.getId(), budgetFromStorage, requestContext)
+    return budgetRestClient.getById(budgetFromStorage.getId(), requestContext, Budget.class)
+      .thenAccept(latestBudget -> budgetFromStorage.setVersion(latestBudget.getVersion()))
+      .thenCompose(v -> budgetRestClient.put(budgetFromStorage.getId(), budgetFromStorage, requestContext))
       .handle((v2, t2) -> {
         throw new CompletionException((t1.getCause()));
       });
