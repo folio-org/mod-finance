@@ -185,6 +185,7 @@
           "permissionsRequired": ["finance.funds.item.put"],
           "modulePermissions": [
             "finance-storage.funds.item.put",
+            "finance-storage.funds.item.get",
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
