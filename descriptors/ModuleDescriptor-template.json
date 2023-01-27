@@ -244,6 +244,8 @@
           "pathPattern": "/finance/fiscal-years",
           "permissionsRequired": ["finance.fiscal-years.collection.get"],
           "modulePermissions": [
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get",
             "finance-storage.fiscal-years.collection.get"
           ]
         },
@@ -261,6 +263,8 @@
           "pathPattern": "/finance/fiscal-years/{id}",
           "permissionsRequired": ["finance.fiscal-years.item.get"],
           "modulePermissions": [
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.budgets.collection.get"
           ]

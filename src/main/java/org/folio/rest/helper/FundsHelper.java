@@ -21,7 +21,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
@@ -209,10 +211,19 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Void> updateFund(CompositeFund compositeFund) {
+    Fund fund = compositeFund.getFund();
+    return getFund(fund.getId())
+      .thenCompose(fundFromStorage -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId(), lang), fund)
+        .thenCompose(v1 -> updateFundGroups(compositeFund)
+          .handle((v2, t) -> rollbackFundPutIfNeeded(fundFromStorage, t))
+          .thenCompose(Function.identity())
+        )
+      );
+  }
 
+  private CompletableFuture<Void> updateFundGroups(CompositeFund compositeFund) {
     Fund fund = compositeFund.getFund();
     Set<String> groupIds = new HashSet<>(compositeFund.getGroupIds());
-
     return ledgerDetailsService.getCurrentFiscalYear(fund.getLedgerId(), new RequestContext(ctx, okapiHeaders))
       .thenCompose(currentFiscalYear-> {
         if(Objects.nonNull(currentFiscalYear)) {
@@ -221,14 +232,27 @@ public class FundsHelper extends AbstractHelper {
             .thenCompose(groupFundFiscalYearCollection -> {
               List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).toList();
               return createGroupFundFiscalYears(compositeFund, currentFiscalYearId, getSetDifference(groupIdsFromStorage, groupIds))
-                .thenCompose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(groupFundFiscalYearCollection, getSetDifference(groupIds, groupIdsFromStorage))));
+                .thenCompose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(
+                  groupFundFiscalYearCollection, getSetDifference(groupIds, groupIdsFromStorage))));
             });
         } else if(groupIds.isEmpty()) {
           return CompletableFuture.completedFuture(null);
         } else {
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
-      }).thenCompose(vVoid -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId()), fund));
+      });
+  }
+
+  private CompletableFuture<Void> rollbackFundPutIfNeeded(Fund fundFromStorage, Throwable t1) {
+    if (t1 == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return getFund(fundFromStorage.getId())
+      .thenAccept(latestFund -> fundFromStorage.setVersion(latestFund.getVersion()))
+      .thenCompose(v -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fundFromStorage.getId()), fundFromStorage))
+      .handle((v2, t2) -> {
+        throw new CompletionException((t1.getCause()));
+      });
   }
 
   private String getBudgetsCollectionQuery(String currentFiscalYearId, String fundId) {

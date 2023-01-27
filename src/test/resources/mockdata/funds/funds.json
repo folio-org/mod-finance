@@ -1,6 +1,7 @@
 {
   "funds": [
     {
+      "_version": 1,
       "id": "e9285a1c-1dfc-4380-868c-e74073003f43",
       "name": "European History",
       "code": "EUROHIST",

@@ -2,7 +2,9 @@ package org.folio.rest.impl;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.rest.util.ErrorCodes.*;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_CODE;
+import static org.folio.rest.util.ErrorCodes.FISCAL_YEAR_INVALID_PERIOD;
+import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.OKAPI_URL;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
@@ -70,7 +72,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void getFinanceFiscalYears(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    fiscalYearService.getFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
+    fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
       .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
       .exceptionally(fail -> handleErrorResponse(handler, fail));
   }

@@ -575,7 +575,7 @@ public class FundsApiTest {
 
     verifyCurrentFYQuery(fiscalYearOne);
 
-    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 2);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 2);
     verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
@@ -610,7 +610,7 @@ public class FundsApiTest {
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
     RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", 422);
 
-    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 2);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, BUDGET, 0);
@@ -636,7 +636,7 @@ public class FundsApiTest {
     String id = body.getJsonObject(FUND_FIELD_NAME).getString(ID);
     RestTestUtils.verifyPut(FUND.getEndpointWithId(id), body, "", INTERNAL_SERVER_ERROR.getStatusCode());
 
-    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 0);
+    verifyRsEntitiesQuantity(HttpMethod.PUT, FUND, 2);
     verifyRsEntitiesQuantity(HttpMethod.GET, LEDGER, 1);
     verifyRsEntitiesQuantity(HttpMethod.GET, FISCAL_YEAR, 0);
     verifyRsEntitiesQuantity(HttpMethod.POST, GROUP_FUND_FISCAL_YEAR, 0);

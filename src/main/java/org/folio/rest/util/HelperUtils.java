@@ -50,10 +50,6 @@ public class HelperUtils {
   public static final String OKAPI_URL = "X-Okapi-Url";
   public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
   public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
-  private static final String CONFIG_QUERY = "(module=ORG and configName=localeSettings)";
-  public static final String CONFIGS = "configs";
-  public static final String CONFIG_NAME = "configName";
-  public static final String CONFIG_VALUE = "value";
 
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
