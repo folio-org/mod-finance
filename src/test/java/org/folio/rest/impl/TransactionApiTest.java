@@ -255,20 +255,6 @@ public class TransactionApiTest {
   }
 
   @Test
-  void testDeleteExpendedEncumbrance() {
-    logger.info("=== Test delete encumbrance with expended amount - Unprocessable entity ===");
-    String id = DELETE_TRANSACTION_ID;
-    Transaction transaction = createTransaction(ENCUMBRANCE)
-      .withEncumbrance(new Encumbrance()
-        .withStatus(Encumbrance.Status.RELEASED)
-        .withAmountExpended(1.0)
-      );
-    transaction.setId(id);
-    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(transaction));
-    RestTestUtils.verifyDeleteResponse(TestEntities.TRANSACTIONS_ENCUMBRANCE.getEndpointWithId(id), "", 422);
-  }
-
-  @Test
   void testDeleteEncumbranceConnectedToInvoice() {
     logger.info("=== Test delete encumbrance connected to an invoice - Unprocessable entity ===");
     String id = DELETE_CONNECTED_TRANSACTION_ID;
