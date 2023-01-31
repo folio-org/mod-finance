@@ -25,7 +25,7 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 public class BaseTransactionService implements TransactionService {
   private static final Logger logger = LogManager.getLogger(BaseTransactionService.class);
   private static final int MAX_FUND_PER_QUERY = 5;
-  private static final String ALLOCATION_TYPE_TRANSACTIONS_QUERY = "(fiscalYearId==%s AND transactionType==%s) AND %s";
+  private static final String ALLOCATION_TYPE_TRANSACTIONS_QUERY = "(fiscalYearId==%s AND %s) AND %s";
   private static final String AWAITING_PAYMENT_WITH_ENCUMBRANCE = "awaitingPayment.encumbranceId==%s";
 
   private final RestClient transactionRestClient;
@@ -65,19 +65,19 @@ public class BaseTransactionService implements TransactionService {
   }
 
   public CompletableFuture<List<Transaction>> retrieveFromTransactions(List<String> fundIds, String fiscalYearId,
-                                                                       Transaction.TransactionType trType, RequestContext requestContext) {
+      List<Transaction.TransactionType> trTypes, RequestContext requestContext) {
     return collectResultsOnSuccess(
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trType, "fromFundId", requestContext)
+                    .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trTypes, "fromFundId", requestContext)
                       .thenApply(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, Transaction::getToFundId)))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
   public CompletableFuture<List<Transaction>> retrieveToTransactions(List<String> fundIds, String fiscalYearId,
-                                                                     Transaction.TransactionType trType, RequestContext requestContext) {
+      List<Transaction.TransactionType> trTypes, RequestContext requestContext) {
     return collectResultsOnSuccess(
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
-                    .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trType, "toFundId", requestContext)
+                    .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trTypes, "toFundId", requestContext)
                       .thenApply(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, Transaction::getFromFundId)))
                     .toList()).thenApply(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
@@ -91,10 +91,11 @@ public class BaseTransactionService implements TransactionService {
   }
 
   private CompletableFuture<List<Transaction>> retrieveAllocationTransactionsChunk(List<String> fundIds, String fiscalYearId,
-                                                                                   Transaction.TransactionType trType, String allocationDirection,
-                                                                                   RequestContext requestContext) {
+      List<Transaction.TransactionType> trTypes, String allocationDirection, RequestContext requestContext) {
     String fundQuery = convertIdsToCqlQuery(fundIds, allocationDirection, "==", " OR ");
-    String query = String.format(ALLOCATION_TYPE_TRANSACTIONS_QUERY, fiscalYearId, trType.value(), fundQuery);
+    List<String> trTypeValues = trTypes.stream().map(Transaction.TransactionType::value).collect(Collectors.toList());
+    String trTypeQuery = convertIdsToCqlQuery(trTypeValues, "transactionType", "==", " OR ");
+    String query = String.format(ALLOCATION_TYPE_TRANSACTIONS_QUERY, fiscalYearId, trTypeQuery, fundQuery);
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).thenApply(TransactionCollection::getTransactions);
   }
 
