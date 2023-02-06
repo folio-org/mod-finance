@@ -1,7 +1,6 @@
 package org.folio.services.transactions;
 
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
-import static org.folio.rest.util.ErrorCodes.DELETE_WITH_EXPENDED_AMOUNT;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 
 import java.util.Collections;
@@ -57,11 +56,6 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   private CompletableFuture<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
     checkEncumbranceStatusNotReleased(encumbrance);
 
-    if (encumbrance.getEncumbrance() != null && encumbrance.getEncumbrance().getAmountExpended() > 0) {
-      logger.info("Tried to delete transaction {} but it has an expended amount.", encumbrance.getId()) ;
-      Parameter parameter = new Parameter().withKey("id").withValue(encumbrance.getId());
-      throw new HttpException(422, DELETE_WITH_EXPENDED_AMOUNT.toError().withParameters(Collections.singletonList(parameter)));
-    }
     return transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext)
       .thenAccept(connected -> {
         if (connected) {

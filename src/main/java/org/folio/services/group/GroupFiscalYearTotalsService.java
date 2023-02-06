@@ -31,6 +31,7 @@ import org.folio.rest.jaxrs.model.GroupFiscalYearSummaryCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.transactions.BaseTransactionService;
 
@@ -245,17 +246,19 @@ public class GroupFiscalYearTotalsService {
   private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithAllocations(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext)
-                    .thenCombine(baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext),
-                      (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
-                     );
+    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext)
+      .thenCombine(
+        baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext),
+        (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
+      );
   }
 
   private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext)
-                    .thenCombine(baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext),
+    List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
+    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, trTypes, requestContext)
+                    .thenCombine(baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, trTypes, requestContext),
                       (toAllocations, fromAllocations) -> holder.withToTransfers(toAllocations).withFromTransfers(fromAllocations)
                     );
   }

@@ -21,6 +21,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
@@ -89,8 +90,9 @@ public class LedgerTotalsService {
                                                                                             RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext)
-      .thenCombine(baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, Transaction.TransactionType.ALLOCATION, requestContext),
+    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext)
+      .thenCombine(
+        baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext),
         (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
       );
   }
@@ -99,8 +101,10 @@ public class LedgerTotalsService {
                                                                                           RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext)
-      .thenCombine(baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, Transaction.TransactionType.TRANSFER, requestContext),
+    List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
+    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext)
+      .thenCombine(
+        baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext),
         (toAllocations, fromAllocations) -> holder.withToTransfers(toAllocations).withFromTransfers(fromAllocations)
       );
   }
