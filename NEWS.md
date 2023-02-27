@@ -1,5 +1,13 @@
 ## 4.8.0 - Unreleased
 
+## 4.7.1  - Released (Orchid R1 2023)
+The focus of this release was to fix maintain displaying "Available" as a negative number for group and ledger
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.7.0...v4.7.1)
+
+### Bug Fixes
+* [MODFIN-308](https://issues.folio.org/browse/MODFIN-308) - Maintain displaying "Available" as a negative number for group and ledger
+
 ## 4.7.0  - Released (Orchid R1 2023)
 The primary focus of this release was to restrict search/view of Fiscal year records based upon acquisitions unit
 
