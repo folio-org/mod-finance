@@ -84,10 +84,15 @@ public class HelperUtils {
 
   public static void verifyResponse(Response response) {
     if (!Response.isSuccess(response.getCode())) {
+      HttpException httpException;
       String errorMsg = response.getError().getString(ERROR_MESSAGE);
-      HttpException httpException = getErrorByCode(errorMsg)
-        .map(errorCode -> new HttpException(response.getCode(), errorCode))
-        .orElse(new HttpException(response.getCode(), errorMsg));
+      if (isErrorMessageJson(errorMsg)) {
+        httpException = new HttpException(response.getCode(), mapToErrors(errorMsg));
+      } else {
+        httpException = getErrorByCode(errorMsg)
+          .map(errorCode -> new HttpException(response.getCode(), errorCode))
+          .orElse(new HttpException(response.getCode(), errorMsg));
+      }
       throw new CompletionException(httpException);
     }
   }
@@ -201,6 +206,7 @@ public class HelperUtils {
   public static boolean isErrorMessageJson(String errorMessage) {
     if (!StringUtils.isEmpty(errorMessage)) {
       Pattern pattern = Pattern.compile("(message).*(code).*(parameters)");
+      errorMessage = errorMessage.replaceAll("\r\n", "");
       Matcher matcher = pattern.matcher(errorMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 3;
@@ -240,6 +246,9 @@ public class HelperUtils {
     return error;
   }
 
+  private static Errors mapToErrors(String errorStr) {
+    return new JsonObject(errorStr).mapTo(Errors.class);
+  }
 
   public static javax.ws.rs.core.Response.ResponseBuilder createResponseBuilder(int code) {
     final javax.ws.rs.core.Response.ResponseBuilder responseBuilder;
