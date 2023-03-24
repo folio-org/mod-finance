@@ -55,6 +55,8 @@ public class HelperUtils {
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE);
+  private static final Pattern ERROR_PATTERN = Pattern.compile("(message).*(code).*(parameters)");
+  private static final Pattern ERRORS_PATTERN = Pattern.compile("(errors).*(message).*(code).*(parameters)");
 
   private HelperUtils() {
   }
@@ -205,8 +207,7 @@ public class HelperUtils {
 
   public static boolean isErrorMessageJson(String errorMessage) {
     if (!StringUtils.isEmpty(errorMessage)) {
-      Pattern pattern = Pattern.compile("(message).*(code).*(parameters)");
-      Matcher matcher = pattern.matcher(errorMessage);
+      Matcher matcher = ERROR_PATTERN.matcher(errorMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 3;
       }
@@ -216,9 +217,8 @@ public class HelperUtils {
 
   public static boolean isErrorsMessageJson(String errorsMessage) {
     if (!StringUtils.isEmpty(errorsMessage)) {
-      Pattern pattern = Pattern.compile("(errors).*(message).*(code).*(parameters)");
       errorsMessage = errorsMessage.replaceAll("\r\n", "");
-      Matcher matcher = pattern.matcher(errorsMessage);
+      Matcher matcher = ERRORS_PATTERN.matcher(errorsMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 4;
       }
