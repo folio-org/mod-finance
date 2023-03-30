@@ -43,8 +43,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void postFinanceGroups(String lang, Group entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
+  public void postFinanceGroups(Group entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
     helper.createGroup(entity)
       .thenAccept(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(GROUPS_LOCATION_PREFIX, type.getId()), type))))
@@ -53,8 +53,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void getFinanceGroups(int offset, int limit, String query, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
+  public void getFinanceGroups(String totalRecords, int offset, int limit, String query, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
 
     groupService.getGroupsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(groups -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(groups))))
@@ -63,8 +63,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void putFinanceGroupsById(String id, String lang, Group entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
+  public void putFinanceGroupsById(String id, Group entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
 
     // Set id if this is available only in path
     if (isEmpty(entity.getId())) {
@@ -82,8 +82,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void getFinanceGroupsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
+  public void getFinanceGroupsById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
     helper.getGroup(id)
       .thenAccept(type -> asyncResultHandler.handle(succeededFuture(buildOkResponse(type))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
@@ -91,8 +91,8 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void deleteFinanceGroupsById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext, lang);
+  public void deleteFinanceGroupsById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
     helper.deleteGroup(id)
       .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
@@ -100,7 +100,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Validate
   @Override
-  public void getFinanceGroupsExpenseClassesTotalsById(String groupId, String fiscalYearId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceGroupsExpenseClassesTotalsById(String groupId, String fiscalYearId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     if (StringUtils.isEmpty(fiscalYearId)) {
       handleErrorResponse(asyncResultHandler, new HttpException(400, MISSING_FISCAL_YEAR_ID));

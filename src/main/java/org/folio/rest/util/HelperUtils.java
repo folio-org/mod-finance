@@ -47,7 +47,6 @@ import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 public class HelperUtils {
   public static final String ID = "id";
-  public static final String LANG = "lang";
   public static final String OKAPI_URL = "X-Okapi-Url";
   public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
   public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";

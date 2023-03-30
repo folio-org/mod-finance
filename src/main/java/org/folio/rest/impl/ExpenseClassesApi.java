@@ -36,7 +36,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
 
   @Override
   @Validate
-  public void postFinanceExpenseClasses(String lang, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postFinanceExpenseClasses(ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.createExpenseClass(entity, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), resourceByIdPath(EXPENSE_CLASSES_URL, obj.getId()), obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
@@ -44,7 +44,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
 
   @Override
   @Validate
-  public void getFinanceExpenseClasses(int offset, int limit, String query, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceExpenseClasses(String totalRecords, int offset, int limit, String query, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.getExpenseClasses(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
@@ -52,7 +52,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
 
   @Override
   @Validate
-  public void putFinanceExpenseClassesById(String id, String lang, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void putFinanceExpenseClassesById(String id, ExpenseClass entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     if (isEmpty(entity.getId())) {
       entity.setId(id);
     } else if (!id.equals(entity.getId())) {
@@ -66,7 +66,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
 
   @Override
   @Validate
-  public void getFinanceExpenseClassesById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceExpenseClassesById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.getExpenseClassById(id, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(reasonForClosure -> asyncResultHandler.handle(succeededFuture(buildOkResponse(reasonForClosure))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
@@ -74,7 +74,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
 
   @Override
   @Validate
-  public void deleteFinanceExpenseClassesById(String id, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void deleteFinanceExpenseClassesById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     expenseClassService.deleteExpenseClass(id, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));

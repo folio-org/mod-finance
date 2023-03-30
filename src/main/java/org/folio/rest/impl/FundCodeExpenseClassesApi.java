@@ -27,7 +27,7 @@ public class FundCodeExpenseClassesApi extends BaseApi implements FinanceFundCod
 
   @Validate
   @Override
-  public void getFinanceFundCodesExpenseClasses(String fiscalYearCode, int offset, int limit, String lang,
+  public void getFinanceFundCodesExpenseClasses(String fiscalYearCode, String totalRecords, int offset, int limit,
                                                 Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> handler,
                                                 Context vertxContext) {

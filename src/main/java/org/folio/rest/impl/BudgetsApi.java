@@ -44,7 +44,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void postFinanceBudgets(String lang, SharedBudget budget, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void postFinanceBudgets(SharedBudget budget, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
                                  Context ctx) {
 
     RequestContext requestContext = new RequestContext(ctx, headers);
@@ -56,7 +56,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void getFinanceBudgets(int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceBudgets(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     budgetService.getBudgets(query, offset, limit, new RequestContext(ctx, headers))
@@ -67,7 +67,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void putFinanceBudgetsById(String id, String lang, SharedBudget budget, Map<String, String> headers,
+  public void putFinanceBudgetsById(String id, SharedBudget budget, Map<String, String> headers,
                                     Handler<AsyncResult<Response>> handler, Context ctx) {
 
 
@@ -87,7 +87,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void getFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceBudgetsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
     budgetService.getBudgetById(id, new RequestContext(ctx, headers))
@@ -98,7 +98,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
   @Validate
   @Override
-  public void deleteFinanceBudgetsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void deleteFinanceBudgetsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
     budgetService.deleteBudget(id, new RequestContext(ctx, headers))
@@ -108,7 +108,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   }
 
   @Override
-  public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, String lang, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));

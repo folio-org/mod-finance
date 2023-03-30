@@ -28,9 +28,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
 
   @Override
   @Validate
-  public void postFinanceOrderTransactionSummaries(String lang, OrderTransactionSummary entity, Map<String, String> okapiHeaders,
+  public void postFinanceOrderTransactionSummaries(OrderTransactionSummary entity, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
     helper.createOrderTransactionSummary(entity)
       .thenAccept(orderTxSummary -> asyncResultHandler.handle(succeededFuture(
           helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, orderTxSummary.getId()), orderTxSummary))))
@@ -39,9 +39,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
 
   @Override
   @Validate
-  public void putFinanceOrderTransactionSummariesById(String id, String lang, OrderTransactionSummary entity,
+  public void putFinanceOrderTransactionSummariesById(String id, OrderTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
 
     // Set id if this is available only in path
     if (isEmpty(entity.getId())) {
@@ -59,9 +59,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
 
   @Override
   @Validate
-  public void postFinanceInvoiceTransactionSummaries(String lang, InvoiceTransactionSummary entity,
+  public void postFinanceInvoiceTransactionSummaries(InvoiceTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
     helper.createInvoiceTransactionSummary(entity)
       .thenAccept(invoiceTxSummary -> asyncResultHandler.handle(succeededFuture(helper
         .buildResponseWithLocation(String.format(INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX, invoiceTxSummary.getId()), invoiceTxSummary))))
@@ -70,9 +70,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
 
   @Override
   @Validate
-  public void putFinanceInvoiceTransactionSummariesById(String id, String lang, InvoiceTransactionSummary entity,
+  public void putFinanceInvoiceTransactionSummariesById(String id, InvoiceTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, lang);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
 
     // Set id if this is available only in path
     if (isEmpty(entity.getId())) {
