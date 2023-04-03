@@ -41,7 +41,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinanceAllocations(String lang, Transaction allocation, Map<String, String> okapiHeaders,
+  public void postFinanceAllocations(Transaction allocation, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.ALLOCATION, allocation, new RequestContext(vertxContext, okapiHeaders))
@@ -52,7 +52,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinanceTransfers(String lang, Transaction transfer, Map<String, String> okapiHeaders,
+  public void postFinanceTransfers(Transaction transfer, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.TRANSFER, transfer, new RequestContext(vertxContext, okapiHeaders))
@@ -63,7 +63,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinanceEncumbrances(String lang, Transaction encumbrance, Map<String, String> okapiHeaders,
+  public void postFinanceEncumbrances(Transaction encumbrance, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.ENCUMBRANCE, encumbrance, new RequestContext(vertxContext, okapiHeaders))
@@ -74,7 +74,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void putFinanceEncumbrancesById(String id, String lang, Transaction encumbrance, Map<String, String> okapiHeaders,
+  public void putFinanceEncumbrancesById(String id, Transaction encumbrance, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     if (isEmpty(encumbrance.getId())) {
       encumbrance.setId(id);
@@ -91,7 +91,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void deleteFinanceEncumbrancesById(String id, String lang, Map<String, String> okapiHeaders,
+  public void deleteFinanceEncumbrancesById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     transactionService.retrieveTransactionById(id, new RequestContext(vertxContext, okapiHeaders))
         .thenCompose(transaction -> transactionStrategyFactory.deleteTransaction(Transaction.TransactionType.ENCUMBRANCE,
@@ -102,7 +102,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void getFinanceTransactions(String query, int offset, int limit, String lang, Map<String, String> okapiHeaders,
+  public void getFinanceTransactions(String query, String totalRecords, int offset, int limit, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionService.retrieveTransactions(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
@@ -112,7 +112,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void getFinanceTransactionsById(String id, String lang, Map<String, String> okapiHeaders,
+  public void getFinanceTransactionsById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionService.retrieveTransactionById(id, new RequestContext(vertxContext, okapiHeaders))
@@ -122,7 +122,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinancePayments(String lang, Transaction payment, Map<String, String> okapiHeaders,
+  public void postFinancePayments(Transaction payment, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.PAYMENT, payment, new RequestContext(vertxContext, okapiHeaders))
@@ -132,7 +132,7 @@ public class TransactionsApi extends BaseApi implements Finance {
   }
 
   @Override
-  public void putFinancePaymentsById(String id, String lang, Transaction payment,
+  public void putFinancePaymentsById(String id, Transaction payment,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     if (isEmpty(payment.getId())) {
       payment.setId(id);
@@ -148,7 +148,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinancePendingPayments(String lang, Transaction pendingPayment, Map<String, String> okapiHeaders,
+  public void postFinancePendingPayments(Transaction pendingPayment, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.PENDING_PAYMENT, pendingPayment, new RequestContext(vertxContext, okapiHeaders))
@@ -158,7 +158,7 @@ public class TransactionsApi extends BaseApi implements Finance {
   }
 
   @Override
-  public void putFinancePendingPaymentsById(String id, String lang, Transaction pendingPayment,
+  public void putFinancePendingPaymentsById(String id, Transaction pendingPayment,
     Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     if (isEmpty(pendingPayment.getId())) {
       pendingPayment.setId(id);
@@ -174,7 +174,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinanceCredits(String lang, Transaction credit, Map<String, String> okapiHeaders,
+  public void postFinanceCredits(Transaction credit, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.CREDIT, credit, new RequestContext(vertxContext, okapiHeaders))
@@ -184,7 +184,7 @@ public class TransactionsApi extends BaseApi implements Finance {
   }
 
   @Override
-  public void putFinanceCreditsById(String id, String lang, Transaction credit,
+  public void putFinanceCreditsById(String id, Transaction credit,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     if (isEmpty(credit.getId())) {
       credit.setId(id);

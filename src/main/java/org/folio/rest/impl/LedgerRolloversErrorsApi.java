@@ -31,7 +31,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
 
   @Override
   @Validate
-  public void getFinanceLedgerRolloversErrors(String query, int offset, int limit, String lang, String accept,
+  public void getFinanceLedgerRolloversErrors(String query, String totalRecords, int offset, int limit, String accept,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.getLedgerRolloverErrors(query, offset, limit, accept, requestContext)
@@ -41,7 +41,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
 
   @Override
   @Validate
-  public void postFinanceLedgerRolloversErrors(String lang, LedgerFiscalYearRolloverError entity,
+  public void postFinanceLedgerRolloversErrors(LedgerFiscalYearRolloverError entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.createLedgerRolloverError(entity, requestContext)
@@ -53,7 +53,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
 
   @Override
   @Validate
-  public void deleteFinanceLedgerRolloversErrorsById(String id, String lang, Map<String, String> okapiHeaders,
+  public void deleteFinanceLedgerRolloversErrorsById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.deleteLedgerRolloverError(id, requestContext)

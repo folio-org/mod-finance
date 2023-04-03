@@ -19,8 +19,8 @@ import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class TransactionSummariesHelper extends AbstractHelper {
 
-  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
-    super(okapiHeaders, ctx, lang);
+  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx) {
+    super(okapiHeaders, ctx);
   }
 
   public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary) {
@@ -58,11 +58,11 @@ public class TransactionSummariesHelper extends AbstractHelper {
 
   public CompletableFuture<Void> updateOrderTransactionSummary(OrderTransactionSummary orderSummary) {
     return FolioVertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
-      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId(), lang), orderSummary));
+      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId()), orderSummary));
   }
 
   public CompletableFuture<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
     return FolioVertxCompletableFuture.runAsync(ctx, () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
-      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId(), lang), invoiceSummary));
+      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId()), invoiceSummary));
   }
 }

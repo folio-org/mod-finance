@@ -29,7 +29,7 @@ public class EncumbranceApi extends BaseApi implements FinanceReleaseEncumbrance
 
   @Override
   @Validate
-  public void postFinanceReleaseEncumbranceById(String id, String lang, Map<String, String> okapiHeaders,
+  public void postFinanceReleaseEncumbranceById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     commonTransactionService.releaseTransaction(id, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
