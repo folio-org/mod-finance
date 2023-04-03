@@ -34,14 +34,14 @@ public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerR
 
   @Override
   @Validate
-  public void getFinanceLedgerRolloversProgress(String query, int offset, int limit, String lang,
+  public void getFinanceLedgerRolloversProgress(String query, String totalRecords, int offset, int limit,
     Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.retrieveLedgerRolloverProgresses(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(rolloverProgresses -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverProgresses))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
-  public void postFinanceLedgerRolloversProgress(String lang, LedgerFiscalYearRolloverProgress entity, Map<String, String> okapiHeaders,
+  public void postFinanceLedgerRolloversProgress(LedgerFiscalYearRolloverProgress entity, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.createLedgerRolloverProgress(entity, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(progress -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(
@@ -51,7 +51,7 @@ public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerR
 
   @Override
   @Validate
-  public void getFinanceLedgerRolloversProgressById(String id, String lang, Map<String, String> okapiHeaders,
+  public void getFinanceLedgerRolloversProgressById(String id, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.retrieveLedgerRolloverProgressById(id, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(progress -> asyncResultHandler.handle(succeededFuture(buildOkResponse(progress))))

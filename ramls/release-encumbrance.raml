@@ -17,7 +17,6 @@ types:
 
 traits:
   validate: !include raml-util/traits/validation.raml
-  language: !include raml-util/traits/language.raml
 
 /finance/release-encumbrance/{id}:
     uriParameters:
@@ -27,7 +26,7 @@ traits:
     displayName: Finance release encumbrance
     description: Finance release encumbrance APIs
     post:
-      is: [validate, language]
+      is: [validate]
       description: Release encumbrance
       responses:
         204:

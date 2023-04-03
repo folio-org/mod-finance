@@ -28,7 +28,7 @@ public class GroupFiscalYearSummariesApi extends BaseApi implements FinanceGroup
 
   @Override
   @Validate
-  public void getFinanceGroupFiscalYearSummaries(String query, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context ctx) {
+  public void getFinanceGroupFiscalYearSummaries(String query, Map<String, String> headers, Handler<AsyncResult<Response>> handler, Context ctx) {
     groupFiscalYearTotalsService.getGroupFiscalYearSummaries(query, new RequestContext(ctx, headers))
       .thenAccept(groupFundFiscalYearSummaries -> handler.handle(succeededFuture(buildOkResponse(groupFundFiscalYearSummaries))))
       .exceptionally(fail -> handleErrorResponse(handler, fail));
