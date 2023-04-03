@@ -47,7 +47,6 @@ import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 public class HelperUtils {
   public static final String ID = "id";
-  public static final String LANG = "lang";
   public static final String OKAPI_URL = "X-Okapi-Url";
   public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
   public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
@@ -217,7 +216,7 @@ public class HelperUtils {
 
   public static boolean isErrorsMessageJson(String errorsMessage) {
     if (!StringUtils.isEmpty(errorsMessage)) {
-      errorsMessage = errorsMessage.replaceAll("\r\n", "");
+      errorsMessage = errorsMessage.replace("\r\n", "");
       Matcher matcher = ERRORS_PATTERN.matcher(errorsMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 4;
