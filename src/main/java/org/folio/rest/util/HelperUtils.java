@@ -216,7 +216,7 @@ public class HelperUtils {
 
   public static boolean isErrorsMessageJson(String errorsMessage) {
     if (!StringUtils.isEmpty(errorsMessage)) {
-      errorsMessage = errorsMessage.replace("\r\n", "");
+      errorsMessage = errorsMessage.replace("\r", "").replace("\n", "");
       Matcher matcher = ERRORS_PATTERN.matcher(errorsMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 4;
