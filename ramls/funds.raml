@@ -72,6 +72,12 @@ resourceTypes:
             description: Status of the expense classes
             example: Active
             required: false
+          fiscalYearId:
+            displayName: The UUID of a fiscal year
+            type: UUID
+            description: The UUID of a fiscal year. If not passed, current fiscal year will be used.
+            example: 44e6aa2b-a21f-4e40-bf24-f4bc31a15a3a
+            required: false
     /budget:
       type:
         item-collection-get:
