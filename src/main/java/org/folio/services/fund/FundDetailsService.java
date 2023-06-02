@@ -12,9 +12,11 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass.Status;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
+import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.fiscalyear.FiscalYearService;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,20 +29,23 @@ import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
 
 public class FundDetailsService {
   private static final Logger logger = LogManager.getLogger(FundDetailsService.class);
-  private static final String CURRENT_BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
-  private static final String CURRENT_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
+  private static final String BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
+  private static final String BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
   private final BudgetService budgetService;
   private final ExpenseClassService expenseClassService;
   private final BudgetExpenseClassService budgetExpenseClassService;
   private final FundFiscalYearService fundFiscalYearService;
+  private final FiscalYearService fiscalYearService;
 
   public FundDetailsService(BudgetService budgetService, ExpenseClassService expenseClassService,
-                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService) {
+                            BudgetExpenseClassService budgetExpenseClassService, FundFiscalYearService fundFiscalYearService,
+                            FiscalYearService fiscalYearService) {
     this.budgetService = budgetService;
     this.expenseClassService = expenseClassService;
     this.budgetExpenseClassService = budgetExpenseClassService;
     this.fundFiscalYearService = fundFiscalYearService;
+    this.fiscalYearService = fiscalYearService;
   }
 
   public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
@@ -60,30 +65,56 @@ public class FundDetailsService {
   }
 
   public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
-    return fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext)
-      .thenApply(fundCurrFY -> buildCurrentBudgetQuery(fundId, budgetStatus, fundCurrFY.getId()))
+    return retrieveBudget(fundId, null, budgetStatus, rqContext);
+  }
+
+  /**
+   * Retrieve fund's budget for fiscalYearId passed,
+   * or for current fiscal year if fiscalYearId is null or empty
+   *
+   * @param fundId       the id of fund budget belongs
+   * @param fiscalYearId the fiscal year of budget to retrieve (null for current fiscal year)
+   * @param budgetStatus the status of budget to search for. Null for all statuses
+   * @param rqContext    the request context
+   * @return budget completable future
+   */
+  public CompletableFuture<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
+    CompletableFuture<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
+      .getFiscalYearById(fiscalYearId, rqContext) : fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext);
+    return fiscalYear.thenApply(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
       .thenApply(this::getFirstBudget);
   }
 
-  public CompletableFuture<List<ExpenseClass>> retrieveCurrentExpenseClasses(String fundId, String status,
-                                                                             RequestContext rqContext) {
+  /**
+   * Retrieve fund's expense classes for fiscalYearId passed,
+   * or for current fiscal year if fiscalYearId is null or empty
+   *
+   * @param fundId       the id of fund expense classes belong
+   * @param fiscalYearId the fiscal year of expense classes to retrieve (null for current fiscal year)
+   * @param budgetStatus the status of budget to search for (to which expense classes belong). Null for all statuses
+   * @param rqContext    the request context
+   * @return expense classes completable future
+   */
+  public CompletableFuture<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
+                                                                      String budgetStatus, RequestContext rqContext) {
     CompletableFuture<List<ExpenseClass>> future = new FolioVertxCompletableFuture<>(rqContext.getContext());
-    retrieveCurrentBudget(fundId, null, rqContext).thenCompose(currentBudget -> {
-      logger.debug("Is Current budget for fund found : " + currentBudget.getId());
-      return retrieveBudgetExpenseClasses(currentBudget, rqContext).thenCombine(
-        getBudgetExpenseClassIds(currentBudget.getId(), status, rqContext),
+    retrieveBudget(fundId, fiscalYearId, null, rqContext).thenCompose(budget -> {
+      logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",
+        budget.getId(), fundId);
+      return retrieveBudgetExpenseClasses(budget, rqContext).thenCombine(
+        getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext),
         (expenseClasses, budgetExpenseClassIds) -> expenseClasses.stream()
           .filter(expenseClass -> budgetExpenseClassIds.contains(expenseClass.getId()))
           .collect(toList()));
-
-    })
+      })
       .thenAccept(expenseClasses -> {
-        logger.debug("Expense classes for fund size : " + expenseClasses.size());
+        logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ",
+          fundId, expenseClasses.size());
         future.complete(expenseClasses);
       })
       .exceptionally(t -> {
-        logger.error("Retrieve current expense classes for fund failed", t.getCause());
+        logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t.getCause());
         future.completeExceptionally(t);
         return null;
       });
@@ -112,9 +143,9 @@ public class FundDetailsService {
         .collect(toList()));
   }
 
-  private String buildCurrentBudgetQuery(String fundId, String budgetStatus, String fundCurrFYId) {
-    return StringUtils.isEmpty(budgetStatus) ? String.format(CURRENT_BUDGET_QUERY, fundId, fundCurrFYId)
-      : String.format(CURRENT_BUDGET_QUERY_WITH_STATUS, fundId, fundCurrFYId, Budget.BudgetStatus.fromValue(budgetStatus)
+  private String buildBudgetQuery(String fundId, String budgetStatus, String fundFYId) {
+    return StringUtils.isEmpty(budgetStatus) ? String.format(BUDGET_QUERY, fundId, fundFYId)
+      : String.format(BUDGET_QUERY_WITH_STATUS, fundId, fundFYId, Budget.BudgetStatus.fromValue(budgetStatus)
       .value());
   }
 
