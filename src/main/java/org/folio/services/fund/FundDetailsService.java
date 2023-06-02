@@ -69,7 +69,8 @@ public class FundDetailsService {
   }
 
   /**
-   * Retrieve fund's budget for fiscalYearId != null, or for current fiscal year if fiscalYearId == null
+   * Retrieve fund's budget for fiscalYearId passed,
+   * or for current fiscal year if fiscalYearId is null or empty
    *
    * @param fundId       the id of fund budget belongs
    * @param fiscalYearId the fiscal year of budget to retrieve (null for current fiscal year)
@@ -78,7 +79,7 @@ public class FundDetailsService {
    * @return budget completable future
    */
   public CompletableFuture<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
-    CompletableFuture<FiscalYear> fiscalYear = fiscalYearId != null ? fiscalYearService
+    CompletableFuture<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
       .getFiscalYearById(fiscalYearId, rqContext) : fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext);
     return fiscalYear.thenApply(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
@@ -86,7 +87,8 @@ public class FundDetailsService {
   }
 
   /**
-   * Retrieve fund's expense classes for fiscalYearId != null, or for current fiscal year if fiscalYearId == null
+   * Retrieve fund's expense classes for fiscalYearId passed,
+   * or for current fiscal year if fiscalYearId is null or empty
    *
    * @param fundId       the id of fund expense classes belong
    * @param fiscalYearId the fiscal year of expense classes to retrieve (null for current fiscal year)
