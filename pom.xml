@@ -29,7 +29,7 @@
   </ciManagement>
 
   <properties>
-    <aspectj.version>1.9.7</aspectj.version>
+    <aspectj.version>1.9.19</aspectj.version>
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas
     </jsonschema_paths>
     <raml-module-builder.version>35.0.1</raml-module-builder.version>
@@ -202,7 +202,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version>
         <configuration>
-          <release>11</release>
+          <release>17</release>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
@@ -352,12 +352,12 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.nickwongdev</groupId>
+        <groupId>dev.aspectj</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.12.6</version>
+        <version>1.13.1</version>
         <configuration>
           <verbose>true</verbose>
-          <complianceLevel>11</complianceLevel>
+          <complianceLevel>17</complianceLevel>
           <includes>
             <include>**/impl/*.java</include>
             <include>**/*.aj</include>
