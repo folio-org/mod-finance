@@ -4,7 +4,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -22,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
@@ -48,10 +47,10 @@ public class FundDetailsService {
     this.fiscalYearService = fiscalYearService;
   }
 
-  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
+  public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
                                                          RequestContext rqContext) {
-    CompletableFuture<Budget> future = new CompletableFuture<>();
-    retrieveCurrentBudget(fundId, budgetStatus, rqContext).thenApply(future::complete)
+    Future<Budget> future = new Future<>();
+    retrieveCurrentBudget(fundId, budgetStatus, rqContext).map(future::complete)
       .exceptionally(t -> {
         logger.error("Failed to retrieve current budget", t.getCause());
         if (skipThrowException) {
@@ -64,7 +63,7 @@ public class FundDetailsService {
     return future;
   }
 
-  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
+  public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
     return retrieveBudget(fundId, null, budgetStatus, rqContext);
   }
 
@@ -78,12 +77,12 @@ public class FundDetailsService {
    * @param rqContext    the request context
    * @return budget completable future
    */
-  public CompletableFuture<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
-    CompletableFuture<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
+  public Future<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
+    Future<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
       .getFiscalYearById(fiscalYearId, rqContext) : fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext);
-    return fiscalYear.thenApply(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
+    return fiscalYear.map(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
       .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
-      .thenApply(this::getFirstBudget);
+      .map(this::getFirstBudget);
   }
 
   /**
@@ -96,9 +95,9 @@ public class FundDetailsService {
    * @param rqContext    the request context
    * @return expense classes completable future
    */
-  public CompletableFuture<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
+  public Future<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
                                                                       String budgetStatus, RequestContext rqContext) {
-    CompletableFuture<List<ExpenseClass>> future = new FolioVertxCompletableFuture<>(rqContext.getContext());
+    Future<List<ExpenseClass>> future = new FolioVertxFuture<>(rqContext.getContext());
     retrieveBudget(fundId, fiscalYearId, null, rqContext).thenCompose(budget -> {
       logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",
         budget.getId(), fundId);
@@ -121,10 +120,10 @@ public class FundDetailsService {
     return future;
   }
 
-  private CompletableFuture<List<ExpenseClass>> retrieveBudgetExpenseClasses(Budget budget, RequestContext rqContext) {
+  private Future<List<ExpenseClass>> retrieveBudgetExpenseClasses(Budget budget, RequestContext rqContext) {
     return Optional.ofNullable(budget)
       .map(budgetP -> expenseClassService.getExpenseClassesByBudgetId(budgetP.getId(), rqContext))
-      .orElse(CompletableFuture.completedFuture(Collections.emptyList()));
+      .orElse(succeededFuture(Collections.emptyList()));
   }
 
   private Budget getFirstBudget(BudgetsCollection budgetsCollection) {
@@ -135,9 +134,9 @@ public class FundDetailsService {
       .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
   }
 
-  private CompletableFuture<List<String>> getBudgetExpenseClassIds(String budgetId, String status, RequestContext rqContext) {
+  private Future<List<String>> getBudgetExpenseClassIds(String budgetId, String status, RequestContext rqContext) {
     return budgetExpenseClassService.getBudgetExpenseClasses(budgetId, rqContext)
-      .thenApply(expenseClasses -> expenseClasses.stream()
+      .map(expenseClasses -> expenseClasses.stream()
         .filter(budgetExpenseClass -> isBudgetExpenseClassWithStatus(budgetExpenseClass, status))
         .map(BudgetExpenseClass::getExpenseClassId)
         .collect(toList()));

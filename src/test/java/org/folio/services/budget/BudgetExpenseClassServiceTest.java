@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 
 import static java.util.Collections.emptyList;
@@ -90,9 +90,9 @@ public class BudgetExpenseClassServiceTest {
       .withTotalRecords(1);
 
     when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+      .thenReturn(succeededFuture(budgetExpenseClassCollection));
 
-    CompletableFuture<List<BudgetExpenseClass>> resultFuture = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContextMock);
+    Future<List<BudgetExpenseClass>> resultFuture = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContextMock);
 
     String expectedQuery =  String.format("budgetId==%s", budgetId);
     verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
@@ -112,7 +112,7 @@ public class BudgetExpenseClassServiceTest {
     sharedBudget.withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
 
     when(requestContextMock.getContext()).thenReturn(mock(EventLoopContext.class));
-    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(new BudgetExpenseClass()));
+    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(succeededFuture(new BudgetExpenseClass()));
 
     budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
 
@@ -140,7 +140,7 @@ public class BudgetExpenseClassServiceTest {
   @Test
   void testCreateBudgetWithoutExpenseClasses() {
 
-    CompletableFuture<Void> future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
     future.join();
 
     assertFalse(future.isCompletedExceptionally());
@@ -152,9 +152,9 @@ public class BudgetExpenseClassServiceTest {
   @Test
   void testUpdateBudgetExpenseClassesLinksWithoutExpenseClasses() {
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(new BudgetExpenseClassCollection()));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(new BudgetExpenseClassCollection()));
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     future.join();
     assertFalse(future.isCompletedExceptionally());
 
@@ -174,12 +174,12 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(CompletableFuture.completedFuture(emptyList()));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
+    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     future.join();
     assertFalse(future.isCompletedExceptionally());
 
@@ -208,12 +208,12 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(new Transaction())));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(Collections.singletonList(new Transaction())));
+    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     ExecutionException executionException = assertThrows(ExecutionException.class,future::get);
 
     assertThat(executionException.getCause(), instanceOf(HttpException.class));
@@ -252,10 +252,10 @@ public class BudgetExpenseClassServiceTest {
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     future.join();
     assertFalse(future.isCompletedExceptionally());
 
@@ -285,11 +285,11 @@ public class BudgetExpenseClassServiceTest {
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
-    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     future.join();
     assertFalse(future.isCompletedExceptionally());
 
@@ -335,14 +335,14 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetId(sharedBudget.getId())
       .withStatus(INACTIVE);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
-    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(newBudgetExpenseClass));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(CompletableFuture.completedFuture(emptyList()));
+    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(succeededFuture(newBudgetExpenseClass));
+    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
+    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
+    Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     future.join();
     assertFalse(future.isCompletedExceptionally());
 
@@ -381,7 +381,7 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
-    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(succeededFuture(budgetExpenseClassCollection));
     List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
 
     List<BudgetExpenseClass> budgetExpenseClassListFrom = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock).join();
@@ -406,7 +406,7 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
-    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(CompletableFuture.completedFuture(budgetExpenseClassCollection));
+    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(succeededFuture(budgetExpenseClassCollection));
     List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
     //Then
     assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListReceived.get(0).getId());

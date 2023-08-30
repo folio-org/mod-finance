@@ -1,12 +1,10 @@
 package org.folio.services.transactions;
 
-import java.util.concurrent.CompletableFuture;
-
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
-
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.util.HelperUtils;
+
+import io.vertx.core.Future;
 
 public class TransferService implements TransactionTypeManagingStrategy {
 
@@ -19,20 +17,23 @@ public class TransferService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Transaction> createTransaction(Transaction transfer, RequestContext requestContext) {
-    return  FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
-      () -> transactionService.validateTransactionType(transfer, Transaction.TransactionType.TRANSFER))
-      .thenCompose(aVoid ->  transactionRestrictService.checkTransfer(transfer, requestContext))
-      .thenCompose(transaction -> transactionService.createTransaction(transaction, requestContext));
+  public Future<Transaction> createTransaction(Transaction transfer, RequestContext requestContext) {
+    return  Future.succeededFuture()
+      .map(v -> {
+        transactionService.validateTransactionType(transfer, Transaction.TransactionType.TRANSFER);
+        return null;
+      })
+      .compose(v ->  transactionRestrictService.checkTransfer(transfer, requestContext))
+      .compose(v -> transactionService.createTransaction(transfer, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction transaction, RequestContext requestContext) {
+  public Future<Void> updateTransaction(Transaction transaction, RequestContext requestContext) {
     return HelperUtils.unsupportedOperationExceptionFuture();
   }
 
   @Override
-  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
     return HelperUtils.unsupportedOperationExceptionFuture();
   }
 

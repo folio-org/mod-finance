@@ -1,49 +1,46 @@
 package org.folio.rest.util;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import one.util.streamex.StreamEx;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
-import org.folio.rest.acq.model.finance.LedgerFY;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.helper.AbstractHelper;
-import org.folio.rest.jaxrs.model.Error;
-import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.Parameter;
-import org.folio.rest.tools.client.Response;
-
-import javax.ws.rs.Path;
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.function.ToDoubleFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionException;
+import java.util.function.ToDoubleFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.Path;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
+import org.folio.okapi.common.GenericCompositeFuture;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.helper.AbstractHelper;
+import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Parameter;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import one.util.streamex.StreamEx;
 
 public class HelperUtils {
   public static final String ID = "id";
@@ -66,37 +63,16 @@ public class HelperUtils {
 
   /**
    * @param query  string representing CQL query
-   * @param logger {@link Logger} to log error if any
    * @return URL encoded string
    */
-  public static String encodeQuery(String query, Logger logger) {
-    try {
-      return URLEncoder.encode(query, StandardCharsets.UTF_8.toString());
-    } catch (UnsupportedEncodingException e) {
-      logger.error("Error happened while attempting to encode '{}'", e, query);
-      throw new CompletionException(e);
-    }
+  public static String encodeQuery(String query) {
+    return URLEncoder.encode(query, StandardCharsets.UTF_8);
   }
 
-  public static String buildQueryParam(String query, Logger logger) {
-    return isEmpty(query) ? EMPTY : "&query=" + encodeQuery(query, logger);
+  public static String buildQueryParam(String query) {
+    return isEmpty(query) ? EMPTY : "&query=" + encodeQuery(query);
   }
 
-
-  public static void verifyResponse(Response response) {
-    if (!Response.isSuccess(response.getCode())) {
-      HttpException httpException;
-      String errorMsg = response.getError().getString(ERROR_MESSAGE);
-      if (isErrorsMessageJson(errorMsg)) {
-        httpException = new HttpException(response.getCode(), mapToErrors(errorMsg));
-      } else {
-        httpException = getErrorByCode(errorMsg)
-          .map(errorCode -> new HttpException(response.getCode(), errorCode))
-          .orElse(new HttpException(response.getCode(), errorMsg));
-      }
-      throw new CompletionException(httpException);
-    }
-  }
 
   public static Optional<ErrorCodes> getErrorByCode(String errorCode){
     return EnumSet.allOf(ErrorCodes.class).stream()
@@ -104,20 +80,11 @@ public class HelperUtils {
       .findAny();
   }
 
-  public static JsonObject verifyAndExtractBody(Response response) {
-    verifyResponse(response);
-    return response.getBody();
-  }
 
   public static String getEndpoint(Class<?> clazz) {
     return clazz.getAnnotation(Path.class).value();
   }
 
-  public static Duration getFiscalYearDuration(FiscalYear fiscalYearOne) {
-    Instant start = fiscalYearOne.getPeriodStart().toInstant();
-    Instant end = fiscalYearOne.getPeriodEnd().toInstant();
-    return Duration.between(start, end);
-  }
 
   /**
    * Transform list of id's to CQL query using 'or' operation
@@ -162,41 +129,11 @@ public class HelperUtils {
    * @param <T> resulting objects type
    * @return CompletableFuture with resulting objects
    */
-  public static <T> CompletableFuture<List<T>> collectResultsOnSuccess(List<CompletableFuture<T>> futures) {
-    return allOf(futures.toArray(new CompletableFuture[0]))
-      .thenApply(v -> futures
-        .stream()
-        // The CompletableFuture::join can be safely used because the `allOf` guaranties success at this step
-        .map(CompletableFuture::join)
-        .filter(Objects::nonNull)
-        .collect(toList())
-      );
+  public static <T> Future<List<T>> collectResultsOnSuccess(List<Future<T>> futures) {
+    return GenericCompositeFuture.join(new ArrayList<>(futures))
+      .map(CompositeFuture::list);
   }
 
-  /**
-   * This method returns the set difference of B and A - the set of elements in B but not in A
-   * @param a set A
-   * @param b set B
-   * @return the relative complement of A in B
-   */
-  public static List<String> getSetDifference(Collection<String> a, Collection<String> b) {
-    return b.stream()
-      .filter(item -> !a.contains(item))
-      .collect(toList());
-  }
-
-  /**
-   * This method populates financial data (allocated, available, unavailable) from LedgerFY to Ledger
-   * @param ledger initial Ledger
-   * @param ledgerFY LedgerFY
-   * @return transformed Ledger with financial information from LedgerFY
-   */
-  public static Ledger populateDataFromLedgerFY(Ledger ledger, LedgerFY ledgerFY) {
-    ledger.setAllocated(ledgerFY.getAllocated());
-    ledger.setAvailable(ledgerFY.getAvailable());
-    ledger.setUnavailable(ledgerFY.getUnavailable());
-    return ledger;
-  }
 
   public static Void handleErrorResponse(Handler<AsyncResult<javax.ws.rs.core.Response>> handler, AbstractHelper helper, Throwable t) {
     handler.handle(succeededFuture(helper.buildErrorResponse(t)));
@@ -256,7 +193,7 @@ public class HelperUtils {
     return error;
   }
 
-  private static Errors mapToErrors(String errorStr) {
+  public static Errors mapToErrors(String errorStr) {
     return new JsonObject(errorStr).mapTo(Errors.class);
   }
 
@@ -276,10 +213,11 @@ public class HelperUtils {
     return responseBuilder;
   }
 
-  public static <T> CompletableFuture<List<T>> emptyListFuture() {
-    return CompletableFuture.completedFuture(Collections.emptyList());
+  public static <T> Future<List<T>> emptyListFuture() {
+    return succeededFuture(Collections.emptyList());
   }
 
+  //TODO: clean HelperUtils
   public static void validateAmount(double doubleAmount, String fieldName) {
     BigDecimal amount = BigDecimal.valueOf(doubleAmount);
     if (isNegative(amount)) {
@@ -292,10 +230,8 @@ public class HelperUtils {
     return amount.compareTo(BigDecimal.ZERO) < 0;
   }
 
-  public static CompletableFuture<Void> unsupportedOperationExceptionFuture() {
-    CompletableFuture<Void> future = new CompletableFuture<>();
-    future.completeExceptionally(new UnsupportedOperationException());
-    return future;
+  public static Future<Void> unsupportedOperationExceptionFuture() {
+    return Future.failedFuture(new UnsupportedOperationException());
   }
 
   public static  <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {

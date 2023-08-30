@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +39,7 @@ public class LedgerRolloverBudgetsServiceTest {
 
     // When
     when(ledgerRolloverBudgetsRestClientMock.get(anyString(), anyInt(), anyInt(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverBudgetCollection()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverBudgetCollection()));
 
     ledgerRolloverBudgetsService.retrieveLedgerRolloverBudgets(query, offset, limit, mock(RequestContext.class)).join();
 
@@ -54,7 +54,7 @@ public class LedgerRolloverBudgetsServiceTest {
 
     // When
     when(ledgerRolloverBudgetsRestClientMock.getById(anyString(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverBudget()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverBudget()));
 
     ledgerRolloverBudgetsService.retrieveLedgerRolloverBudgetById(id,  mock(RequestContext.class)).join();
 

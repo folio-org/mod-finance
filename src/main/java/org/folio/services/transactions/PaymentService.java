@@ -1,13 +1,13 @@
 package org.folio.services.transactions;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.HelperUtils;
 
-import org.folio.completablefuture.FolioVertxCompletableFuture;
+
 
 import static org.folio.rest.util.ErrorCodes.UPDATE_PAYMENT_TO_CANCEL_INVOICE;
 
@@ -20,7 +20,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Transaction> createTransaction(Transaction payment, RequestContext requestContext) {
+  public Future<Transaction> createTransaction(Transaction payment, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> {
         transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
@@ -30,7 +30,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction payment, RequestContext requestContext) {
+  public Future<Void> updateTransaction(Transaction payment, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(), () -> {
         transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
         if (!Boolean.TRUE.equals(payment.getInvoiceCancelled()))
@@ -50,7 +50,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
     return HelperUtils.unsupportedOperationExceptionFuture();
   }
 

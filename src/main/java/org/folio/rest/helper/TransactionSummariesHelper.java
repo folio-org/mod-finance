@@ -6,35 +6,41 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.util.ErrorCodes;
 
 import io.vertx.core.Context;
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 
 public class TransactionSummariesHelper extends AbstractHelper {
-
-  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx) {
+private final RestClient restClient;
+  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx, RestClient restClient) {
     super(okapiHeaders, ctx);
+    this.restClient = restClient;
   }
 
-  public CompletableFuture<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
-      .thenCompose(ok -> handleCreateRequest(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary))
-      .thenApply(orderSummary::withId);
+  public Future<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary, RequestContext requestContext) {
+    return Future.succeededFuture()
+      .map(v -> {
+        validateOrderTransactionCount(orderSummary.getNumTransactions());
+        return null;
+      })
+      .compose(ok -> restClient.post(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary, OrderTransactionSummary.class, requestContext));
   }
 
-  public CompletableFuture<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return FolioVertxCompletableFuture
-      .runAsync(ctx,
-          () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
-      .thenCompose(ok -> handleCreateRequest(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary))
-      .thenApply(invoiceSummary::withId);
+  public Future<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary, RequestContext requestContext) {
+    return Future.succeededFuture().map(v -> {
+      validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
+      return null;
+      })
+      .compose(ok -> restClient.post(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary, InvoiceTransactionSummary.class, requestContext))
+      .map(invoiceTransactionSummary -> invoiceTransactionSummary);
   }
 
   /**
@@ -56,13 +62,21 @@ public class TransactionSummariesHelper extends AbstractHelper {
     }
   }
 
-  public CompletableFuture<Void> updateOrderTransactionSummary(OrderTransactionSummary orderSummary) {
-    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateOrderTransactionCount(orderSummary.getNumTransactions()))
-      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId()), orderSummary));
+  public Future<Void> updateOrderTransactionSummary(OrderTransactionSummary orderSummary, RequestContext requestContext) {
+    return Future.succeededFuture()
+      .map(v -> {
+        validateOrderTransactionCount(orderSummary.getNumTransactions());
+        return null;
+      })
+      .compose(v -> restClient.put(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, orderSummary.getId()), orderSummary, requestContext));
   }
 
-  public CompletableFuture<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary) {
-    return FolioVertxCompletableFuture.runAsync(ctx, () -> validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments()))
-      .thenCompose(ok -> handleUpdateRequest(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId()), invoiceSummary));
+  public Future<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary, RequestContext requestContext) {
+    return Future.succeededFuture().map(v-> {
+
+       validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
+    return null;
+    })
+      .compose(ok -> restClient.put(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId()), invoiceSummary, requestContext));
   }
 }

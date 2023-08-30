@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
@@ -117,7 +117,7 @@ public class ProtectionServiceTest {
     doReturn(completedFuture(members)).when(acqUnitMembershipsService).getAcquisitionsUnitsMemberships(anyString(), anyInt(),anyInt(), eq(requestContext));
     doReturn(completedFuture(units)).when(acqUnitsService).getAcquisitionsUnits(anyString(), anyInt(),anyInt(), eq(requestContext));
     //When
-    CompletableFuture<Void> future = protectionService.checkOperationsRestrictions(unitIds, Set.of(ProtectedOperationType.READ), requestContext);
+    Future<Void> future = protectionService.checkOperationsRestrictions(unitIds, Set.of(ProtectedOperationType.READ), requestContext);
     ExecutionException executionException = assertThrows(ExecutionException.class, future::get);
 
     assertThat(executionException.getCause().getCause(), IsInstanceOf.instanceOf(HttpException.class));

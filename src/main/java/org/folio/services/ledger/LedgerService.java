@@ -11,8 +11,9 @@ import org.folio.services.protection.AcqUnitsService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
+import static io.vertx.core.Future.succeededFuture;
 import static java.util.stream.Collectors.toList;
 import static one.util.streamex.StreamEx.ofSubLists;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -21,83 +22,84 @@ import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class LedgerService {
-  private final RestClient ledgerStorageRestClient;
+  private final RestClient restClient;
   private final LedgerTotalsService ledgerTotalsService;
   private final AcqUnitsService acqUnitsService;
   public static final String ID = "id";
 
-  public LedgerService(RestClient ledgerStorageRestClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
-    this.ledgerStorageRestClient = ledgerStorageRestClient;
+  public LedgerService(RestClient restClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
+    this.restClient = restClient;
     this.ledgerTotalsService = ledgerTotalsService;
     this.acqUnitsService = acqUnitsService;
   }
 
-  public CompletableFuture<Ledger> createLedger(Ledger ledger, RequestContext requestContext) {
-    return ledgerStorageRestClient.post(ledger, requestContext, Ledger.class);
+  public Future<Ledger> createLedger(Ledger ledger, RequestContext requestContext) {
+    return restClient.post(ledger, Ledger.class, requestContext);
   }
 
-  public CompletableFuture<Ledger> retrieveLedgerById(String ledgerId, RequestContext requestContext) {
-    return ledgerStorageRestClient.getById(ledgerId, requestContext, Ledger.class);
+  public Future<Ledger> retrieveLedgerById(String ledgerId, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(LEDGERS_STORAGE, ledgerId), Ledger.class, requestContext);
   }
 
-  public CompletableFuture<LedgersCollection> retrieveLedgers(String query, int offset, int limit, RequestContext requestContext) {
-    return ledgerStorageRestClient.get(query, offset, limit, requestContext, LedgersCollection.class);
+  public Future<LedgersCollection> retrieveLedgers(String query, int offset, int limit, RequestContext requestContext) {
+    return restClient.get(query, offset, limit, requestContext, LedgersCollection.class);
   }
 
-  public CompletableFuture<LedgersCollection> retrieveLedgersWithTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
+  public Future<LedgersCollection> retrieveLedgersWithTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
     return retrieveLedgers(query, offset, limit, requestContext)
-      .thenCompose(ledgersCollection -> {
+      .compose(ledgersCollection -> {
         if (isEmpty(fiscalYearId)) {
-          return CompletableFuture.completedFuture(ledgersCollection);
+          return succeededFuture(ledgersCollection);
         }
         return ledgerTotalsService.populateLedgersTotals(ledgersCollection, fiscalYearId, requestContext);
       });
   }
 
-  public CompletableFuture<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
+  public Future<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .thenCompose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));
+      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .compose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));
   }
 
-  public CompletableFuture<Ledger> retrieveLedgerWithTotals(String ledgerId, String fiscalYearId, RequestContext requestContext) {
+  public Future<Ledger> retrieveLedgerWithTotals(String ledgerId, String fiscalYearId, RequestContext requestContext) {
     return retrieveLedgerById(ledgerId, requestContext)
-      .thenCompose(ledger -> {
+      .compose(ledger -> {
         if (isEmpty(fiscalYearId)) {
-          return CompletableFuture.completedFuture(ledger);
+          return succeededFuture(ledger);
         } else {
           return ledgerTotalsService.populateLedgerTotals(ledger, fiscalYearId, requestContext);
         }
       });
   }
 
-  public CompletableFuture<Void> updateLedger(Ledger ledger, RequestContext requestContext) {
-    return ledgerStorageRestClient.put(ledger.getId(), ledger, requestContext);
+  public Future<Void> updateLedger(Ledger ledger, RequestContext requestContext) {
+    return restClient.put(ledger.getId(), ledger, requestContext);
   }
 
-  public CompletableFuture<Void> deleteLedger(String id, RequestContext requestContext) {
-    return ledgerStorageRestClient.delete(id, requestContext);
+  public Future<Void> deleteLedger(String id, RequestContext requestContext) {
+    return restClient.delete(id, requestContext);
   }
 
-  public CompletableFuture<List<Ledger>> getLedgers(Collection<String> ledgerIds, RequestContext requestContext) {
+  public Future<List<Ledger>> getLedgers(Collection<String> ledgerIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
       ofSubLists(new ArrayList<>(ledgerIds), MAX_IDS_FOR_GET_RQ).map(ids -> getLedgersByIds(ids, requestContext))
-        .toList()).thenApply(
+        .toList()).map(
       lists -> lists.stream()
         .flatMap(Collection::stream)
         .collect(toList()));
   }
 
-  public CompletableFuture<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
+  public Future<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
     String query = convertIdsToCqlQuery(ids);
     RequestEntry requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE)).withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return ledgerStorageRestClient.get(requestEntry, requestContext, LedgersCollection.class)
-      .thenApply(LedgersCollection::getLedgers);
+    return restClient.get(requestEntry, LedgersCollection.class, requestContext)
+      .map(LedgersCollection::getLedgers);
   }
 
 }

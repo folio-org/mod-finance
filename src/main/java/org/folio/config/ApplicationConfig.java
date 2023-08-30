@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @ComponentScan({"org.folio"})
-@Import({RestClientsConfiguration.class, ServicesConfiguration.class})
+@Import({ServicesConfiguration.class})
 public class ApplicationConfig {
 
 

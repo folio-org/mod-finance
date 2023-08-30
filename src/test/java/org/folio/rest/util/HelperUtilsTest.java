@@ -4,7 +4,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 
 import org.junit.jupiter.api.Assertions;
@@ -28,7 +28,7 @@ public class HelperUtilsTest {
 
   @Test
   public void testShouldReturnEmptyList() throws ExecutionException, InterruptedException {
-    CompletableFuture<List<String>> actFuture= HelperUtils.emptyListFuture();
+    Future<List<String>> actFuture = HelperUtils.emptyListFuture();
     Assertions.assertEquals(Collections.<String>emptyList(), actFuture.get());
   }
 

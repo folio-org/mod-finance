@@ -1,24 +1,32 @@
 package org.folio.services.ledger;
 
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_BUDGETS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudget;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudgetCollection;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 public class LedgerRolloverBudgetsService {
-  private final RestClient ledgerRolloverBudgetsStorageRestClient;
+  private final RestClient restClient;
 
-  public LedgerRolloverBudgetsService(RestClient ledgerRolloverBudgetsStorageRestClient) {
-    this.ledgerRolloverBudgetsStorageRestClient = ledgerRolloverBudgetsStorageRestClient;
+  public LedgerRolloverBudgetsService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverBudget> retrieveLedgerRolloverBudgetById(String id, RequestContext requestContext) {
-    return ledgerRolloverBudgetsStorageRestClient.getById(id, requestContext, LedgerFiscalYearRolloverBudget.class);
+  public Future<LedgerFiscalYearRolloverBudget> retrieveLedgerRolloverBudgetById(String id, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(LEDGER_ROLLOVERS_BUDGETS_STORAGE, id), LedgerFiscalYearRolloverBudget.class, requestContext);
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverBudgetCollection> retrieveLedgerRolloverBudgets(String query, int offset, int limit, RequestContext requestContext) {
-    return ledgerRolloverBudgetsStorageRestClient.get(query, offset, limit, requestContext, LedgerFiscalYearRolloverBudgetCollection.class);
+  public Future<LedgerFiscalYearRolloverBudgetCollection> retrieveLedgerRolloverBudgets(String query, int offset, int limit, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(LEDGER_ROLLOVERS_BUDGETS_STORAGE)
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, LedgerFiscalYearRolloverBudgetCollection.class, requestContext);
   }
 }

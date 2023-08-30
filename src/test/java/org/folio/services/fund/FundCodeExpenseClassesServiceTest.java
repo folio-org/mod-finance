@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
@@ -96,7 +96,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withName("Fiscal Year 2021")
       .withSeries("FY");
     when(fiscalYearService.getFiscalYearByFiscalYearCode(eq(fiscalYearCode), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      .thenReturn(succeededFuture(fiscalYear));
 
     String fundId1 = "69640328-788e-43fc-9c3c-af39e243f3b7";
     String fundId2 = "bbd4a5e1-c9f3-44b9-bfdf-d184e04f0ba0";
@@ -144,7 +144,7 @@ public class FundCodeExpenseClassesServiceTest {
     budgetCollection.setBudgets(Arrays.asList(budget1, budget2));
 
     when(budgetService.getBudgets(anyString(), eq(0), eq(Integer.MAX_VALUE),
-      eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+      eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
     String ledgerId1 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d61";
     String ledgerId2 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d63";
@@ -167,7 +167,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withId(fundId2);
 
     List<Fund> funds = Arrays.asList(fund1, fund2);
-    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(funds));
+    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
 
     Ledger ledger1 = new Ledger()
       .withLedgerStatus(Ledger.LedgerStatus.ACTIVE)
@@ -190,12 +190,12 @@ public class FundCodeExpenseClassesServiceTest {
     ledgerIds.add(ledgerId1);
     ledgerIds.add(ledgerId2);
 
-    when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(ledgers));
+    when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(succeededFuture(ledgers));
 
     LedgersCollection ledgerCollection = new LedgersCollection();
     ledgerCollection.setLedgers(ledgers);
     when(ledgerService.retrieveLedgers(eq(StringUtils.EMPTY), eq(0), eq(Integer.MAX_VALUE), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(ledgerCollection));
+      .thenReturn(succeededFuture(ledgerCollection));
 
     String expenseClassId1 = "1bcc3247-99bf-4dca-9b0f-7bc51a2998c2";
     String expenseClassId2 = "1bcc3247-99bf-4dca-9b0f-7bc51a2998c3";
@@ -213,7 +213,7 @@ public class FundCodeExpenseClassesServiceTest {
 
     List<ExpenseClass> expenseClassList = Arrays.asList(expenseClass1, expenseClass2);
     List<String> budgetIds = Arrays.asList(budget1.getId(), budget2.getId());
-    when(expenseClassService.getExpenseClassesByBudgetIds(eq(budgetIds), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(expenseClassList));
+    when(expenseClassService.getExpenseClassesByBudgetIds(eq(budgetIds), eq(requestContext))).thenReturn(succeededFuture(expenseClassList));
 
     String budgetExpenseClassId1 = "9e662186-7d3e-4832-baaa-93967ccc597e";
     String budgetExpenseClassId2 = "9e662186-7d3e-4733-baaa-93967ccc597e";
@@ -231,10 +231,10 @@ public class FundCodeExpenseClassesServiceTest {
 
     List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2));
     when(budgetExpenseClassService.getBudgetExpensesClass(eq(budgetIds), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(budgetExpenseClassList));
+      .thenReturn(succeededFuture(budgetExpenseClassList));
 
     when(ledgerDetailsService.getCurrentFiscalYear(eq(ledgerId1), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      .thenReturn(succeededFuture(fiscalYear));
 
     FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionReceived = new FundCodeExpenseClassesCollection();
 
@@ -278,7 +278,7 @@ public class FundCodeExpenseClassesServiceTest {
     ledgersCollection.setLedgers(ledgers);
 
     when(ledgerService.retrieveLedgers(any(), eq(0), eq(Integer.MAX_VALUE), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+      .thenReturn(succeededFuture(ledgersCollection));
 
     String fiscalYearCode = "FY2021";
     FiscalYear fiscalYear = new FiscalYear()
@@ -286,10 +286,10 @@ public class FundCodeExpenseClassesServiceTest {
       .withCode(fiscalYearCode)
       .withName("Fiscal Year 2021")
       .withSeries("FY");
-    when(ledgerDetailsService.getCurrentFiscalYear(any(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+    when(ledgerDetailsService.getCurrentFiscalYear(any(), eq(requestContext))).thenReturn(succeededFuture(fiscalYear));
 
     when(fiscalYearService.getFiscalYearByFiscalYearCode(eq(fiscalYearCode), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      .thenReturn(succeededFuture(fiscalYear));
 
     String fundId1 = "69640328-788e-43fc-9c3c-af39e243f3b7";
     String fundId2 = "bbd4a5e1-c9f3-44b9-bfdf-d184e04f0ba0";
@@ -312,12 +312,12 @@ public class FundCodeExpenseClassesServiceTest {
       .withId(fundId2);
 
     List<Fund> funds = Arrays.asList(fund1, fund2);
-    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(funds));
+    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
 
-    when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(ledgers));
+    when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(succeededFuture(ledgers));
 
     when(fiscalYearService.getFiscalYearByFiscalYearCode(eq(fiscalYearCode), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      .thenReturn(succeededFuture(fiscalYear));
 
     String expenseClassId1 = "1bcc3247-99bf-4dca-9b0f-7bc51a2998c2";
     String expenseClassId2 = "1bcc3247-99bf-4dca-9b0f-7bc51a2998c3";
@@ -383,10 +383,10 @@ public class FundCodeExpenseClassesServiceTest {
     List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2));
 
     when(budgetService.getBudgets(anyString(), eq(0), eq(Integer.MAX_VALUE),
-      eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+      eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
     when(budgetExpenseClassService.getBudgetExpensesClass(eq(budgetIds), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(budgetExpenseClassList));
+      .thenReturn(succeededFuture(budgetExpenseClassList));
 
     ExpenseClass expenseClass1 = new ExpenseClass()
       .withCode("Elec")
@@ -402,7 +402,7 @@ public class FundCodeExpenseClassesServiceTest {
 
     List<ExpenseClass> expenseClassList = Arrays.asList(expenseClass1, expenseClass2);
     when(expenseClassService.getExpenseClassesByBudgetIds(eq(budgetIds), eq(requestContext)))
-      .thenReturn(CompletableFuture.completedFuture(expenseClassList));
+      .thenReturn(succeededFuture(expenseClassList));
     FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionReceived;
 
     fundCodeExpenseClassesCollectionReceived = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(null, requestContext).join();

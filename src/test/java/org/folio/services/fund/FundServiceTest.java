@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -162,7 +162,7 @@ public class FundServiceTest {
     fundsList.add(fund2);
     fundsCollection.setFunds(fundsList);
     //When
-    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(succeededFuture(fundsCollection));
     List<Fund> funds = fundService.getFundsByIds(ids, requestContext).join();
     //Then
     assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
@@ -183,7 +183,7 @@ public class FundServiceTest {
     fundsList.add(fund2);
     fundsCollection.setFunds(fundsList);
     //When
-    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(succeededFuture(fundsCollection));
     List<Fund> funds = fundService.getFundsByIds(ids, requestContext).join();
     //Then
     assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
@@ -204,7 +204,7 @@ public class FundServiceTest {
     fundsList.add(fund2);
     fundsCollection.setFunds(fundsList);
     //When
-    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(CompletableFuture.completedFuture(fundsCollection));
+    when(fundStorageRestClient.get(any(), any(), eq(FundsCollection.class))).thenReturn(succeededFuture(fundsCollection));
     List<Fund> funds = fundService.getFunds(ids, requestContext).join();
     //Then
     assertEquals(fundsCollection.getFunds().get(0).getId(), funds.get(0).getId());

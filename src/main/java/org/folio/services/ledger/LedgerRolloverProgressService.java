@@ -1,31 +1,41 @@
 package org.folio.services.ledger;
 
-import java.util.concurrent.CompletableFuture;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_PROGRESS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgressCollection;
 
+import io.vertx.core.Future;
+
 public class LedgerRolloverProgressService {
-  private final RestClient ledgerRolloverProgressStorageRestClient;
+  private final RestClient restClient;
 
   public LedgerRolloverProgressService(RestClient ledgerRolloverProgressRestClient) {
-    this.ledgerRolloverProgressStorageRestClient = ledgerRolloverProgressRestClient;
+    this.restClient = ledgerRolloverProgressRestClient;
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverProgress> createLedgerRolloverProgress(LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
-    return ledgerRolloverProgressStorageRestClient.post(entity, requestContext, LedgerFiscalYearRolloverProgress.class);
+  public Future<LedgerFiscalYearRolloverProgress> createLedgerRolloverProgress(LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
+    return restClient.post(resourcesPath(LEDGER_ROLLOVERS_PROGRESS_STORAGE), entity, LedgerFiscalYearRolloverProgress.class, requestContext);
   }
 
-  public CompletableFuture<Void> updateLedgerRolloverProgressById(String id, LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
-    return ledgerRolloverProgressStorageRestClient.put(id, entity, requestContext);
+  public Future<Void> updateLedgerRolloverProgressById(String id, LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
+    return restClient.put(id, entity, requestContext);
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverProgress> retrieveLedgerRolloverProgressById(String id, RequestContext requestContext) {
-    return ledgerRolloverProgressStorageRestClient.getById(id, requestContext, LedgerFiscalYearRolloverProgress.class);
+  public Future<LedgerFiscalYearRolloverProgress> retrieveLedgerRolloverProgressById(String id, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(LEDGER_ROLLOVERS_PROGRESS_STORAGE, id), LedgerFiscalYearRolloverProgress.class, requestContext);
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverProgressCollection> retrieveLedgerRolloverProgresses(String query, int offset, int limit, RequestContext requestContext) {
-    return ledgerRolloverProgressStorageRestClient.get(query, offset, limit, requestContext, LedgerFiscalYearRolloverProgressCollection.class);
+  public Future<LedgerFiscalYearRolloverProgressCollection> retrieveLedgerRolloverProgresses(String query, int offset, int limit, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(resourcesPath(LEDGER_ROLLOVERS_PROGRESS_STORAGE))
+      .withLimit(limit)
+      .withOffset(offset)
+      .withQuery(query);
+    return restClient.get(requestEntry, LedgerFiscalYearRolloverProgressCollection.class, requestContext);
   }
 }

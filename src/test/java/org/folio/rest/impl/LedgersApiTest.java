@@ -38,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -119,7 +119,7 @@ public class LedgersApiTest {
       .withLedgerStatus(Ledger.LedgerStatus.ACTIVE);
 
     when(ledgerMockService.createLedger(any(Ledger.class), any(RequestContext.class)))
-      .thenAnswer(invocation -> CompletableFuture.completedFuture(invocation.getArgument(0)));
+      .thenAnswer(invocation -> succeededFuture(invocation.getArgument(0)));
 
     Ledger responseLedger = verifyPostResponse(LEDGER.getEndpoint(), ledger, APPLICATION_JSON, 201).as(Ledger.class);
 
@@ -140,7 +140,7 @@ public class LedgersApiTest {
     Ledger ledger = new Ledger()
       .withId(ledgerId);
 
-    when(ledgerMockService.retrieveLedgerWithTotals(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
+    when(ledgerMockService.retrieveLedgerWithTotals(anyString(), anyString(), any())).thenReturn(succeededFuture(ledger));
 
     Ledger resultLedger = verifyGetWithParam(LEDGER.getEndpointWithId(ledgerId), APPLICATION_JSON, OK.getStatusCode(), "fiscalYear",
       fiscalYearId).as(Ledger.class);
@@ -158,7 +158,7 @@ public class LedgersApiTest {
     Ledger ledger = new Ledger()
       .withId(ledgerId);
 
-    when(ledgerMockService.retrieveLedgerWithTotals(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
+    when(ledgerMockService.retrieveLedgerWithTotals(anyString(), any(), any())).thenReturn(succeededFuture(ledger));
 
     Ledger resultLedger = verifyGet(LEDGER.getEndpointWithId(ledgerId), APPLICATION_JSON, OK.getStatusCode()).as(Ledger.class);
 
@@ -169,7 +169,7 @@ public class LedgersApiTest {
   @Test
   void testGetLedgerByIdWithSummaryInternalServerError() {
     logger.info("=== Test Get Ledger by id with summary, internal server error ===");
-    CompletableFuture<Ledger> errorFuture = new  CompletableFuture<>();
+    Future<Ledger> errorFuture = new  Future<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(ledgerMockService.retrieveLedgerWithTotals(anyString(), anyString(), any())).thenReturn(errorFuture);
@@ -201,8 +201,8 @@ public class LedgersApiTest {
     ledgersCollection.getLedgers().add(ledger2);
     ledgersCollection.setTotalRecords(2);
 
-    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
-    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(CompletableFuture.completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
+    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(succeededFuture(ledgersCollection));
+    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
     String query = "status==Active";
     int limit = 5;
     int offset = 1;
@@ -228,7 +228,7 @@ public class LedgersApiTest {
     Ledger ledger = LEDGER.getMockObject().mapTo(Ledger.class);
     LedgersCollection ledgerCollection = new LedgersCollection().withLedgers(List.of(ledger)).withTotalRecords(1);
     addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledgerCollection));
-    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgerCollection));
+    when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(succeededFuture(ledgerCollection));
 
     Map<String, Object> params = new HashMap<>();
     params.put("query", "status=Active");
@@ -243,11 +243,11 @@ public class LedgersApiTest {
   void testGetLedgersCollectionWithFiscalYearInternalServerError() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Internal Server Error ===");
 
-    CompletableFuture<LedgersCollection> errorFuture = new  CompletableFuture<>();
+    Future<LedgersCollection> errorFuture = new  Future<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(errorFuture);
-    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(CompletableFuture.completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
+    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
 
     String query = "id==" + UUID.randomUUID();
     Map<String, Object> params = new HashMap<>();
@@ -268,7 +268,7 @@ public class LedgersApiTest {
       .withFiscalYearOneId(UUID.randomUUID().toString())
       .withLedgerStatus(Ledger.LedgerStatus.ACTIVE);
 
-    when(ledgerMockService.updateLedger(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(ledgerMockService.updateLedger(any(), any())).thenReturn(succeededFuture(null));
 
     verifyPut(LEDGER.getEndpointWithId(ledger.getId()), ledger, "", 204);
 
@@ -285,7 +285,7 @@ public class LedgersApiTest {
       .withFiscalYearOneId(UUID.randomUUID().toString())
       .withLedgerStatus(Ledger.LedgerStatus.ACTIVE);
 
-    when(ledgerMockService.updateLedger(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(ledgerMockService.updateLedger(any(), any())).thenReturn(succeededFuture(null));
 
     verifyPut(LEDGER.getEndpointWithId(ledgerId), ledger, "", 204);
 
@@ -320,7 +320,7 @@ public class LedgersApiTest {
   void shouldCallDeleteLedgerMethodWhenCallDeleteApi() {
     String ledgerId = UUID.randomUUID().toString();
 
-    when(ledgerMockService.deleteLedger(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(ledgerMockService.deleteLedger(anyString(), any())).thenReturn(succeededFuture(null));
 
     verifyDeleteResponse(LEDGER.getEndpointWithId(ledgerId), "", 204);
 

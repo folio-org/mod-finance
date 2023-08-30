@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -105,8 +105,8 @@ public class FiscalYearServiceTest {
 
         BudgetsCollection budgetCollection = new BudgetsCollection().withBudgets(Arrays.asList(budget1, budget2));
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
-        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+        when(fiscalYearrestClient.get(resourceByIdPath(, )eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(succeededFuture(fiscalYear));
+        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
         FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext).join();
 
@@ -136,8 +136,8 @@ public class FiscalYearServiceTest {
 
         BudgetsCollection budgetCollection = new BudgetsCollection();
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
-        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+        when(fiscalYearrestClient.get(resourceByIdPath(, )eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(succeededFuture(fiscalYear));
+        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
         FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext).join();
 
@@ -165,7 +165,7 @@ public class FiscalYearServiceTest {
 
         FiscalYear fiscalYear = new FiscalYear().withId(fiscalYearId);
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+        when(fiscalYearrestClient.get(resourceByIdPath(, )eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(succeededFuture(fiscalYear));
 
         FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, false, requestContext).join();
 
@@ -186,7 +186,7 @@ public class FiscalYearServiceTest {
       fiscalYearsCollection.setTotalRecords(10);
       fiscalYearsCollection.setFiscalYears(fiscalYearList);
       when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
-        .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
+        .thenReturn(succeededFuture(fiscalYearsCollection));
       FiscalYear fiscalYear1 = checkFiscalYear(fiscalYearsCollection);
       FiscalYear fiscalYearCodeRetrieve = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext).join();
       assertEquals("FUND CODE", fiscalYearCodeRetrieve.getCode());
@@ -198,8 +198,8 @@ public class FiscalYearServiceTest {
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
     when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
-    CompletableFuture<FiscalYear> result = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
+      .thenReturn(succeededFuture(fiscalYearsCollection));
+    Future<FiscalYear> result = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
     CompletionException expectedException = assertThrows(CompletionException.class, result::join);
     HttpException httpException = (HttpException) expectedException.getCause();
     assertEquals(400, httpException.getCode());

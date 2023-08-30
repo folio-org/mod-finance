@@ -4,11 +4,11 @@ import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 
 import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.completablefuture.FolioVertxCompletableFuture;
+
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Encumbrance;
@@ -27,21 +27,21 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Transaction> createTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Transaction> createTransaction(Transaction encumbrance, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> transactionService.createTransaction(encumbrance, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> updateTransaction(Transaction encumbrance, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
       () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> transactionService.updateTransaction(encumbrance, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
         () -> transactionService.validateTransactionType(encumbrance, Transaction.TransactionType.ENCUMBRANCE))
       .thenCompose(aVoid -> validateDeletion(encumbrance, requestContext))
@@ -53,7 +53,7 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
     return Transaction.TransactionType.ENCUMBRANCE;
   }
 
-  private CompletableFuture<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
+  private Future<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
     checkEncumbranceStatusNotReleased(encumbrance);
 
     return transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext)

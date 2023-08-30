@@ -1,24 +1,32 @@
 package org.folio.services.ledger;
 
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_LOGS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLogCollection;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 public class LedgerRolloverLogsService {
-  private final RestClient ledgerRolloverLogsStorageRestClient;
+  private final RestClient restClient;
 
-  public LedgerRolloverLogsService(RestClient ledgerRolloverProgressStorageRestClient) {
-    this.ledgerRolloverLogsStorageRestClient = ledgerRolloverProgressStorageRestClient;
+  public LedgerRolloverLogsService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverLog> retrieveLedgerRolloverLogById(String id, RequestContext requestContext) {
-    return ledgerRolloverLogsStorageRestClient.getById(id, requestContext, LedgerFiscalYearRolloverLog.class);
+  public Future<LedgerFiscalYearRolloverLog> retrieveLedgerRolloverLogById(String id, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(LEDGER_ROLLOVERS_LOGS_STORAGE, id), LedgerFiscalYearRolloverLog.class, requestContext);
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverLogCollection> retrieveLedgerRolloverLogs(String query, int offset, int limit, RequestContext requestContext) {
-    return ledgerRolloverLogsStorageRestClient.get(query, offset, limit, requestContext, LedgerFiscalYearRolloverLogCollection.class);
+  public Future<LedgerFiscalYearRolloverLogCollection> retrieveLedgerRolloverLogs(String query, int offset, int limit, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(LEDGER_ROLLOVERS_LOGS_STORAGE)
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, LedgerFiscalYearRolloverLogCollection.class, requestContext);
   }
 }

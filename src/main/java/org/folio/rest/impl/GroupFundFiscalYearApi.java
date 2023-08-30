@@ -37,9 +37,9 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.createGroupFundFiscalYear(entity,  new RequestContext(ctx, headers))
-      .thenAccept(groupFundFiscalYear -> handler.handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL),
+      .onSuccess(groupFundFiscalYear -> handler.handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL),
           String.format(GROUP_FUND_FISCAL_YEAR_LOCATION_PREFIX, groupFundFiscalYear.getId()), groupFundFiscalYear))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Override
@@ -48,8 +48,8 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
     Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.getGroupFundFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
-      .thenAccept(groupFundFiscalYears -> handler.handle(succeededFuture(buildOkResponse(groupFundFiscalYears))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(groupFundFiscalYears -> handler.handle(succeededFuture(buildOkResponse(groupFundFiscalYears))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Override
@@ -58,8 +58,8 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, headers))
-      .thenAccept(success -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(success -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
 }

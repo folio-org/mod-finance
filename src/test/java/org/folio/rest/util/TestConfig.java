@@ -2,7 +2,7 @@ package org.folio.rest.util;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -41,7 +41,7 @@ public final class TestConfig {
     conf.put("http.port", okapiPort);
 
     final DeploymentOptions opt = new DeploymentOptions().setConfig(conf);
-    CompletableFuture<String> deploymentComplete = new CompletableFuture<>();
+    Future<String> deploymentComplete = new Future<>();
     vertx.deployVerticle(RestVerticle.class.getName(), opt, res -> {
       if(res.succeeded()) {
         deploymentComplete.complete(res.result());

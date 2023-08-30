@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -92,7 +92,7 @@ public class GroupsApiTest {
     String fiscalYearId = UUID.randomUUID().toString();
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = new GroupExpenseClassTotalsCollection();
 
-    when(groupExpenseClassTotalsServiceMock.getExpenseClassTotals(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(groupExpenseClassTotalsCollection));
+    when(groupExpenseClassTotalsServiceMock.getExpenseClassTotals(anyString(), anyString(), any())).thenReturn(succeededFuture(groupExpenseClassTotalsCollection));
 
     GroupExpenseClassTotalsCollection result = RestTestUtils.verifyGet(String.format("/finance/groups/%s/expense-classes-totals?fiscalYearId=%s", groupId, fiscalYearId), APPLICATION_JSON, 200)
       .as(GroupExpenseClassTotalsCollection.class);
@@ -107,7 +107,7 @@ public class GroupsApiTest {
     Group group = GROUP.getMockObject().mapTo(Group.class);
     GroupCollection groupCollection = new GroupCollection().withGroups(List.of(group)).withTotalRecords(1);
     addMockEntry(GROUP.name(), JsonObject.mapFrom(groupCollection));
-    when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(groupCollection));
+    when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(groupCollection));
 
     Map<String, Object> params = new HashMap<>();
     params.put("query", "status=Active");

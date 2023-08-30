@@ -11,11 +11,14 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.helper.TransactionSummariesHelper;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
@@ -26,22 +29,25 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
   private static final String ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX = getEndpoint(FinanceOrderTransactionSummaries.class) + "/%s";
   private static final String INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX = getEndpoint(FinanceInvoiceTransactionSummaries.class) + "/%s";
 
+  @Autowired
+  RestClient restClient;
+
   @Override
   @Validate
   public void postFinanceOrderTransactionSummaries(OrderTransactionSummary entity, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
-    helper.createOrderTransactionSummary(entity)
-      .thenAccept(orderTxSummary -> asyncResultHandler.handle(succeededFuture(
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, restClient);
+    helper.createOrderTransactionSummary(entity, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(orderTxSummary -> asyncResultHandler.handle(succeededFuture(
           helper.buildResponseWithLocation(String.format(ORDER_TRANSACTION_SUMMARIES_LOCATION_PREFIX, orderTxSummary.getId()), orderTxSummary))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
   @Override
   @Validate
   public void putFinanceOrderTransactionSummariesById(String id, OrderTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, restClient);
 
     // Set id if this is available only in path
     if (isEmpty(entity.getId())) {
@@ -52,27 +58,27 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       return;
     }
 
-    helper.updateOrderTransactionSummary(entity)
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+    helper.updateOrderTransactionSummary(entity, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
   @Override
   @Validate
   public void postFinanceInvoiceTransactionSummaries(InvoiceTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
-    helper.createInvoiceTransactionSummary(entity)
-      .thenAccept(invoiceTxSummary -> asyncResultHandler.handle(succeededFuture(helper
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, restClient);
+    helper.createInvoiceTransactionSummary(entity, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(invoiceTxSummary -> asyncResultHandler.handle(succeededFuture(helper
         .buildResponseWithLocation(String.format(INVOICE_TRANSACTION_SUMMARIES_LOCATION_PREFIX, invoiceTxSummary.getId()), invoiceTxSummary))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
   @Override
   @Validate
   public void putFinanceInvoiceTransactionSummariesById(String id, InvoiceTransactionSummary entity,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext);
+    TransactionSummariesHelper helper = new TransactionSummariesHelper(okapiHeaders, vertxContext, restClient);
 
     // Set id if this is available only in path
     if (isEmpty(entity.getId())) {
@@ -83,9 +89,9 @@ public class TransactionSummariesAPI implements FinanceOrderTransactionSummaries
       return;
     }
 
-    helper.updateInvoiceTransactionSummary(entity)
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
+    helper.updateInvoiceTransactionSummary(entity, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, helper, fail));
   }
 
 }

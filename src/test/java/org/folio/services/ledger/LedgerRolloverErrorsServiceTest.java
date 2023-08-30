@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -41,7 +41,7 @@ public class LedgerRolloverErrorsServiceTest {
     String contentType = "application/json";
 
     when(restClient.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverErrorCollection()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverErrorCollection()));
 
     // When
     ledgerRolloverErrorsService.getLedgerRolloverErrors(query, offset, limit, contentType, requestContext).join();
@@ -74,7 +74,7 @@ public class LedgerRolloverErrorsServiceTest {
     // Given
     LedgerFiscalYearRolloverError rolloverError = new LedgerFiscalYearRolloverError();
     when(restClient.post(any(LedgerFiscalYearRolloverError.class), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(null));
 
     // When
     ledgerRolloverErrorsService.createLedgerRolloverError(rolloverError, requestContext).join();
@@ -88,7 +88,7 @@ public class LedgerRolloverErrorsServiceTest {
     // Given
     String id = UUID.randomUUID().toString();
     when(restClient.delete(anyString(), any(RequestContext.class)))
-      .thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(null));
 
     // When
     ledgerRolloverErrorsService.deleteLedgerRolloverError(id, requestContext).join();

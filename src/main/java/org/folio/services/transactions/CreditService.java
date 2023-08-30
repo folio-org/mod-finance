@@ -2,14 +2,14 @@ package org.folio.services.transactions;
 
 import static org.folio.rest.util.ErrorCodes.UPDATE_CREDIT_TO_CANCEL_INVOICE;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.HelperUtils;
 
-import org.folio.completablefuture.FolioVertxCompletableFuture;
+
 
 public class CreditService implements TransactionTypeManagingStrategy {
 
@@ -20,17 +20,17 @@ public class CreditService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Transaction> createTransaction(Transaction credit, RequestContext requestContext) {
-    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
-      () -> {
+  public Future<Transaction> createTransaction(Transaction credit, RequestContext requestContext) {
+    return Future.succeededFuture().map(v-> {
         transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
         HelperUtils.validateAmount(credit.getAmount(), "amount");
+
       })
       .thenCompose(aVoid -> transactionService.createTransaction(credit, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction credit, RequestContext requestContext) {
+  public Future<Void> updateTransaction(Transaction credit, RequestContext requestContext) {
     return FolioVertxCompletableFuture.runAsync(requestContext.getContext(), () -> {
         transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
         if (!Boolean.TRUE.equals(credit.getInvoiceCancelled()))
@@ -50,7 +50,7 @@ public class CreditService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
     return HelperUtils.unsupportedOperationExceptionFuture();
   }
 

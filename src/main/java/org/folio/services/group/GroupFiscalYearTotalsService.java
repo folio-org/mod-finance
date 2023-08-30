@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,7 +49,7 @@ public class GroupFiscalYearTotalsService {
     this.baseTransactionService = baseTransactionService;
   }
 
-  public CompletableFuture<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query,
+  public Future<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query,
       RequestContext requestContext) {
     return budgetRestClient.get(query, 0, Integer.MAX_VALUE, requestContext, BudgetsCollection.class)
       .thenCombine(groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext),
@@ -76,7 +76,7 @@ public class GroupFiscalYearTotalsService {
                                   .thenAccept(holder -> updateGroupSummaryWithAllocation(holders))
                                   .thenCompose(v -> updateHoldersWithTransfers(holders, requestContext))
                                   .thenAccept(v -> updateGroupSummaryWithCalculatedFields(holders))
-                                  .thenApply(v -> convertHolders(holders)));
+                                  .map(v -> convertHolders(holders)));
   }
 
   //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
@@ -227,23 +227,23 @@ public class GroupFiscalYearTotalsService {
     return holders;
   }
 
-  private CompletableFuture<Void> updateHoldersWithAllocations(List<GroupFiscalYearTransactionsHolder> holders,
+  private Future<Void> updateHoldersWithAllocations(List<GroupFiscalYearTransactionsHolder> holders,
                                                                RequestContext requestContext) {
-    List<CompletableFuture<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
+    List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder ->
        futures.add(updateHolderWithAllocations(requestContext, holder))
     );
     return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with allocations: " + result.size()));
   }
 
-  private CompletableFuture<Void> updateHoldersWithTransfers(List<GroupFiscalYearTransactionsHolder> holders,
+  private Future<Void> updateHoldersWithTransfers(List<GroupFiscalYearTransactionsHolder> holders,
                                                                RequestContext requestContext) {
-    List<CompletableFuture<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
+    List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
     return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with transfers: " + result.size()));
   }
 
-  private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithAllocations(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
+  private Future<GroupFiscalYearTransactionsHolder> updateHolderWithAllocations(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
     return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext)
@@ -253,7 +253,7 @@ public class GroupFiscalYearTotalsService {
       );
   }
 
-  private CompletableFuture<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
+  private Future<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
     List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);

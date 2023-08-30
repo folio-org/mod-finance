@@ -6,7 +6,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.stream.Collectors;
 
 import javax.money.CurrencyUnit;
@@ -38,14 +38,14 @@ public class GroupExpenseClassTotalsService {
     this.expenseClassService = expenseClassService;
   }
 
-  public CompletableFuture<GroupExpenseClassTotalsCollection> getExpenseClassTotals(String groupId, String fiscalYearId, RequestContext requestContext) {
+  public Future<GroupExpenseClassTotalsCollection> getExpenseClassTotals(String groupId, String fiscalYearId, RequestContext requestContext) {
     return groupFundFiscalYearService.getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext)
       .thenCompose(groupFundFiscalYearCollection -> getGroupExpenseClassTotals(groupFundFiscalYearCollection, fiscalYearId, requestContext));
   }
 
-  private CompletableFuture<GroupExpenseClassTotalsCollection> getGroupExpenseClassTotals(List<GroupFundFiscalYear> groupFfys, String fiscalYearId, RequestContext requestContext) {
+  private Future<GroupExpenseClassTotalsCollection> getGroupExpenseClassTotals(List<GroupFundFiscalYear> groupFfys, String fiscalYearId, RequestContext requestContext) {
     if (groupFfys.isEmpty()) {
-      return CompletableFuture.completedFuture(new GroupExpenseClassTotalsCollection().withTotalRecords(0));
+      return succeededFuture(new GroupExpenseClassTotalsCollection().withTotalRecords(0));
     }
 
     return getTransactions(groupFfys, fiscalYearId, requestContext)
@@ -53,12 +53,12 @@ public class GroupExpenseClassTotalsService {
         (transactions, expenseClasses) -> buildGroupExpenseClassesTotals(expenseClasses, transactions));
   }
 
-  private CompletableFuture<List<Transaction>> getTransactions(List<GroupFundFiscalYear> groupFundFiscalYears, String fiscalYearId, RequestContext requestContext) {
+  private Future<List<Transaction>> getTransactions(List<GroupFundFiscalYear> groupFundFiscalYears, String fiscalYearId, RequestContext requestContext) {
     List<String> fundIds = groupFundFiscalYears.stream().map(GroupFundFiscalYear::getFundId).collect(Collectors.toList());
     return transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
   }
 
-  private CompletableFuture<List<ExpenseClass>> getExpenseClasses(List<GroupFundFiscalYear> groupFundFiscalYears, RequestContext requestContext) {
+  private Future<List<ExpenseClass>> getExpenseClasses(List<GroupFundFiscalYear> groupFundFiscalYears, RequestContext requestContext) {
     List<String> budgetIds = groupFundFiscalYears.stream().map(GroupFundFiscalYear::getBudgetId).collect(Collectors.toList());
     return expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
   }

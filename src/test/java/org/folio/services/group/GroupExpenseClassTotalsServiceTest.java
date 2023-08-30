@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -68,9 +68,9 @@ public class GroupExpenseClassTotalsServiceTest {
   void getExpenseClassTotalsEmptyGroupFundFiscalYearResponse() {
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+      .thenReturn(succeededFuture(Collections.emptyList()));
 
-    CompletableFuture<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
+    Future<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = resultFuture.join();
 
     assertEquals(new GroupExpenseClassTotalsCollection().withTotalRecords(0), groupExpenseClassTotalsCollection);
@@ -96,13 +96,13 @@ public class GroupExpenseClassTotalsServiceTest {
       .withCurrency(USD_CURRENCY);
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.singletonList(groupFundFiscalYear)));
+      .thenReturn(succeededFuture(Collections.singletonList(groupFundFiscalYear)));
     when(transactionServiceMock.retrieveTransactionsByFundIds(anyList(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.singletonList(transaction)));
+      .thenReturn(succeededFuture(Collections.singletonList(transaction)));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+      .thenReturn(succeededFuture(Collections.emptyList()));
 
-    CompletableFuture<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
+    Future<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = resultFuture.join();
 
     assertEquals(new GroupExpenseClassTotalsCollection().withTotalRecords(0), groupExpenseClassTotalsCollection);
@@ -125,13 +125,13 @@ public class GroupExpenseClassTotalsServiceTest {
       .withName("Test");
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.singletonList(groupFundFiscalYear)));
+      .thenReturn(succeededFuture(Collections.singletonList(groupFundFiscalYear)));
     when(transactionServiceMock.retrieveTransactionsByFundIds(anyList(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+      .thenReturn(succeededFuture(Collections.emptyList()));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Collections.singletonList(expenseClass)));
+      .thenReturn(succeededFuture(Collections.singletonList(expenseClass)));
 
-    CompletableFuture<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
+    Future<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = resultFuture.join();
 
     assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(1));
@@ -235,13 +235,13 @@ public class GroupExpenseClassTotalsServiceTest {
     List<Transaction> transactions = Arrays.asList(payment, credit, payment2, encumbranceNoExpenseClass, encumbrance1, encumbrance2, pendingPayment1, pendingPayment2);
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Arrays.asList(groupFundFiscalYear1, groupFundFiscalYear2)));
+      .thenReturn(succeededFuture(Arrays.asList(groupFundFiscalYear1, groupFundFiscalYear2)));
     when(transactionServiceMock.retrieveTransactionsByFundIds(anyList(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(transactions));
+      .thenReturn(succeededFuture(transactions));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(CompletableFuture.completedFuture(Arrays.asList(expenseClass1, expenseClass2)));
+      .thenReturn(succeededFuture(Arrays.asList(expenseClass1, expenseClass2)));
 
-    CompletableFuture<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
+    Future<GroupExpenseClassTotalsCollection> resultFuture = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = resultFuture.join();
 
     assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(2));

@@ -7,12 +7,13 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.models.LedgerFiscalYearTransactionsHolder;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -41,14 +42,14 @@ public class LedgerTotalsService {
     this.baseTransactionService = baseTransactionService;
   }
 
-  public CompletableFuture<Ledger> populateLedgerTotals(Ledger ledger, String fiscalYearId, RequestContext requestContext) {
+  public Future<Ledger> populateLedgerTotals(Ledger ledger, String fiscalYearId, RequestContext requestContext) {
     return getFiscalYear(fiscalYearId, requestContext)
-      .thenCompose(fiscalYear -> populateLedgerTotals(ledger, fiscalYear, requestContext));
+      .compose(fiscalYear -> populateLedgerTotals(ledger, fiscalYear, requestContext));
   }
 
-  private CompletableFuture<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
+  private Future<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
     return fiscalYearService.getFiscalYearById(fiscalYearId, requestContext)
-      .exceptionally(t -> {
+      .onFailure(t -> {
         Throwable cause = t.getCause() == null ? t : t.getCause();
         if (cause instanceof HttpException && ((HttpException) cause).getCode() == 404) {
           throw new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND);
@@ -58,15 +59,20 @@ public class LedgerTotalsService {
       });
   }
 
-  public CompletableFuture<Ledger> populateLedgerTotals(Ledger ledger, FiscalYear fiscalYear, RequestContext requestContext) {
+  public Future<Ledger> populateLedgerTotals(Ledger ledger, FiscalYear fiscalYear, RequestContext requestContext) {
     return getBudgetsByLedgerIdFiscalYearId(ledger.getId(), fiscalYear.getId(), requestContext)
-        .thenApply(budgets -> buildHolderSkeleton(fiscalYear.getId(), ledger,  budgets))
-        .thenCompose(holder -> updateHolderWithAllocations(holder, requestContext)
-                                    .thenAccept(holderParam -> updateLedgerWithAllocation(holder))
-                                    .thenCompose(v -> updateHolderWithTransfers(holder, requestContext))
-                                    .thenAccept(v -> updateLedgerWithCalculatedFields(holder))
-                                    .thenApply(v -> holder.getLedger())
-        );
+        .map(budgets -> buildHolderSkeleton(fiscalYear.getId(), ledger,  budgets))
+        .compose(holder -> updateHolderWithAllocations(holder, requestContext)
+        .map(holderParam -> {
+          updateLedgerWithAllocation(holder);
+          return null;
+        })
+        .compose(v -> updateHolderWithTransfers(holder, requestContext))
+        .map(v -> {
+          updateLedgerWithCalculatedFields(holder);
+          return null;
+        })
+        .map(v -> holder.getLedger()));
   }
 
   private void removeInitialAllocationByFunds(LedgerFiscalYearTransactionsHolder holder) {
@@ -86,41 +92,40 @@ public class LedgerTotalsService {
         .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
   }
 
-  private CompletableFuture<LedgerFiscalYearTransactionsHolder> updateHolderWithAllocations(LedgerFiscalYearTransactionsHolder holder,
+  private Future<LedgerFiscalYearTransactionsHolder> updateHolderWithAllocations(LedgerFiscalYearTransactionsHolder holder,
                                                                                             RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext)
-      .thenCombine(
-        baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext),
-        (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
-      );
+    var fromAllocations = baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    var toAllocations = baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
+      .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
 
-  private CompletableFuture<LedgerFiscalYearTransactionsHolder> updateHolderWithTransfers(LedgerFiscalYearTransactionsHolder holder,
+  private Future<LedgerFiscalYearTransactionsHolder> updateHolderWithTransfers(LedgerFiscalYearTransactionsHolder holder,
                                                                                           RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
     List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
-    return baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext)
-      .thenCombine(
-        baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext),
-        (toAllocations, fromAllocations) -> holder.withToTransfers(toAllocations).withFromTransfers(fromAllocations)
-      );
+    var fromTransfer = baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext);
+    var toTransfer = baseTransactionService.retrieveToTransactions(ledgerFundIds, fiscalYearId, trTypes, requestContext);
+
+    return GenericCompositeFuture.join(List.of(fromTransfer, toTransfer))
+      .map(f -> holder.withToTransfers(toTransfer.result()).withFromTransfers(fromTransfer.result()));
   }
 
-  public CompletableFuture<LedgersCollection> populateLedgersTotals(LedgersCollection ledgersCollection, String fiscalYearId, RequestContext requestContext) {
+  public Future<LedgersCollection> populateLedgersTotals(LedgersCollection ledgersCollection, String fiscalYearId, RequestContext requestContext) {
     return getFiscalYear(fiscalYearId, requestContext)
-      .thenCompose(fiscalYear -> collectResultsOnSuccess(ledgersCollection.getLedgers().stream()
+      .compose(fiscalYear -> collectResultsOnSuccess(ledgersCollection.getLedgers().stream()
         .map(ledger -> populateLedgerTotals(ledger, fiscalYear, requestContext))
         .collect(Collectors.toList()))
-      .thenApply(ledgers -> new LedgersCollection().withLedgers(ledgers).withTotalRecords(ledgers.size())));
+      .map(ledgers -> new LedgersCollection().withLedgers(ledgers).withTotalRecords(ledgers.size())));
   }
 
-  private CompletableFuture<List<Budget>> getBudgetsByLedgerIdFiscalYearId(String ledgerId, String fiscalYearId , RequestContext requestContext) {
+  private Future<List<Budget>> getBudgetsByLedgerIdFiscalYearId(String ledgerId, String fiscalYearId , RequestContext requestContext) {
     String query = String.format(LEDGER_ID_AND_FISCAL_YEAR_ID, ledgerId, fiscalYearId);
     return budgetService.getBudgets(query, 0, Integer.MAX_VALUE, requestContext)
-      .thenApply(BudgetsCollection::getBudgets);
+      .map(BudgetsCollection::getBudgets);
   }
 
   private LedgerFiscalYearTransactionsHolder buildHolderSkeleton(String fiscalYearId, Ledger ledger, List<Budget> budgets) {

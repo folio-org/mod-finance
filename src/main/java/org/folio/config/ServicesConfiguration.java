@@ -1,5 +1,7 @@
 package org.folio.config;
 
+import java.util.Set;
+
 import org.folio.rest.core.RestClient;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
@@ -17,13 +19,13 @@ import org.folio.services.group.GroupFiscalYearTotalsService;
 import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.group.GroupService;
 import org.folio.services.ledger.LedgerDetailsService;
+import org.folio.services.ledger.LedgerRolloverBudgetsService;
 import org.folio.services.ledger.LedgerRolloverErrorsService;
+import org.folio.services.ledger.LedgerRolloverLogsService;
 import org.folio.services.ledger.LedgerRolloverProgressService;
 import org.folio.services.ledger.LedgerRolloverService;
 import org.folio.services.ledger.LedgerService;
 import org.folio.services.ledger.LedgerTotalsService;
-import org.folio.services.ledger.LedgerRolloverLogsService;
-import org.folio.services.ledger.LedgerRolloverBudgetsService;
 import org.folio.services.protection.AcqUnitMembershipsService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
@@ -43,31 +45,35 @@ import org.folio.services.transactions.TransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Set;
-
 public class ServicesConfiguration {
+
+  @Bean
+  RestClient restClient() {
+    return new RestClient();
+  }
+
   @Bean
   @Autowired
-  ExpenseClassService expenseClassService(RestClient expenseClassRestClient) {
-    return new ExpenseClassService(expenseClassRestClient);
+  ExpenseClassService expenseClassService(RestClient restClient) {
+    return new ExpenseClassService(restClient);
   }
 
   @Bean
-  BudgetExpenseClassService budgetExpenseClassService(RestClient budgetExpenseClassRestClient, CommonTransactionService transactionService) {
-    return new BudgetExpenseClassService(budgetExpenseClassRestClient, transactionService);
+  BudgetExpenseClassService budgetExpenseClassService(RestClient restClient, CommonTransactionService transactionService) {
+    return new BudgetExpenseClassService(restClient, transactionService);
   }
 
   @Bean
-  CommonTransactionService transactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient, RestClient orderTransactionSummaryRestClient) {
-    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient, orderTransactionSummaryRestClient);
+  CommonTransactionService transactionService(RestClient restClient) {
+    return new CommonTransactionService(restClient);
   }
 
   @Bean
-  BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient budgetRestClient,
+  BudgetExpenseClassTotalsService budgetExpenseClassTotalsService(RestClient restClient,
                                                                   ExpenseClassService expenseClassService,
                                                                   CommonTransactionService transactionService,
                                                                   BudgetExpenseClassService budgetExpenseClassService)  {
-    return new BudgetExpenseClassTotalsService(budgetRestClient, expenseClassService, transactionService, budgetExpenseClassService);
+    return new BudgetExpenseClassTotalsService(restClient, expenseClassService, transactionService, budgetExpenseClassService);
   }
 
   @Bean
@@ -191,8 +197,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  TransactionService commonTransactionService(RestClient transactionRestClient, RestClient fiscalYearRestClient, RestClient orderTransactionSummaryRestClient) {
-    return new CommonTransactionService(transactionRestClient, fiscalYearRestClient, orderTransactionSummaryRestClient);
+  TransactionService commonTransactionService(RestClient restClient) {
+    return new CommonTransactionService(restClient);
   }
 
   @Bean

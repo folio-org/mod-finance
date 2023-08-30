@@ -6,7 +6,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverErrorCollection;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -17,7 +17,7 @@ public class LedgerRolloverErrorsService {
     this.ledgerRolloverErrorsStorageRestClient = ledgerRolloverErrorsStorageRestClient;
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverErrorCollection> getLedgerRolloverErrors(String query, int offset,
+  public Future<LedgerFiscalYearRolloverErrorCollection> getLedgerRolloverErrors(String query, int offset,
       int limit, String contentType, RequestContext requestContext) {
     if (contentType.toLowerCase().contains(APPLICATION_JSON.toLowerCase())) {
       return ledgerRolloverErrorsStorageRestClient.get(query, offset, limit, requestContext, LedgerFiscalYearRolloverErrorCollection.class);
@@ -26,12 +26,12 @@ public class LedgerRolloverErrorsService {
     }
   }
 
-  public CompletableFuture<LedgerFiscalYearRolloverError> createLedgerRolloverError(
+  public Future<LedgerFiscalYearRolloverError> createLedgerRolloverError(
       LedgerFiscalYearRolloverError rolloverError, RequestContext requestContext) {
     return ledgerRolloverErrorsStorageRestClient.post(rolloverError, requestContext, LedgerFiscalYearRolloverError.class);
   }
 
-  public CompletableFuture<Void> deleteLedgerRolloverError(String id, RequestContext requestContext) {
+  public Future<Void> deleteLedgerRolloverError(String id, RequestContext requestContext) {
     return ledgerRolloverErrorsStorageRestClient.delete(id, requestContext);
   }
 

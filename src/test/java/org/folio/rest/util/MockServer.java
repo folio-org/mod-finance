@@ -51,7 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -121,7 +121,7 @@ public class MockServer {
   public void start() throws InterruptedException, ExecutionException, TimeoutException {
     // Setup Mock Server...
     HttpServer server = vertx.createHttpServer();
-    CompletableFuture<HttpServer> deploymentComplete = new CompletableFuture<>();
+    Future<HttpServer> deploymentComplete = new Future<>();
     server.requestHandler(defineRoutes()).listen(port, result -> {
       if(result.succeeded()) {
         deploymentComplete.complete(result.result());

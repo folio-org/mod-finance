@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,9 +67,9 @@ public class CommonTransactionServiceTest {
     TransactionCollection transactionCollection = new TransactionCollection().withTransactions(transactions).withTotalRecords(1);
 
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
-      .thenReturn(CompletableFuture.completedFuture(transactionCollection));
+      .thenReturn(succeededFuture(transactionCollection));
 
-    CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(budget, requestContext);
+    Future<List<Transaction>> result = transactionService.retrieveTransactions(budget, requestContext);
 
     String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s", fundId, fundId, fiscalYearId);
     verify(transactionRestClient)
@@ -100,9 +100,9 @@ public class CommonTransactionServiceTest {
     TransactionCollection transactionCollection = new TransactionCollection().withTransactions(transactions).withTotalRecords(1);
 
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), eq(requestContext), any()))
-      .thenReturn(CompletableFuture.completedFuture(transactionCollection));
+      .thenReturn(succeededFuture(transactionCollection));
 
-    CompletableFuture<List<Transaction>> result = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
+    Future<List<Transaction>> result = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
 
     String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
       fundId, fundId, fiscalYearId,
@@ -139,10 +139,10 @@ public class CommonTransactionServiceTest {
       .withSource(Transaction.Source.USER);
 
     when(transactionRestClient.post(any(), eq(requestContext), any()))
-      .thenReturn(CompletableFuture.completedFuture(transaction));
-    when(fiscalYearRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+      .thenReturn(succeededFuture(transaction));
+    when(fiscalYearrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(fiscalYear));
 
-    CompletableFuture<Transaction> result = transactionService.createAllocationTransaction(budget, requestContext);
+    Future<Transaction> result = transactionService.createAllocationTransaction(budget, requestContext);
 
     verify(transactionRestClient)
       .post(refEq(transaction, "id"), eq(requestContext), eq(Transaction.class));
@@ -171,9 +171,9 @@ public class CommonTransactionServiceTest {
       .withTotalRecords(1);
 
     when(transactionRestClient.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(transactionCollection), CompletableFuture.completedFuture(new TransactionCollection()), CompletableFuture.completedFuture(new TransactionCollection()));
+      .thenReturn(succeededFuture(transactionCollection), succeededFuture(new TransactionCollection()), succeededFuture(new TransactionCollection()));
 
-    CompletableFuture<List<Transaction>> resultFuture = transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+    Future<List<Transaction>> resultFuture = transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
 
     List<Transaction> resultTransactions = resultFuture.join();
 

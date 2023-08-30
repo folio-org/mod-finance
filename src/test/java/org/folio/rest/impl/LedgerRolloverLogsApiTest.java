@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -68,7 +68,7 @@ public class LedgerRolloverLogsApiTest {
       .withLedgerFiscalYearRolloverLogs(List.of(new LedgerFiscalYearRolloverLog()));
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogs(any(), anyInt(), anyInt(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerLogs));
+      .thenReturn(succeededFuture(ledgerLogs));
 
     // When call getFinanceLedgerRolloversLogs successfully
     LedgerFiscalYearRolloverLogCollection rolloverLogCollection = verifyGet(TestEntities.LEDGER_ROLLOVER_LOGS.getEndpoint(), APPLICATION_JSON,
@@ -82,7 +82,7 @@ public class LedgerRolloverLogsApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverLogsServiceReturnError() {
 
-    CompletableFuture<LedgerFiscalYearRolloverLogCollection> logFuture = new CompletableFuture<>();
+    Future<LedgerFiscalYearRolloverLogCollection> logFuture = new Future<>();
     logFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogs(any(), anyInt(), anyInt(), any()))
@@ -103,7 +103,7 @@ public class LedgerRolloverLogsApiTest {
     String ledgerRolloverId = UUID.randomUUID().toString();
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogById(anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverLog().withLedgerRolloverId(ledgerRolloverId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverLog().withLedgerRolloverId(ledgerRolloverId)));
 
     // When call getFinanceLedgerLogsById successfully
     LedgerFiscalYearRolloverLog logs = verifyGet(TestEntities.LEDGER_ROLLOVER_LOGS.getEndpointWithId(ledgerRolloverId),
@@ -120,7 +120,7 @@ public class LedgerRolloverLogsApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    CompletableFuture<LedgerFiscalYearRolloverLog> errorFuture = new CompletableFuture<>();
+    Future<LedgerFiscalYearRolloverLog> errorFuture = new Future<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogById(anyString(), any()))

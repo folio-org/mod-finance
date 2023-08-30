@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
@@ -68,10 +68,10 @@ public class BudgetServiceTest {
       .withStatus(BudgetExpenseClass.Status.INACTIVE)
       .withId(UUID.randomUUID().toString());
     List<BudgetExpenseClass> budgetExpenseClasses = Arrays.asList(budgetExpenseClass1, budgetExpenseClass2);
-    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(budgetExpenseClassMockService.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
+    when(budgetMockrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(budgetExpenseClassMockService.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(budgetExpenseClasses));
 
-    CompletableFuture<SharedBudget> resultFuture = budgetService.getBudgetById(budget.getId(), requestContextMock);
+    Future<SharedBudget> resultFuture = budgetService.getBudgetById(budget.getId(), requestContextMock);
 
     SharedBudget resultBudget = resultFuture.join();
 
@@ -94,10 +94,10 @@ public class BudgetServiceTest {
   void testGetBudgetByIdWithoutExpenseClasses() {
     Budget budget = new Budget().withId(UUID.randomUUID().toString());
 
-    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(budgetExpenseClassMockService.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(budgetMockrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(budgetExpenseClassMockService.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(Collections.emptyList()));
 
-    CompletableFuture<SharedBudget> resultFuture = budgetService.getBudgetById(budget.getId(), requestContextMock);
+    Future<SharedBudget> resultFuture = budgetService.getBudgetById(budget.getId(), requestContextMock);
 
     SharedBudget resultBudget = resultFuture.join();
 
@@ -124,9 +124,9 @@ public class BudgetServiceTest {
       .withEncumbered(7307.4)
       .withExpenditures(2228.55);
 
-    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
+    when(budgetMockrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
 
-    CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
 
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
@@ -152,11 +152,11 @@ public class BudgetServiceTest {
     budgetFromStorage.setOverExpended(5d);
     budgetFromStorage.setNetTransfers(1d);
 
-    when(budgetMockRestClient.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
+    when(budgetMockRestClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(succeededFuture(null));
+    when(budgetMockrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
 
-    CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     resultFuture.join();
     assertFalse(resultFuture.isCompletedExceptionally());
 
@@ -192,9 +192,9 @@ public class BudgetServiceTest {
       .withEncumbered(7307.4)
       .withExpenditures(2228.55);
 
-    when(budgetMockRestClient.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetFromStorage));
+    when(budgetMockrestClient.get(resourceByIdPath(, )anyString(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
 
-    CompletableFuture<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> resultFuture = budgetService.updateBudget(sharedBudget, requestContextMock);
     ExecutionException exception = assertThrows(ExecutionException.class, resultFuture::get);
 
     assertThat(exception.getCause(), IsInstanceOf.instanceOf(HttpException.class));
@@ -215,11 +215,11 @@ public class BudgetServiceTest {
     BudgetsCollection budgetCollection = new BudgetsCollection()
       .withBudgets(Collections.singletonList(budget))
       .withTotalRecords(1);
-    when(budgetMockRestClient.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+    when(budgetMockRestClient.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetCollection));
     String query = "id=" + budget.getId();
     int offset = 2;
     int limit = 100;
-    CompletableFuture<BudgetsCollection> resultFuture = budgetService.getBudgets(query, offset, limit, requestContextMock);
+    Future<BudgetsCollection> resultFuture = budgetService.getBudgets(query, offset, limit, requestContextMock);
 
     BudgetsCollection resultBudgetsCollection = resultFuture.join();
 
@@ -231,8 +231,8 @@ public class BudgetServiceTest {
   @Test
   void testDeleteBudget() {
     String id = UUID.randomUUID().toString();
-    when(budgetMockRestClient.delete(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
-    CompletableFuture<Void> futureResult = budgetService.deleteBudget(id, requestContextMock);
+    when(budgetMockRestClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
+    Future<Void> futureResult = budgetService.deleteBudget(id, requestContextMock);
     futureResult.join();
     assertTrue(futureResult.isDone());
 

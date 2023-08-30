@@ -19,7 +19,7 @@ import org.folio.services.ledger.LedgerService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
@@ -50,7 +50,7 @@ public class FundCodeExpenseClassesService {
     this.expenseClassService = expenseClassService;
   }
 
-  public CompletableFuture<FundCodeExpenseClassesCollection> retrieveCombinationFundCodeExpClasses(String fiscalYearCode,
+  public Future<FundCodeExpenseClassesCollection> retrieveCombinationFundCodeExpClasses(String fiscalYearCode,
                                                                                                    RequestContext requestContext) {
     FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder = new FundCodeExpenseClassesHolder();
     if (fiscalYearCode != null) {
@@ -62,22 +62,22 @@ public class FundCodeExpenseClassesService {
         // LedgersCollection
         .thenCompose(ledgersCollection -> getFiscalYearList(ledgersCollection.getLedgers(), requestContext))
         .thenCompose(fiscalYearList -> buildFundCodeExpenseClassesCollection(fiscalYearList, fundCodeExpenseClassesHolder, requestContext))
-        .thenApply(fundCodeExpenseClassesCollectionList -> buildCollection(fundCodeExpenseClassesCollectionList));
+        .map(fundCodeExpenseClassesCollectionList -> buildCollection(fundCodeExpenseClassesCollectionList));
     }
   }
 
-  public CompletableFuture<List<FiscalYear>> getFiscalYearList(List<Ledger> ledgerList, RequestContext requestContext) {
-    List<CompletableFuture<FiscalYear>> fiscalYearsList = ledgerList.stream()
+  public Future<List<FiscalYear>> getFiscalYearList(List<Ledger> ledgerList, RequestContext requestContext) {
+    List<Future<FiscalYear>> fiscalYearsList = ledgerList.stream()
       .map(ledger -> ledgerDetailsService.getCurrentFiscalYear(ledger.getId(), requestContext))
       .collect(toList());
     return collectResultsOnSuccess(fiscalYearsList);
   }
 
-  public CompletableFuture<List<FundCodeExpenseClassesCollection>> buildFundCodeExpenseClassesCollection(List<FiscalYear> fiscalYearList,
+  public Future<List<FundCodeExpenseClassesCollection>> buildFundCodeExpenseClassesCollection(List<FiscalYear> fiscalYearList,
                                                                                         FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder, RequestContext requestContext) {
     List<FiscalYear> separatedFiscalYears = new ArrayList<>();
     separatedFiscalYears = fiscalYearList.stream().distinct().collect(Collectors.toList());
-    List<CompletableFuture<FundCodeExpenseClassesCollection>> completeFutures = separatedFiscalYears.stream()
+    List<Future<FundCodeExpenseClassesCollection>> completeFutures = separatedFiscalYears.stream()
       .map(fiscalYr -> getFundCodeVsExpenseClassesWithFiscalYear(fiscalYr, fundCodeExpenseClassesHolder, requestContext))
       .collect(Collectors.toList());
     return collectResultsOnSuccess(completeFutures);
@@ -95,40 +95,40 @@ public class FundCodeExpenseClassesService {
     return fundCodeExpenseClassesCollectionObject;
   }
 
-  public CompletableFuture<FundCodeExpenseClassesCollection> getFundCodeVsExpenseClassesWithFiscalYear(FiscalYear fiscalYearUnit,
+  public Future<FundCodeExpenseClassesCollection> getFundCodeVsExpenseClassesWithFiscalYear(FiscalYear fiscalYearUnit,
                                                                                                         FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder, RequestContext requestContext) {
     String fiscalYearCode = fiscalYearUnit.getCode();
     return fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext)
-      .thenApply(fundCodeExpenseClassesHolder::setFiscalYear)
+      .map(fundCodeExpenseClassesHolder::setFiscalYear)
       .thenCompose(fundCodeExpenseClassesHolderWithFiscalYear -> getActiveBudgetsByFiscalYear(fundCodeExpenseClassesHolderWithFiscalYear.getFiscalYear(), requestContext))
-      .thenApply(fundCodeExpenseClassesHolder::withBudgetCollectionList)
-      .thenApply(holder -> holder.getBudgetCollection().getBudgets().stream().map(budget -> budget.getFundId()).distinct().collect(Collectors.toList()))
+      .map(fundCodeExpenseClassesHolder::withBudgetCollectionList)
+      .map(holder -> holder.getBudgetCollection().getBudgets().stream().map(budget -> budget.getFundId()).distinct().collect(Collectors.toList()))
       .thenCompose(fundsId -> fundService.getFunds(fundsId, requestContext))
-      .thenApply(fundCodeExpenseClassesHolder::withFundList)
-      .thenApply(holder -> holder.getFundList().stream().map(Fund::getLedgerId).collect(toList()))
+      .map(fundCodeExpenseClassesHolder::withFundList)
+      .map(holder -> holder.getFundList().stream().map(Fund::getLedgerId).collect(toList()))
       .thenCompose(ledgerIds -> ledgerService.getLedgers(ledgerIds, requestContext))
-      .thenApply(fundCodeExpenseClassesHolder::withLedgerList)
+      .map(fundCodeExpenseClassesHolder::withLedgerList)
       .thenCompose(v -> retrieveFundCodeVsExpenseClasses(requestContext, fundCodeExpenseClassesHolder));
   }
 
-  public CompletableFuture<FundCodeExpenseClassesCollection> retrieveFundCodeVsExpenseClasses(RequestContext requestContext,
+  public Future<FundCodeExpenseClassesCollection> retrieveFundCodeVsExpenseClasses(RequestContext requestContext,
                                                                                               FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder) {
     return fundCodeExpenseClassesHolder.getFiscalYearFuture()
       .thenCompose(fiscalYear -> getActiveBudgetsByFiscalYear(fiscalYear, requestContext))
-      // CompletableFuture<BudgetsCollection>
-      .thenApply(budgetsCollection -> budgetsCollection.getBudgets()
+      // Future<BudgetsCollection>
+      .map(budgetsCollection -> budgetsCollection.getBudgets()
         .stream()
         .map(Budget::getId)
         .collect(toList()))
-      .thenApply(fundCodeExpenseClassesHolder::withBudgetIds)
+      .map(fundCodeExpenseClassesHolder::withBudgetIds)
       .thenCompose(holder -> budgetExpenseClassService.getBudgetExpensesClass(holder.getBudgetIds(), requestContext))
-      .thenApply(fundCodeExpenseClassesHolder::withBudgetExpenseClassList)
+      .map(fundCodeExpenseClassesHolder::withBudgetExpenseClassList)
       .thenCompose(holder -> expenseClassService.getExpenseClassesByBudgetIds(holder.getBudgetIds(), requestContext))
-      .thenApply(fundCodeExpenseClassesHolder::withExpenseClassList)
-      .thenApply(FundCodeExpenseClassesHolder::buildFundCodeVsExpenseClassesTypeCollection);
+      .map(fundCodeExpenseClassesHolder::withExpenseClassList)
+      .map(FundCodeExpenseClassesHolder::buildFundCodeVsExpenseClassesTypeCollection);
   }
 
-  public CompletableFuture<BudgetsCollection> getActiveBudgetsByFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
+  public Future<BudgetsCollection> getActiveBudgetsByFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
     return budgetService.getBudgets(queryBudgetStatusAndFiscalYearId(Budget.BudgetStatus.ACTIVE.value(),
        fiscalYear.getId()), 0, Integer.MAX_VALUE, requestContext);
   }

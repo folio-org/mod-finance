@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
@@ -70,11 +70,11 @@ public class GroupFundFiscalYearServiceTest {
       .withTotalRecords(2);
 
     when(groupFundFiscalYearRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(groupFundFiscalYearCollection));
-    when(groupFundFiscalYearRestClientMock.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(groupFundFiscalYearCollection));
+    when(groupFundFiscalYearRestClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
     when(requestContext.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
-    CompletableFuture<Void> resultFuture = groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(budget, requestContext);
+    Future<Void> resultFuture = groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(budget, requestContext);
 
     resultFuture.join();
 
@@ -101,9 +101,9 @@ public class GroupFundFiscalYearServiceTest {
     String groupId = UUID.randomUUID().toString();
     String fiscalYearId = UUID.randomUUID().toString();
     when(groupFundFiscalYearRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(new GroupFundFiscalYearCollection()));
+      .thenReturn(succeededFuture(new GroupFundFiscalYearCollection()));
 
-    CompletableFuture<List<GroupFundFiscalYear>> resultFuture = groupFundFiscalYearMockService.getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext);
+    Future<List<GroupFundFiscalYear>> resultFuture = groupFundFiscalYearMockService.getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext);
     resultFuture.join();
     String expectedQuery = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
     verify(groupFundFiscalYearRestClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(GroupFundFiscalYearCollection.class));

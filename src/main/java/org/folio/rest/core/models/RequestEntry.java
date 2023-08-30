@@ -13,9 +13,6 @@ import static org.folio.rest.util.HelperUtils.encodeQuery;
 
 public class RequestEntry {
 
-
-  private static final Logger logger = LogManager.getLogger();
-
   private String baseEndpoint;
   private Map<String, String> pathParams = new HashMap<>();
   private Map<String, Object> queryParams = new HashMap<>();
@@ -43,7 +40,7 @@ public class RequestEntry {
     if (StringUtils.isEmpty(query)) {
       return this;
     }
-    queryParams.put("query", encodeQuery(query, logger));
+    queryParams.put("query", encodeQuery(query));
     return this;
   }
 

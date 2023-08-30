@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -91,7 +91,7 @@ public class FundCodeExpenseClassesApiTest {
     fundCodeExpenseClassesCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpClassesTypeList);
 
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(fiscalYearCode), any()))
-      .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
+      .thenReturn(succeededFuture(fundCodeExpenseClassesCollection));
 
     FundCodeExpenseClassesCollection resultFundCodeCollection = verifyGetWithParam(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode(), "fiscalYearCode", fiscalYearCode).as(FundCodeExpenseClassesCollection.class);
@@ -113,7 +113,7 @@ public class FundCodeExpenseClassesApiTest {
     fundCodeExpenseClassesCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpClassesTypeList);
 
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(null), any()))
-      .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
+      .thenReturn(succeededFuture(fundCodeExpenseClassesCollection));
 
     FundCodeExpenseClassesCollection resultFundCodeCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode()).as(FundCodeExpenseClassesCollection.class);

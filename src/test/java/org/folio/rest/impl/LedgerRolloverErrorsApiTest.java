@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -69,7 +69,7 @@ public class LedgerRolloverErrorsApiTest {
       .withLedgerFiscalYearRolloverErrors(List.of(new LedgerFiscalYearRolloverError()));
 
     when(mockLedgerRolloverErrorsService.getLedgerRolloverErrors(any(), anyInt(), anyInt(), anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerErrors));
+      .thenReturn(succeededFuture(ledgerErrors));
 
     // When call getFinanceLedgerRollovers successfully
     LedgerFiscalYearRolloverErrorCollection rolloverErrorCollection = verifyGet(LEDGER_ROLLOVER_ERRORS.getEndpoint(), APPLICATION_JSON,
@@ -83,7 +83,7 @@ public class LedgerRolloverErrorsApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverErrorsServiceReturnError() {
 
-    CompletableFuture<LedgerFiscalYearRolloverErrorCollection> errorFuture = new CompletableFuture<>();
+    Future<LedgerFiscalYearRolloverErrorCollection> errorFuture = new Future<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverErrorsService.getLedgerRolloverErrors(any(), anyInt(), anyInt(), anyString(), any()))
@@ -108,7 +108,7 @@ public class LedgerRolloverErrorsApiTest {
 
     when(mockLedgerRolloverErrorsService.createLedgerRolloverError(any(LedgerFiscalYearRolloverError.class),
         any(RequestContext.class)))
-      .thenAnswer(invocation -> CompletableFuture.completedFuture(invocation.getArgument(0)));
+      .thenAnswer(invocation -> succeededFuture(invocation.getArgument(0)));
 
     LedgerFiscalYearRolloverError responseRolloverError = verifyPostResponse(LEDGER_ROLLOVER_ERRORS.getEndpoint(),
       rolloverError, APPLICATION_JSON, 201).as(LedgerFiscalYearRolloverError.class);
@@ -128,7 +128,7 @@ public class LedgerRolloverErrorsApiTest {
     String rolloverErrorId = UUID.randomUUID().toString();
 
     when(mockLedgerRolloverErrorsService.deleteLedgerRolloverError(anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(null));
 
     verifyDeleteResponse(LEDGER_ROLLOVER_ERRORS.getEndpointWithId(rolloverErrorId), "", 204);
     verify(mockLedgerRolloverErrorsService).deleteLedgerRolloverError(eq(rolloverErrorId), any(RequestContext.class));

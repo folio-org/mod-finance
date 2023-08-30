@@ -1,11 +1,10 @@
 package org.folio.services.transactions;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
 
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.rest.util.HelperUtils;
 
 public class PendingPaymentService implements TransactionTypeManagingStrategy {
@@ -17,21 +16,27 @@ public class PendingPaymentService implements TransactionTypeManagingStrategy {
   }
 
   @Override
-  public CompletableFuture<Transaction> createTransaction(Transaction pendingPayment, RequestContext requestContext) {
-    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
-      () -> transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT))
-      .thenCompose(aVoid -> transactionService.createTransaction(pendingPayment, requestContext));
+  public Future<Transaction> createTransaction(Transaction pendingPayment, RequestContext requestContext) {
+    return Future.succeededFuture()
+      .map(v -> {
+        transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT);
+        return null;
+      })
+      .compose(aVoid -> transactionService.createTransaction(pendingPayment, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> updateTransaction(Transaction pendingPayment, RequestContext requestContext) {
-    return FolioVertxCompletableFuture.runAsync(requestContext.getContext(),
-      () -> transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT))
-      .thenCompose(aVoid -> transactionService.updateTransaction(pendingPayment, requestContext));
+  public Future<Void> updateTransaction(Transaction pendingPayment, RequestContext requestContext) {
+    return Future.succeededFuture()
+      .map(v -> {
+        transactionService.validateTransactionType(pendingPayment, Transaction.TransactionType.PENDING_PAYMENT);
+        return null;
+      })
+      .compose(aVoid -> transactionService.updateTransaction(pendingPayment, requestContext));
   }
 
   @Override
-  public CompletableFuture<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
+  public Future<Void> deleteTransaction(Transaction encumbrance, RequestContext requestContext) {
     return HelperUtils.unsupportedOperationExceptionFuture();
   }
 

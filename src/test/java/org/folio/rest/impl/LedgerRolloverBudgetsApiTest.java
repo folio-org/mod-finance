@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -68,7 +68,7 @@ public class LedgerRolloverBudgetsApiTest {
       .withLedgerFiscalYearRolloverBudgets(List.of(new LedgerFiscalYearRolloverBudget()));
 
     when(mockLedgerRolloverBudgetsService.retrieveLedgerRolloverBudgets(any(), anyInt(), anyInt(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerBudgets));
+      .thenReturn(succeededFuture(ledgerBudgets));
 
     // When call getFinanceLedgerRolloversBudgets successfully
     LedgerFiscalYearRolloverBudgetCollection rolloverBudgetCollection = verifyGet(TestEntities.LEDGER_ROLLOVER_BUDGETS.getEndpoint(), APPLICATION_JSON,
@@ -82,7 +82,7 @@ public class LedgerRolloverBudgetsApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverBudgetsServiceReturnError() {
 
-    CompletableFuture<LedgerFiscalYearRolloverBudgetCollection> budgetFuture = new CompletableFuture<>();
+    Future<LedgerFiscalYearRolloverBudgetCollection> budgetFuture = new Future<>();
     budgetFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverBudgetsService.retrieveLedgerRolloverBudgets(any(), anyInt(), anyInt(), any()))
@@ -103,7 +103,7 @@ public class LedgerRolloverBudgetsApiTest {
     String ledgerRolloverId = UUID.randomUUID().toString();
 
     when(mockLedgerRolloverBudgetsService.retrieveLedgerRolloverBudgetById(anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverBudget().withLedgerRolloverId(ledgerRolloverId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverBudget().withLedgerRolloverId(ledgerRolloverId)));
 
     // When call getFinanceLedgerBudgetsById successfully
     LedgerFiscalYearRolloverBudget budgets = verifyGet(TestEntities.LEDGER_ROLLOVER_BUDGETS.getEndpointWithId(ledgerRolloverId),
@@ -120,7 +120,7 @@ public class LedgerRolloverBudgetsApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    CompletableFuture<LedgerFiscalYearRolloverBudget> errorFuture = new CompletableFuture<>();
+    Future<LedgerFiscalYearRolloverBudget> errorFuture = new Future<>();
     errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverBudgetsService.retrieveLedgerRolloverBudgetById(anyString(), any()))

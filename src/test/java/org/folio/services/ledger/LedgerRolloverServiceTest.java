@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
@@ -43,10 +43,10 @@ public class LedgerRolloverServiceTest {
 
     // When
     when(ledgerRolloverRestClientMock.post(any(LedgerFiscalYearRollover.class), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerFiscalYearRollover));
+      .thenReturn(succeededFuture(ledgerFiscalYearRollover));
 
     LedgerFiscalYearRollover ledgerRollover = ledgerRolloverService
-      .createLedger(ledgerFiscalYearRollover, mock(RequestContext.class)).join();
+      .createLedgerFyRollover(ledgerFiscalYearRollover, mock(RequestContext.class)).join();
     // Then
     assertThat(ledgerRollover, hasProperty("id"));
     assertThat(ledgerRollover, hasProperty("ledgerId"));
@@ -64,7 +64,7 @@ public class LedgerRolloverServiceTest {
 
     // When
     when(ledgerRolloverRestClientMock.get(anyString(), anyInt(), anyInt(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverCollection()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverCollection()));
 
     ledgerRolloverService.retrieveLedgerRollovers(query, offset, limit, mock(RequestContext.class)).join();
 
@@ -79,7 +79,7 @@ public class LedgerRolloverServiceTest {
 
     // When
     when(ledgerRolloverRestClientMock.getById(anyString(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRollover()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRollover()));
 
     ledgerRolloverService.retrieveLedgerRolloverById(id,  mock(RequestContext.class)).join();
 

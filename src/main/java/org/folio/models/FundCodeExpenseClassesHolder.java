@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 
 public class FundCodeExpenseClassesHolder {
@@ -183,8 +183,8 @@ public class FundCodeExpenseClassesHolder {
     return fundCodeVsExpenseClassesTypeCollection;
   }
 
-  public CompletableFuture<FiscalYear> getFiscalYearFuture() {
-    CompletableFuture<FiscalYear> f2 = CompletableFuture.supplyAsync(() -> fiscalYear);
+  public Future<FiscalYear> getFiscalYearFuture() {
+    Future<FiscalYear> f2 = CompletableFuture.supplyAsync(() -> fiscalYear);
     return f2;
   }
 

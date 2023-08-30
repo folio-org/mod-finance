@@ -42,7 +42,7 @@ public class LedgerRolloverApi extends BaseApi implements FinanceLedgerRollovers
   @Validate
   public void postFinanceLedgerRollovers(LedgerFiscalYearRollover entity, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    ledgerRolloverService.createLedger(entity, new RequestContext(vertxContext, okapiHeaders))
+    ledgerRolloverService.createLedgerFyRollover(entity, new RequestContext(vertxContext, okapiHeaders))
       .thenAccept(rollover -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(
           LEDGER_ROLLOVER_LOCATION_PREFIX, rollover.getId()), rollover))))
       .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));

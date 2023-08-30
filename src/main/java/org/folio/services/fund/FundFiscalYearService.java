@@ -3,7 +3,7 @@ package org.folio.services.fund;
 import static org.folio.rest.util.ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -20,25 +20,25 @@ public class FundFiscalYearService {
     this.fundService = fundService;
   }
 
-  public CompletableFuture<FiscalYear> retrieveCurrentFiscalYear(String fundId, RequestContext rqContext) {
+  public Future<FiscalYear> retrieveCurrentFiscalYear(String fundId, RequestContext rqContext) {
     return fundService.retrieveFundById(fundId, rqContext)
-      .thenApply(Fund::getLedgerId)
+      .map(Fund::getLedgerId)
       .thenCompose(budgetLedgerId -> getCurrentFiscalYear(budgetLedgerId, rqContext));
   }
 
-  public CompletableFuture<FiscalYear> retrievePlannedFiscalYear(String fundId, RequestContext rqContext) {
+  public Future<FiscalYear> retrievePlannedFiscalYear(String fundId, RequestContext rqContext) {
     return fundService.retrieveFundById(fundId, rqContext)
-      .thenApply(Fund::getLedgerId)
+      .map(Fund::getLedgerId)
       .thenCompose(budgetLedgerId -> getPlannedFiscalYear(budgetLedgerId, rqContext));
   }
 
-  private CompletableFuture<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext rqContext) {
+  private Future<FiscalYear> getCurrentFiscalYear(String budgetLedgerId, RequestContext rqContext) {
     return ledgerDetailsService.getCurrentFiscalYear(budgetLedgerId, rqContext)
-      .thenApply(fiscalYear -> Optional.ofNullable(fiscalYear)
+      .map(fiscalYear -> Optional.ofNullable(fiscalYear)
         .orElseThrow(() -> new HttpException(404, CURRENT_FISCAL_YEAR_NOT_FOUND.toError())));
   }
 
-  private CompletableFuture<FiscalYear> getPlannedFiscalYear(String budgetLedgerId, RequestContext rqContext) {
+  private Future<FiscalYear> getPlannedFiscalYear(String budgetLedgerId, RequestContext rqContext) {
     return ledgerDetailsService.getPlannedFiscalYear(budgetLedgerId, rqContext);
   }
 }

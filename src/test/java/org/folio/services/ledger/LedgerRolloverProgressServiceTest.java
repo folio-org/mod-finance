@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
@@ -41,7 +41,7 @@ public class LedgerRolloverProgressServiceTest {
 
     // When
     when(ledgerRolloverProgressRestClientMock.post(any(LedgerFiscalYearRolloverProgress.class), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(progress));
+      .thenReturn(succeededFuture(progress));
 
     LedgerFiscalYearRolloverProgress rolloverProgress = ledgerRolloverProgressService
       .createLedgerRolloverProgress(progress, mock(RequestContext.class)).join();
@@ -59,7 +59,7 @@ public class LedgerRolloverProgressServiceTest {
 
     // When
     when(ledgerRolloverProgressRestClientMock.get(anyString(), anyInt(), anyInt(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverProgressCollection()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverProgressCollection()));
 
     ledgerRolloverProgressService.retrieveLedgerRolloverProgresses(query, offset, limit, mock(RequestContext.class)).join();
 
@@ -74,7 +74,7 @@ public class LedgerRolloverProgressServiceTest {
 
     // When
     when(ledgerRolloverProgressRestClientMock.getById(anyString(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverProgress()));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverProgress()));
 
     ledgerRolloverProgressService.retrieveLedgerRolloverProgressById(id,  mock(RequestContext.class)).join();
 
@@ -89,7 +89,7 @@ public class LedgerRolloverProgressServiceTest {
 
     // When
     when(ledgerRolloverProgressRestClientMock.put(anyString(), any(LedgerFiscalYearRolloverProgress.class), any(RequestContext.class)))
-      .thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(null));
 
     LedgerFiscalYearRolloverProgress progress = new LedgerFiscalYearRolloverProgress()
       .withId(id)

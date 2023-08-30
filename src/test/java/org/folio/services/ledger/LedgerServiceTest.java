@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
@@ -71,9 +71,9 @@ public class LedgerServiceTest {
     Ledger ledger = new Ledger()
       .withId(UUID.randomUUID().toString());
 
-    when(ledgerStorageRestClientMock.post(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
+    when(ledgerStorageRestClientMock.post(any(), any(), any())).thenReturn(succeededFuture(ledger));
 
-    CompletableFuture<Ledger> ledgerFuture = ledgerService.createLedger(ledger, requestContextMock);
+    Future<Ledger> ledgerFuture = ledgerService.createLedger(ledger, requestContextMock);
 
     Ledger resultLedger = ledgerFuture.join();
 
@@ -90,8 +90,8 @@ public class LedgerServiceTest {
     doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContextMock);
     doReturn(completedFuture(ledgersCollection)).when(ledgerStorageRestClientMock).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContextMock, LedgersCollection.class);
 
-    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
-    when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(ledgersCollection));
+    when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(succeededFuture(ledgersCollection));
 
     LedgersCollection actLedgers = ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(StringUtils.EMPTY, 0,10, fiscalYearId, requestContextMock).join();
 
@@ -115,8 +115,8 @@ public class LedgerServiceTest {
       .withLedgers(ledgers)
       .withTotalRecords(3);
 
-    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
-    when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(ledgersCollection));
+    when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(succeededFuture(ledgersCollection));
 
     ledgerService.retrieveLedgersWithTotals(query, offset, limit, fiscalYearId,requestContextMock).join();
 
@@ -140,7 +140,7 @@ public class LedgerServiceTest {
       .withLedgers(ledgers)
       .withTotalRecords(3);
 
-    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerStorageRestClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(ledgersCollection));
 
     ledgerService.retrieveLedgersWithTotals(query, offset, limit, fiscalYearId, requestContextMock).join();
 
@@ -155,8 +155,8 @@ public class LedgerServiceTest {
 
     Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
 
-    when(ledgerStorageRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
-    when(ledgerTotalsMockService.populateLedgerTotals(any(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
+    when(ledgerStorageRestClientMock.getById(anyString(), any(), any())).thenReturn(succeededFuture(ledger));
+    when(ledgerTotalsMockService.populateLedgerTotals(any(), anyString(), any())).thenReturn(succeededFuture(ledger));
 
     ledgerService.retrieveLedgerWithTotals(ledger.getId(), fiscalYearId, requestContextMock).join();
 
@@ -171,7 +171,7 @@ public class LedgerServiceTest {
 
     Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
 
-    when(ledgerStorageRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(ledger));
+    when(ledgerStorageRestClientMock.getById(anyString(), any(), any())).thenReturn(succeededFuture(ledger));
 
     ledgerService.retrieveLedgerWithTotals(ledger.getId(), fiscalYearId, requestContextMock).join();
 
@@ -182,7 +182,7 @@ public class LedgerServiceTest {
   @Test
   void shouldCallRestClientPutWhenCallUpdateLedger() {
     Ledger ledger = new Ledger().withId(UUID.randomUUID().toString());
-    when(ledgerStorageRestClientMock.put(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(ledgerStorageRestClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
 
     ledgerService.updateLedger(ledger, requestContextMock).join();
 
@@ -192,7 +192,7 @@ public class LedgerServiceTest {
   @Test
   void shouldCallRestClientDeleteWhenCallDeleteLedger() {
     String ledgerId = UUID.randomUUID().toString();
-    when(ledgerStorageRestClientMock.delete(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
+    when(ledgerStorageRestClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
 
     ledgerService.deleteLedger(ledgerId, requestContextMock).join();
 
@@ -211,7 +211,7 @@ public class LedgerServiceTest {
     ledgerList.add(ledger2);
     ledgersCollection.setLedgers(ledgerList);
     //When
-    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(succeededFuture(ledgersCollection));
     List<Ledger> ledgers = ledgerService.getLedgers(ids, requestContextMock).join();
     //Then
     assertEquals(ledgersCollection.getLedgers().get(0).getId(), ledgers.get(0).getId());
@@ -230,7 +230,7 @@ public class LedgerServiceTest {
     ledgerList.add(ledger2);
     ledgersCollection.setLedgers(ledgerList);
     //When
-    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(CompletableFuture.completedFuture(ledgersCollection));
+    when(ledgerStorageRestClientMock.get(any(), any(), eq(LedgersCollection.class))).thenReturn(succeededFuture(ledgersCollection));
     List<Ledger> ledgers = ledgerService.getLedgersByIds(ids, requestContextMock).join();
     //Then
     assertEquals(ledgersCollection.getLedgers().get(0).getId(), ledgers.get(0).getId());

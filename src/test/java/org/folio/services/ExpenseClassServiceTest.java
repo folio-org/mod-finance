@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,9 +58,9 @@ public class ExpenseClassServiceTest {
       .withTotalRecords(1);
 
     when(expenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(expenseClassCollection));
+      .thenReturn(succeededFuture(expenseClassCollection));
 
-    CompletableFuture<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext);
+    Future<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext);
 
     String expectedQuery =  String.format("budgetExpenseClass.budgetId==%s", budgetId);
     verify(expenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(ExpenseClassCollection.class));
@@ -86,9 +86,9 @@ public class ExpenseClassServiceTest {
       .withTotalRecords(1);
 
     when(expenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(expenseClassCollection));
+      .thenReturn(succeededFuture(expenseClassCollection));
 
-    CompletableFuture<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
+    Future<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
 
     List<ExpenseClass> expenseClasses = resultFuture.join();
 

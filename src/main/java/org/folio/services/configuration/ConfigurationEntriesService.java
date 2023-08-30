@@ -1,6 +1,6 @@
 package org.folio.services.configuration;
 
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -30,11 +30,11 @@ public class ConfigurationEntriesService {
     this.configEntriesRestClient = configEntriesRestClient;
   }
 
-  public CompletableFuture<JsonObject> loadConfiguration(String moduleConfig, RequestContext requestContext) {
+  public Future<JsonObject> loadConfiguration(String moduleConfig, RequestContext requestContext) {
     String query = String.format(CONFIG_QUERY, moduleConfig);
     logger.info("GET request: {}", query);
     return configEntriesRestClient.get(query, 0, Integer.MAX_VALUE, requestContext, Configs.class)
-      .thenApply(configs -> {
+      .map(configs -> {
         if (logger.isDebugEnabled()) {
           logger.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
         }
@@ -44,10 +44,10 @@ public class ConfigurationEntriesService {
       });
   }
 
-  public CompletableFuture<String> getSystemCurrency(RequestContext requestContext) {
-    CompletableFuture<String> future = new CompletableFuture<>();
+  public Future<String> getSystemCurrency(RequestContext requestContext) {
+    Future<String> future = new Future<>();
     loadConfiguration(SYSTEM_CONFIG_MODULE_NAME, requestContext)
-      .thenApply(jsonConfig -> extractLocalSettingConfigValueByName(jsonConfig, CURRENCY_CONFIG, DEFAULT_CURRENCY))
+      .map(jsonConfig -> extractLocalSettingConfigValueByName(jsonConfig, CURRENCY_CONFIG, DEFAULT_CURRENCY))
       .thenAccept(future::complete)
       .exceptionally(t -> {
         future.completeExceptionally(t);
@@ -56,10 +56,10 @@ public class ConfigurationEntriesService {
     return future;
   }
 
-  public CompletableFuture<String> getSystemTimeZone(RequestContext requestContext) {
-    CompletableFuture<String> future = new CompletableFuture<>();
+  public Future<String> getSystemTimeZone(RequestContext requestContext) {
+    Future<String> future = new Future<>();
     loadConfiguration(SYSTEM_CONFIG_MODULE_NAME, requestContext)
-      .thenApply(jsonConfig -> extractLocalSettingConfigValueByName(jsonConfig, TZ_CONFIG, TZ_UTC))
+      .map(jsonConfig -> extractLocalSettingConfigValueByName(jsonConfig, TZ_CONFIG, TZ_UTC))
       .thenAccept(future::complete)
       .exceptionally(t -> {
         future.completeExceptionally(t);

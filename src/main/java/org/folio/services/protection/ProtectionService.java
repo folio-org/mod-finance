@@ -11,7 +11,7 @@ import static org.folio.services.protection.AcqUnitConstants.ALL_UNITS_CQL;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
@@ -39,7 +39,7 @@ public class ProtectionService {
     this.acqUnitMembershipsService = acqUnitMembershipsService;
   }
 
-  public CompletableFuture<Void> checkOperationsRestrictions(List<String> unitIds, Set<ProtectedOperationType> operations, RequestContext requestContext) {
+  public Future<Void> checkOperationsRestrictions(List<String> unitIds, Set<ProtectedOperationType> operations, RequestContext requestContext) {
     if (CollectionUtils.isNotEmpty(unitIds)) {
       return getUnitsByIds(unitIds, requestContext)
         .thenCompose(units -> {
@@ -50,27 +50,27 @@ public class ProtectionService {
             if (!activeUnits.isEmpty() && applyMergingStrategy(activeUnits, operations)) {
               return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
             }
-            return CompletableFuture.completedFuture(null);
+            return succeededFuture(null);
           } else {
             throw new HttpException(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), buildUnitsNotFoundError(unitIds, extractUnitIds(units)));
           }
         });
     } else {
-      return CompletableFuture.completedFuture(null);
+      return succeededFuture(null);
     }
   }
 
-  private CompletableFuture<List<AcquisitionsUnit>> getUnitsByIds(List<String> unitIds, RequestContext requestContext) {
+  private Future<List<AcquisitionsUnit>> getUnitsByIds(List<String> unitIds, RequestContext requestContext) {
     String query = combineCqlExpressions("and", ALL_UNITS_CQL, convertIdsToCqlQuery(unitIds));
     return acqUnitsService.getAcquisitionsUnits(query, 0, Integer.MAX_VALUE, requestContext)
-      .thenApply(AcquisitionsUnitCollection::getAcquisitionsUnits);
+      .map(AcquisitionsUnitCollection::getAcquisitionsUnits);
   }
 
   private boolean applyMergingStrategy(List<AcquisitionsUnit> units, Set<ProtectedOperationType> operations) {
     return units.stream().allMatch(unit -> operations.stream().anyMatch(operation -> operation.isProtected(unit)));
   }
 
-  private CompletableFuture<Void> verifyUserIsMemberOfFundUnits(List<String> unitIdsAssignedToFund, String currentUserId,
+  private Future<Void> verifyUserIsMemberOfFundUnits(List<String> unitIdsAssignedToFund, String currentUserId,
                                                                 RequestContext requestContext) {
     String query = String.format("userId==%s AND %s", currentUserId, convertIdsToCqlQuery(unitIdsAssignedToFund, ACQUISITIONS_UNIT_ID, true));
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships(query, 0, Integer.MAX_VALUE, requestContext)
