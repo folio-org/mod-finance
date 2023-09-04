@@ -1,9 +1,19 @@
 package org.folio.services.fund;
 
+import static io.vertx.core.Future.succeededFuture;
+import static java.util.stream.Collectors.toList;
+import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -17,14 +27,7 @@ import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import io.vertx.core.Future;
-
-import static java.util.stream.Collectors.toList;
-import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
 
 public class FundDetailsService {
   private static final Logger logger = LogManager.getLogger(FundDetailsService.class);
@@ -49,18 +52,14 @@ public class FundDetailsService {
 
   public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
                                                          RequestContext rqContext) {
-    Future<Budget> future = new Future<>();
-    retrieveCurrentBudget(fundId, budgetStatus, rqContext).map(future::complete)
-      .exceptionally(t -> {
-        logger.error("Failed to retrieve current budget", t.getCause());
+    return retrieveCurrentBudget(fundId, budgetStatus, rqContext)
+      .recover(t -> {
+        logger.error("Failed to retrieve current budget", t);
         if (skipThrowException) {
-          future.complete(null);
+          return Future.succeededFuture();
         } else {
-          future.completeExceptionally(t.getCause());
-        }
-        return null;
+          return Future.failedFuture(t);        }
       });
-    return future;
   }
 
   public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
@@ -81,7 +80,7 @@ public class FundDetailsService {
     Future<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
       .getFiscalYearById(fiscalYearId, rqContext) : fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext);
     return fiscalYear.map(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
-      .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
+      .compose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
       .map(this::getFirstBudget);
   }
 
@@ -97,30 +96,23 @@ public class FundDetailsService {
    */
   public Future<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
                                                                       String budgetStatus, RequestContext rqContext) {
-    Future<List<ExpenseClass>> future = new FolioVertxFuture<>(rqContext.getContext());
-    retrieveBudget(fundId, fiscalYearId, null, rqContext).thenCompose(budget -> {
-      logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",
-        budget.getId(), fundId);
-      return retrieveBudgetExpenseClasses(budget, rqContext).thenCombine(
-        getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext),
-        (expenseClasses, budgetExpenseClassIds) -> expenseClasses.stream()
-          .filter(expenseClass -> budgetExpenseClassIds.contains(expenseClass.getId()))
+
+    return retrieveBudget(fundId, fiscalYearId, null, rqContext)
+      .compose(budget -> {
+      logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
+      var expenseClasses = getExpenseClasses(budget, rqContext);
+      var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
+
+      return GenericCompositeFuture.join(List.of(expenseClasses, budgetExpenseClassIds))
+        .map(cf -> expenseClasses.result().stream()
+          .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
           .collect(toList()));
       })
-      .thenAccept(expenseClasses -> {
-        logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ",
-          fundId, expenseClasses.size());
-        future.complete(expenseClasses);
-      })
-      .exceptionally(t -> {
-        logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t.getCause());
-        future.completeExceptionally(t);
-        return null;
-      });
-    return future;
+      .onSuccess(expenseClasses -> logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
+      .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t.getCause()));
   }
 
-  private Future<List<ExpenseClass>> retrieveBudgetExpenseClasses(Budget budget, RequestContext rqContext) {
+  private Future<List<ExpenseClass>> getExpenseClasses(Budget budget, RequestContext rqContext) {
     return Optional.ofNullable(budget)
       .map(budgetP -> expenseClassService.getExpenseClassesByBudgetId(budgetP.getId(), rqContext))
       .orElse(succeededFuture(Collections.emptyList()));

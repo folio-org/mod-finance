@@ -3,14 +3,12 @@ package org.folio.services.transactions;
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
-import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 
 import java.util.Objects;
 
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Fund;
@@ -40,8 +38,8 @@ public class TransactionRestrictService {
 
   private Future<Void> checkFundsAllocatedIds(Transaction transaction, RequestContext requestContext) {
     if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-      var fromFund = fundService.retrieveFundById(transaction.getFromFundId(), requestContext);
-      var toFund = fundService.retrieveFundById(transaction.getToFundId(), requestContext);
+      var fromFund = fundService.getFundById(transaction.getFromFundId(), requestContext);
+      var toFund = fundService.getFundById(transaction.getToFundId(), requestContext);
       return CompositeFuture.join(toFund, fromFund)
         .map(cf -> isAllocationAllowed(fromFund.result(), toFund.result(), transaction))
         .compose(isAllocationAllowed -> {

@@ -4,6 +4,7 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -103,13 +104,13 @@ public class FiscalYearService {
     return configurationEntriesService.getSystemCurrency(requestContext)
       .compose(currency -> {
         fiscalYear.setCurrency(currency);
-        return restClient.put(fiscalYear.getId(), fiscalYear, requestContext);
+        return restClient.put(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYear.getId()), fiscalYear, requestContext);
       });
 
   }
 
   public Future<Void> deleteFiscalYear(String id, RequestContext requestContext) {
-    return restClient.delete(id, requestContext);
+    return restClient.delete(resourceByIdPath(FISCAL_YEARS_STORAGE, id), requestContext);
   }
 
 

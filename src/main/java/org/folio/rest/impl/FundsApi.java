@@ -46,7 +46,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
   public void postFinanceFunds(CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext);
 
-    helper.createFund(compositeFund)
+    helper.createFund(compositeFund, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(fund -> asyncResultHandler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FUNDS_LOCATION_PREFIX, fund.getFund().getId()), fund))))
       .onFailure(fail -> HelperUtils.handleErrorResponse(asyncResultHandler, helper, fail));
@@ -78,7 +78,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
       return;
     }
 
-    helper.updateFund(compositeFund)
+    helper.updateFund(compositeFund, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(types -> asyncResultHandler.handle(succeededFuture(helper.buildNoContentResponse())))
       .onFailure(fail -> HelperUtils.handleErrorResponse(asyncResultHandler, helper, fail));
   }
@@ -90,7 +90,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx);
 
-    helper.getCompositeFund(id)
+    helper.getCompositeFund(id, new RequestContext(ctx, headers))
       .onSuccess(fund -> handler.handle(succeededFuture(helper.buildOkResponse(fund))))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }
@@ -112,7 +112,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
   public void postFinanceFundTypes(FundType entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     FundsHelper helper = new FundsHelper(headers, ctx);
-    helper.createFundType(entity)
+    helper.createFundType(entity, new RequestContext(ctx, headers))
       .onSuccess(type -> handler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FUND_TYPES_LOCATION_PREFIX, type.getId()), type))))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
@@ -125,28 +125,28 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx);
 
-    helper.getFundTypes(limit, offset, query)
+    helper.getFundTypes(limit, offset, query, new RequestContext(ctx, headers))
       .onSuccess(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }
 
   @Validate
   @Override
-  public void putFinanceFundTypesById(String id, FundType entity, Map<String, String> headers,
+  public void putFinanceFundTypesById(String id, FundType fundType, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     FundsHelper helper = new FundsHelper(headers, ctx);
 
     // Set id if this is available only in path
-    if (StringUtils.isEmpty(entity.getId())) {
-      entity.setId(id);
-    } else if (!id.equals(entity.getId())) {
+    if (StringUtils.isEmpty(fundType.getId())) {
+      fundType.setId(id);
+    } else if (!id.equals(fundType.getId())) {
       helper.addProcessingError(MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError());
       handler.handle(succeededFuture(helper.buildErrorResponse(422)));
       return;
     }
 
-    helper.updateFundType(entity)
+    helper.updateFundType(fundType, new RequestContext(ctx, headers))
       .onSuccess(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }
@@ -158,7 +158,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx);
 
-    helper.getFundType(id)
+    helper.getFundType(id, new RequestContext(ctx, headers))
       .onSuccess(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }
@@ -170,7 +170,7 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
     FundsHelper helper = new FundsHelper(headers, ctx);
 
-    helper.deleteFundType(id)
+    helper.deleteFundType(id, new RequestContext(ctx, headers))
       .onSuccess(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
       .onFailure(fail -> HelperUtils.handleErrorResponse(handler, helper, fail));
   }

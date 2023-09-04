@@ -75,7 +75,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
       return;
     }
 
-    helper.updateGroup(entity)
+    helper.updateGroup(entity, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
@@ -84,7 +84,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
   @Override
   public void getFinanceGroupsById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
-    helper.getGroup(id)
+    helper.getGroup(id, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(type -> asyncResultHandler.handle(succeededFuture(buildOkResponse(type))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
@@ -93,7 +93,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
   @Override
   public void deleteFinanceGroupsById(String id, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
-    helper.deleteGroup(id)
+    helper.deleteGroup(id, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }

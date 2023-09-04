@@ -59,6 +59,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.vertx.core.Promise;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -121,16 +122,16 @@ public class MockServer {
   public void start() throws InterruptedException, ExecutionException, TimeoutException {
     // Setup Mock Server...
     HttpServer server = vertx.createHttpServer();
-    Future<HttpServer> deploymentComplete = new Future<>();
+    Promise<HttpServer> deploymentComplete = Promise.promise();
     server.requestHandler(defineRoutes()).listen(port, result -> {
-      if(result.succeeded()) {
+      if (result.succeeded()) {
         deploymentComplete.complete(result.result());
-      }
-      else {
-        deploymentComplete.completeExceptionally(result.cause());
+      } else {
+        deploymentComplete.fail(result.cause());
       }
     });
-    deploymentComplete.get(60, TimeUnit.SECONDS);
+
+    deploymentComplete.future().toCompletionStage().toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
   public void close() {
@@ -678,20 +679,20 @@ public class MockServer {
   }
 
   private <T> void handleTransactionPutEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request()
       .getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
       serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID()
           .toString());
       }
       T entry = body.mapTo(tClass);
-      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
 
       if (ID_DOES_NOT_EXIST.equals(t.getId())) {
         serverResponse(ctx, 404, APPLICATION_JSON, t.getId());
@@ -712,20 +713,20 @@ public class MockServer {
   }
 
   private <T> void handleTransactionPostEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request()
       .getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
       serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID()
           .toString());
       }
       T entry = body.mapTo(tClass);
-      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
       if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name(), body);
       } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
@@ -746,7 +747,7 @@ public class MockServer {
   }
 
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
@@ -756,13 +757,13 @@ public class MockServer {
         ",\"parameters\":[]}],\"total_records\":1}";
       List<JsonObject> rqRs = getRqRsEntries(HttpMethod.POST, entryName);
       JsonObject rsGroup = rqRs.get(0);
-      Group requestEntry = ctx.getBodyAsJson().mapTo(Group.class);
+      Group requestEntry = ctx.body().asJsonObject().mapTo(Group.class);
       Group dbEntry = rsGroup.mapTo(Group.class);
       if (requestEntry.getId().equals(dbEntry.getId())) {
         serverResponse(ctx, 400, APPLICATION_JSON, constraintStorageError);
       }
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID().toString());
       }
@@ -796,7 +797,7 @@ public class MockServer {
   private void handlePutGenericSubObj(RoutingContext ctx, String subObj) {
     logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path());
     String id = ctx.request().getParam(ID);
-    addServerRqRsData(HttpMethod.PUT, subObj, ctx.getBodyAsJson());
+    addServerRqRsData(HttpMethod.PUT, subObj, ctx.body().asJsonObject());
 
     if (ID_DOES_NOT_EXIST.equals(id)) {
       serverResponse(ctx, 404, APPLICATION_JSON, id);

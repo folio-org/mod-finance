@@ -4,11 +4,9 @@ import static io.vertx.core.Future.succeededFuture;
 import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +16,6 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletionException;
 import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +24,6 @@ import javax.ws.rs.Path;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
@@ -39,20 +35,18 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import one.util.streamex.StreamEx;
 
 public class HelperUtils {
   public static final String ID = "id";
   public static final String OKAPI_URL = "X-Okapi-Url";
-  public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
-  public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
-
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE);
   private static final Pattern ERROR_PATTERN = Pattern.compile("(message).*(code).*(parameters)");
-  private static final Pattern ERRORS_PATTERN = Pattern.compile("(errors).*(message).*(code).*(parameters)");
+
 
   private HelperUtils() {
   }
@@ -67,10 +61,6 @@ public class HelperUtils {
    */
   public static String encodeQuery(String query) {
     return URLEncoder.encode(query, StandardCharsets.UTF_8);
-  }
-
-  public static String buildQueryParam(String query) {
-    return isEmpty(query) ? EMPTY : "&query=" + encodeQuery(query);
   }
 
 
@@ -141,25 +131,13 @@ public class HelperUtils {
 
   }
 
-  public static boolean isErrorMessageJson(String errorMessage) {
-    if (!StringUtils.isEmpty(errorMessage)) {
-      Matcher matcher = ERROR_PATTERN.matcher(errorMessage);
-      if (matcher.find()) {
-        return matcher.groupCount() == 3;
-      }
+  public static <T> boolean isJsonOfType(String errorMessage, Class<T> clazz) {
+    try {
+      Json.decodeValue(errorMessage, clazz);
+      return true;
+    } catch (Exception exception) {
+      return false;
     }
-    return false;
-  }
-
-  public static boolean isErrorsMessageJson(String errorsMessage) {
-    if (!StringUtils.isEmpty(errorsMessage)) {
-      errorsMessage = errorsMessage.replace("\r", "").replace("\n", "");
-      Matcher matcher = ERRORS_PATTERN.matcher(errorsMessage);
-      if (matcher.find()) {
-        return matcher.groupCount() == 4;
-      }
-    }
-    return false;
   }
 
   public static int defineErrorCode(Throwable throwable) {
@@ -187,7 +165,7 @@ public class HelperUtils {
   }
 
   private static Error mapToError(Error error) {
-    if (HelperUtils.isErrorMessageJson(error.getMessage())) {
+    if (isJsonOfType(error.getMessage(), Error.class)) {
       return new JsonObject(error.getMessage()).mapTo(Error.class);
     }
     return error;
@@ -213,11 +191,7 @@ public class HelperUtils {
     return responseBuilder;
   }
 
-  public static <T> Future<List<T>> emptyListFuture() {
-    return succeededFuture(Collections.emptyList());
-  }
-
-  //TODO: clean HelperUtils
+  //TODO: cleanup HelperUtils
   public static void validateAmount(double doubleAmount, String fieldName) {
     BigDecimal amount = BigDecimal.valueOf(doubleAmount);
     if (isNegative(amount)) {
@@ -234,7 +208,7 @@ public class HelperUtils {
     return Future.failedFuture(new UnsupportedOperationException());
   }
 
-  public static  <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {
+  public static <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {
     return budgets.stream()
       .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
       .reduce(BigDecimal::add).orElse(BigDecimal.ZERO).doubleValue();

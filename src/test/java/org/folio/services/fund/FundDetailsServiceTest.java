@@ -1,7 +1,24 @@
 package org.folio.services.fund;
 
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
+import static io.vertx.core.Future.succeededFuture;
+import static java.util.Collections.singletonList;
+import static org.folio.rest.RestConstants.OKAPI_URL;
+import static org.folio.rest.util.TestConfig.mockPort;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletionException;
+
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
@@ -16,30 +33,17 @@ import org.folio.services.fiscalyear.FiscalYearService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletionException;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
-import static java.util.Collections.singletonList;
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.folio.rest.RestConstants.OKAPI_URL;
-import static org.folio.rest.util.TestConfig.mockPort;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-
+@ExtendWith(VertxExtension.class)
 public class FundDetailsServiceTest {
   private static final String X_ACTIVE_BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
@@ -62,7 +66,7 @@ public class FundDetailsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     Context context = Vertx.vertx().getOrCreateContext();
     Map<String, String> okapiHeaders = new HashMap<>();
     okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
@@ -87,15 +91,15 @@ public class FundDetailsServiceTest {
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
 
-    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    doReturn(completedFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(fund)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+    doReturn(succeededFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join());
+    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext));
   }
 
   @Test
-  void testShouldReturnExpenseClassesIfCurrentBudgetExistForFund() {
+  void testShouldReturnExpenseClassesIfCurrentBudgetExistForFund(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -114,24 +118,30 @@ public class FundDetailsServiceTest {
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
     boolean answer = fundDetailsService.isBudgetExpenseClassWithStatus(budgetExpenseClass, status);
-    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
-    doReturn(completedFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
-    //When
+    doReturn(succeededFuture(fund)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+    doReturn(succeededFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
 
-    List<ExpenseClass> actClasses = fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext).join();
-    //Then
-    assertEquals(statusBoolean, answer);
-    assertEquals(expClasses.getId(), actClasses.get(0).getId());
-    verify(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    verify(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+    var future = fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext);
+
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actClasses = result.result();
+        assertEquals(statusBoolean, answer);
+        assertEquals(expClasses.getId(), actClasses.get(0).getId());
+        verify(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+        verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+        verify(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldReturnFundExpenseClassesForFiscalYear() {
+  void testShouldReturnFundExpenseClassesForFiscalYear(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String fundId = UUID.randomUUID().toString();
@@ -148,23 +158,28 @@ public class FundDetailsServiceTest {
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
     boolean answer = fundDetailsService.isBudgetExpenseClassWithStatus(budgetExpenseClass, status);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
-    doReturn(completedFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+    doReturn(succeededFuture(singletonList(budgetExpenseClass))).when(budgetExpenseClassService).getBudgetExpenseClasses(budgetId, requestContext);
 
     //When
-    List<ExpenseClass> actClasses = fundDetailsService.retrieveExpenseClasses(fundId, fiscalId, null, requestContext).join();
-    //Then
-    assertEquals(statusBoolean, answer);
-    assertEquals(expClasses.getId(), actClasses.get(0).getId());
-    verify(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
-    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    verify(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+    var future = fundDetailsService.retrieveExpenseClasses(fundId, fiscalId, null, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertEquals(statusBoolean, answer);
+        assertEquals(expClasses.getId(), result.result().get(0).getId());
+        verify(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
+        verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+        verify(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldThrowExceptionIfNoFundFoundById() {
+  void testShouldThrowExceptionIfNoFundFoundById(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -178,16 +193,22 @@ public class FundDetailsServiceTest {
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
-    doReturn(completedFuture(null)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+    doReturn(succeededFuture(null)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext).join());
+    var future = fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        Assertions.assertNotNull(result.cause());
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldThrowExceptionIfNoCurrentFiscalYear() {
+  void testShouldThrowExceptionIfNoCurrentFiscalYear(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -201,16 +222,21 @@ public class FundDetailsServiceTest {
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     ExpenseClass expClasses = new ExpenseClass().withId(expenseClassId).withCode("El");
 
-    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(null)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
-    doReturn(completedFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
-    //When
-    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext).join());
+    doReturn(succeededFuture(fund)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(null)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(singletonList(expClasses))).when(expenseClassService).getExpenseClassesByBudgetId(budgetId, requestContext);
+
+    var future = fundDetailsService.retrieveExpenseClasses(fundId, null, null, requestContext);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        Assertions.assertNotNull(result.cause());
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testRetrieveCurrentBudget() {
+  void testRetrieveCurrentBudget(VertxTestContext vertxTestContext) {
     String budgetStatus = "Active";
     boolean skipThrowException = true;
 
@@ -224,21 +250,25 @@ public class FundDetailsServiceTest {
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
 
-    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(fund)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Budget actBudget = fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext).join();
+    var future = fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actBudget = result.result();
+        assertThat(actBudget, equalTo(expBudget));
+        verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
 
-    Budget budget = fundDetailsService.retrieveCurrentBudget(fundId, budgetStatus, skipThrowException, requestContext).join();
+        vertxTestContext.completeNow();
+      });
+    //Budget budget = fundDetailsService.retrieveCurrentBudget(fundId, budgetStatus, skipThrowException, requestContext).join();
 
-    //Then
-    assertThat(actBudget, equalTo(expBudget));
-    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
   }
 
   @Test
-  void testRetrieveBudgetForFiscalYear() {
+  void testRetrieveBudgetForFiscalYear(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -249,14 +279,20 @@ public class FundDetailsServiceTest {
     Fund fund = new Fund().withId(fundId).withLedgerId(ledgerId);
     FiscalYear fiscalYear = new FiscalYear().withId(fiscalId);
 
-    doReturn(completedFuture(fund)).when(fundService).retrieveFundById(fundId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
-    doReturn(completedFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    doReturn(succeededFuture(fund)).when(fundService).getFundById(fundId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(fiscalId, requestContext);
+    doReturn(succeededFuture(budgetsCollection)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Budget actBudget = fundDetailsService.retrieveBudget(fundId, fiscalId, null, requestContext).join();
+    var future = fundDetailsService.retrieveBudget(fundId, fiscalId, null, requestContext);
 
-    //Then
-    assertThat(actBudget, equalTo(expBudget));
-    verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actBudget = result.result();
+        assertThat(actBudget, equalTo(expBudget));
+        verify(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
+
+        vertxTestContext.completeNow();
+      });
+
   }
 }

@@ -116,6 +116,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-junit5</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>one.util</groupId>
       <artifactId>streamex</artifactId>
       <version>0.8.1</version>
@@ -138,7 +144,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>3.4.6</version>
+      <version>5.1.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -177,13 +183,13 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.4.6</version>
+      <version>5.3.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.folio</groupId>
       <artifactId>folio-di-support</artifactId>
-      <version>1.6.0</version>
+      <version>1.7.0</version>
       <type>jar</type>
     </dependency>
   </dependencies>
@@ -279,7 +285,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.2.0</version>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <id>add_generated_sources_folder</id>
@@ -298,7 +304,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>properties-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <executions>
           <execution>
             <goals>

@@ -1,35 +1,12 @@
 package org.folio.services.budget;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.impl.EventLoopContext;
-import org.folio.rest.core.RestClient;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
-import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
-import org.folio.rest.jaxrs.model.SharedBudget;
-import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.transactions.CommonTransactionService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import io.vertx.core.Future;
-import java.util.concurrent.ExecutionException;
-
+import static io.vertx.core.Future.succeededFuture;
 import static java.util.Collections.emptyList;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClass.Status.INACTIVE;
 import static org.folio.rest.jaxrs.model.BudgetExpenseClass.Status.fromValue;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR;
+import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -39,10 +16,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,13 +27,45 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.BudgetExpenseClass;
+import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
+import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.StatusExpenseClass;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.transactions.CommonTransactionService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.impl.EventLoopContext;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+
+@ExtendWith(VertxExtension.class)
 public class BudgetExpenseClassServiceTest {
 
   @InjectMocks
   private BudgetExpenseClassService budgetExpenseClassService;
 
   @Mock
-  private RestClient budgetExpenseClassClientMock;
+  private RestClient restClient;
 
   @Mock
   private CommonTransactionService transactionServiceMock;
@@ -70,7 +77,7 @@ public class BudgetExpenseClassServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     sharedBudget =  new SharedBudget()
       .withId(UUID.randomUUID().toString())
       .withFundId(UUID.randomUUID().toString())
@@ -78,7 +85,7 @@ public class BudgetExpenseClassServiceTest {
   }
 
   @Test
-  void testGetBudgetExpenseClasses() {
+  void testGetBudgetExpenseClasses(VertxTestContext vertxTestContext) {
 
     String budgetId = sharedBudget.getId();
     List<BudgetExpenseClass> expectedBudgetExpenseClasses = Collections.singletonList(new BudgetExpenseClass()
@@ -89,17 +96,17 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetExpenseClasses(expectedBudgetExpenseClasses)
       .withTotalRecords(1);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
+    when(restClient.get(anyString(), any(), any()))
       .thenReturn(succeededFuture(budgetExpenseClassCollection));
 
-    Future<List<BudgetExpenseClass>> resultFuture = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContextMock);
-
-    String expectedQuery =  String.format("budgetId==%s", budgetId);
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-
-    List<BudgetExpenseClass> resultBudgetExpenseClasses = resultFuture.join();
-    assertEquals(expectedBudgetExpenseClasses, resultBudgetExpenseClasses);
-
+    var future = budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        String expectedQuery =  String.format("budgetId==%s", budgetId);
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        assertEquals(expectedBudgetExpenseClasses, result.result());
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
@@ -112,14 +119,15 @@ public class BudgetExpenseClassServiceTest {
     sharedBudget.withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
 
     when(requestContextMock.getContext()).thenReturn(mock(EventLoopContext.class));
-    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(succeededFuture(new BudgetExpenseClass()));
+    when(restClient.post(anyString(), any(), eq(BudgetExpenseClass.class), eq(requestContextMock))).thenReturn(succeededFuture(new BudgetExpenseClass()));
 
     budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
 
     verify(requestContextMock).getContext();
 
     ArgumentCaptor<BudgetExpenseClass> expenseClassArgumentCaptor = ArgumentCaptor.forClass(BudgetExpenseClass.class);
-    verify(budgetExpenseClassClientMock, times(2)).post(expenseClassArgumentCaptor.capture(), eq(requestContextMock), eq(BudgetExpenseClass.class));
+    verify(restClient, times(2))
+      .post(eq(resourcesPath(BUDGET_EXPENSE_CLASSES)), expenseClassArgumentCaptor.capture(), BudgetExpenseClass.class, eq(requestContextMock));
 
     List<BudgetExpenseClass> budgetExpenseClasses = expenseClassArgumentCaptor.getAllValues();
 
@@ -138,35 +146,41 @@ public class BudgetExpenseClassServiceTest {
   }
 
   @Test
-  void testCreateBudgetWithoutExpenseClasses() {
+  void testCreateBudgetWithoutExpenseClasses(VertxTestContext vertxTestContext) {
 
     Future<Void> future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
-    future.join();
-
-    assertFalse(future.isCompletedExceptionally());
-    verify(requestContextMock, never()).getContext();
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
-
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
+        verify(requestContextMock, never()).getContext();
+        verify(restClient, never()).post(anyString(), any(), any(), any());
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testUpdateBudgetExpenseClassesLinksWithoutExpenseClasses() {
-
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(new BudgetExpenseClassCollection()));
+  void testUpdateBudgetExpenseClassesLinksWithoutExpenseClasses(VertxTestContext vertxTestContext) {
+    when(restClient.get(ArgumentMatchers.contains(resourcesPath(BUDGET_EXPENSE_CLASSES)), any(), any()))
+      .thenReturn(succeededFuture(new BudgetExpenseClassCollection()));
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    future.join();
-    assertFalse(future.isCompletedExceptionally());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).put(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).delete(any(), any());
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
+
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient, never()).post(anyString(), any(), any(), any());
+        verify(restClient, never()).put(anyString(), any(), any());
+        verify(restClient, never()).delete(anyString(), any());
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_noTransactionsAssigned_existingBudgetExpenseClassesHasToBeDeleted() {
+  void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_noTransactionsAssigned_existingBudgetExpenseClassesHasToBeDeleted(VertxTestContext vertxTestContext) {
 
     BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
     BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
@@ -174,33 +188,38 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
+    when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    future.join();
-    assertFalse(future.isCompletedExceptionally());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).put(any(), any(), any());
-    ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-    verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
-    List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
-    assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
 
-    ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
-    verify(budgetExpenseClassClientMock, times(3)).delete(idArgumentCaptor.capture(), any());
-    List<String> ids = idArgumentCaptor.getAllValues();
-    assertThat(ids, containsInAnyOrder(budgetExpenseClass1.getId(), budgetExpenseClass2.getId(), budgetExpenseClass3.getId()));
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient, never()).post(anyString(), any(), any(), any());
+        verify(restClient, never()).put(anyString(), any(), any());
+        ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
+        List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
+        assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
+
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        verify(restClient, times(3)).delete(idArgumentCaptor.capture(), any());
+        List<String> ids = idArgumentCaptor.getAllValues();
+        assertThat(ids, containsInAnyOrder(budgetExpenseClass1.getId(), budgetExpenseClass2.getId(), budgetExpenseClass3.getId()));
+
+        vertxTestContext.completeNow();
+      });
   }
 
 
   @Test
-  void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_transactionsAssigned_budgetExpenseClassesDeletionProhibited() {
+  void testUpdateBudgetExpenseClassesLinks_withoutStatusExpenseClasses_transactionsAssigned_budgetExpenseClassesDeletionProhibited(VertxTestContext vertxTestContext) {
 
     BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
     BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
@@ -208,37 +227,41 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection()
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(Collections.singletonList(new Transaction())));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
+    when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    ExecutionException executionException = assertThrows(ExecutionException.class,future::get);
 
-    assertThat(executionException.getCause(), instanceOf(HttpException.class));
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        var executionException = result.cause();
+        assertThat(executionException.getCause(), instanceOf(HttpException.class));
 
-    HttpException httpException = (HttpException) executionException.getCause();
+        HttpException httpException = (HttpException) executionException.getCause();
 
-    assertThat(httpException.getErrors().getErrors(), hasSize(1));
-    assertEquals(TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR.toError(), httpException.getErrors().getErrors().get(0));
-    assertEquals(400, httpException.getCode());
+        assertThat(httpException.getErrors().getErrors(), hasSize(1));
+        assertEquals(TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR.toError(), httpException.getErrors().getErrors().get(0));
+        assertEquals(400, httpException.getCode());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).put(any(), any(), any());
-    ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-    verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
-    List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
-    assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient, never()).post(anyString(), any(), any(), any());
+        verify(restClient, never()).put(anyString(), any(), any());
+        ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
+        List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
+        assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
-    verify(budgetExpenseClassClientMock, never()).delete(any(), any());
+        verify(restClient, never()).delete(anyString(), any());
 
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testUpdateBudgetExpenseClassesLinks_withSameStatusExpenseClassesAsExistingBudgetExpenseClassesNoUpdates() {
+  void testUpdateBudgetExpenseClassesLinks_withSameStatusExpenseClassesAsExistingBudgetExpenseClassesNoUpdates(VertxTestContext vertxTestContext) {
 
     BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
     BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
@@ -252,24 +275,28 @@ public class BudgetExpenseClassServiceTest {
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    future.join();
-    assertFalse(future.isCompletedExceptionally());
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).put(any(), any(), any());
-    verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).delete(any(), any());
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient, never()).post(anyString(), any(), any(), any());
+        verify(restClient, never()).put(anyString(), any(), any());
+        verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
+        verify(restClient, never()).delete(anyString(), any());
+
+        vertxTestContext.completeNow();
+      });
 
   }
 
   @Test
-  void testUpdateBudgetExpenseClassesLinks_withUpdatedStatusExpenseClasses_existingBudgetExpenseClassesHasToBeUpdated() {
+  void testUpdateBudgetExpenseClassesLinks_withUpdatedStatusExpenseClasses_existingBudgetExpenseClassesHasToBeUpdated(VertxTestContext vertxTestContext) {
 
     BudgetExpenseClass budgetExpenseClass1 = getNewBudgetExpenseClass();
     BudgetExpenseClass budgetExpenseClass2 = getNewBudgetExpenseClass();
@@ -285,37 +312,42 @@ public class BudgetExpenseClassServiceTest {
     List<StatusExpenseClass> statusExpenseClasses = Arrays.asList(statusExpenseClass1, statusExpenseClass2, statusExpenseClass3);
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    future.join();
-    assertFalse(future.isCompletedExceptionally());
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock, never()).post(any(), any(), any());
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient, never()).post(anyString(), any(), any(), any());
 
-    verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
-    verify(budgetExpenseClassClientMock, never()).delete(any(), any());
+        verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
+        verify(restClient, never()).delete(anyString(), any());
 
-    ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<BudgetExpenseClass> budgetExpenseClassArgumentCaptor = ArgumentCaptor.forClass(BudgetExpenseClass.class);
-    verify(budgetExpenseClassClientMock, times(2))
-      .put(idArgumentCaptor.capture(), budgetExpenseClassArgumentCaptor.capture(), eq(requestContextMock));
-    List<String> ids = idArgumentCaptor.getAllValues();
-    List<BudgetExpenseClass> budgetExpenseClasses = budgetExpenseClassArgumentCaptor.getAllValues();
+        ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<BudgetExpenseClass> budgetExpenseClassArgumentCaptor = ArgumentCaptor.forClass(BudgetExpenseClass.class);
+        verify(restClient, times(2))
+          .put(idArgumentCaptor.capture(), budgetExpenseClassArgumentCaptor.capture(), eq(requestContextMock));
+        List<String> ids = idArgumentCaptor.getAllValues();
+        List<BudgetExpenseClass> budgetExpenseClasses = budgetExpenseClassArgumentCaptor.getAllValues();
 
-    assertThat(ids, containsInAnyOrder(budgetExpenseClass2.getId(), budgetExpenseClass3.getId()));
+        assertThat(ids, containsInAnyOrder(budgetExpenseClass2.getId(), budgetExpenseClass3.getId()));
 
-    assertThat(budgetExpenseClasses, everyItem(hasProperty("status", is(INACTIVE))));
-    assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass2, budgetExpenseClass3));
+        assertThat(budgetExpenseClasses, everyItem(hasProperty("status", is(INACTIVE))));
+        assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass2, budgetExpenseClass3));
+
+
+        vertxTestContext.completeNow();
+      });
 
   }
 
   @Test
-  void testUpdateBudgetExpenseClassesLinks_complexTestWithBudgetExpenseClassDeletionUpdateCreation() {
+  void testUpdateBudgetExpenseClassesLinks_complexTestWithBudgetExpenseClassDeletionUpdateCreation(VertxTestContext vertxTestContext) {
 
     BudgetExpenseClass budgetExpenseClassToBeDeleted = getNewBudgetExpenseClass();
     BudgetExpenseClass budgetExpenseClassToBeUpdated = getNewBudgetExpenseClass();
@@ -335,40 +367,44 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetId(sharedBudget.getId())
       .withStatus(INACTIVE);
 
-    when(budgetExpenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    when(budgetExpenseClassClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
-    when(budgetExpenseClassClientMock.post(any(), any(), any())).thenReturn(succeededFuture(newBudgetExpenseClass));
-    when(budgetExpenseClassClientMock.delete(anyString(), any())).thenReturn(succeededFuture(null));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(newBudgetExpenseClass));
+    when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
     when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
-    future.join();
-    assertFalse(future.isCompletedExceptionally());
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(future.succeeded());
 
-    String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
-    verify(budgetExpenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContextMock), eq(BudgetExpenseClassCollection.class));
-    verify(budgetExpenseClassClientMock).post(eq(newBudgetExpenseClass), eq(requestContextMock), eq(BudgetExpenseClass.class));
+        String expectedQuery = String.format("budgetId==%s", sharedBudget.getId());
+        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
+        verify(restClient).post(ArgumentMatchers.contains(resourcesPath(BUDGET_EXPENSE_CLASSES)), eq(newBudgetExpenseClass), eq(BudgetExpenseClass.class), eq(requestContextMock));
 
-    List<BudgetExpenseClass> expectedToDeleteList = new ArrayList<>();
-    expectedToDeleteList.add(budgetExpenseClassToBeDeleted);
-    verify(transactionServiceMock).retrieveTransactions(eq(expectedToDeleteList), eq(sharedBudget), eq(requestContextMock));
-    verify(budgetExpenseClassClientMock).delete(eq(budgetExpenseClassToBeDeleted.getId()), eq(requestContextMock));
+        List<BudgetExpenseClass> expectedToDeleteList = new ArrayList<>();
+        expectedToDeleteList.add(budgetExpenseClassToBeDeleted);
+        verify(transactionServiceMock).retrieveTransactions(eq(expectedToDeleteList), eq(sharedBudget), eq(requestContextMock));
+        verify(restClient).delete(ArgumentMatchers.contains(budgetExpenseClassToBeDeleted.getId()), eq(requestContextMock));
 
 
-    ArgumentCaptor<BudgetExpenseClass> budgetExpenseClassArgumentCaptor = ArgumentCaptor.forClass(BudgetExpenseClass.class);
-    verify(budgetExpenseClassClientMock)
-      .put(eq(budgetExpenseClassToBeUpdated.getId()), budgetExpenseClassArgumentCaptor.capture(), eq(requestContextMock));
+        ArgumentCaptor<BudgetExpenseClass> budgetExpenseClassArgumentCaptor = ArgumentCaptor.forClass(BudgetExpenseClass.class);
+        verify(restClient)
+          .put(eq(budgetExpenseClassToBeUpdated.getId()), budgetExpenseClassArgumentCaptor.capture(), eq(requestContextMock));
 
-    BudgetExpenseClass budgetExpenseClass = budgetExpenseClassArgumentCaptor.getValue();
+        BudgetExpenseClass budgetExpenseClass = budgetExpenseClassArgumentCaptor.getValue();
 
-    assertEquals(budgetExpenseClassToBeUpdated, budgetExpenseClass);
-    assertThat(budgetExpenseClass, hasProperty("status", is(INACTIVE)));
+        assertEquals(budgetExpenseClassToBeUpdated, budgetExpenseClass);
+        assertThat(budgetExpenseClass, hasProperty("status", is(INACTIVE)));
+
+        vertxTestContext.completeNow();
+      });
 
   }
 
   @Test
-  public void testGetBudgetExpensesClass() {
+  public void testGetBudgetExpensesClass(VertxTestContext vertxTestContext) {
     //Given
     List<String> budgetsIds = Arrays.asList("1", "2", "3");
     List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList<>();
@@ -381,19 +417,24 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
-    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
+    when(restClient.get(anyString(), eq(BudgetExpenseClassCollection.class), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
 
-    List<BudgetExpenseClass> budgetExpenseClassListFrom = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock).join();
+   // TODO remove List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
 
-    //Then
-    assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListFrom.get(0).getId());
-    assertEquals(budgetExpenseClass2.getId(), budgetExpenseClassListFrom.get(1).getId());
-    assertEquals(budgetExpenseClass3.getId(), budgetExpenseClassListFrom.get(2).getId());
+    var future = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassListFrom = result.result();
+        assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListFrom.get(0).getId());
+        assertEquals(budgetExpenseClass2.getId(), budgetExpenseClassListFrom.get(1).getId());
+        assertEquals(budgetExpenseClass3.getId(), budgetExpenseClassListFrom.get(2).getId());
+
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  public void testGetBudgetExpensesClassByIds() {
+  public void testGetBudgetExpensesClassByIds(VertxTestContext vertxTestContext) {
     //Given
     List<String> budgetsIds = Arrays.asList("1", "2", "3");
     List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList<>();
@@ -406,10 +447,15 @@ public class BudgetExpenseClassServiceTest {
     BudgetExpenseClassCollection budgetExpenseClassCollection = new BudgetExpenseClassCollection();
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
-    when(budgetExpenseClassClientMock.get(any(), any(), eq(BudgetExpenseClassCollection.class))).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
+    when(restClient.get(any(RequestEntry.class), eq(BudgetExpenseClassCollection.class), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
+    var future = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock);
     //Then
-    assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListReceived.get(0).getId());
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassListReceived = result.result();
+        assertEquals(budgetExpenseClass1.getId(), budgetExpenseClassListReceived.get(0).getId());
+        vertxTestContext.completeNow();
+      });
   }
 
   private BudgetExpenseClass getNewBudgetExpenseClass() {

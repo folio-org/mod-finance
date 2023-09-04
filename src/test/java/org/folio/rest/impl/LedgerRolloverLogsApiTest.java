@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -82,8 +83,7 @@ public class LedgerRolloverLogsApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverLogsServiceReturnError() {
 
-    Future<LedgerFiscalYearRolloverLogCollection> logFuture = new Future<>();
-    logFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverLogCollection> logFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogs(any(), anyInt(), anyInt(), any()))
       .thenReturn(logFuture);
@@ -120,8 +120,7 @@ public class LedgerRolloverLogsApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    Future<LedgerFiscalYearRolloverLog> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverLog> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverLogsService.retrieveLedgerRolloverLogById(anyString(), any()))
       .thenReturn(errorFuture);

@@ -1,5 +1,21 @@
 package org.folio.services.ledger;
 
+import static io.vertx.core.Future.succeededFuture;
+import static one.util.streamex.StreamEx.ofSubLists;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
+import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -8,22 +24,7 @@ import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.protection.AcqUnitsService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import io.vertx.core.Future;
-
-import static io.vertx.core.Future.succeededFuture;
-import static java.util.stream.Collectors.toList;
-import static one.util.streamex.StreamEx.ofSubLists;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
-import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
-import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
-import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class LedgerService {
   private final RestClient restClient;
@@ -38,7 +39,7 @@ public class LedgerService {
   }
 
   public Future<Ledger> createLedger(Ledger ledger, RequestContext requestContext) {
-    return restClient.post(ledger, Ledger.class, requestContext);
+    return restClient.post(resourcesPath(LEDGERS_STORAGE), ledger, Ledger.class, requestContext);
   }
 
   public Future<Ledger> retrieveLedgerById(String ledgerId, RequestContext requestContext) {
@@ -46,7 +47,10 @@ public class LedgerService {
   }
 
   public Future<LedgersCollection> retrieveLedgers(String query, int offset, int limit, RequestContext requestContext) {
-    return restClient.get(query, offset, limit, requestContext, LedgersCollection.class);
+    var requestEntry = new RequestEntry(LEDGERS_STORAGE).withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, LedgersCollection.class, requestContext);
   }
 
   public Future<LedgersCollection> retrieveLedgersWithTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
@@ -77,11 +81,11 @@ public class LedgerService {
   }
 
   public Future<Void> updateLedger(Ledger ledger, RequestContext requestContext) {
-    return restClient.put(ledger.getId(), ledger, requestContext);
+    return restClient.put(resourceByIdPath(LEDGERS_STORAGE,ledger.getId()), ledger, requestContext);
   }
 
   public Future<Void> deleteLedger(String id, RequestContext requestContext) {
-    return restClient.delete(id, requestContext);
+    return restClient.delete(resourceByIdPath(LEDGERS_STORAGE, id), requestContext);
   }
 
   public Future<List<Ledger>> getLedgers(Collection<String> ledgerIds, RequestContext requestContext) {
@@ -90,7 +94,7 @@ public class LedgerService {
         .toList()).map(
       lists -> lists.stream()
         .flatMap(Collection::stream)
-        .collect(toList()));
+        .toList());
   }
 
   public Future<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {

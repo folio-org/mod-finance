@@ -20,6 +20,7 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -52,11 +53,11 @@ public class BudgetService {
       .compose(budgetFromStorage -> {
           SharedBudget updatedSharedBudget = mergeBudgets(sharedBudget, budgetFromStorage);
           validateBudget(updatedSharedBudget);
-          return restClient.put(updatedSharedBudget.getId(), BudgetUtils.convertToBudget(updatedSharedBudget), requestContext)
+          return restClient.put(resourceByIdPath(BUDGETS_STORAGE, updatedSharedBudget.getId()), BudgetUtils.convertToBudget(updatedSharedBudget), requestContext)
             .compose(aVoid -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
-              .handle((v, t) -> rollbackBudgetPutIfNeeded(budgetFromStorage, t, requestContext))
-              .thenCompose(Function.identity())
-            );
+              .recover(t -> rollbackBudgetPutIfNeeded(budgetFromStorage, t, requestContext))
+              .mapEmpty());
+
       });
   }
 
@@ -77,8 +78,8 @@ public class BudgetService {
       .withTotalFunding(budgetFromStorage.getAllocated() + budgetFromStorage.getNetTransfers());
   }
 
-  private Future<Void> rollbackBudgetPutIfNeeded(Budget budgetFromStorage, Throwable t1, RequestContext requestContext) {
-    if (t1 == null) {
+  private Future<Void> rollbackBudgetPutIfNeeded(Budget budgetFromStorage, Throwable t, RequestContext requestContext) {
+    if (t == null) {
       return succeededFuture(null);
     }
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetFromStorage.getId()), Budget.class,requestContext)
@@ -86,14 +87,13 @@ public class BudgetService {
         budgetFromStorage.setVersion(latestBudget.getVersion());
         return null;
       })
-      .compose(v -> restClient.put(budgetFromStorage.getId(), budgetFromStorage, requestContext))
-      .handle((v2, t2) -> {
-        throw new CompletionException((t1.getCause()));
-      });
+      .compose(v -> restClient.put(resourceByIdPath(BUDGETS_STORAGE, budgetFromStorage.getId()), budgetFromStorage, requestContext))
+      .recover(v -> Future.failedFuture(t))
+      .compose(v -> Future.failedFuture(t));
   }
 
   public Future<Void> deleteBudget(String id, RequestContext requestContext) {
-    return restClient.delete(id, requestContext);
+    return restClient.delete(resourceByIdPath(BUDGETS_STORAGE, id), requestContext);
   }
 
   private void validateBudget(SharedBudget budget) {

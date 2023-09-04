@@ -15,8 +15,8 @@ import io.vertx.core.Future;
 public class LedgerRolloverProgressService {
   private final RestClient restClient;
 
-  public LedgerRolloverProgressService(RestClient ledgerRolloverProgressRestClient) {
-    this.restClient = ledgerRolloverProgressRestClient;
+  public LedgerRolloverProgressService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
   public Future<LedgerFiscalYearRolloverProgress> createLedgerRolloverProgress(LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
@@ -24,7 +24,7 @@ public class LedgerRolloverProgressService {
   }
 
   public Future<Void> updateLedgerRolloverProgressById(String id, LedgerFiscalYearRolloverProgress entity, RequestContext requestContext) {
-    return restClient.put(id, entity, requestContext);
+    return restClient.put(resourceByIdPath(LEDGER_ROLLOVERS_PROGRESS_STORAGE, id), entity, requestContext);
   }
 
   public Future<LedgerFiscalYearRolloverProgress> retrieveLedgerRolloverProgressById(String id, RequestContext requestContext) {

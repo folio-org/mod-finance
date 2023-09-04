@@ -183,11 +183,6 @@ public class FundCodeExpenseClassesHolder {
     return fundCodeVsExpenseClassesTypeCollection;
   }
 
-  public Future<FiscalYear> getFiscalYearFuture() {
-    Future<FiscalYear> f2 = CompletableFuture.supplyAsync(() -> fiscalYear);
-    return f2;
-  }
-
   public FiscalYear getFiscalYear() {
     return fiscalYear;
   }

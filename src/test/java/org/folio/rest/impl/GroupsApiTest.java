@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
 import static org.folio.rest.util.MockServer.addMockEntry;

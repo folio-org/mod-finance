@@ -1,10 +1,12 @@
 package org.folio.services.budget;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -13,7 +15,6 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 
 import org.folio.rest.core.RestClient;
@@ -25,25 +26,30 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
+import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
+@ExtendWith(VertxExtension.class)
 public class CreateBudgetServiceTest {
   @InjectMocks
   private CreateBudgetService createBudgetService;
 
   @Mock
-  private RestClient budgetMockRestClient;
+  private RestClient restClient;
   @Mock
   private CommonTransactionService transactionMockService;
   @Mock
@@ -68,7 +74,7 @@ public class CreateBudgetServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     String currBudgetId = UUID.randomUUID().toString();
     String currFiscalYearId = UUID.randomUUID().toString();
     String fundId = UUID.randomUUID().toString();
@@ -86,7 +92,7 @@ public class CreateBudgetServiceTest {
   }
 
   @Test
-  void testCurrentCreateBudgetWithAllocated() throws ExecutionException, InterruptedException {
+  void testCurrentCreateBudgetWithAllocated(VertxTestContext vertxTestContext) {
     currSharedBudget.withAllocated(100.43);
 
     Budget budgetFromStorage = new Budget().withId(currSharedBudget.getId())
@@ -94,30 +100,37 @@ public class CreateBudgetServiceTest {
       .withFiscalYearId(currSharedBudget.getFiscalYearId())
       .withFundId(currSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(currSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.get();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(currSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(currSharedBudget.getFundId(), resultBudget.getFundId());
+    var future = createBudgetService.createBudget(currSharedBudget, requestContextMock);
+      vertxTestContext.assertComplete(future)
+        .onComplete(result -> {
+          assertTrue(result.succeeded());
 
-    JsonObject json = JsonObject.mapFrom(currSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+          var resultBudget = result.result();
+          assertEquals(100.43, resultBudget.getAllocated());
+          assertEquals(currSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+          assertEquals(currSharedBudget.getFundId(), resultBudget.getFundId());
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(currSharedBudget), eq(requestContextMock));
+          JsonObject json = JsonObject.mapFrom(currSharedBudget);
+          json.remove("statusExpenseClasses");
+          Budget expectedBudget = json.mapTo(Budget.class);
+
+          verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+          verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+          verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+          verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+          verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(currSharedBudget), eq(requestContextMock));
+          vertxTestContext.completeNow();
+        });
+
   }
 
   @Test
-  void testShouldCreatePlannedBudgetWithoutCurrExpenseClassesAndAllocatedIfCurrentBudgetIsAbsent() {
+  void testShouldCreatePlannedBudgetWithoutCurrExpenseClassesAndAllocatedIfCurrentBudgetIsAbsent(VertxTestContext vertxTestContext) {
     plannedSharedBudget.withAllocated(100.43);
 
     Budget budgetFromStorage = new Budget().withId(plannedSharedBudget.getId())
@@ -126,34 +139,41 @@ public class CreateBudgetServiceTest {
       .withFundId(plannedSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(null));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(0, plannedSharedBudget.getAllocated());
-    assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-    assertEquals(0, resultBudget.getStatusExpenseClasses().size());
+    var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
 
-    JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        SharedBudget resultBudget = future.result();
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        assertEquals(100.43, resultBudget.getAllocated());
+        assertEquals(0, plannedSharedBudget.getAllocated());
+        assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+        assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
+        assertEquals(0, resultBudget.getStatusExpenseClasses().size());
+
+        JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
+
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldCreatePlannedBudgetWithoutCurrExpenseClassesAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesAbsent() {
+  void testShouldCreatePlannedBudgetWithoutCurrExpenseClassesAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesAbsent(VertxTestContext vertxTestContext) {
     plannedSharedBudget.withAllocated(100.43);
 
     Budget budgetFromStorage = new Budget().withId(plannedSharedBudget.getId())
@@ -162,34 +182,42 @@ public class CreateBudgetServiceTest {
       .withFundId(plannedSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(Collections.emptyList()));
 
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(0, plannedSharedBudget.getAllocated());
-    assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-    assertEquals(0, resultBudget.getStatusExpenseClasses().size());
+    Future<SharedBudget> future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
 
-    JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        SharedBudget resultBudget = result.result();
+        assertEquals(100.43, resultBudget.getAllocated());
+        assertEquals(0, plannedSharedBudget.getAllocated());
+        assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+        assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
+        assertEquals(0, resultBudget.getStatusExpenseClasses().size());
+
+        JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
+
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldCreatePlannedBudgetWithExpenseClassesProvidedFromUserAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesExist() {
+  void testShouldCreatePlannedBudgetWithExpenseClassesProvidedFromUserAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesExist(VertxTestContext vertxTestContext) {
     SharedBudget actPlannedSharedBudget = JsonObject.mapFrom(plannedSharedBudget).mapTo(SharedBudget.class);
     actPlannedSharedBudget.withStatusExpenseClasses(Collections.singletonList(statusExpenseClass));
     plannedSharedBudget.withAllocated(100.43);
@@ -200,35 +228,47 @@ public class CreateBudgetServiceTest {
       .withFundId(plannedSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(0, plannedSharedBudget.getAllocated());
-    assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-    assertEquals(1, 1);
-    assertEquals(currBudgetExpenseClasses.get(0).getExpenseClassId(), resultBudget.getStatusExpenseClasses().get(0).getExpenseClassId());
+    var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
 
-    JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        SharedBudget resultBudget = result.result();
+        assertEquals(100.43, resultBudget.getAllocated());
+        assertEquals(0, plannedSharedBudget.getAllocated());
+        assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+        assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
+        assertEquals(1, 1);
+        assertEquals(currBudgetExpenseClasses.get(0)
+          .getExpenseClassId(),
+            resultBudget.getStatusExpenseClasses()
+              .get(0)
+              .getExpenseClassId());
+
+        JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
+
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldCreatePlannedBudgetWithExpenseCurrExpenseClassesAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesExist() {
+  void testShouldCreatePlannedBudgetWithExpenseCurrExpenseClassesAndAllocatedIfCurrentBudgetExistAndCurrExpenseClassesExist(VertxTestContext vertxTestContext) {
     plannedSharedBudget.withAllocated(100.43);
 
     Budget budgetFromStorage = new Budget().withId(plannedSharedBudget.getId())
@@ -237,35 +277,44 @@ public class CreateBudgetServiceTest {
       .withFundId(plannedSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(0, plannedSharedBudget.getAllocated());
-    assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-    assertEquals(1, 1);
-    assertEquals(currBudgetExpenseClasses.get(0).getExpenseClassId(), resultBudget.getStatusExpenseClasses().get(0).getExpenseClassId());
+    var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        SharedBudget resultBudget = future.result();
+        assertEquals(100.43, resultBudget.getAllocated());
+        assertEquals(0, plannedSharedBudget.getAllocated());
+        assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+        assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
+        assertEquals(1, 1);
+        assertEquals(currBudgetExpenseClasses.get(0)
+          .getExpenseClassId(),
+            resultBudget.getStatusExpenseClasses()
+              .get(0)
+              .getExpenseClassId());
 
-    JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+        JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testPlannedBudgetWithAllocated() {
+  void testPlannedBudgetWithAllocated(VertxTestContext vertxTestContext) {
     plannedSharedBudget.withAllocated(100.43);
 
     Budget budgetFromStorage = new Budget().withId(plannedSharedBudget.getId())
@@ -274,33 +323,39 @@ public class CreateBudgetServiceTest {
       .withFundId(plannedSharedBudget.getFundId());
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
-    assertEquals(100.43, resultBudget.getAllocated());
-    assertEquals(0, plannedSharedBudget.getAllocated());
-    assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
+    var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
 
-    JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        SharedBudget resultBudget = result.result();
+        assertEquals(100.43, resultBudget.getAllocated());
+        assertEquals(0, plannedSharedBudget.getAllocated());
+        assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+        assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        JsonObject json = JsonObject.mapFrom(plannedSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
+
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(plannedSharedBudget), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testCreateBudgetWithZeroAllocated() {
+  void testCreateBudgetWithZeroAllocated(VertxTestContext vertxTestContext) {
     currSharedBudget.withAllocated(0d);
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
@@ -309,24 +364,32 @@ public class CreateBudgetServiceTest {
     json.remove("statusExpenseClasses");
     Budget expectedBudget = json.mapTo(Budget.class);
 
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(expectedBudget));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(expectedBudget));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(currSharedBudget, requestContextMock);
-    SharedBudget resultBudget = resultFuture.join();
+    var future = createBudgetService.createBudget(currSharedBudget, requestContextMock);
 
-    assertEquals(currSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
-    assertEquals(currSharedBudget.getFundId(), resultBudget.getFundId());
+    vertxTestContext.assertComplete(future)
+        .onComplete(result -> {
+          assertTrue(result.succeeded());
+          SharedBudget resultBudget = result.result();
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService, never()).createAllocationTransaction(eq(expectedBudget), eq(requestContextMock));
-    verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(expectedBudget), eq(requestContextMock));
-    verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(currSharedBudget), eq(requestContextMock));
+          assertEquals(currSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
+          assertEquals(currSharedBudget.getFundId(), resultBudget.getFundId());
+
+          verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+          verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+          verify(transactionMockService, never()).createAllocationTransaction(eq(expectedBudget), eq(requestContextMock));
+          verify(groupFundFiscalYearMockService).updateBudgetIdForGroupFundFiscalYears(eq(expectedBudget), eq(requestContextMock));
+          verify(budgetExpenseClassMockService).createBudgetExpenseClasses(eq(currSharedBudget), eq(requestContextMock));
+
+          vertxTestContext.completeNow();
+        });
+
   }
 
   @Test
-  void testCreateBudgetWithAllocationCreationError() {
+  void testCreateBudgetWithAllocationCreationError(VertxTestContext vertxTestContext) {
 
     currSharedBudget.withAllocated(100.43);
     Budget budgetFromStorage = new Budget().withId(currSharedBudget.getId())
@@ -334,33 +397,35 @@ public class CreateBudgetServiceTest {
       .withFiscalYearId(currSharedBudget.getFiscalYearId())
       .withFundId(currSharedBudget.getFundId());
 
-    Future<Transaction> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new Exception());
+    Future<Transaction> errorFuture = Future.failedFuture(new Exception());
 
-    when(budgetMockRestClient.post(any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(errorFuture);
     when(fundFiscalYearMockService.retrievePlannedFiscalYear(any(), any())).thenReturn(succeededFuture(plannedFiscalYear));
-    when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
+    when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock))
+      .thenReturn(succeededFuture(currBudget));
 
-    Future<SharedBudget> resultFuture = createBudgetService.createBudget(currSharedBudget, requestContextMock);
-    ExecutionException executionException = assertThrows(ExecutionException.class, resultFuture::get);
+    var future = createBudgetService.createBudget(currSharedBudget, requestContextMock);
 
-    assertThat(executionException.getCause(), IsInstanceOf.instanceOf(HttpException.class));
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        HttpException httpException = (HttpException) result.cause();
+        assertEquals(500, httpException.getCode());
+        assertEquals(ALLOCATION_TRANSFER_FAILED.toError(), httpException.getErrors().getErrors().get(0));
+        assertEquals(100.43, budgetFromStorage.getAllocated());
+        assertEquals(0, currSharedBudget.getAllocated());
 
-    HttpException httpException = (HttpException) executionException.getCause();
-    assertEquals(500, httpException.getCode());
-    assertEquals(ALLOCATION_TRANSFER_FAILED.toError(), httpException.getErrors().getErrors().get(0));
-    assertEquals(100.43, budgetFromStorage.getAllocated());
-    assertEquals(0, currSharedBudget.getAllocated());
+        JsonObject json = JsonObject.mapFrom(currSharedBudget);
+        json.remove("statusExpenseClasses");
+        Budget expectedBudget = json.mapTo(Budget.class);
 
-    JsonObject json = JsonObject.mapFrom(currSharedBudget);
-    json.remove("statusExpenseClasses");
-    Budget expectedBudget = json.mapTo(Budget.class);
+        verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
+        verify(restClient).post(anyString(), eq(expectedBudget), eq(Budget.class), eq(requestContextMock));
+        verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
+        verify(budgetExpenseClassMockService, never()).createBudgetExpenseClasses(any(), any());
+        vertxTestContext.completeNow();
 
-    verify(fundFiscalYearMockService).retrievePlannedFiscalYear(eq(currSharedBudget.getFundId()), eq(requestContextMock));
-    verify(budgetMockRestClient).post(eq(expectedBudget), eq(requestContextMock), eq(Budget.class));
-    verify(transactionMockService).createAllocationTransaction(eq(budgetFromStorage), eq(requestContextMock));
-    verify(budgetExpenseClassMockService, never()).createBudgetExpenseClasses(any(), any());
+      });
   }
 
 }

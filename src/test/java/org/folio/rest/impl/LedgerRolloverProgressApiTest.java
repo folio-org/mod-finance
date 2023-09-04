@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -21,9 +22,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.UUID;
-import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
 import org.folio.ApiTestSuite;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
@@ -38,6 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import io.vertx.core.Future;
 
 public class LedgerRolloverProgressApiTest {
 
@@ -84,8 +87,7 @@ public class LedgerRolloverProgressApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverProgressServiceReturnError() {
 
-    Future<LedgerFiscalYearRolloverProgressCollection> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverProgressCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgresses(any(), anyInt(), anyInt(), any()))
       .thenReturn(errorFuture);
@@ -123,8 +125,7 @@ public class LedgerRolloverProgressApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    Future<LedgerFiscalYearRolloverProgress> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverProgress> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgressById(anyString(), any()))
       .thenReturn(errorFuture);

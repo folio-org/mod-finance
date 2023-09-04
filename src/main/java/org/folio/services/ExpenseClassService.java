@@ -47,11 +47,11 @@ public class ExpenseClassService {
   }
 
   public Future<Void> updateExpenseClass(String id, ExpenseClass expenseClass, RequestContext requestContext) {
-    return restClient.put(id, expenseClass, requestContext);
+    return restClient.put(resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL, id), expenseClass, requestContext);
   }
 
   public Future<Void> deleteExpenseClass(String id, RequestContext requestContext) {
-    return restClient.delete(id, requestContext);
+    return restClient.delete(resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL, id), requestContext);
   }
 
   public Future<List<ExpenseClass>> getExpenseClassesByBudgetId(String budgetId, RequestContext requestContext) {

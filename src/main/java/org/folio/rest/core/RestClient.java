@@ -2,9 +2,9 @@ package org.folio.rest.core;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
-
 import static org.folio.rest.RestConstants.OKAPI_URL;
-import static org.folio.rest.util.HelperUtils.isErrorsMessageJson;
+import static org.folio.rest.util.HelperUtils.getErrorByCode;
+import static org.folio.rest.util.HelperUtils.isJsonOfType;
 import static org.folio.rest.util.HelperUtils.mapToErrors;
 
 import java.util.Map;
@@ -14,6 +14,8 @@ import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.WebClientFactory;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Errors;
 
 import io.vertx.core.Context;
 import io.vertx.core.Future;
@@ -26,18 +28,21 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import org.folio.rest.exception.HttpException;
 
 public class RestClient {
 
   private static final Logger log = LogManager.getLogger(RestClient.class);
   private static final ErrorConverter ERROR_CONVERTER = ErrorConverter.createFullBody(
     result -> {
-      String error = result.response().bodyAsString();
-      if (isErrorsMessageJson(error)) {
-        return new HttpException(result.response().statusCode(), mapToErrors(error));
+      String errorResponse = result.response().bodyAsString();
+      if (isJsonOfType(errorResponse, Errors.class)) {
+        return new HttpException(result.response().statusCode(), mapToErrors(errorResponse));
       }
-      return new HttpException(result.response().statusCode(), error);
+      else {
+        return getErrorByCode(errorResponse)
+          .map(errorCode -> new HttpException(result.response().statusCode(), errorCode))
+          .orElse(new HttpException(result.response().statusCode(), errorResponse));
+      }
     });
   protected static final ResponsePredicate SUCCESS_RESPONSE_PREDICATE =
     ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ERROR_CONVERTER);
@@ -163,7 +168,7 @@ public class RestClient {
     return get(requestEntry.buildEndpoint(), false, responseType, requestContext);
   }
 
-  public <T> Future<T> get(String endpoint, boolean skipError404, Class<T> responseType,  RequestContext requestContext) {
+  public <T> Future<T> get(String endpoint, boolean skipError404, Class<T> responseType, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.GET, endpoint);
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
     var absEndpoint = buildAbsEndpoint(caseInsensitiveHeader, endpoint);

@@ -22,6 +22,7 @@ import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -83,8 +84,7 @@ public class LedgerRolloverErrorsApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverErrorsServiceReturnError() {
 
-    Future<LedgerFiscalYearRolloverErrorCollection> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverErrorCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverErrorsService.getLedgerRolloverErrors(any(), anyInt(), anyInt(), anyString(), any()))
       .thenReturn(errorFuture);

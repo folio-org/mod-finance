@@ -1,6 +1,25 @@
 package org.folio.services.fund;
 
-import io.vertx.core.impl.EventLoopContext;
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.RestConstants.OKAPI_URL;
+import static org.folio.rest.util.TestConfig.mockPort;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
+import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -9,7 +28,6 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
-import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.ExpenseClassService;
@@ -20,29 +38,16 @@ import org.folio.services.ledger.LedgerDetailsService;
 import org.folio.services.ledger.LedgerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import io.vertx.core.Future;
+import io.vertx.core.impl.EventLoopContext;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
-import static org.folio.rest.RestConstants.OKAPI_URL;
-import static org.folio.rest.util.TestConfig.mockPort;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
-import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
+@ExtendWith(VertxExtension.class)
 public class FundCodeExpenseClassesServiceTest {
 
   @InjectMocks
@@ -85,7 +90,7 @@ public class FundCodeExpenseClassesServiceTest {
   }
 
   @Test
-  public void shouldRetrieveCombinationFundCodeExpClassesWithFiscalYear() {
+  public void shouldRetrieveCombinationFundCodeExpClassesWithFiscalYear(VertxTestContext vertxTestContext) {
 
     String fiscalYearCode = "FY2021";
     String fiscalYearId = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
@@ -236,19 +241,24 @@ public class FundCodeExpenseClassesServiceTest {
     when(ledgerDetailsService.getCurrentFiscalYear(eq(ledgerId1), eq(requestContext)))
       .thenReturn(succeededFuture(fiscalYear));
 
-    FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionReceived = new FundCodeExpenseClassesCollection();
+    var future = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses("FY2021", requestContext);
 
-    fundCodeExpenseClassesCollectionReceived = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses("FY2021", requestContext).join();
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
 
-    assertEquals("ENDOW-SUBN", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getFundCode());
-    assertEquals("ONETIME", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getLedgerCode());
-    assertEquals(":", fundCodeExpenseClassesCollectionReceived.getDelimiter());
-    assertEquals("ENDOW-SUBN:Elec", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes()
-      .get(0).getActiveFundCodeVsExpClasses().get(0));
+        var fundCodeExpenseClassesCollectionReceived = result.result();
+        assertEquals("ENDOW-SUBN", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getFundCode());
+        assertEquals("ONETIME", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getLedgerCode());
+        assertEquals(":", fundCodeExpenseClassesCollectionReceived.getDelimiter());
+        assertEquals("ENDOW-SUBN:Elec", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getActiveFundCodeVsExpClasses().get(0));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  public void shouldRetrieveCombinationFundCodeExpClassesWithoutFiscalYear() {
+  public void shouldRetrieveCombinationFundCodeExpClassesWithoutFiscalYear(VertxTestContext vertxTestContext) {
 
     String ledgerId1 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d61";
     String ledgerId2 = "65cb2bf0-d4c2-4886-8ad0-b76f1ba75d63";
@@ -403,14 +413,20 @@ public class FundCodeExpenseClassesServiceTest {
     List<ExpenseClass> expenseClassList = Arrays.asList(expenseClass1, expenseClass2);
     when(expenseClassService.getExpenseClassesByBudgetIds(eq(budgetIds), eq(requestContext)))
       .thenReturn(succeededFuture(expenseClassList));
-    FundCodeExpenseClassesCollection fundCodeExpenseClassesCollectionReceived;
 
-    fundCodeExpenseClassesCollectionReceived = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(null, requestContext).join();
+    var future = fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(null, requestContext);
 
-    assertEquals("ENDOW-SUBN", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getFundCode());
-    assertEquals("ONETIME", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getLedgerCode());
-    assertEquals(":", fundCodeExpenseClassesCollectionReceived.getDelimiter());
-    assertEquals("ENDOW-SUBN:Elec", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes()
-      .get(0).getActiveFundCodeVsExpClasses().get(0));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+
+        var fundCodeExpenseClassesCollectionReceived = result.result();
+        assertEquals("ENDOW-SUBN", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getFundCode());
+        assertEquals("ONETIME", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getLedgerCode());
+        assertEquals(":", fundCodeExpenseClassesCollectionReceived.getDelimiter());
+        assertEquals("ENDOW-SUBN:Elec", fundCodeExpenseClassesCollectionReceived.getFundCodeVsExpClassesTypes().get(0).getActiveFundCodeVsExpClasses().get(0));
+        vertxTestContext.completeNow();
+      });
+
   }
 }

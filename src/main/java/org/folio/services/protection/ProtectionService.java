@@ -1,5 +1,6 @@
 package org.folio.services.protection;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
 import static org.folio.rest.util.ErrorCodes.FUND_UNITS_NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.USER_HAS_NO_PERMISSIONS;
@@ -11,12 +12,12 @@ import static org.folio.services.protection.AcqUnitConstants.ALL_UNITS_CQL;
 
 import java.util.List;
 import java.util.Set;
-import io.vertx.core.Future;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.rest.acq.model.finance.AcquisitionsUnit;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitCollection;
@@ -25,8 +26,7 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.services.protection.models.ProtectedOperationType;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import io.vertx.core.Future;
 
 public class ProtectionService {
   public final Logger logger = LogManager.getLogger(ProtectionService.class);
@@ -42,11 +42,11 @@ public class ProtectionService {
   public Future<Void> checkOperationsRestrictions(List<String> unitIds, Set<ProtectedOperationType> operations, RequestContext requestContext) {
     if (CollectionUtils.isNotEmpty(unitIds)) {
       return getUnitsByIds(unitIds, requestContext)
-        .thenCompose(units -> {
+        .compose(units -> {
           if (unitIds.size() == units.size()) {
             List<AcquisitionsUnit> activeUnits = units.stream()
               .filter(unit -> !unit.getIsDeleted())
-              .collect(Collectors.toList());
+              .toList();
             if (!activeUnits.isEmpty() && applyMergingStrategy(activeUnits, operations)) {
               return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
             }
@@ -74,18 +74,18 @@ public class ProtectionService {
                                                                 RequestContext requestContext) {
     String query = String.format("userId==%s AND %s", currentUserId, convertIdsToCqlQuery(unitIdsAssignedToFund, ACQUISITIONS_UNIT_ID, true));
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships(query, 0, Integer.MAX_VALUE, requestContext)
-      .thenAccept(unit -> {
+      .map(unit -> {
         if (unit.getTotalRecords() == 0) {
           throw new HttpException(HttpStatus.HTTP_FORBIDDEN.toInt(), USER_HAS_NO_PERMISSIONS);
         }
-      })
-      .exceptionally(t -> {
-        throw new CompletionException(t);
+        return null;
       });
   }
 
   private List<String> extractUnitIds(List<AcquisitionsUnit> activeUnits) {
-    return activeUnits.stream().map(AcquisitionsUnit::getId).collect(Collectors.toList());
+    return activeUnits.stream()
+      .map(AcquisitionsUnit::getId)
+      .toList();
   }
 
   private Error buildUnitsNotFoundError(List<String> expectedUnitIds, List<String> availableUnitIds) {

@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -169,8 +170,7 @@ public class LedgersApiTest {
   @Test
   void testGetLedgerByIdWithSummaryInternalServerError() {
     logger.info("=== Test Get Ledger by id with summary, internal server error ===");
-    Future<Ledger> errorFuture = new  Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<Ledger> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(ledgerMockService.retrieveLedgerWithTotals(anyString(), anyString(), any())).thenReturn(errorFuture);
     String ledgerId = UUID.randomUUID().toString();
@@ -243,8 +243,7 @@ public class LedgersApiTest {
   void testGetLedgersCollectionWithFiscalYearInternalServerError() {
     logger.info("=== Test Get collection of Ledgers records (with fiscalYearId parameter) - Internal Server Error ===");
 
-    Future<LedgersCollection> errorFuture = new  Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgersCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(ledgerMockService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(anyString(), anyInt(), anyInt(), anyString(), any())).thenReturn(errorFuture);
     when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL));

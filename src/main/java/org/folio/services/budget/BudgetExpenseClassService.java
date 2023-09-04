@@ -12,6 +12,8 @@ import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPEN
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
+import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.ArrayList;
@@ -103,7 +105,7 @@ public class BudgetExpenseClassService{
     }
     return checkNoTransactionsAssigned(deleteList, budget, requestContext)
       .compose(v -> GenericCompositeFuture.all(deleteList.stream()
-        .map(budgetExpenseClass -> restClient.delete(budgetExpenseClass.getId(), requestContext))
+        .map(budgetExpenseClass -> restClient.delete(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), requestContext))
         .toList()))
       .mapEmpty();
   }
@@ -123,7 +125,7 @@ public class BudgetExpenseClassService{
       return succeededFuture(null);
     }
     return GenericCompositeFuture.all(updateList.stream()
-      .map(budgetExpenseClass -> restClient.put(budgetExpenseClass.getId(), budgetExpenseClass, requestContext))
+      .map(budgetExpenseClass -> restClient.put(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), budgetExpenseClass, requestContext))
       .toList())
       .mapEmpty();
   }

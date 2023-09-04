@@ -1,45 +1,56 @@
 package org.folio.services.group;
 
-import java.util.List;
-import io.vertx.core.Future;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.util.List;
+
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
+import io.vertx.core.Future;
 
 public class GroupFundFiscalYearService {
 
-  private final RestClient groupFundFiscalYearRestClient;
+  private final RestClient restClient;
 
-  public GroupFundFiscalYearService(RestClient groupFundFiscalYearRestClient) {
-    this.groupFundFiscalYearRestClient = groupFundFiscalYearRestClient;
+  public GroupFundFiscalYearService(RestClient restClient) {
+    this.restClient = restClient;
   }
 
   public Future<GroupFundFiscalYear> createGroupFundFiscalYear(GroupFundFiscalYear groupFundFiscalYear, RequestContext requestContext) {
-    return groupFundFiscalYearRestClient.post(groupFundFiscalYear, requestContext, GroupFundFiscalYear.class);
+    return restClient.post(resourcesPath(GROUP_FUND_FISCAL_YEARS), groupFundFiscalYear, GroupFundFiscalYear.class, requestContext);
   }
 
   public Future<GroupFundFiscalYearCollection> getGroupFundFiscalYears(String query, int offset, int limit, RequestContext requestContext) {
-    return groupFundFiscalYearRestClient.get(query, offset, limit, requestContext,GroupFundFiscalYearCollection.class);
+    var requestEntry = new RequestEntry(GROUP_FUND_FISCAL_YEARS).withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, GroupFundFiscalYearCollection.class, requestContext);
   }
 
   public Future<Void> deleteGroupFundFiscalYear(String id, RequestContext requestContext) {
-    return groupFundFiscalYearRestClient.delete(id, requestContext);
+    return restClient.delete(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, id), requestContext);
   }
 
   public Future<Void> updateBudgetIdForGroupFundFiscalYears(Budget budget, RequestContext requestContext) {
     return getGroupFundFiscalYearCollection(budget.getFundId(), budget.getFiscalYearId(), requestContext)
-      .thenCompose(gfFys -> processGroupFundFyUpdate(budget, gfFys, requestContext));
+      .compose(gfFys -> processGroupFundFyUpdate(budget, gfFys, requestContext));
   }
 
   private Future<Void> processGroupFundFyUpdate(Budget budget, GroupFundFiscalYearCollection gffyCollection, RequestContext requestContext) {
-     return FolioVertxCompletableFuture.allOf(requestContext.getContext(), gffyCollection.getGroupFundFiscalYears()
-      .stream()
-      .map(gffy -> groupFundFiscalYearRestClient.put(gffy.getId(), gffy.withBudgetId(budget.getId()), requestContext))
-      .toArray(CompletableFuture[]::new));
+    var futures = gffyCollection.getGroupFundFiscalYears().stream()
+      .map(gffy -> restClient.put(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, gffy.getId()), gffy.withBudgetId(budget.getId()), requestContext))
+      .toList();
+
+     return GenericCompositeFuture.join(futures)
+       .mapEmpty();
   }
 
   public Future<GroupFundFiscalYearCollection> getGroupFundFiscalYearCollection(String fundId, String currentFYId, RequestContext requestContext) {

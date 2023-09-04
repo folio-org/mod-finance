@@ -6,6 +6,8 @@ import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.util.Collection;
@@ -101,7 +103,7 @@ public class CommonTransactionService extends BaseTransactionService {
   public Future<Void> createOrderTransactionSummary(Transaction transaction, int number, RequestContext requestContext) {
     String id = transaction.getEncumbrance().getSourcePurchaseOrderId();
     OrderTransactionSummary summary = new OrderTransactionSummary().withId(id).withNumTransactions(number);
-    return restClient.put(id, summary, requestContext);
+    return restClient.put(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, id), summary, requestContext);
   }
 
 }

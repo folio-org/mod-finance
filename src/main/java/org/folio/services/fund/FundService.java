@@ -1,34 +1,33 @@
 package org.folio.services.fund;
 
+import static java.util.stream.Collectors.toList;
+import static one.util.streamex.StreamEx.ofSubLists;
+import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundType;
+import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.protection.AcqUnitsService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import io.vertx.core.Future;
-import java.util.concurrent.CompletionException;
-
-import static java.util.stream.Collectors.toList;
-import static one.util.streamex.StreamEx.ofSubLists;
-import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
-import static org.folio.rest.RestConstants.NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
-import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class FundService {
   private static final Logger logger = LogManager.getLogger(FundService.class);
@@ -36,33 +35,43 @@ public class FundService {
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
   public static final String ID = "id";
-  private static final String ENDPOINT = "/finance/funds";
 
   public FundService(RestClient restClient, AcqUnitsService acqUnitsService) {
     this.restClient = restClient;
     this.acqUnitsService = acqUnitsService;
   }
 
-  public Future<Fund> retrieveFundById(String fundId, RequestContext requestContext) {
+  public Future<Fund> getFundById(String fundId, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(FUNDS_STORAGE, fundId), Fund.class, requestContext);
+  }
+
+  public Future<Fund> createFund(Fund fund, RequestContext requestContext) {
+    return restClient.post(resourcesPath(FUNDS_STORAGE), fund, Fund.class, requestContext);
   }
 
   public Future<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .thenCompose(effectiveQuery -> restClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class));
+      .map(effectiveQuery -> new RequestEntry(FUNDS_STORAGE).withOffset(offset)
+        .withLimit(limit)
+        .withQuery(query)
+      )
+      .compose(requestEntry -> restClient.get(requestEntry, FundsCollection.class, requestContext));
   }
 
   public Future<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-    return restClient.get(query, offset, limit, requestContext, FundsCollection.class);
+    var requestEntry = new RequestEntry(FUNDS_STORAGE).withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, FundsCollection.class, requestContext);
   }
 
   public Future<List<Fund>> getFundsByIds(Collection<String> ids, RequestContext requestContext) {
     String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
+    RequestEntry requestEntry = new RequestEntry(FUNDS_STORAGE).withQuery(query)
       .withLimit(MAX_IDS_FOR_GET_RQ)
       .withOffset(0);
-    return restClient.get(requestEntry, requestContext, FundsCollection.class)
+    return restClient.get(requestEntry, FundsCollection.class, requestContext)
       .map(FundsCollection::getFunds);
   }
 
@@ -80,7 +89,36 @@ public class FundService {
     RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE)).withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return restClient.get(requestEntry, requestContext, FundsCollection.class)
+    return restClient.get(requestEntry, FundsCollection.class, requestContext)
       .map(FundsCollection::getFunds);
+  }
+
+  public Future<FundType> getFundTypeById(String id, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(FUND_TYPES, id), FundType.class, requestContext);
+  }
+
+  public Future<FundType> createFundType(FundType fundType, RequestContext requestContext) {
+    return restClient.post(resourcesPath(FUND_TYPES), fundType, FundType.class, requestContext);
+
+  }
+
+  public Future<FundTypesCollection> getFundTypes(int limit, int offset, String query, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(FUND_TYPES).withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry, FundTypesCollection.class, requestContext);
+
+  }
+
+  public Future<Void> updateFundType(FundType fundType, RequestContext requestContext) {
+    return restClient.put(resourceByIdPath(FUND_TYPES, fundType.getId()), fundType, requestContext);
+  }
+
+  public Future<Void> updateFund(Fund fund, RequestContext requestContext) {
+    return restClient.put(resourceByIdPath(FUND_TYPES, fund.getId()), fund, requestContext);
+  }
+
+  public Future<Void> deleteFundType(String id, RequestContext requestContext) {
+    return restClient.delete(resourceByIdPath(FUND_TYPES, id), requestContext);
   }
 }

@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import io.vertx.core.Future;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -22,8 +22,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.GroupFiscalYearTransactionsHolder;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.GroupFiscalYearSummary;
@@ -35,48 +37,58 @@ import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.transactions.BaseTransactionService;
 
-public class GroupFiscalYearTotalsService {
-  private static final Logger LOG = LogManager.getLogger(GroupFiscalYearTotalsService.class);
+import io.vertx.core.Future;
 
-  private final RestClient budgetRestClient;
+public class GroupFiscalYearTotalsService {
+  private static final Logger log = LogManager.getLogger(GroupFiscalYearTotalsService.class);
+
+  private final RestClient restClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final BaseTransactionService baseTransactionService;
 
-  public GroupFiscalYearTotalsService(RestClient budgetRestClient, GroupFundFiscalYearService groupFundFiscalYearService,
+  public GroupFiscalYearTotalsService(RestClient restClient, GroupFundFiscalYearService groupFundFiscalYearService,
                                       BaseTransactionService baseTransactionService) {
-    this.budgetRestClient = budgetRestClient;
+    this.restClient = restClient;
     this.groupFundFiscalYearService = groupFundFiscalYearService;
     this.baseTransactionService = baseTransactionService;
   }
 
-  public Future<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query,
-      RequestContext requestContext) {
-    return budgetRestClient.get(query, 0, Integer.MAX_VALUE, requestContext, BudgetsCollection.class)
-      .thenCombine(groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext),
-          (budgetsCollection, groupFundFiscalYearCollection) -> {
+  public Future<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(GROUP_FUND_FISCAL_YEARS).withOffset(0)
+      .withLimit(Integer.MAX_VALUE)
+      .withQuery(query);
 
-            Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets()
-              .stream()
-              .collect(groupingBy(Budget::getFundId, groupingBy(Budget::getFiscalYearId, toList())));
+    return restClient.get(requestEntry, BudgetsCollection.class, requestContext)
+      .compose(budgetsCollection -> groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext)
+        .map(groupFundFiscalYearCollection -> {
+          Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets()
+            .stream()
+            .collect(groupingBy(Budget::getFundId, groupingBy(Budget::getFiscalYearId, toList())));
 
-            List<GroupFiscalYearSummary> summaries = groupSummariesByGroupIdAndFiscalYearId(groupFundFiscalYearCollection,
-                fundIdFiscalYearIdBudgetsMap).values()
-                  .stream()
-                  .flatMap(summary -> summary.values()
-                    .stream())
-                  .filter(Optional::isPresent)
-                  .map(Optional::get)
-                  .collect(toList());
+          List<GroupFiscalYearSummary> summaries = groupSummariesByGroupIdAndFiscalYearId(groupFundFiscalYearCollection, fundIdFiscalYearIdBudgetsMap)
+            .values().stream()
+            .flatMap(summary -> summary.values().stream())
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(toList());
 
-            GroupFiscalYearSummaryCollection collection = new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries)
-              .withTotalRecords(summaries.size());
-            return buildHolderSkeletons(fundIdFiscalYearIdBudgetsMap, collection, groupFundFiscalYearCollection);
-          })
-      .thenCompose(holders -> updateHoldersWithAllocations(holders, requestContext)
-                                  .thenAccept(holder -> updateGroupSummaryWithAllocation(holders))
-                                  .thenCompose(v -> updateHoldersWithTransfers(holders, requestContext))
-                                  .thenAccept(v -> updateGroupSummaryWithCalculatedFields(holders))
-                                  .map(v -> convertHolders(holders)));
+          GroupFiscalYearSummaryCollection collection = new GroupFiscalYearSummaryCollection()
+            .withGroupFiscalYearSummaries(summaries)
+            .withTotalRecords(summaries.size());
+
+          return buildHolderSkeletons(fundIdFiscalYearIdBudgetsMap, collection, groupFundFiscalYearCollection);
+        }))
+      .compose(holders -> updateHoldersWithAllocations(holders, requestContext)
+        .map(holder -> {
+          updateGroupSummaryWithAllocation(holders);
+          return null;
+        })
+        .compose(v -> updateHoldersWithTransfers(holders, requestContext))
+        .map(v -> {
+          updateGroupSummaryWithCalculatedFields(holders);
+          return null;
+        })
+        .map(v -> convertHolders(holders)));
   }
 
   //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
@@ -233,34 +245,39 @@ public class GroupFiscalYearTotalsService {
     holders.forEach(holder ->
        futures.add(updateHolderWithAllocations(requestContext, holder))
     );
-    return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with allocations: " + result.size()));
+    return collectResultsOnSuccess(futures)
+      .onSuccess(result -> log.debug("Number of holders updated with allocations: " + result.size()))
+      .mapEmpty();
   }
 
   private Future<Void> updateHoldersWithTransfers(List<GroupFiscalYearTransactionsHolder> holders,
                                                                RequestContext requestContext) {
     List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
-    return collectResultsOnSuccess(futures).thenAccept(result -> LOG.debug("Number of holders updated with transfers: " + result.size()));
+    return collectResultsOnSuccess(futures)
+      .onSuccess(result -> log.debug("Number of holders updated with transfers: " + result.size()))
+      .mapEmpty();
   }
 
   private Future<GroupFiscalYearTransactionsHolder> updateHolderWithAllocations(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
-    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext)
-      .thenCombine(
-        baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext),
-        (toAllocations, fromAllocations) -> holder.withToAllocations(toAllocations).withFromAllocations(fromAllocations)
-      );
+    var fromAllocations = baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    var toAllocations = baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+
+    return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
+      .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
 
   private Future<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
     List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
-    return baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, trTypes, requestContext)
-                    .thenCombine(baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, trTypes, requestContext),
-                      (toAllocations, fromAllocations) -> holder.withToTransfers(toAllocations).withFromTransfers(fromAllocations)
-                    );
+
+    var fromTransfers = baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, trTypes, requestContext);
+    var toTransfers = baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, trTypes, requestContext);
+    return GenericCompositeFuture.join(List.of(fromTransfers, toTransfers))
+      .map(cf -> holder.withToTransfers(toTransfers.result()).withFromTransfers(fromTransfers.result()));
   }
 
   private void updateGroupFiscalYearSummary(GroupFiscalYearSummary original, GroupFiscalYearSummary update) {

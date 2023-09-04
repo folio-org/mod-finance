@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -83,8 +84,7 @@ public class LedgerRolloverApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverServiceReturnError() {
 
-    Future<LedgerFiscalYearRolloverCollection> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverService.retrieveLedgerRollovers(any(), anyInt(), anyInt(), any()))
       .thenReturn(errorFuture);
@@ -122,8 +122,7 @@ public class LedgerRolloverApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    Future<LedgerFiscalYearRollover> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRollover> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverService.retrieveLedgerRolloverById(anyString(), any()))
       .thenReturn(errorFuture);

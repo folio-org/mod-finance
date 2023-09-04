@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -123,8 +124,7 @@ public class BudgetsApiTest  {
 
   @Test
   void postBudgetWithErrorFromService() {
-    Future<SharedBudget> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(INTERNAL_SERVER_ERROR.getStatusCode(), GENERIC_ERROR_CODE));
+    Future<SharedBudget> errorFuture = Future.failedFuture(new HttpException(INTERNAL_SERVER_ERROR.getStatusCode(), GENERIC_ERROR_CODE));
 
     when(mockCreateBudgetService.createBudget(any(), any())).thenReturn(errorFuture);
 
@@ -184,8 +184,7 @@ public class BudgetsApiTest  {
 
   @Test
   void testGetBudgetByIdWithError() {
-    Future<SharedBudget> errorFuture = new Future<>();
-    errorFuture.completeExceptionally(new HttpException(NOT_FOUND.getStatusCode(), NOT_FOUND.getReasonPhrase()));
+    Future<SharedBudget> errorFuture = Future.failedFuture(new HttpException(NOT_FOUND.getStatusCode(), NOT_FOUND.getReasonPhrase()));
     String budgetId = UUID.randomUUID().toString();
 
     when(budgetMockService.getBudgetById(anyString(), any())).thenReturn(errorFuture);
@@ -232,9 +231,7 @@ public class BudgetsApiTest  {
   @Test
   void testGetBudgetCollectionApiWithError() {
 
-    Future<BudgetsCollection> errorFuture = new Future<>();
-
-    errorFuture.completeExceptionally(new HttpException(422, "Test error"));
+    Future<BudgetsCollection> errorFuture = Future.failedFuture(new HttpException(422, "Test error"));
 
     when(budgetMockService.getBudgets(isNull(), anyInt(), anyInt(), any())).thenReturn(errorFuture);
 
@@ -250,8 +247,7 @@ public class BudgetsApiTest  {
   @Test
   void testDeleteShouldFailIfThereAreTransactionBoundedToBudget() {
     logger.info("=== Test Delete of the budget is forbidden, if budget related transactions found ===");
-    Future<Void> future = new Future<>();
-    future.completeExceptionally(new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR));
+    Future<Void> future = Future.failedFuture(new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR));
     when(budgetMockService.deleteBudget(anyString(), any())).thenReturn(future);
 
     Errors errors = RestTestUtils.verifyDeleteResponse(TestEntities.BUDGET.getEndpointWithId(BUDGET_WITH_BOUNDED_TRANSACTION_ID), APPLICATION_JSON, 400).then()
@@ -294,8 +290,7 @@ public class BudgetsApiTest  {
 
   @Test
   void getFinanceBudgetsExpenseClassesTotalsByIdWithError() {
-    Future<BudgetExpenseClassTotalsCollection> future = new Future<>();
-    future.completeExceptionally(new HttpException(400, GENERIC_ERROR_CODE));
+    Future<BudgetExpenseClassTotalsCollection> future = Future.failedFuture(new HttpException(400, GENERIC_ERROR_CODE));
     when(budgetExpenseClassTotalsMockService.getExpenseClassTotals(anyString(), ArgumentMatchers.any())).thenReturn(future);
     String budgetId = UUID.randomUUID().toString();
 
