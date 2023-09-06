@@ -7,8 +7,6 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import io.vertx.core.Future;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,6 +26,8 @@ import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.transactions.BaseTransactionService;
+
+import io.vertx.core.Future;
 
 public class LedgerTotalsService {
   public static final String LEDGER_ID_AND_FISCAL_YEAR_ID = "ledger.id==%s AND fiscalYearId==%s";

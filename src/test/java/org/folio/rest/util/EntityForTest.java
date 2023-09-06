@@ -1,15 +1,16 @@
 package org.folio.rest.util;
 
-import io.vertx.core.json.JsonObject;
-import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
-import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
-import org.folio.rest.tools.parser.JsonPathParser;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestUtils.getMockData;
 
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.TestUtils.getMockData;
+import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
+import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
+import org.folio.rest.tools.parser.JsonPathParser;
+
+import io.vertx.core.json.JsonObject;
 
 public enum EntityForTest {
   FUND_CODE_EXPENSE_CLASS("fundCodeExpenseClass", getEndpoint(FinanceFundCodesExpenseClasses.class),

@@ -1,7 +1,6 @@
 package org.folio.services.ledger;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
@@ -29,25 +28,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import io.vertx.junit5.VertxExtension;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)

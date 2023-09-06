@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import io.vertx.junit5.VertxExtension;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
@@ -20,12 +19,11 @@ import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLogCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)

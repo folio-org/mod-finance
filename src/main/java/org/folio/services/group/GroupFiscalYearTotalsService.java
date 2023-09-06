@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;

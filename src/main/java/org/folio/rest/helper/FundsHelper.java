@@ -33,7 +33,6 @@ import org.folio.services.fund.FundService;
 import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.group.GroupService;
 import org.folio.services.ledger.LedgerDetailsService;
-import org.folio.services.ledger.LedgerService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -99,7 +98,7 @@ public class FundsHelper extends AbstractHelper {
         .map(aVoid -> compositeFund);
     }
     return fundService.createFund(compositeFund.getFund(), requestContext)
-      .map(newFund -> compositeFund.withFund(newFund));
+      .map(compositeFund::withFund);
   }
 
   private Future<Void> assignFundToGroups(CompositeFund compositeFund, String fiscalYearId) {
@@ -168,7 +167,11 @@ public class FundsHelper extends AbstractHelper {
   }
 
   private List<String> groupFundFiscalYearIdsForDeletion(List<GroupFundFiscalYear> groupFundFiscalYearCollection, List<String> groupIdsForDeletion) {
-    return groupFundFiscalYearCollection.stream().filter(item -> groupIdsForDeletion.contains(item.getGroupId())).map(GroupFundFiscalYear::getId).collect(toList());
+    return groupFundFiscalYearCollection
+      .stream()
+      .filter(item -> groupIdsForDeletion.contains(item.getGroupId()))
+      .map(GroupFundFiscalYear::getId)
+      .collect(toList());
   }
 
   private Future<Void> createGroupFundFiscalYears(CompositeFund compositeFund, String currentFiscalYearId, List<String> groupIdsForCreation, RequestContext requestContext) {

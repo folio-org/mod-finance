@@ -1,14 +1,14 @@
 package org.folio.rest.exception;
 
+import static org.folio.rest.util.ErrorCodes.CONFLICT;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+
+import java.util.Collections;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.util.ErrorCodes;
-
-import java.util.Collections;
-
-import static org.folio.rest.util.ErrorCodes.CONFLICT;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 
 public class HttpException extends RuntimeException {
   private static final long serialVersionUID = 8109197948434861504L;

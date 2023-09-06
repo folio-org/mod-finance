@@ -1,7 +1,6 @@
 package org.folio.services.protection;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
@@ -11,7 +10,6 @@ import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNE
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +32,6 @@ import org.folio.rest.core.models.RequestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

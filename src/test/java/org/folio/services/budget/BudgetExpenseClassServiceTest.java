@@ -15,7 +15,6 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,7 +36,6 @@ import java.util.UUID;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;

@@ -3,7 +3,6 @@ package org.folio.services.group;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -21,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import io.vertx.junit5.VertxExtension;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -37,6 +35,7 @@ import org.mockito.MockitoAnnotations;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)

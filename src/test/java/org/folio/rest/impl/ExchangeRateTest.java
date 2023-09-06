@@ -1,7 +1,6 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -10,15 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.rest.acq.model.finance.ExchangeRate;
 import org.folio.rest.util.RestTestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 public class ExchangeRateTest {
   private static final Logger logger = LogManager.getLogger(ExchangeRateTest.class);

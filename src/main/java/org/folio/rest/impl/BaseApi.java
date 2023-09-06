@@ -13,12 +13,12 @@ import java.net.URISyntaxException;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.Errors;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 public class BaseApi {
   private final Logger logger = LogManager.getLogger(this.getClass());

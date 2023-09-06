@@ -19,7 +19,6 @@ import org.folio.rest.helper.GroupsHelper;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.services.group.GroupExpenseClassTotalsService;
-import org.folio.services.group.GroupService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 

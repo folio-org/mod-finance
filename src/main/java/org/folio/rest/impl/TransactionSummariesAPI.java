@@ -11,14 +11,12 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.helper.TransactionSummariesHelper;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;

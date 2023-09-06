@@ -7,15 +7,14 @@ import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 
 import java.util.Objects;
 
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.Transaction;
-
 import org.folio.services.fund.FundService;
+
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 
 public class TransactionRestrictService {
 

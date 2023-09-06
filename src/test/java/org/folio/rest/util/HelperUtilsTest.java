@@ -2,11 +2,6 @@ package org.folio.rest.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Collections;
-import java.util.List;
-import io.vertx.core.Future;
-import java.util.concurrent.ExecutionException;
-
 import org.folio.rest.jaxrs.model.Error;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

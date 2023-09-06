@@ -2,7 +2,6 @@ package org.folio.services.budget;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,7 +14,6 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -30,7 +28,6 @@ import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.services.transactions.CommonTransactionService;
-import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

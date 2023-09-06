@@ -1,7 +1,6 @@
 package org.folio.services.ledger;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
@@ -29,8 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
@@ -46,6 +43,8 @@ import org.mockito.MockitoAnnotations;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
 public class LedgerDetailsServiceTest {

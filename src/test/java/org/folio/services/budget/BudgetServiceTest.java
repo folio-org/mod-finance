@@ -5,7 +5,6 @@ import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDE
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -38,7 +37,6 @@ import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;

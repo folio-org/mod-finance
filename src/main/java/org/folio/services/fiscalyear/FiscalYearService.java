@@ -4,7 +4,6 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 

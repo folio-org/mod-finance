@@ -1,5 +1,28 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
+import static org.folio.rest.util.RestTestUtils.verifyGet;
+import static org.folio.rest.util.TestConfig.autowireDependencies;
+import static org.folio.rest.util.TestConfig.initSpringContext;
+import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 import org.folio.ApiTestSuite;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
@@ -15,29 +38,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-import java.util.List;
-import java.util.UUID;
 import io.vertx.core.Future;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
-import static io.vertx.core.Future.succeededFuture;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
-import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
-import static org.folio.rest.util.RestTestUtils.verifyGet;
-import static org.folio.rest.util.TestConfig.initSpringContext;
-import static org.folio.rest.util.TestConfig.autowireDependencies;
-import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 public class LedgerRolloverLogsApiTest {
 

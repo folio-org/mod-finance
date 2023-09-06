@@ -6,20 +6,20 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
-import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 
-import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.util.ErrorCodes;
-
-import io.vertx.core.Context;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 
 public class TransactionSummariesHelper extends AbstractHelper {
   @Autowired

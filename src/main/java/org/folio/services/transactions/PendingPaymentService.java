@@ -1,11 +1,10 @@
 package org.folio.services.transactions;
 
-import io.vertx.core.Future;
-
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
-
 import org.folio.rest.util.HelperUtils;
+
+import io.vertx.core.Future;
 
 public class PendingPaymentService implements TransactionTypeManagingStrategy {
 

@@ -1,7 +1,11 @@
 package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.*;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.CREDIT;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
+import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 import static org.folio.rest.util.MockServer.addMockEntry;
@@ -19,6 +23,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Encumbrance;
@@ -32,8 +38,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 public class TransactionApiTest {
   private static final Logger logger = LogManager.getLogger(TransactionApiTest.class);

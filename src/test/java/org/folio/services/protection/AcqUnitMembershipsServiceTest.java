@@ -1,7 +1,6 @@
 package org.folio.services.protection;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;

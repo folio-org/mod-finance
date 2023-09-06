@@ -21,9 +21,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.UUID;
-import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
 import org.folio.ApiTestSuite;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
@@ -38,6 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import io.vertx.core.Future;
 
 public class LedgerRolloverApiTest {
 

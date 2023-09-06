@@ -3,10 +3,11 @@ package org.folio.services.transactions;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
-import io.vertx.core.Future;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Transaction;
+
+import io.vertx.core.Future;
 
 public class TransactionStrategyFactory {
 
