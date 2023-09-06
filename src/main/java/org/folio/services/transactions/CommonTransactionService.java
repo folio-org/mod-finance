@@ -1,7 +1,6 @@
 package org.folio.services.transactions;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.stream.Collectors.toList;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
@@ -11,7 +10,6 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,7 +42,9 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public Future<List<Transaction>> retrieveTransactions(List<BudgetExpenseClass> budgetExpenseClasses, SharedBudget budget, RequestContext requestContext) {
-    List<String> ids = budgetExpenseClasses.stream().map(BudgetExpenseClass::getExpenseClassId).collect(Collectors.toList());
+    List<String> ids = budgetExpenseClasses.stream()
+      .map(BudgetExpenseClass::getExpenseClassId)
+      .toList();
     String query = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND %s", budget.getFundId(), budget.getFundId(), budget.getFiscalYearId(), convertIdsToCqlQuery(ids, "expenseClassId", true));
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
       .map(TransactionCollection::getTransactions);
@@ -54,10 +54,13 @@ public class CommonTransactionService extends BaseTransactionService {
     List<Future<List<Transaction>>> futures = StreamEx
       .ofSubLists(fundIds, MAX_IDS_FOR_GET_RQ)
       .map(ids ->  retrieveTransactionsChunk(buildGetTransactionsQuery(fiscalYearId, ids), requestContext))
-      .collect(toList());
+      .toList();
 
     return collectResultsOnSuccess(futures)
-      .map(listList -> listList.stream().flatMap(Collection::stream).collect(toList()));
+      .map(listList -> listList.stream()
+        .flatMap(Collection::stream)
+        .toList()
+      );
   }
 
   private Future<List<Transaction>> retrieveTransactionsChunk(String query, RequestContext requestContext) {

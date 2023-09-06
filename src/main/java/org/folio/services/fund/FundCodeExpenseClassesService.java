@@ -1,10 +1,8 @@
 package org.folio.services.fund;
 
-import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.models.FundCodeExpenseClassesHolder;
@@ -68,7 +66,7 @@ public class FundCodeExpenseClassesService {
   public Future<List<FiscalYear>> getFiscalYearList(List<Ledger> ledgerList, RequestContext requestContext) {
     List<Future<FiscalYear>> fiscalYearsList = ledgerList.stream()
       .map(ledger -> ledgerDetailsService.getCurrentFiscalYear(ledger.getId(), requestContext))
-      .collect(toList());
+      .toList();
     return collectResultsOnSuccess(fiscalYearsList);
   }
 
@@ -77,7 +75,7 @@ public class FundCodeExpenseClassesService {
     List<FiscalYear> separatedFiscalYears = fiscalYearList.stream().distinct().toList();
     List<Future<FundCodeExpenseClassesCollection>> completeFutures = separatedFiscalYears.stream()
       .map(fiscalYr -> getFundCodeVsExpenseClassesWithFiscalYear(fiscalYr, fundCodeExpenseClassesHolder, requestContext))
-      .collect(Collectors.toList());
+      .toList();
     return collectResultsOnSuccess(completeFutures);
   }
 
@@ -100,10 +98,10 @@ public class FundCodeExpenseClassesService {
       .map(fundCodeExpenseClassesHolder::setFiscalYear)
       .compose(fcecHolder -> getActiveBudgetsByFiscalYear(fcecHolder.getFiscalYear(), requestContext))
       .map(fundCodeExpenseClassesHolder::withBudgetCollectionList)
-      .map(holder -> holder.getBudgetCollection().getBudgets().stream().map(Budget::getFundId).distinct().collect(Collectors.toList()))
+      .map(holder -> holder.getBudgetCollection().getBudgets().stream().map(Budget::getFundId).distinct().toList())
       .compose(fundsId -> fundService.getFunds(fundsId, requestContext))
       .map(fundCodeExpenseClassesHolder::withFundList)
-      .map(fcecHolder -> fcecHolder.getFundList().stream().map(Fund::getLedgerId).collect(toList()))
+      .map(fcecHolder -> fcecHolder.getFundList().stream().map(Fund::getLedgerId).toList())
       .compose(ledgerIds -> ledgerService.getLedgers(ledgerIds, requestContext))
       .map(fundCodeExpenseClassesHolder::withLedgerList)
       .compose(fcecHolder -> retrieveFundCodeVsExpenseClasses(requestContext, fundCodeExpenseClassesHolder));
@@ -116,7 +114,7 @@ public class FundCodeExpenseClassesService {
       .map(budgetsCollection -> budgetsCollection.getBudgets()
         .stream()
         .map(Budget::getId)
-        .collect(toList()))
+        .toList())
       .map(fundCodeExpenseClassesHolder::withBudgetIds)
       .compose(holder -> budgetExpenseClassService.getBudgetExpensesClass(holder.getBudgetIds(), requestContext))
       .map(fundCodeExpenseClassesHolder::withBudgetExpenseClassList)

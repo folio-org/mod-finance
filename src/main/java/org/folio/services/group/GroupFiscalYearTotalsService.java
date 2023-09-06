@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -72,7 +71,7 @@ public class GroupFiscalYearTotalsService {
             .flatMap(summary -> summary.values().stream())
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(toList());
+            .toList();
 
           GroupFiscalYearSummaryCollection collection = new GroupFiscalYearSummaryCollection()
             .withGroupFiscalYearSummaries(summaries)
@@ -134,7 +133,7 @@ public class GroupFiscalYearTotalsService {
   }
 
   private GroupFiscalYearSummaryCollection convertHolders(List<GroupFiscalYearTransactionsHolder> holders) {
-    List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).collect(toList());
+    List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).toList();
     return  new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
   }
 
@@ -234,7 +233,7 @@ public class GroupFiscalYearTotalsService {
                                          && groupFundFiscalYear.getFiscalYearId().equals(fiscalYearId))
           .map(GroupFundFiscalYear::getFundId)
           .filter(fundId -> isBudgetExists(fundIdFiscalYearIdBudgetsMap, fundId, fiscalYearId))
-          .collect(Collectors.toList());
+          .toList();
         holders.add( new GroupFiscalYearTransactionsHolder(groupFiscalYearSummary).withGroupFundIds(groupFundIds));
       });
     }
@@ -248,7 +247,7 @@ public class GroupFiscalYearTotalsService {
        futures.add(updateHolderWithAllocations(requestContext, holder))
     );
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.debug("Number of holders updated with allocations: " + result.size()))
+      .onSuccess(result -> log.debug("Number of holders updated with allocations: {}" , result.size()))
       .mapEmpty();
   }
 
@@ -257,7 +256,7 @@ public class GroupFiscalYearTotalsService {
     List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.debug("Number of holders updated with transfers: " + result.size()))
+      .onSuccess(result -> log.debug("Number of holders updated with transfers: {}", result.size()))
       .mapEmpty();
   }
 
