@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
@@ -104,7 +105,7 @@ public class FundsHelper extends AbstractHelper {
     List<GroupFundFiscalYear> groupFundFiscalYears = buildGroupFundFiscalYears(compositeFund, fiscalYearId);
     var futures = groupFundFiscalYears.stream()
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
-      .toList();
+      .collect(Collectors.toList());
     return GenericCompositeFuture.join(futures)
       .mapEmpty();
   }
@@ -112,7 +113,7 @@ public class FundsHelper extends AbstractHelper {
   private List<GroupFundFiscalYear> buildGroupFundFiscalYears(CompositeFund compositeFund, String budgetId, String fiscalYearId, List<String> groupIds) {
     return StreamEx.of(groupIds)
       .map(groupId -> buildGroupFundFiscalYear(compositeFund, budgetId, fiscalYearId, groupId))
-      .toList();
+      .collect(Collectors.toList());
   }
 
   private List<GroupFundFiscalYear> buildGroupFundFiscalYears(CompositeFund compositeFund, String fiscalYearId) {
@@ -138,7 +139,7 @@ public class FundsHelper extends AbstractHelper {
   private Future<Void> assignFundToGroups(List<GroupFundFiscalYear> groupFundFiscalYears) {
     var futures = groupFundFiscalYears.stream()
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
-      .toList();
+      .collect(Collectors.toList());
 
     return GenericCompositeFuture.join(futures)
       .mapEmpty();
@@ -147,7 +148,7 @@ public class FundsHelper extends AbstractHelper {
   private Future<Void> unassignGroupsForFund(Collection<String> groupFundFiscalYearIds) {
     var futures = groupFundFiscalYearIds.stream()
       .map(id -> groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, okapiHeaders)))
-      .toList();
+      .collect(Collectors.toList());
     return GenericCompositeFuture.join(futures)
       .mapEmpty();
   }
@@ -157,7 +158,7 @@ public class FundsHelper extends AbstractHelper {
       .map(groupFundFiscalYearCollection -> groupFundFiscalYearCollection.getGroupFundFiscalYears()
         .stream()
         .map(GroupFundFiscalYear::getGroupId)
-        .toList()
+        .collect(Collectors.toList())
       );
   }
 
@@ -171,7 +172,7 @@ public class FundsHelper extends AbstractHelper {
       .stream()
       .filter(item -> groupIdsForDeletion.contains(item.getGroupId()))
       .map(GroupFundFiscalYear::getId)
-      .toList();
+      .collect(Collectors.toList());
   }
 
   private Future<Void> createGroupFundFiscalYears(CompositeFund compositeFund, String currentFiscalYearId, List<String> groupIdsForCreation, RequestContext requestContext) {
@@ -224,7 +225,7 @@ public class FundsHelper extends AbstractHelper {
           String currentFiscalYearId = currentFiscalYear.getId();
           return getGroupFundFiscalYearsThatFundBelongs(fund.getId(), currentFiscalYearId)
             .compose(groupFundFiscalYearCollection -> {
-              List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).toList();
+              List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).collect(Collectors.toList());
 
               return createGroupFundFiscalYears(compositeFund, currentFiscalYearId, getSetDifference(groupIdsFromStorage, groupIds), requestContext)
                 .compose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(
@@ -270,7 +271,7 @@ public class FundsHelper extends AbstractHelper {
   public static List<String> getSetDifference(Collection<String> a, Collection<String> b) {
     return b.stream()
       .filter(item -> !a.contains(item))
-      .toList();
+      .collect(Collectors.toList());
   }
 
 }

@@ -1,6 +1,7 @@
 package org.folio.rest.util;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
@@ -18,7 +19,7 @@ public final class BudgetUtils {
   public static SharedBudget buildSharedBudget(Budget budget, List<BudgetExpenseClass> budgetExpenseClasses) {
     List<StatusExpenseClass> statusExpenseClasses = budgetExpenseClasses.stream()
       .map(ExpenseClassConverterUtils::buildStatusExpenseClass)
-      .toList();
+      .collect(Collectors.toList());
     return convertToSharedBudget(budget).withStatusExpenseClasses(statusExpenseClasses);
   }
 

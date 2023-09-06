@@ -109,7 +109,7 @@ public class FundDetailsService {
           .collect(toList()));
       })
       .onSuccess(expenseClasses -> logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
-      .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t.getCause()));
+      .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
   }
 
   private Future<List<ExpenseClass>> getExpenseClasses(Budget budget, RequestContext rqContext) {

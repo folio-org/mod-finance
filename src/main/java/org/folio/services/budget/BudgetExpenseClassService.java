@@ -105,7 +105,7 @@ public class BudgetExpenseClassService{
     return checkNoTransactionsAssigned(deleteList, budget, requestContext)
       .compose(v -> GenericCompositeFuture.all(deleteList.stream()
         .map(budgetExpenseClass -> restClient.delete(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), requestContext))
-        .toList()))
+        .collect(Collectors.toList())))
       .mapEmpty();
   }
 
@@ -125,7 +125,7 @@ public class BudgetExpenseClassService{
     }
     return GenericCompositeFuture.all(updateList.stream()
       .map(budgetExpenseClass -> restClient.put(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), budgetExpenseClass, requestContext))
-      .toList())
+      .collect(Collectors.toList()))
       .mapEmpty();
   }
 
@@ -135,7 +135,7 @@ public class BudgetExpenseClassService{
     }
     var futures = createList.stream()
       .map(budgetExpenseClass -> restClient.post(resourcesPath(BUDGET_EXPENSE_CLASSES), budgetExpenseClass, BudgetExpenseClass.class, requestContext))
-      .toList();
+      .collect(Collectors.toList());
     return GenericCompositeFuture.join(futures)
       .mapEmpty();
   }
@@ -152,7 +152,7 @@ public class BudgetExpenseClassService{
   }
 
   public Future<List<BudgetExpenseClass>> getBudgetExpensesClass(List<String> budgetsIds, RequestContext requestContext) {
-    return collectResultsOnSuccess(ofSubLists(new ArrayList<>(budgetsIds), MAX_IDS_FOR_GET_RQ).map(ids -> getBudgetExpensesClassByIds(ids, requestContext)).toList())
+    return collectResultsOnSuccess(ofSubLists(new ArrayList<>(budgetsIds), MAX_IDS_FOR_GET_RQ).map(ids -> getBudgetExpensesClassByIds(ids, requestContext)).collect(Collectors.toList()))
       .map(lists -> lists.stream()
         .flatMap(Collection::stream)
         .collect(toList()));

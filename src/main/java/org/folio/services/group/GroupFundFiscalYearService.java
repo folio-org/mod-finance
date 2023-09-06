@@ -5,6 +5,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
@@ -48,7 +49,7 @@ public class GroupFundFiscalYearService {
   private Future<Void> processGroupFundFyUpdate(Budget budget, GroupFundFiscalYearCollection gffyCollection, RequestContext requestContext) {
     var futures = gffyCollection.getGroupFundFiscalYears().stream()
       .map(gffy -> restClient.put(resourceByIdPath(GROUP_FUND_FISCAL_YEARS, gffy.getId()), gffy.withBudgetId(budget.getId()), requestContext))
-      .toList();
+      .collect(Collectors.toList());
 
      return GenericCompositeFuture.join(futures)
        .mapEmpty();

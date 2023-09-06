@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Path;
 
@@ -137,8 +138,7 @@ public final class HelperUtils {
   }
 
   public static int defineErrorCode(Throwable throwable) {
-    final Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
-    if (cause instanceof HttpException httpException) {
+    if (throwable instanceof HttpException httpException) {
       return httpException.getCode();
     }
     return INTERNAL_SERVER_ERROR.getStatusCode();
@@ -152,7 +152,7 @@ public final class HelperUtils {
       errors = httpException.getErrors();
       List<Error> errorList = errors.getErrors().stream()
         .map(HelperUtils::mapToError)
-        .toList();
+        .collect(Collectors.toList());
       errors.setErrors(errorList);
     } else {
       errors = new Errors().withErrors(Collections.singletonList(GENERIC_ERROR_CODE.toError()

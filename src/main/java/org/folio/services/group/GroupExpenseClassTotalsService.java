@@ -75,7 +75,7 @@ public class GroupExpenseClassTotalsService {
     List<Transaction> paymentsCredits = transactions.stream()
             .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.PAYMENT
                     || transaction.getTransactionType() == Transaction.TransactionType.CREDIT)
-            .toList();
+            .collect(Collectors.toList());
 
     double expendedGrandTotal = calculateTransactionsAmount(paymentsCredits);
 

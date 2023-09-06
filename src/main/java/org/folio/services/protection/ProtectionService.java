@@ -12,6 +12,7 @@ import static org.folio.services.protection.AcqUnitConstants.ALL_UNITS_CQL;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -45,7 +46,7 @@ public class ProtectionService {
           if (unitIds.size() == units.size()) {
             List<AcquisitionsUnit> activeUnits = units.stream()
               .filter(unit -> !unit.getIsDeleted())
-              .toList();
+              .collect(Collectors.toList());
             if (!activeUnits.isEmpty() && applyMergingStrategy(activeUnits, operations)) {
               return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
             }
@@ -84,7 +85,7 @@ public class ProtectionService {
   private List<String> extractUnitIds(List<AcquisitionsUnit> activeUnits) {
     return activeUnits.stream()
       .map(AcquisitionsUnit::getId)
-      .toList();
+      .collect(Collectors.toList());
   }
 
   private Error buildUnitsNotFoundError(List<String> expectedUnitIds, List<String> availableUnitIds) {

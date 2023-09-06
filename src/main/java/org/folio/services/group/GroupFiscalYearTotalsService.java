@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -71,7 +72,7 @@ public class GroupFiscalYearTotalsService {
             .flatMap(summary -> summary.values().stream())
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .toList();
+            .collect(Collectors.toList());
 
           GroupFiscalYearSummaryCollection collection = new GroupFiscalYearSummaryCollection()
             .withGroupFiscalYearSummaries(summaries)
@@ -133,7 +134,7 @@ public class GroupFiscalYearTotalsService {
   }
 
   private GroupFiscalYearSummaryCollection convertHolders(List<GroupFiscalYearTransactionsHolder> holders) {
-    List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).toList();
+    List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).collect(Collectors.toList());
     return  new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
   }
 
@@ -233,8 +234,8 @@ public class GroupFiscalYearTotalsService {
                                          && groupFundFiscalYear.getFiscalYearId().equals(fiscalYearId))
           .map(GroupFundFiscalYear::getFundId)
           .filter(fundId -> isBudgetExists(fundIdFiscalYearIdBudgetsMap, fundId, fiscalYearId))
-          .toList();
-        holders.add( new GroupFiscalYearTransactionsHolder(groupFiscalYearSummary).withGroupFundIds(groupFundIds));
+          .collect(Collectors.toList());
+        holders.add(new GroupFiscalYearTransactionsHolder(groupFiscalYearSummary).withGroupFundIds(groupFundIds));
       });
     }
     return holders;

@@ -69,7 +69,7 @@ public class AcqUnitsService {
       .map(cf -> StreamEx.of(unitsForUser.result(), unitsAllowRead.result())
         .flatCollection(strings -> strings)
         .distinct()
-        .toList());
+        .collect(Collectors.toList()));
   }
 
 

@@ -2,6 +2,7 @@ package org.folio.services.protection.models;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public enum AcqDesiredPermissions {
   MANAGE("organizations.acquisitions-units-assignments.manage");
@@ -11,7 +12,7 @@ public enum AcqDesiredPermissions {
   static {
     values = Arrays.stream(AcqDesiredPermissions.values())
         .map(AcqDesiredPermissions::getPermission)
-        .toList();
+        .collect(Collectors.toList());
   }
 
   AcqDesiredPermissions(String permission) {

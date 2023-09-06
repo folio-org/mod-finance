@@ -9,6 +9,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -66,10 +67,10 @@ public class ExpenseClassService {
     List<Future<List<ExpenseClass>>> futures = StreamEx
       .ofSubLists(budgetIds, MAX_IDS_FOR_GET_RQ)
       .map(ids ->  getExpenseClassesChunk(ids, requestContext))
-      .toList();
+      .collect(Collectors.toList());
     return collectResultsOnSuccess(futures)
-      .map(listList -> listList.stream().flatMap(Collection::stream).toList())
-      .map(expenseClasses -> expenseClasses.stream().distinct().toList());
+      .map(listList -> listList.stream().flatMap(Collection::stream).collect(Collectors.toList()))
+      .map(expenseClasses -> expenseClasses.stream().distinct().collect(Collectors.toList()));
   }
 
   private Future<List<ExpenseClass>> getExpenseClassesChunk(List<String> ids, RequestContext requestContext) {

@@ -55,7 +55,7 @@ public abstract class AbstractHelper {
   }
 
   protected int handleProcessingError(Throwable throwable) {
-    logger.error("Exception encountered", throwable.getCause());
+    logger.error("Exception encountered", throwable);
     if (getErrors().isEmpty()) {
       final Errors errors = convertToErrors(throwable);
       addProcessingError(errors);

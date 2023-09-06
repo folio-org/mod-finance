@@ -56,6 +56,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -844,7 +845,7 @@ public class MockServer {
   private List<String> extractIdsFromQuery(String fieldName, String relation, String query) {
     Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?([^)]+).*").matcher(query);
     if (matcher.find()) {
-      return StreamEx.split(matcher.group(1), " or ").toList();
+      return StreamEx.split(matcher.group(1), " or ").collect(Collectors.toList());
     } else {
       return Collections.emptyList();
     }

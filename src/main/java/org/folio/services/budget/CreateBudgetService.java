@@ -8,7 +8,6 @@ import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Optional;
-import java.util.concurrent.CompletionException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
@@ -71,7 +70,7 @@ public class CreateBudgetService {
         .map(Errors::getErrors)
         .filter(errors -> !CollectionUtils.isEmpty(errors))
         .map(errors -> errors.get(0))
-        .orElseThrow(() -> new CompletionException(httpException));
+        .orElseThrow(() -> httpException);
       if (NOT_FOUND == httpException.getCode() && FUND_NOT_FOUND_ERROR.getCode().equals(error.getCode())) {
         throw new HttpException(BAD_REQUEST, httpException.getErrors());
       }

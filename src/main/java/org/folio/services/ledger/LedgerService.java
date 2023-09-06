@@ -14,6 +14,7 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
@@ -91,10 +92,10 @@ public class LedgerService {
   public Future<List<Ledger>> getLedgers(Collection<String> ledgerIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
       ofSubLists(new ArrayList<>(ledgerIds), MAX_IDS_FOR_GET_RQ).map(ids -> getLedgersByIds(ids, requestContext))
-        .toList()).map(
+        .collect(Collectors.toList())).map(
       lists -> lists.stream()
         .flatMap(Collection::stream)
-        .toList());
+        .collect(Collectors.toList()));
   }
 
   public Future<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {

@@ -8,7 +8,6 @@ import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_URL;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.util.Map;
-import java.util.concurrent.CompletionException;
 
 import javax.ws.rs.core.Response;
 
@@ -56,7 +55,7 @@ public class ExpenseClassesApi extends BaseApi implements FinanceExpenseClasses 
     if (isEmpty(entity.getId())) {
       entity.setId(id);
     } else if (!id.equals(entity.getId())) {
-      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new CompletionException(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY)))));
+      asyncResultHandler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
       return;
     }
     expenseClassService.updateExpenseClass(id, entity, new RequestContext(vertxContext, okapiHeaders))

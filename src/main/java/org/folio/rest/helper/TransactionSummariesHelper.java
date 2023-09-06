@@ -6,7 +6,6 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Map;
-import java.util.concurrent.CompletionException;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -53,7 +52,7 @@ public class TransactionSummariesHelper extends AbstractHelper {
    */
   private void validateOrderTransactionCount(Integer numTransactions) {
     if (numTransactions <= 0) {
-      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_ORDER_TRANSACTION_COUNT));
+      throw new HttpException(422, ErrorCodes.INVALID_ORDER_TRANSACTION_COUNT);
     }
   }
 
@@ -63,7 +62,7 @@ public class TransactionSummariesHelper extends AbstractHelper {
    */
   private void validateInvoiceTransactionCount(Integer numPaymentsCredits, Integer numEncumbrances) {
     if (numPaymentsCredits <= 0 || numEncumbrances < 0) {
-      throw new CompletionException(new HttpException(422, ErrorCodes.INVALID_INVOICE_TRANSACTION_COUNT));
+      throw new HttpException(422, ErrorCodes.INVALID_INVOICE_TRANSACTION_COUNT);
     }
   }
 

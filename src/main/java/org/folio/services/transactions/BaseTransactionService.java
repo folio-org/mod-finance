@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -78,7 +79,7 @@ public class BaseTransactionService implements TransactionService {
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
                     .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trTypes, "fromFundId", requestContext)
                       .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, Transaction::getToFundId)))
-                    .toList()).map(lists -> lists.stream().flatMap(Collection::stream).toList());
+                    .collect(Collectors.toList())).map(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
   public Future<List<Transaction>> retrieveToTransactions(List<String> fundIds, String fiscalYearId,
@@ -87,7 +88,7 @@ public class BaseTransactionService implements TransactionService {
             ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
                     .map(ids -> retrieveAllocationTransactionsChunk(ids, fiscalYearId, trTypes, "toFundId", requestContext)
                       .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, Transaction::getFromFundId)))
-                    .toList()).map(lists -> lists.stream().flatMap(Collection::stream).toList());
+                    .collect(Collectors.toList())).map(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
   public Future<Boolean> isConnectedToInvoice(String transactionId, RequestContext requestContext) {
@@ -101,7 +102,7 @@ public class BaseTransactionService implements TransactionService {
   private Future<List<Transaction>> retrieveAllocationTransactionsChunk(List<String> fundIds, String fiscalYearId,
       List<Transaction.TransactionType> trTypes, String allocationDirection, RequestContext requestContext) {
     String fundQuery = convertIdsToCqlQuery(fundIds, allocationDirection, "==", " OR ");
-    List<String> trTypeValues = trTypes.stream().map(Transaction.TransactionType::value).toList();
+    List<String> trTypeValues = trTypes.stream().map(Transaction.TransactionType::value).collect(Collectors.toList());
     String trTypeQuery = convertIdsToCqlQuery(trTypeValues, "transactionType", "==", " OR ");
     String query = String.format(ALLOCATION_TYPE_TRANSACTIONS_QUERY, fiscalYearId, trTypeQuery, fundQuery);
     return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext).map(TransactionCollection::getTransactions);
@@ -110,6 +111,6 @@ public class BaseTransactionService implements TransactionService {
   private List<Transaction> filterFundIdsByAllocationDirection(List<String> fundIds, List<Transaction> transactions, Function<Transaction, String> allocationDirection) {
     return transactions.stream()
       .filter(transaction -> !fundIds.contains(allocationDirection.apply(transaction)))
-      .toList();
+      .collect(Collectors.toList());
   }
 }

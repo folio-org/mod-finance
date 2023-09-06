@@ -54,7 +54,7 @@ public class BaseApi {
   }
 
   public Response buildErrorResponse(Throwable throwable) {
-    logger.error("Exception encountered", throwable.getCause());
+    logger.error("Exception encountered", throwable);
     final int code = defineErrorCode(throwable);
     final Errors errors = convertToErrors(throwable);
     final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);
