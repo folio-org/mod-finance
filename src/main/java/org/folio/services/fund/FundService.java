@@ -1,6 +1,5 @@
 package org.folio.services.fund;
 
-import static java.util.stream.Collectors.toList;
 import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
@@ -15,8 +14,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -30,8 +27,6 @@ import org.folio.services.protection.AcqUnitsService;
 import io.vertx.core.Future;
 
 public class FundService {
-  private static final Logger logger = LogManager.getLogger(FundService.class);
-
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
   public static final String ID = "id";
@@ -70,16 +65,18 @@ public class FundService {
 
   public Future<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
-      ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ).map(ids -> getFundsByIds(ids, requestContext))
-        .toList()).map(
-      lists -> lists.stream()
+      ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ)
+        .map(ids -> getFundsByIds(ids, requestContext))
+        .toList())
+      .map(lists -> lists.stream()
         .flatMap(Collection::stream)
-        .collect(toList()));
+        .toList()
+    );
   }
 
   public Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
     String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
+    var requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
       .withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);

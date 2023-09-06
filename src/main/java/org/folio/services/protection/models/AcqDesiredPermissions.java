@@ -1,19 +1,17 @@
 package org.folio.services.protection.models;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public enum AcqDesiredPermissions {
   MANAGE("organizations.acquisitions-units-assignments.manage");
 
-  private String permission;
+  private final String permission;
   private static final List<String> values;
   static {
-    values = Collections.unmodifiableList(Arrays.stream(AcqDesiredPermissions.values())
-      .map(AcqDesiredPermissions::getPermission)
-      .collect(Collectors.toList()));
+    values = Arrays.stream(AcqDesiredPermissions.values())
+        .map(AcqDesiredPermissions::getPermission)
+        .toList();
   }
 
   AcqDesiredPermissions(String permission) {

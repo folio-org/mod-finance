@@ -29,7 +29,8 @@ public class GroupFundFiscalYearService {
   }
 
   public Future<GroupFundFiscalYearCollection> getGroupFundFiscalYears(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(resourcesPath(GROUP_FUND_FISCAL_YEARS)).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(GROUP_FUND_FISCAL_YEARS))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), GroupFundFiscalYearCollection.class, requestContext);

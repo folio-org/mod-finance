@@ -161,7 +161,8 @@ public class BudgetExpenseClassService{
   public  Future<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(List<String> ids, RequestContext requestContext) {
     String budgetId = "budgetId";
     String query = convertIdsToCqlQuery(ids, budgetId);
-    var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES)).withQuery(query)
+    var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES))
+      .withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
     return restClient.get(requestEntry.buildEndpoint(), BudgetExpenseClassCollection.class, requestContext)

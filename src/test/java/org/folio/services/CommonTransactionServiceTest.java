@@ -177,7 +177,7 @@ public class CommonTransactionServiceTest {
       .withTransactions(transactions)
       .withTotalRecords(1);
 
-    when(restClient.get(anyString(), any(), any()))
+    when(restClient.get(anyString(), eq(TransactionCollection.class), any()))
       .thenReturn(succeededFuture(transactionCollection), succeededFuture(new TransactionCollection()), succeededFuture(new TransactionCollection()));
 
     Future<List<Transaction>> future = transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);

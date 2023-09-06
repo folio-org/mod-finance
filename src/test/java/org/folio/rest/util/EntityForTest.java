@@ -17,19 +17,7 @@ public enum EntityForTest {
     FundCodeExpenseClassesCollection.class, "mockdata/finance/fund-codes-expense-class.json",
     "fund-codes-expense-class[0]", "name", "Updated name", 5, "allocated");
 
-  EntityForTest(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
-               Object updatedFieldValue, int collectionQuantity) {
-    this.name = name;
-    this.endpoint = endpoint;
-    this.clazz = clazz;
-    this.jsonPathToObject = jsonPathToSample;
-    this.pathToFileWithData = pathToSamples;
-    this.updatedFieldName = updatedFieldName;
-    this.updatedFieldValue = updatedFieldValue;
-    this.collectionQuantity = collectionQuantity;
-  }
-
-  EntityForTest(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  EntityForTest(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity, String ignoreProperties) {
     this.name = name;
     this.endpoint = endpoint;
@@ -43,14 +31,14 @@ public enum EntityForTest {
   }
 
   private final String name;
-  private int collectionQuantity;
-  private String endpoint;
-  private String jsonPathToObject;
-  private String pathToFileWithData;
-  private String updatedFieldName;
+  private final int collectionQuantity;
+  private final String endpoint;
+  private final String jsonPathToObject;
+  private final String pathToFileWithData;
+  private final String updatedFieldName;
   private String ignoreProperties;
-  private Object updatedFieldValue;
-  private Class clazz;
+  private final Object updatedFieldValue;
+  private final Class<?> clazz;
 
   public String getEndpoint() {
     return endpoint;

@@ -79,7 +79,7 @@ public class GroupExpenseClassTotalsServiceTest {
       .onComplete(result -> {
         var groupExpenseClassTotalsCollection = result.result();
         assertEquals(new GroupExpenseClassTotalsCollection().withTotalRecords(0), groupExpenseClassTotalsCollection);
-        verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(eq(groupId), eq(fiscalYearId), eq(requestContext));
+        verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext);
         verify(transactionServiceMock, never()).retrieveTransactionsByFundIds(anyList(), anyString(), any());
         verify(expenseClassServiceMock, never()).getExpenseClassesByBudgetIds(anyList(), any());
 

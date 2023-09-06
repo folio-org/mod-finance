@@ -118,7 +118,7 @@ public class BudgetExpenseClassServiceTest {
 
     sharedBudget.withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
 
-    when(requestContextMock.getContext()).thenReturn(mock(EventLoopContext.class));
+    when(requestContextMock.context()).thenReturn(mock(EventLoopContext.class));
     when(restClient.post(anyString(), any(), eq(BudgetExpenseClass.class), eq(requestContextMock))).thenReturn(succeededFuture(new BudgetExpenseClass()));
 
     var future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
@@ -154,7 +154,7 @@ public class BudgetExpenseClassServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(future.succeeded());
-        verify(requestContextMock, never()).getContext();
+        verify(requestContextMock, never()).context();
         verify(restClient, never()).post(anyString(), any(), any(), any());
         vertxTestContext.completeNow();
       });
@@ -193,7 +193,7 @@ public class BudgetExpenseClassServiceTest {
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
-    when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
 
@@ -229,7 +229,7 @@ public class BudgetExpenseClassServiceTest {
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(Collections.singletonList(new Transaction())));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
-    when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
 
@@ -272,7 +272,7 @@ public class BudgetExpenseClassServiceTest {
     sharedBudget.withStatusExpenseClasses(statusExpenseClasses);
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -310,7 +310,7 @@ public class BudgetExpenseClassServiceTest {
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
-    when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -369,7 +369,7 @@ public class BudgetExpenseClassServiceTest {
     when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(newBudgetExpenseClass));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
-    when(requestContextMock.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -415,8 +415,6 @@ public class BudgetExpenseClassServiceTest {
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
     when(restClient.get(anyString(), eq(BudgetExpenseClassCollection.class), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-
-   // TODO remove List<BudgetExpenseClass> budgetExpenseClassListReceived = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock).join();
 
     var future = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock);
     vertxTestContext.assertComplete(future)

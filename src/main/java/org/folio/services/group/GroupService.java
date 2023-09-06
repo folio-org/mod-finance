@@ -28,7 +28,6 @@ public class GroupService {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isBlank(query) ? clause : combineCqlExpressions("and", clause, query))
       .compose(effectiveQuery -> {
-        // TODO: check all limits and offsets
         var requestEntry = new RequestEntry(resourcesPath(GROUPS))
           .withQuery(effectiveQuery)
           .withLimit(limit)

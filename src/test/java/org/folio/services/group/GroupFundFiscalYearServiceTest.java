@@ -79,7 +79,7 @@ public class GroupFundFiscalYearServiceTest {
     when(restClient.get(anyString(), any(), any()))
       .thenReturn(succeededFuture(groupFundFiscalYearCollection));
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
-    when(requestContext.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
+    when(requestContext.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(budget, requestContext);
     vertxTestContext.assertComplete(future)
@@ -119,7 +119,7 @@ public class GroupFundFiscalYearServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         String expectedQuery = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
-        verify(restClient).get(anyString(), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
+        verify(restClient).get(assertQueryContains(expectedQuery), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
   }

@@ -62,7 +62,7 @@ public class AcqUnitsService {
   }
 
   private Future<List<String>> getAcqUnitIdsForSearch(RequestContext requestContext) {
-    var unitsForUser = getAcqUnitIdsForUser(requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
+    var unitsForUser = getAcqUnitIdsForUser(requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
     var unitsAllowRead = getOpenForReadAcqUnitIds(requestContext);
 
     return CompositeFuture.join(unitsForUser, unitsAllowRead)

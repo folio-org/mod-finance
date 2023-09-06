@@ -77,11 +77,6 @@ public class FundDetailsServiceTest {
   }
 
   @Test
-  void testShouldReturnCurrentExistingBudget() {
-
-  }
-
-  @Test
   void testShouldReturnNullIfNoActiveBudget(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();

@@ -21,9 +21,9 @@ public class AcqUnitMembershipsService {
     this.restClient = acqUnitMembershipsRestClient;
   }
 
-  public Future<AcquisitionsUnitMembershipCollection> getAcquisitionsUnitsMemberships(String query, int offset,
-                                                                                                 int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(resourcesPath(ACQUISITIONS_MEMBERSHIPS)).withLimit(limit)
+  public Future<AcquisitionsUnitMembershipCollection> getAcquisitionsUnitsMemberships(String query, int offset, int limit, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(resourcesPath(ACQUISITIONS_MEMBERSHIPS))
+      .withLimit(limit)
       .withOffset(offset)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitMembershipCollection.class, requestContext);

@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -69,7 +69,7 @@ public class LedgerRolloverProgressApiTest {
   void shouldReturnLedgerRolloverProgressCollectionWhenCallGetAndRolloverProgressServiceReturnLedgerRolloverProgress() {
     LedgerFiscalYearRolloverProgressCollection ledgerProgresses = new LedgerFiscalYearRolloverProgressCollection()
       .withTotalRecords(1)
-      .withLedgerFiscalYearRolloverProgresses(Arrays.asList(new LedgerFiscalYearRolloverProgress()));
+      .withLedgerFiscalYearRolloverProgresses(List.of(new LedgerFiscalYearRolloverProgress()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgresses(any(), anyInt(), anyInt(), any()))
       .thenReturn(succeededFuture(ledgerProgresses));

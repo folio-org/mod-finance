@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -68,7 +68,7 @@ public class LedgerRolloverApiTest {
   void shouldReturnLedgerRolloverCollectionWhenCallGetAndRolloverServiceReturnLedgerRollover() {
     LedgerFiscalYearRolloverCollection ledgerRollovers = new LedgerFiscalYearRolloverCollection()
       .withTotalRecords(1)
-      .withLedgerFiscalYearRollovers(Arrays.asList(new LedgerFiscalYearRollover()));
+      .withLedgerFiscalYearRollovers(List.of(new LedgerFiscalYearRollover()));
 
     when(mockLedgerRolloverService.retrieveLedgerRollovers(any(), anyInt(), anyInt(), any()))
       .thenReturn(succeededFuture(ledgerRollovers));

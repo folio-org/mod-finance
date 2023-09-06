@@ -1,7 +1,6 @@
 package org.folio.rest.util;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.stream.Collectors.toList;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
@@ -39,20 +38,17 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import one.util.streamex.StreamEx;
 
-public class HelperUtils {
+public final class HelperUtils {
   public static final String ID = "id";
   public static final String OKAPI_URL = "X-Okapi-Url";
   private static final String ERROR_CAUSE = "cause";
-  private static final String ERROR_MESSAGE = "errorMessage";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE);
-  private static final Pattern ERROR_PATTERN = Pattern.compile("(message).*(code).*(parameters)");
-
 
   private HelperUtils() {
   }
 
   public static JsonObject convertToJson(Object data) {
-    return data instanceof JsonObject ? (JsonObject) data : JsonObject.mapFrom(data);
+    return data instanceof JsonObject jsonObject ? jsonObject : JsonObject.mapFrom(data);
   }
 
   /**
@@ -142,8 +138,8 @@ public class HelperUtils {
 
   public static int defineErrorCode(Throwable throwable) {
     final Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
-    if (cause instanceof HttpException) {
-      return ((HttpException) cause).getCode();
+    if (cause instanceof HttpException httpException) {
+      return httpException.getCode();
     }
     return INTERNAL_SERVER_ERROR.getStatusCode();
   }
@@ -152,9 +148,11 @@ public class HelperUtils {
     final Throwable cause = throwable.getCause() == null ? throwable : throwable.getCause();
     Errors errors;
 
-    if (cause instanceof HttpException) {
-      errors = ((HttpException) cause).getErrors();
-      List<Error> errorList = errors.getErrors().stream().map(HelperUtils::mapToError).collect(toList());
+    if (cause instanceof HttpException httpException) {
+      errors = httpException.getErrors();
+      List<Error> errorList = errors.getErrors().stream()
+        .map(HelperUtils::mapToError)
+        .toList();
       errors.setErrors(errorList);
     } else {
       errors = new Errors().withErrors(Collections.singletonList(GENERIC_ERROR_CODE.toError()
@@ -176,22 +174,12 @@ public class HelperUtils {
   }
 
   public static javax.ws.rs.core.Response.ResponseBuilder createResponseBuilder(int code) {
-    final javax.ws.rs.core.Response.ResponseBuilder responseBuilder;
-    switch (code) {
-      case 400:
-      case 403:
-      case 404:
-      case 409:
-      case 422:
-        responseBuilder = javax.ws.rs.core.Response.status(code);
-        break;
-      default:
-        responseBuilder = javax.ws.rs.core.Response.status(INTERNAL_SERVER_ERROR);
-    }
-    return responseBuilder;
+    return switch (code) {
+      case 400, 403, 404, 409, 422 -> javax.ws.rs.core.Response.status(code);
+      default -> javax.ws.rs.core.Response.status(INTERNAL_SERVER_ERROR);
+    };
   }
 
-  //TODO: cleanup HelperUtils
   public static void validateAmount(double doubleAmount, String fieldName) {
     BigDecimal amount = BigDecimal.valueOf(doubleAmount);
     if (isNegative(amount)) {

@@ -66,7 +66,7 @@ public enum TestEntities {
   LEDGER_ROLLOVER_PROGRESS("ledgerRolloverProgress", getEndpoint(FinanceLedgerRolloversProgress.class), LedgerFiscalYearRolloverProgress.class, "", "", "", 1, 1),
   LEDGER_ROLLOVER_ERRORS("ledgerRolloverErrors", getEndpoint(FinanceLedgerRolloversErrors.class), LedgerFiscalYearRolloverError.class, "", "", "", 1, 1);
 
-  TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  TestEntities(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {
     this.name = name;
     this.endpoint = endpoint;
@@ -78,7 +78,7 @@ public enum TestEntities {
     this.collectionQuantity = collectionQuantity;
   }
 
-  TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  TestEntities(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
       Object updatedFieldValue, int collectionQuantity, String ignoreProperties) {
     this.name = name;
     this.endpoint = endpoint;
@@ -92,14 +92,14 @@ public enum TestEntities {
   }
 
   private final String name;
-  private int collectionQuantity;
-  private String endpoint;
-  private String jsonPathToObject;
-  private String pathToFileWithData;
-  private String updatedFieldName;
+  private final int collectionQuantity;
+  private final String endpoint;
+  private final String jsonPathToObject;
+  private final String pathToFileWithData;
+  private final String updatedFieldName;
   private String ignoreProperties;
-  private Object updatedFieldValue;
-  private Class clazz;
+  private final Object updatedFieldValue;
+  private final Class<?> clazz;
 
   public String getEndpoint() {
     return endpoint;
@@ -160,7 +160,4 @@ public enum TestEntities {
     return ignoreProperties;
   }
 
-  public void setIgnoreProperties(String ignoreProperties) {
-    this.ignoreProperties = ignoreProperties;
-  }
 }

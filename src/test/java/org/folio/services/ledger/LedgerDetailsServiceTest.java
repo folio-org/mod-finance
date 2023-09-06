@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -222,7 +223,7 @@ public class LedgerDetailsServiceTest {
 
     Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
     FiscalYear firstfiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear));
+    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(List.of(firstfiscalYear));
 
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);

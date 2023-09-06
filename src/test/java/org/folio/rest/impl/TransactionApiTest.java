@@ -43,12 +43,12 @@ public class TransactionApiTest {
   private static final Logger logger = LogManager.getLogger(TransactionApiTest.class);
   private static boolean runningOnOwn;
 
-  private final String dollars = "USD";
-  private final String FISCAL_YEAR_ID = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
-  private final String HIST_ID = "fb7b70f1-b898-4924-a991-0e4b6312bb5f";
-  private final String CANHIST_ID = "68872d8a-bf16-420b-829f-206da38f6c10";
-  private final String LATHIST_ID = "e6d7e91a-4dbc-4a70-9b38-e000d2fbdc79";
-  private final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
+  private static final String USD = "USD";
+  private static final String FISCAL_YEAR_ID = "684b5dc5-92f6-4db7-b996-b549d88f5e4e";
+  private static final String HIST_ID = "fb7b70f1-b898-4924-a991-0e4b6312bb5f";
+  private static final String CANHIST_ID = "68872d8a-bf16-420b-829f-206da38f6c10";
+  private static final String LATHIST_ID = "e6d7e91a-4dbc-4a70-9b38-e000d2fbdc79";
+  private static final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
 
   public static final String DELETE_TRANSACTION_ID = UUID.randomUUID().toString();
   public static final String DELETE_CONNECTED_TRANSACTION_ID = UUID.randomUUID().toString();
@@ -123,13 +123,13 @@ public class TransactionApiTest {
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(CANHIST_ID)
       .withToFundId(LATHIST_ID);
-    JsonObject body = JsonObject.mapFrom(transaction);
-    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    JsonObject allocationJson = JsonObject.mapFrom(transaction);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), allocationJson, APPLICATION_JSON, 201);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
-    body = JsonObject.mapFrom(transaction);
-    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    var transferJson = JsonObject.mapFrom(transaction);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), transferJson, APPLICATION_JSON, 201);
   }
 
   @Test
@@ -142,13 +142,13 @@ public class TransactionApiTest {
     Transaction transaction = createTransaction(TRANSFER)
       .withFromFundId(HIST_ID)
       .withToFundId(LATHIST_ID);
-    JsonObject body = JsonObject.mapFrom(transaction);
-    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    JsonObject transferBody = JsonObject.mapFrom(transaction);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_TRANSFER.getEndpoint(), transferBody, APPLICATION_JSON, 201);
 
     // allocation
     transaction.setTransactionType(ALLOCATION);
-    body = JsonObject.mapFrom(transaction);
-    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), JsonObject.mapFrom(transaction), APPLICATION_JSON, 201);
+    var allocationBody = JsonObject.mapFrom(transaction);
+    RestTestUtils.verifyPostResponse(TestEntities.TRANSACTIONS_ALLOCATION.getEndpoint(), allocationBody, APPLICATION_JSON, 201);
   }
 
   @Test
@@ -380,7 +380,7 @@ public class TransactionApiTest {
   private Transaction createTransaction(Transaction.TransactionType type) {
     return new Transaction()
       .withAmount(25.0)
-      .withCurrency(dollars)
+      .withCurrency(USD)
       .withFiscalYearId(FISCAL_YEAR_ID)
       .withSource(Transaction.Source.USER)
       .withTransactionType(type);

@@ -62,25 +62,22 @@ public class CreateBudgetService {
           return createNewBudget(sharedBudget, requestContext);
         }
       })
-      // TODO: remove garbage
-                             /*.exceptionally(t -> {
-                               if (t.getCause() instanceof HttpException ) {
-                                 processHttpException((HttpException) t.getCause());
-                               }
-                               throw new CompletionException(t.getCause());
-                             })*/
-      ;
+      .recover(this::processBudgetException);
   }
 
-  private void processHttpException(HttpException httpException) {
-   Error error = Optional.ofNullable(httpException.getErrors())
-                        .map(Errors::getErrors)
-                        .filter(errors -> !CollectionUtils.isEmpty(errors))
-                        .map(errors -> errors.get(0))
-                        .orElseThrow(() -> new CompletionException(httpException));
-    if (NOT_FOUND == httpException.getCode() && FUND_NOT_FOUND_ERROR.getCode().equals(error.getCode())) {
-      throw new CompletionException(new HttpException(BAD_REQUEST, httpException.getErrors()));
+  private Future<SharedBudget> processBudgetException(Throwable t) {
+    if (t instanceof HttpException httpException) {
+      Error error = Optional.ofNullable(httpException.getErrors())
+        .map(Errors::getErrors)
+        .filter(errors -> !CollectionUtils.isEmpty(errors))
+        .map(errors -> errors.get(0))
+        .orElseThrow(() -> new CompletionException(httpException));
+      if (NOT_FOUND == httpException.getCode() && FUND_NOT_FOUND_ERROR.getCode().equals(error.getCode())) {
+        throw new HttpException(BAD_REQUEST, httpException.getErrors());
+      }
     }
+    return Future.failedFuture(t);
+
   }
 
   private Future<Budget> allocateToBudget(Budget createdBudget, RequestContext requestContext) {

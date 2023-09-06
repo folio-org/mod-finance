@@ -243,7 +243,6 @@ public class CreateBudgetServiceTest {
         assertEquals(0, plannedSharedBudget.getAllocated());
         assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
         assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-        assertEquals(1, 1);
         assertEquals(currBudgetExpenseClasses.get(0)
           .getExpenseClassId(),
             resultBudget.getStatusExpenseClasses()
@@ -290,7 +289,6 @@ public class CreateBudgetServiceTest {
         assertEquals(0, plannedSharedBudget.getAllocated());
         assertEquals(plannedSharedBudget.getFiscalYearId(), resultBudget.getFiscalYearId());
         assertEquals(plannedSharedBudget.getFundId(), resultBudget.getFundId());
-        assertEquals(1, 1);
         assertEquals(currBudgetExpenseClasses.get(0)
           .getExpenseClassId(),
             resultBudget.getStatusExpenseClasses()

@@ -191,9 +191,6 @@ public class FundCodeExpenseClassesServiceTest {
       .withCurrency("USD");
 
     List<Ledger> ledgers = Arrays.asList(ledger1, ledger2);
-    List<String> ledgerIds = new ArrayList();
-    ledgerIds.add(ledgerId1);
-    ledgerIds.add(ledgerId2);
 
     when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(succeededFuture(ledgers));
 
@@ -281,9 +278,6 @@ public class FundCodeExpenseClassesServiceTest {
       .withCurrency("USD");
 
     List<Ledger> ledgers = Arrays.asList(ledger1, ledger2);
-    List<String> ledgerIds = new ArrayList();
-    ledgerIds.add(ledgerId1);
-    ledgerIds.add(ledgerId2);
     LedgersCollection ledgersCollection = new LedgersCollection();
     ledgersCollection.setLedgers(ledgers);
 
@@ -390,7 +384,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withExpenseClassId(expenseClassId2)
       .withStatus(BudgetExpenseClass.Status.ACTIVE);
 
-    List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2));
+    List<BudgetExpenseClass> budgetExpenseClassList = List.of(budgetExpenseClass1, budgetExpenseClass2);
 
     when(budgetService.getBudgets(anyString(), eq(0), eq(Integer.MAX_VALUE),
       eq(requestContext))).thenReturn(succeededFuture(budgetCollection));

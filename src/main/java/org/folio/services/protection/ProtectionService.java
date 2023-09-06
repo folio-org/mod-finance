@@ -47,7 +47,7 @@ public class ProtectionService {
               .filter(unit -> !unit.getIsDeleted())
               .toList();
             if (!activeUnits.isEmpty() && applyMergingStrategy(activeUnits, operations)) {
-              return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext);
+              return verifyUserIsMemberOfFundUnits(extractUnitIds(activeUnits), requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
             }
             return succeededFuture(null);
           } else {

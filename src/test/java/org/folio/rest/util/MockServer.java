@@ -7,7 +7,6 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
 import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
-import static org.folio.rest.impl.FundsApiTest.X_CONFIG_HEADER_NAME;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DIFFERENT_GROUP;
@@ -110,8 +109,8 @@ public class MockServer {
   private final int port;
   private final Vertx vertx;
 
-  public static Table<String, HttpMethod, List<JsonObject>> serverRqRs = HashBasedTable.create();
-  public static HashMap<String, List<String>> serverRqQueries = new HashMap<>();
+  public static final Table<String, HttpMethod, List<JsonObject>> serverRqRs = HashBasedTable.create();
+  public static final HashMap<String, List<String>> serverRqQueries = new HashMap<>();
 
   public MockServer(int port) {
     this.port = port;
@@ -649,28 +648,18 @@ public class MockServer {
   }
 
   private JsonObject getEntries(TestEntities testEntity, List<String> ids, boolean isCollection) {
-    switch (testEntity) {
-    case BUDGET:
-      return getBudgetsByIds(ids, isCollection);
-    case FUND:
-      return getFundsByIds(ids, isCollection);
-    case FISCAL_YEAR:
-      return getFiscalYearsByIds(ids, isCollection);
-    case FUND_TYPE:
-      return getFundTypesByIds(ids, isCollection);
-    case GROUP_FUND_FISCAL_YEAR:
-      return getGroupFundFiscalYearsByIds(ids, isCollection);
-    case LEDGER:
-      return getLedgersByIds(ids, isCollection);
-    case GROUP:
-      return getGroupByIds(ids, isCollection);
-    case TRANSACTIONS:
-      return getTransactionsByIds(ids, isCollection);
-    case EXPENSE_CLASSES:
-        return getExpenseClassesByIds(ids, isCollection);
-    default:
-      throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
-    }
+    return switch (testEntity) {
+      case BUDGET -> getBudgetsByIds(ids, isCollection);
+      case FUND -> getFundsByIds(ids, isCollection);
+      case FISCAL_YEAR -> getFiscalYearsByIds(ids, isCollection);
+      case FUND_TYPE -> getFundTypesByIds(ids, isCollection);
+      case GROUP_FUND_FISCAL_YEAR -> getGroupFundFiscalYearsByIds(ids, isCollection);
+      case LEDGER -> getLedgersByIds(ids, isCollection);
+      case GROUP -> getGroupByIds(ids, isCollection);
+      case TRANSACTIONS -> getTransactionsByIds(ids, isCollection);
+      case EXPENSE_CLASSES -> getExpenseClassesByIds(ids, isCollection);
+      default -> throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
+    };
   }
 
   private String resourceByIdPath(String field) {
@@ -794,7 +783,7 @@ public class MockServer {
   }
 
   private void handlePutGenericSubObj(RoutingContext ctx, String subObj) {
-    logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path());
+    logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path(), subObj);
     String id = ctx.request().getParam(ID);
     addServerRqRsData(HttpMethod.PUT, subObj, ctx.body().asJsonObject());
 
@@ -864,7 +853,6 @@ public class MockServer {
   private void handleConfigurationModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
-      String orgConfig = ctx.request().getHeader(X_CONFIG_HEADER_NAME) ;
 
       String fileName = StringUtils.EMPTY;
       if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {

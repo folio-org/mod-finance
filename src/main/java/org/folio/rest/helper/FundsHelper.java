@@ -1,7 +1,6 @@
 package org.folio.rest.helper;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.ErrorCodes.GROUP_NOT_FOUND;
@@ -158,7 +157,8 @@ public class FundsHelper extends AbstractHelper {
       .map(groupFundFiscalYearCollection -> groupFundFiscalYearCollection.getGroupFundFiscalYears()
         .stream()
         .map(GroupFundFiscalYear::getGroupId)
-        .collect(toList()));
+        .toList()
+      );
   }
 
   private Future<List<GroupFundFiscalYear>> getGroupFundFiscalYearsThatFundBelongs(String fundId, String currentFYId) {
@@ -171,7 +171,7 @@ public class FundsHelper extends AbstractHelper {
       .stream()
       .filter(item -> groupIdsForDeletion.contains(item.getGroupId()))
       .map(GroupFundFiscalYear::getId)
-      .collect(toList());
+      .toList();
   }
 
   private Future<Void> createGroupFundFiscalYears(CompositeFund compositeFund, String currentFiscalYearId, List<String> groupIdsForCreation, RequestContext requestContext) {

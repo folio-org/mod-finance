@@ -53,8 +53,8 @@ public class RestClient {
     if (log.isDebugEnabled()) {
       log.debug(REQUEST_MESSAGE_LOG_DEBUG, HttpMethod.POST, JsonObject.mapFrom(entity).encodePrettily());
     }
-    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
-    return getVertxWebClient(requestContext.getContext())
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
+    return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
@@ -78,9 +78,9 @@ public class RestClient {
     if (log.isDebugEnabled()) {
       log.debug(REQUEST_MESSAGE_LOG_DEBUG, HttpMethod.PUT, JsonObject.mapFrom(recordData).encodePrettily());
     }
-    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
 
-    return getVertxWebClient(requestContext.getContext())
+    return getVertxWebClient(requestContext.context())
       .putAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
@@ -93,10 +93,10 @@ public class RestClient {
   public Future<Void> delete(String endpointById, boolean skipError404, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.DELETE, endpointById);
 
-    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     Promise<Void> promise = Promise.promise();
 
-    getVertxWebClient(requestContext.getContext())
+    getVertxWebClient(requestContext.context())
       .deleteAbs(buildAbsEndpoint(caseInsensitiveHeader, endpointById))
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
@@ -137,11 +137,11 @@ public class RestClient {
 
   public <T> Future<T> get(String endpoint, boolean skipError404, Class<T> responseType, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.GET, endpoint);
-    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     var absEndpoint = buildAbsEndpoint(caseInsensitiveHeader, endpoint);
 
     Promise<T> promise = Promise.promise();
-    getVertxWebClient(requestContext.getContext())
+    getVertxWebClient(requestContext.context())
       .getAbs(absEndpoint)
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
