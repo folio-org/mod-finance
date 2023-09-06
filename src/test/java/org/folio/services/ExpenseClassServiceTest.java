@@ -21,6 +21,7 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.ExpenseClassCollection;
+import org.folio.rest.util.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +70,7 @@ public class ExpenseClassServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         String expectedQuery =  String.format("budgetExpenseClass.budgetId==%s", budgetId);
-        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(ExpenseClassCollection.class), eq(requestContext));
+        verify(restClient).get(TestUtils.assertQueryContains(expectedQuery), eq(ExpenseClassCollection.class), eq(requestContext));
         assertEquals(expectedExpenseClasses, result.result());
 
         vertxTestContext.completeNow();

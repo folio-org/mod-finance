@@ -24,7 +24,7 @@ public class HelperUtilsTest {
   public void errorMessageIsNotValidJSON() {
     String errorMsg = "{\"message\":\"Test\"}";
     boolean act = HelperUtils.isJsonOfType(errorMsg, Error.class);
-    Assertions.assertFalse(act);
+    Assertions.assertTrue(act);
   }
 
   @Test

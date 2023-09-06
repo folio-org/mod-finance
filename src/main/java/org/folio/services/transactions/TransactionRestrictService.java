@@ -3,6 +3,7 @@ package org.folio.services.transactions;
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
+import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 
 import java.util.Objects;
 
@@ -43,15 +44,14 @@ public class TransactionRestrictService {
       return CompositeFuture.join(toFund, fromFund)
         .map(cf -> isAllocationAllowed(fromFund.result(), toFund.result(), transaction))
         .compose(isAllocationAllowed -> {
-        if (Boolean.TRUE.equals(isAllocationAllowed)) {
-          return succeededFuture();
-        } else {
-          return failedFuture(new HttpException(422, ALLOCATION_IDS_MISMATCH));
-        }
-      });
-
-  } else {
-      return succeededFuture();
+          if (Boolean.TRUE.equals(isAllocationAllowed)) {
+            return succeededFuture();
+          } else {
+            return failedFuture(new HttpException(422, ALLOCATION_IDS_MISMATCH));
+          }
+        });
+    } else {
+      return failedFuture(new HttpException(422, MISSING_FUND_ID));
     }
 }
 

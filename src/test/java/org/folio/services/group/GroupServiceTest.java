@@ -6,15 +6,17 @@ import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,15 +24,14 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.folio.rest.acq.model.finance.Group;
-import org.folio.rest.acq.model.finance.GroupCollection;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.Group;
+import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,8 +69,9 @@ public class GroupServiceTest {
     String groupId = UUID.randomUUID().toString();
     Group group = new Group().withId(groupId);
     GroupCollection groupsCollection = new GroupCollection().withGroups(List.of(group)).withTotalRecords(1);
-    doReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
-    doReturn(succeededFuture(groupsCollection)).when(restClient).get(anyString(), any(), eq(requestContext));
+
+    when(acqUnitsService.buildAcqUnitsCqlClause(any())).thenReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL));
+    doReturn(succeededFuture(groupsCollection)).when(restClient).get(anyString(), eq(GroupCollection.class), eq(requestContext));
 
     var future = groupService.getGroupsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext);
 
@@ -79,7 +81,8 @@ public class GroupServiceTest {
 
         var actGroups = result.result();
         assertThat(groupsCollection, equalTo(actGroups));
-        verify(restClient).get(ArgumentMatchers.contains(NO_ACQ_UNIT_ASSIGNED_CQL), GroupCollection.class, requestContext);
+        verify(restClient).get(assertQueryContains(NO_ACQ_UNIT_ASSIGNED_CQL), eq(GroupCollection.class), eq(requestContext))
+        ;
         vertxTestContext.completeNow();
       });
   }

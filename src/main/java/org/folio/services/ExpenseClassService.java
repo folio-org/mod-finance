@@ -34,7 +34,7 @@ public class ExpenseClassService {
       .withQuery(query)
       .withOffset(offset)
       .withLimit(limit);
-    return restClient.get(requestEntry, ExpenseClassCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), ExpenseClassCollection.class, requestContext);
   }
 
   public Future<ExpenseClass> getExpenseClassById(String id, RequestContext requestContext) {
@@ -60,7 +60,7 @@ public class ExpenseClassService {
       .withQuery(query)
       .withOffset(0)
       .withLimit(Integer.MAX_VALUE);
-    return restClient.get(requestEntry, ExpenseClassCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), ExpenseClassCollection.class, requestContext)
       .map(ExpenseClassCollection::getExpenseClasses);
   }
 

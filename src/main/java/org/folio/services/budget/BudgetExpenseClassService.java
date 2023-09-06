@@ -12,7 +12,6 @@ import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_EXPEN
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.BUDGET_EXPENSE_CLASSES;
-import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -53,7 +52,7 @@ public class BudgetExpenseClassService{
       .withQuery(query)
       .withLimit(MAX_VALUE)
       .withOffset(0);
-    return restClient.get(requestEntry, BudgetExpenseClassCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), BudgetExpenseClassCollection.class, requestContext)
       .map(BudgetExpenseClassCollection::getBudgetExpenseClasses);
   }
 
@@ -134,9 +133,10 @@ public class BudgetExpenseClassService{
     if (createList.isEmpty()) {
       return succeededFuture(null);
     }
-    return GenericCompositeFuture.all(createList.stream()
+    var futures = createList.stream()
       .map(budgetExpenseClass -> restClient.post(resourcesPath(BUDGET_EXPENSE_CLASSES), budgetExpenseClass, BudgetExpenseClass.class, requestContext))
-      .toList())
+      .toList();
+    return GenericCompositeFuture.join(futures)
       .mapEmpty();
   }
 
@@ -161,10 +161,10 @@ public class BudgetExpenseClassService{
   public  Future<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(List<String> ids, RequestContext requestContext) {
     String budgetId = "budgetId";
     String query = convertIdsToCqlQuery(ids, budgetId);
-    RequestEntry requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES)).withQuery(query)
+    var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES)).withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return restClient.get(requestEntry, BudgetExpenseClassCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), BudgetExpenseClassCollection.class, requestContext)
       .map(BudgetExpenseClassCollection::getBudgetExpenseClasses);
   }
 }

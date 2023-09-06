@@ -11,7 +11,7 @@ documentation:
 
 types:
   group: !include acq-models/mod-finance/schemas/group.json
-  groupsCollection: !include acq-models/mod-finance/schemas/group_collection.json
+  groupCollection: !include acq-models/mod-finance/schemas/group_collection.json
   groupExpenseClassTotalsCollection: !include acq-models/mod-finance/schemas/group_expense_class_totals_collection.json
   errors: !include raml-util/schemas/errors.schema
   UUID:
@@ -33,7 +33,7 @@ resourceTypes:
   description: Finance groups APIs
   type:
     collection:
-      schemaCollection: groupsCollection
+      schemaCollection: groupCollection
       schemaItem: group
       exampleCollection: !include acq-models/mod-finance/examples/group_collection.sample
       exampleItem: !include acq-models/mod-finance/examples/group.sample

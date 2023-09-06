@@ -1,6 +1,10 @@
 package org.folio.services.group;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
@@ -17,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.junit5.VertxExtension;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -24,6 +29,7 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -33,13 +39,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
 
+@ExtendWith(VertxExtension.class)
 public class GroupFundFiscalYearServiceTest {
 
   @InjectMocks
   private GroupFundFiscalYearService groupFundFiscalYearMockService;
 
   @Mock
-  private RestClient groupFundFiscalYearRestClientMock;
+  private RestClient restClient;
 
   @Mock
   private RequestContext requestContext;
@@ -70,9 +77,9 @@ public class GroupFundFiscalYearServiceTest {
     groupFundFiscalYearCollection.withGroupFundFiscalYears(Arrays.asList(groupFundFiscalYear1, groupFundFiscalYear2))
       .withTotalRecords(2);
 
-    when(groupFundFiscalYearRestClientMock.get(anyString(), any(), any()))
+    when(restClient.get(anyString(), any(), any()))
       .thenReturn(succeededFuture(groupFundFiscalYearCollection));
-    when(groupFundFiscalYearRestClientMock.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
     when(requestContext.getContext()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(budget, requestContext);
@@ -80,16 +87,19 @@ public class GroupFundFiscalYearServiceTest {
       .onComplete(result -> {
         String expected = String.format("fundId==%s AND fiscalYearId==%s", budget.getFundId(), budget.getFiscalYearId());
 
-        verify(groupFundFiscalYearRestClientMock).get(eq(expected), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
+        verify(restClient).get(assertQueryContains(expected), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<GroupFundFiscalYear> groupFundFiscalYearArgumentCaptor = ArgumentCaptor.forClass(GroupFundFiscalYear.class);
-        verify(groupFundFiscalYearRestClientMock, times(2))
+        verify(restClient, times(2))
           .put(idArgumentCaptor.capture(), groupFundFiscalYearArgumentCaptor.capture(), eq(requestContext));
 
         List<String> ids = idArgumentCaptor.getAllValues();
 
-        assertThat(ids, containsInAnyOrder(groupFundFiscalYear1.getId(), groupFundFiscalYear2.getId()));
+        assertThat(ids, containsInAnyOrder(
+          resourceByIdPath(GROUP_FUND_FISCAL_YEARS, groupFundFiscalYear1.getId()),
+          resourceByIdPath(GROUP_FUND_FISCAL_YEARS, groupFundFiscalYear2.getId()))
+        );
 
         List<GroupFundFiscalYear> groupFundFiscalYears = groupFundFiscalYearArgumentCaptor.getAllValues();
         assertThat(groupFundFiscalYears, everyItem(hasProperty("budgetId", is(budget.getId()))));
@@ -102,7 +112,7 @@ public class GroupFundFiscalYearServiceTest {
   void testGetGroupFundFiscalYearsWithBudgetIds(VertxTestContext vertxTestContext) {
     String groupId = UUID.randomUUID().toString();
     String fiscalYearId = UUID.randomUUID().toString();
-    when(groupFundFiscalYearRestClientMock.get(anyString(), any(), any()))
+    when(restClient.get(anyString(), any(), any()))
       .thenReturn(succeededFuture(new GroupFundFiscalYearCollection()));
 
     Future<List<GroupFundFiscalYear>> future = groupFundFiscalYearMockService.getGroupFundFiscalYearsWithBudgetId(groupId, fiscalYearId, requestContext);
@@ -110,7 +120,7 @@ public class GroupFundFiscalYearServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         String expectedQuery = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
-        verify(groupFundFiscalYearRestClientMock).get(eq(expectedQuery), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
+        verify(restClient).get(anyString(), eq(GroupFundFiscalYearCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
   }

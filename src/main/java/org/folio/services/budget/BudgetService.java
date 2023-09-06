@@ -13,14 +13,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import io.vertx.core.Future;
-import java.util.concurrent.CompletionException;
-import java.util.function.Function;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -39,7 +36,7 @@ public class BudgetService {
       .withLimit(limit)
       .withOffset(offset)
       .withQuery(query);
-    return restClient.get(requestEntry, BudgetsCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), BudgetsCollection.class, requestContext);
   }
 
   public Future<SharedBudget> getBudgetById(String budgetId, RequestContext requestContext) {

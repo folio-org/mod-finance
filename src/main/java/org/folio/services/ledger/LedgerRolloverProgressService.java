@@ -36,6 +36,6 @@ public class LedgerRolloverProgressService {
       .withLimit(limit)
       .withOffset(offset)
       .withQuery(query);
-    return restClient.get(requestEntry, LedgerFiscalYearRolloverProgressCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), LedgerFiscalYearRolloverProgressCollection.class, requestContext);
   }
 }

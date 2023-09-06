@@ -26,15 +26,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
-import org.folio.rest.acq.model.finance.Group;
-import org.folio.rest.acq.model.finance.GroupCollection;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Group;
+import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.services.group.GroupExpenseClassTotalsService;
@@ -106,7 +105,10 @@ public class GroupsApiTest {
   @Test
   void testGetGroups() {
     Group group = GROUP.getMockObject().mapTo(Group.class);
-    GroupCollection groupCollection = new GroupCollection().withGroups(List.of(group)).withTotalRecords(1);
+    GroupCollection groupCollection = new GroupCollection()
+      .withGroups(List.of(group))
+      .withTotalRecords(1);
+
     addMockEntry(GROUP.name(), JsonObject.mapFrom(groupCollection));
     when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(groupCollection));
 

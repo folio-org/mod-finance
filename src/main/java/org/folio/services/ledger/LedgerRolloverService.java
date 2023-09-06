@@ -21,7 +21,7 @@ public class LedgerRolloverService {
 
   public Future<LedgerFiscalYearRollover> createLedgerFyRollover(LedgerFiscalYearRollover ledgerFiscalYearRollover, RequestContext requestContext) {
 
-    return restClient.post(resourcesPath(LEDGER_ROLLOVERS_STORAGE),ledgerFiscalYearRollover, LedgerFiscalYearRollover.class, requestContext);
+    return restClient.post(resourcesPath(LEDGER_ROLLOVERS_STORAGE), ledgerFiscalYearRollover, LedgerFiscalYearRollover.class, requestContext);
   }
 
   public Future<LedgerFiscalYearRollover> retrieveLedgerRolloverById(String id, RequestContext requestContext) {
@@ -29,9 +29,10 @@ public class LedgerRolloverService {
   }
 
   public Future<LedgerFiscalYearRolloverCollection> retrieveLedgerRollovers(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(LEDGER_ROLLOVERS_STORAGE).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(LEDGER_ROLLOVERS_STORAGE))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, LedgerFiscalYearRolloverCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), LedgerFiscalYearRolloverCollection.class, requestContext);
   }
 }

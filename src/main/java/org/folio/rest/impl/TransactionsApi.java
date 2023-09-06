@@ -45,8 +45,7 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.ALLOCATION, allocation, new RequestContext(vertxContext, okapiHeaders))
-      .onSuccess(type -> asyncResultHandler
-        .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .onSuccess(type -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 

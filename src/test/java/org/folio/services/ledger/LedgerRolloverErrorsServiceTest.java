@@ -1,29 +1,34 @@
 package org.folio.services.ledger;
 
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxTestContext;
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.UUID;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverErrorCollection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.UUID;
-import io.vertx.core.Future;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
-import static io.vertx.core.Future.succeededFuture;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(VertxExtension.class)
 public class LedgerRolloverErrorsServiceTest {
 
   @InjectMocks
@@ -35,6 +40,10 @@ public class LedgerRolloverErrorsServiceTest {
   @Mock
   private RequestContext requestContext;
 
+  @BeforeEach
+  public void initMocks() {
+    MockitoAnnotations.openMocks(this);
+  }
 
   @Test
   void serviceGetShouldCallRestClientGet(VertxTestContext vertxTestContext) {
@@ -44,16 +53,16 @@ public class LedgerRolloverErrorsServiceTest {
     int limit = 0;
     String contentType = "application/json";
 
-    when(restClient.get(anyString(), any(), eq(requestContext)))
+    when(restClient.get(anyString(), eq(LedgerFiscalYearRolloverErrorCollection.class), eq(requestContext)))
       .thenReturn(succeededFuture(new LedgerFiscalYearRolloverErrorCollection()));
 
-    // When
     var future = ledgerRolloverErrorsService.getLedgerRolloverErrors(query, offset, limit, contentType, requestContext);
-    // Then
+
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(result.succeeded());
-        verify(restClient).get(eq(query), eq(LedgerFiscalYearRolloverErrorCollection.class), eq(requestContext));
+
+        verify(restClient).get(assertQueryContains(query), eq(LedgerFiscalYearRolloverErrorCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
 
@@ -81,7 +90,7 @@ public class LedgerRolloverErrorsServiceTest {
   void serviceCreateShouldCallRestClientPost(VertxTestContext vertxTestContext) {
     // Given
     LedgerFiscalYearRolloverError rolloverError = new LedgerFiscalYearRolloverError();
-    when(restClient.post(anyString(), any(LedgerFiscalYearRolloverError.class), any(), any(RequestContext.class)))
+    when(restClient.post(anyString(), any(LedgerFiscalYearRolloverError.class), eq(LedgerFiscalYearRolloverError.class), any(RequestContext.class)))
       .thenReturn(succeededFuture(null));
 
     var future = ledgerRolloverErrorsService.createLedgerRolloverError(rolloverError, requestContext);
@@ -93,8 +102,6 @@ public class LedgerRolloverErrorsServiceTest {
 
           vertxTestContext.completeNow();
         });
-
-    // Then
   }
 
   @Test
@@ -108,7 +115,7 @@ public class LedgerRolloverErrorsServiceTest {
       vertxTestContext.assertComplete(future)
         .onComplete(result -> {
           assertTrue(result.succeeded());
-          verify(restClient).delete(eq(id), eq(requestContext));
+          verify(restClient).delete(assertQueryContains(id), eq(requestContext));
           vertxTestContext.completeNow();
         });
 

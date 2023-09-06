@@ -49,8 +49,6 @@ public class FundsHelper extends AbstractHelper {
   @Autowired
   private GroupFundFiscalYearService groupFundFiscalYearService;
   @Autowired
-  private LedgerService ledgerService;
-  @Autowired
   private LedgerDetailsService ledgerDetailsService;
   @Autowired
   FundService fundService;
@@ -206,12 +204,11 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public Future<Void> updateFund(CompositeFund compositeFund, RequestContext requestContext) {
-    Fund fund = compositeFund.getFund();
-    return fundService.getFundById(fund.getId(), requestContext)
-      .compose(fundFromStorage -> fundService.updateFund(fund, requestContext)
+    return fundService.getFundById(compositeFund.getFund().getId(), requestContext)
+      .compose(fundFromStorage -> fundService.updateFund(compositeFund.getFund(), requestContext)
         .compose(v1 -> updateFundGroups(compositeFund, requestContext))
-        .recover(t -> rollbackFundPutIfNeeded(fundFromStorage, t, requestContext))
-        .mapEmpty());
+        .recover(t -> rollbackFundPutIfNeeded(fundFromStorage, t, requestContext)))
+      .mapEmpty();
 
   }
 

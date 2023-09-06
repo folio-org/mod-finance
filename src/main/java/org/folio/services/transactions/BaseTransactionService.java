@@ -41,10 +41,11 @@ public class BaseTransactionService implements TransactionService {
 
   @Override
   public Future<TransactionCollection> retrieveTransactions(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(TRANSACTIONS).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(TRANSACTIONS))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, TransactionCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), TransactionCollection.class, requestContext);
   }
 
   @Override
@@ -57,11 +58,11 @@ public class BaseTransactionService implements TransactionService {
   }
 
   public Future<Void> updateTransaction(Transaction transaction, RequestContext requestContext) {
-    return restClient.put(transaction.getId(), transaction, requestContext);
+    return restClient.put(resourceByIdPath(TRANSACTIONS, transaction.getId()), transaction, requestContext);
   }
 
   public Future<Void> deleteTransaction(Transaction transaction, RequestContext requestContext) {
-    return restClient.delete(transaction.getId(), requestContext);
+    return restClient.delete(resourceByIdPath(TRANSACTIONS,transaction.getId()), requestContext);
   }
 
   public void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType) {

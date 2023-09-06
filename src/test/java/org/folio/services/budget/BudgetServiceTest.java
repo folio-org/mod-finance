@@ -6,6 +6,7 @@ import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDE
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -13,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -148,7 +150,7 @@ public class BudgetServiceTest {
       .withEncumbered(7307.4)
       .withExpenditures(2228.55);
 
-    when(restClient.get(ArgumentMatchers.contains(resourcesPath(BUDGETS_STORAGE)), any(), any()))
+    when(restClient.get(anyString(), eq(Budget.class), any()))
       .thenReturn(succeededFuture(budgetFromStorage));
 
     Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
@@ -180,10 +182,9 @@ public class BudgetServiceTest {
     budgetFromStorage.setOverExpended(5d);
     budgetFromStorage.setNetTransfers(1d);
 
-    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
+    when(restClient.get(any(), eq(Budget.class), any(RequestContext.class))).thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.put(anyString(), any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(succeededFuture(null));
-    when(restClient.get(ArgumentMatchers.contains(resourcesPath(BUDGETS_STORAGE)), any(), any(RequestContext.class)))
-      .thenReturn(succeededFuture(budgetFromStorage));
 
     Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -195,7 +196,7 @@ public class BudgetServiceTest {
         Budget expectedBudget = json.mapTo(Budget.class);
 
         verify(budgetExpenseClassMockService).updateBudgetExpenseClassesLinks(eq(sharedBudget), eq(requestContextMock));
-        verify(restClient).put(eq(sharedBudget.getId()), eq(expectedBudget), eq(requestContextMock));
+        verify(restClient).put(assertQueryContains(sharedBudget.getId()), eq(expectedBudget), eq(requestContextMock));
 
         assertEquals(budgetFromStorage.getAllocated(), sharedBudget.getAllocated());
         assertEquals(budgetFromStorage.getAvailable(), sharedBudget.getAvailable());
@@ -225,8 +226,7 @@ public class BudgetServiceTest {
       .withEncumbered(7307.4)
       .withExpenditures(2228.55);
 
-    when(restClient.get(ArgumentMatchers.contains(resourcesPath(BUDGETS_STORAGE)), any(), any()))
-      .thenReturn(succeededFuture(budgetFromStorage));
+    when(restClient.get(anyString(), eq(Budget.class), any())).thenReturn(succeededFuture(budgetFromStorage));
 
     Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
     vertxTestContext.assertFailure(future)
@@ -239,7 +239,7 @@ public class BudgetServiceTest {
         assertEquals(errors, cause.getErrors());
 
         verify(restClient)
-          .get(ArgumentMatchers.contains(resourceByIdPath(BUDGETS_STORAGE,sharedBudget.getId())), eq(Budget.class), eq(requestContextMock));
+          .get(assertQueryContains(sharedBudget.getId()), eq(Budget.class), eq(requestContextMock));
         verify(restClient, never()).put(anyString(), any(), any());
 
         vertxTestContext.completeNow();
@@ -265,12 +265,9 @@ public class BudgetServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertEquals(budgetCollection, result.result());
-        verify(restClient).get(ArgumentMatchers.contains(resourceByIdPath(BUDGETS_STORAGE, budget.getId())), any(), eq(requestContextMock));
+        verify(restClient).get(assertQueryContains(budget.getId()), any(), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
-
-
-
   }
 
   @Test
@@ -282,7 +279,7 @@ public class BudgetServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(future.succeeded());
-        verify(restClient).delete(eq(id), eq(requestContextMock));
+        verify(restClient).delete(contains(id), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
 

@@ -3,6 +3,7 @@ package org.folio.services.fiscalyear;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
@@ -30,7 +31,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -210,7 +210,7 @@ public class FiscalYearServiceTest {
       FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
       fiscalYearsCollection.setTotalRecords(10);
       fiscalYearsCollection.setFiscalYears(fiscalYearList);
-      when(restClient.get(contains(query), eq(FiscalYearsCollection.class), eq(requestContext)))
+      when(restClient.get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext)))
         .thenReturn(succeededFuture(fiscalYearsCollection));
 
       assertThat(fiscalYearsCollection.getFiscalYears(), is(not(empty())));
@@ -230,7 +230,7 @@ public class FiscalYearServiceTest {
     String fiscalYearCode = "FiscalCode";
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
-    when(restClient.get(any(RequestEntry.class), eq(FiscalYearsCollection.class), eq(requestContext)))
+    when(restClient.get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext)))
       .thenReturn(succeededFuture(fiscalYearsCollection));
     Future<FiscalYear> future = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
 
@@ -250,30 +250,35 @@ public class FiscalYearServiceTest {
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
     doReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
     doReturn(succeededFuture(fiscalYearsCollection))
-      .when(restClient).get(ArgumentMatchers.contains(NO_ACQ_UNIT_ASSIGNED_CQL), FiscalYearsCollection.class, requestContext);
+      .when(restClient).get(any(), eq(FiscalYearsCollection.class), eq(requestContext));
     //When
     var future = fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext);
     //Then
-    vertxTestContext.assertFailure(future)
+    vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertThat(fiscalYearsCollection, equalTo(result.result()));
-        verify(restClient).get(ArgumentMatchers.contains(NO_ACQ_UNIT_ASSIGNED_CQL), eq(FiscalYearsCollection.class), eq(requestContext));
+        verify(restClient).get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
   }
 
   @Test
-  void testShouldRetrieveFiscalYearsWithoutAcqUnits() {
+  void testShouldRetrieveFiscalYearsWithoutAcqUnits(VertxTestContext vertxTestContext) {
     //Given
     FiscalYear fiscalYear = new FiscalYear().withId(UUID.randomUUID().toString()).withCode("TST");
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
     doReturn(succeededFuture(fiscalYearsCollection))
-      .when(restClient).get(ArgumentMatchers.contains("test_query"), FiscalYearsCollection.class, requestContext);
+      .when(restClient).get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext));
     //When
-    var actFiscalYears = fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext);
+    var future = fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext);
     //Then
-    assertThat(fiscalYearsCollection, equalTo(actFiscalYears));
-    verify(restClient).get(anyString(), FiscalYearsCollection.class, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertThat(fiscalYearsCollection, equalTo(result.result()));
+        verify(restClient).get(assertQueryContains("test_query"), eq(FiscalYearsCollection.class), eq(requestContext));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {

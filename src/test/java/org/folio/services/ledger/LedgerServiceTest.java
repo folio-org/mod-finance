@@ -7,6 +7,7 @@ import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -27,9 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.vertx.junit5.VertxExtension;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.services.protection.AcqUnitsService;
@@ -46,7 +50,7 @@ import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(VertxExtension.class)
 public class LedgerServiceTest {
 
   @InjectMocks
@@ -102,12 +106,10 @@ public class LedgerServiceTest {
     LedgersCollection ledgersCollection = new LedgersCollection().withLedgers(List.of(ledger)).withTotalRecords(1);
 
     doReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContextMock);
-    doReturn(succeededFuture(ledgersCollection)).when(restClient).get(ArgumentMatchers.contains(NO_ACQ_UNIT_ASSIGNED_CQL), LedgersCollection.class, requestContextMock);
+    doReturn(succeededFuture(ledgersCollection)).when(restClient).get(anyString(), eq(LedgersCollection.class), eq(requestContextMock));
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(ledgersCollection));
     when(ledgerTotalsMockService.populateLedgersTotals(any(), anyString(), any())).thenReturn(succeededFuture(ledgersCollection));
-
-
 
     var future = ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(StringUtils.EMPTY, 0,10, fiscalYearId, requestContextMock);
       vertxTestContext.assertComplete(future)
@@ -145,7 +147,7 @@ public class LedgerServiceTest {
         .onComplete(result -> {
           assertTrue(result.succeeded());
 
-          verify(restClient).get(ArgumentMatchers.contains(query), eq(LedgersCollection.class), eq(requestContextMock));
+          verify(restClient).get(assertQueryContains(query), eq(LedgersCollection.class), eq(requestContextMock));
           verify(ledgerTotalsMockService).populateLedgersTotals(eq(ledgersCollection), eq(fiscalYearId), eq(requestContextMock));
           vertxTestContext.completeNow();
         });
@@ -172,7 +174,7 @@ public class LedgerServiceTest {
 
     ledgerService.retrieveLedgersWithTotals(query, offset, limit, fiscalYearId, requestContextMock);
 
-    verify(restClient).get(ArgumentMatchers.contains(query),eq(LedgersCollection.class), eq(requestContextMock));
+    verify(restClient).get(assertQueryContains(query),eq(LedgersCollection.class), eq(requestContextMock));
     verify(ledgerTotalsMockService, never()).populateLedgersTotals(any(), any(), any());
   }
 
@@ -191,11 +193,11 @@ public class LedgerServiceTest {
       vertxTestContext.assertComplete(future)
         .onComplete(result -> {
           assertTrue(result.succeeded());
-
+          verify(restClient).get(assertQueryContains(ledger.getId()), eq(Ledger.class), eq(requestContextMock));
+          verify(ledgerTotalsMockService).populateLedgerTotals(eq(ledger), eq(fiscalYearId), eq(requestContextMock));
           vertxTestContext.completeNow();
         });
-    verify(restClient).get(eq(ledger.getId()), eq(Ledger.class), eq(requestContextMock));
-    verify(ledgerTotalsMockService).populateLedgerTotals(eq(ledger), eq(fiscalYearId), eq(requestContextMock));
+
   }
 
   @Test
@@ -213,7 +215,7 @@ public class LedgerServiceTest {
         .onComplete(result -> {
           assertTrue(result.succeeded());
 
-          verify(restClient).get(eq(ledger.getId()), eq(Ledger.class), eq(requestContextMock));
+          verify(restClient).get(assertQueryContains(ledger.getId()), eq(Ledger.class), eq(requestContextMock));
           verify(ledgerTotalsMockService, never()).populateLedgerTotals(any(), anyString(), any());
           vertxTestContext.completeNow();
         });
@@ -228,21 +230,25 @@ public class LedgerServiceTest {
       vertxTestContext.assertComplete(future)
         .onComplete(result -> {
           assertTrue(result.succeeded());
+          verify(restClient).put(assertQueryContains(ledger.getId()), eq(ledger), eq(requestContextMock));
 
           vertxTestContext.completeNow();
         });
 
-    verify(restClient).put(eq(ledger.getId()), eq(ledger), eq(requestContextMock));
   }
 
   @Test
-  void shouldCallRestClientDeleteWhenCallDeleteLedger() {
+  void shouldCallRestClientDeleteWhenCallDeleteLedger(VertxTestContext vertxTestContext) {
     String ledgerId = UUID.randomUUID().toString();
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
 
-    ledgerService.deleteLedger(ledgerId, requestContextMock);
+    var future = ledgerService.deleteLedger(ledgerId, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
 
-    verify(restClient).delete(eq(ledgerId), eq(requestContextMock));
+        verify(restClient).delete(contains(ledgerId), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test

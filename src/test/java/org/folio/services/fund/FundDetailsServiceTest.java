@@ -10,6 +10,7 @@ import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
@@ -20,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -82,7 +84,7 @@ public class FundDetailsServiceTest {
   }
 
   @Test
-  void testShouldReturnNullIfNoActiveBudget() {
+  void testShouldReturnNullIfNoActiveBudget(VertxTestContext vertxTestContext) {
     //Given
     String fiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -95,7 +97,13 @@ public class FundDetailsServiceTest {
     doReturn(succeededFuture(fiscalYear)).when(fundFiscalYearService).retrieveCurrentFiscalYear(fundId, requestContext);
     doReturn(succeededFuture(null)).when(budgetService).getBudgets(query, 0, Integer.MAX_VALUE, requestContext);
     //When
-    Assertions.assertThrows(CompletionException.class, () -> fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext));
+    var future = fundDetailsService.retrieveCurrentBudget(fundId, null, requestContext);
+
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        assertEquals(HttpException.class, result.cause().getClass());
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test

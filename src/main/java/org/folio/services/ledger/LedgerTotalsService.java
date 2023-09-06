@@ -49,12 +49,11 @@ public class LedgerTotalsService {
 
   private Future<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
     return fiscalYearService.getFiscalYearById(fiscalYearId, requestContext)
-      .onFailure(t -> {
-        Throwable cause = t.getCause() == null ? t : t.getCause();
-        if (cause instanceof HttpException && ((HttpException) cause).getCode() == 404) {
-          throw new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND);
+      .recover(t -> {
+        if (t instanceof HttpException httpException && httpException.getCode() == 404) {
+          return Future.failedFuture(new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND));
         } else {
-          throw new CompletionException(t);
+          return Future.failedFuture(t);
         }
       });
   }

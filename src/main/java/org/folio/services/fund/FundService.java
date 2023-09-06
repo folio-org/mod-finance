@@ -52,27 +52,20 @@ public class FundService {
   public Future<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .map(effectiveQuery -> new RequestEntry(FUNDS_STORAGE).withOffset(offset)
+      .map(effectiveQuery -> new RequestEntry(FUNDS_STORAGE)
+        .withOffset(offset)
         .withLimit(limit)
-        .withQuery(query)
+        .withQuery(effectiveQuery)
       )
-      .compose(requestEntry -> restClient.get(requestEntry, FundsCollection.class, requestContext));
+      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext));
   }
 
   public Future<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(FUNDS_STORAGE).withOffset(offset)
+    var requestEntry = new RequestEntry(FUNDS_STORAGE)
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, FundsCollection.class, requestContext);
-  }
-
-  public Future<List<Fund>> getFundsByIds(Collection<String> ids, RequestContext requestContext) {
-    String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(FUNDS_STORAGE).withQuery(query)
-      .withLimit(MAX_IDS_FOR_GET_RQ)
-      .withOffset(0);
-    return restClient.get(requestEntry, FundsCollection.class, requestContext)
-      .map(FundsCollection::getFunds);
+    return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext);
   }
 
   public Future<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
@@ -84,12 +77,13 @@ public class FundService {
         .collect(toList()));
   }
 
-  private Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
+  public Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
     String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE)).withQuery(query)
+    RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
+      .withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return restClient.get(requestEntry, FundsCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext)
       .map(FundsCollection::getFunds);
   }
 
@@ -103,10 +97,11 @@ public class FundService {
   }
 
   public Future<FundTypesCollection> getFundTypes(int limit, int offset, String query, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(FUND_TYPES).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(FUND_TYPES))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, FundTypesCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), FundTypesCollection.class, requestContext);
 
   }
 
@@ -115,7 +110,7 @@ public class FundService {
   }
 
   public Future<Void> updateFund(Fund fund, RequestContext requestContext) {
-    return restClient.put(resourceByIdPath(FUND_TYPES, fund.getId()), fund, requestContext);
+    return restClient.put(resourceByIdPath(FUNDS_STORAGE, fund.getId()), fund, requestContext);
   }
 
   public Future<Void> deleteFundType(String id, RequestContext requestContext) {

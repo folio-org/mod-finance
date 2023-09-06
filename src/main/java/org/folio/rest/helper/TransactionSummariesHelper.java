@@ -9,6 +9,7 @@ import java.util.Map;
 import io.vertx.core.Future;
 import java.util.concurrent.CompletionException;
 
+import io.vertx.core.Vertx;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -17,12 +18,16 @@ import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.util.ErrorCodes;
 
 import io.vertx.core.Context;
+import org.folio.spring.SpringContextUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class TransactionSummariesHelper extends AbstractHelper {
-private final RestClient restClient;
-  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx, RestClient restClient) {
+  @Autowired
+  private RestClient restClient;
+
+  public TransactionSummariesHelper(Map<String, String> okapiHeaders, Context ctx) {
     super(okapiHeaders, ctx);
-    this.restClient = restClient;
+    SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   public Future<OrderTransactionSummary> createOrderTransactionSummary(OrderTransactionSummary orderSummary, RequestContext requestContext) {

@@ -4,7 +4,6 @@ import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -51,21 +50,22 @@ public class FiscalYearService {
   }
 
   public Future<FiscalYearsCollection> getFiscalYearsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(FISCAL_YEARS_STORAGE).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(FISCAL_YEARS_STORAGE))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, FiscalYearsCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), FiscalYearsCollection.class, requestContext);
   }
 
   public Future<FiscalYearsCollection> getFiscalYearsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .map(effectiveQuery -> new RequestEntry(LEDGER_ROLLOVERS_STORAGE)
+      .map(effectiveQuery -> new RequestEntry(resourcesPath(FISCAL_YEARS_STORAGE))
         .withOffset(offset)
         .withLimit(limit)
         .withQuery(effectiveQuery)
       )
-      .compose(requestEntry -> restClient.get(requestEntry, FiscalYearsCollection.class, requestContext));
+      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), FiscalYearsCollection.class, requestContext));
   }
 
   public Future<FiscalYear> getFiscalYearById(String id, boolean withFinancialSummary, RequestContext requestContext) {
@@ -80,11 +80,11 @@ public class FiscalYearService {
 
   public Future<FiscalYear> getFiscalYearByFiscalYearCode(String fiscalYearCode, RequestContext requestContext) {
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
-    var requestEntry = new RequestEntry(LEDGER_ROLLOVERS_STORAGE)
+    var requestEntry = new RequestEntry(resourcesPath(FISCAL_YEARS_STORAGE))
       .withOffset(0)
       .withLimit(Integer.MAX_VALUE)
       .withQuery(query);
-    return restClient.get(requestEntry, FiscalYearsCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), FiscalYearsCollection.class, requestContext)
       .map(collection -> {
         if (CollectionUtils.isNotEmpty(collection.getFiscalYears())) {
           return collection.getFiscalYears().get(0);

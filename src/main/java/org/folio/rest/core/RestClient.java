@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.WebClientFactory;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
 
@@ -49,10 +48,6 @@ public class RestClient {
   public static final String REQUEST_MESSAGE_LOG_INFO = "Calling {} {}";
   public static final String REQUEST_MESSAGE_LOG_DEBUG = "{} request body : {}";
 
-  public <T> Future<T> post(RequestEntry requestEntry, T entity, Class<T> responseType, RequestContext requestContext) {
-    return post(requestEntry.buildEndpoint(), entity, responseType, requestContext);
-  }
-
   public <T> Future<T> post(String endpoint, T entity, Class<T> responseType, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
     if (log.isDebugEnabled()) {
@@ -69,20 +64,6 @@ public class RestClient {
       .onFailure(log::error);
   }
 
-  public Future<Void> postEmptyBody(RequestEntry requestEntry, RequestContext requestContext) {
-    var endpoint = requestEntry.buildEndpoint();
-    log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
-
-    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.getHeaders());
-    return getVertxWebClient(requestContext.getContext())
-      .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
-      .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
-      .send()
-      .onFailure(log::error)
-      .mapEmpty();
-  }
-
   protected MultiMap convertToCaseInsensitiveMap(Map<String, String> okapiHeaders) {
     return MultiMap.caseInsensitiveMultiMap()
       .addAll(okapiHeaders)
@@ -90,9 +71,6 @@ public class RestClient {
       .add("Accept", APPLICATION_JSON + ", " + TEXT_PLAIN);
   }
 
-  public <T> Future<Void> put(RequestEntry requestEntry, T dataObject, RequestContext requestContext) {
-    return put(requestEntry.buildEndpoint(), dataObject, requestContext);
-  }
   public <T> Future<Void> put(String endpoint, T dataObject,  RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
@@ -112,10 +90,6 @@ public class RestClient {
   }
 
 
-  public Future<Void> delete(RequestEntry requestEntry, boolean skipError404, RequestContext requestContext) {
-    return delete(requestEntry.buildEndpoint(), skipError404, requestContext);
-  }
-
   public Future<Void> delete(String endpointById, boolean skipError404, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.DELETE, endpointById);
 
@@ -134,7 +108,7 @@ public class RestClient {
   }
 
   private <T>void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
-    if (skipError404 && t instanceof HttpException && ((HttpException) t).getCode() == 404) {
+    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
       log.warn(t);
       promise.complete();
     } else {
@@ -143,7 +117,7 @@ public class RestClient {
     }
   }
   private void handleErrorResponse(Promise<Void> promise, Throwable t, boolean skipError404) {
-    if (skipError404 && t instanceof HttpException && ((HttpException) t).getCode() == 404){
+    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404){
       log.warn(t);
       promise.complete();
     } else {
@@ -156,16 +130,9 @@ public class RestClient {
     return delete(endpoint, false, requestContext);
   }
 
-  public Future<Void> delete(RequestEntry requestEntry, RequestContext requestContext) {
-    return delete(requestEntry.buildEndpoint(), false, requestContext);
-  }
 
   public <T> Future<T> get(String endpoint, Class<T> responseType, RequestContext requestContext) {
     return get(endpoint, false, responseType, requestContext);
-  }
-
-  public <T> Future<T> get(RequestEntry requestEntry, Class<T> responseType, RequestContext requestContext) {
-    return get(requestEntry.buildEndpoint(), false, responseType, requestContext);
   }
 
   public <T> Future<T> get(String endpoint, boolean skipError404, Class<T> responseType, RequestContext requestContext) {

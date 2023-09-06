@@ -40,7 +40,7 @@ public class ConfigurationEntriesService {
       .withOffset(0)
       .withLimit(Integer.MAX_VALUE)
       .withQuery(query);
-    return restClient.get(requestEntry, Configs.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), Configs.class, requestContext)
       .map(configs -> {
         if (logger.isDebugEnabled()) {
           logger.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());

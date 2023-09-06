@@ -5,7 +5,9 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -54,11 +56,12 @@ public class GroupFiscalYearTotalsService {
   }
 
   public Future<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(GROUP_FUND_FISCAL_YEARS).withOffset(0)
+    var requestEntry = new RequestEntry(resourcesPath(BUDGETS_STORAGE))
+      .withOffset(0)
       .withLimit(Integer.MAX_VALUE)
       .withQuery(query);
 
-    return restClient.get(requestEntry, BudgetsCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), BudgetsCollection.class, requestContext)
       .compose(budgetsCollection -> groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext)
         .map(groupFundFiscalYearCollection -> {
           Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets()

@@ -1,7 +1,6 @@
 package org.folio.services.ledger;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -25,12 +24,13 @@ public class LedgerRolloverErrorsService {
   public Future<LedgerFiscalYearRolloverErrorCollection> getLedgerRolloverErrors(String query, int offset,
       int limit, String contentType, RequestContext requestContext) {
     if (contentType.toLowerCase().contains(APPLICATION_JSON.toLowerCase())) {
-      var requestEntry = new RequestEntry(LEDGER_ROLLOVERS_ERRORS_STORAGE).withOffset(offset)
+      var requestEntry = new RequestEntry(resourcesPath(LEDGER_ROLLOVERS_ERRORS_STORAGE))
+        .withOffset(offset)
         .withLimit(limit)
         .withQuery(query);
-      return restClient.get(requestEntry, LedgerFiscalYearRolloverErrorCollection.class, requestContext);
+      return restClient.get(requestEntry.buildEndpoint(), LedgerFiscalYearRolloverErrorCollection.class, requestContext);
     } else {
-      throw new HttpException(415, "Unsupported Media Type: " + contentType);
+      return Future.failedFuture(new HttpException(415, "Unsupported Media Type: " + contentType));
     }
   }
 

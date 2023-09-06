@@ -7,7 +7,6 @@ import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
-import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -47,10 +46,11 @@ public class LedgerService {
   }
 
   public Future<LedgersCollection> retrieveLedgers(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(LEDGERS_STORAGE).withOffset(offset)
+    var requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE))
+      .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    return restClient.get(requestEntry, LedgersCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), LedgersCollection.class, requestContext);
   }
 
   public Future<LedgersCollection> retrieveLedgersWithTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
@@ -99,10 +99,11 @@ public class LedgerService {
 
   public Future<List<Ledger>> getLedgersByIds(Collection<String> ids, RequestContext requestContext) {
     String query = convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE)).withQuery(query)
+    var requestEntry = new RequestEntry(resourcesPath(LEDGERS_STORAGE))
+      .withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return restClient.get(requestEntry, LedgersCollection.class, requestContext)
+    return restClient.get(requestEntry.buildEndpoint(), LedgersCollection.class, requestContext)
       .map(LedgersCollection::getLedgers);
   }
 

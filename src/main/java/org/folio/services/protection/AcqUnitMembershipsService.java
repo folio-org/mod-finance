@@ -26,6 +26,6 @@ public class AcqUnitMembershipsService {
     var requestEntry = new RequestEntry(resourcesPath(ACQUISITIONS_MEMBERSHIPS)).withLimit(limit)
       .withOffset(offset)
       .withQuery(query);
-    return restClient.get(requestEntry, AcquisitionsUnitMembershipCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitMembershipCollection.class, requestContext);
   }
 }

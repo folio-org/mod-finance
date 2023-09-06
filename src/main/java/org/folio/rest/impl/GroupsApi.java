@@ -34,8 +34,6 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
 
   @Autowired
   private GroupExpenseClassTotalsService groupExpenseClassTotalsService;
-  @Autowired
-  private GroupService groupService;
 
   public GroupsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -56,7 +54,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
   public void getFinanceGroups(String totalRecords, int offset, int limit, String query, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
 
-    groupService.getGroupsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
+    helper.getGroups(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(groups -> asyncResultHandler.handle(succeededFuture(helper.buildOkResponse(groups))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }

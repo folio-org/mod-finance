@@ -11,6 +11,7 @@ import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNE
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,7 +75,7 @@ public class AcqUnitsServiceTest {
       .withAcquisitionsUnits(List.of(new AcquisitionsUnit().withId(acqUnitId)))
       .withTotalRecords(1);
 
-    doReturn(succeededFuture(units)).when(restClient).get(ArgumentMatchers.contains("(isDeleted==false) and (query)"), AcquisitionsUnitCollection.class, requestContext);
+    doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
     //When
     var future = acqUnitsService.getAcquisitionsUnits("query", 0, 10, requestContext);
     vertxTestContext.assertComplete(future)
@@ -83,7 +84,7 @@ public class AcqUnitsServiceTest {
 
           var actUnits = result.result();
           assertThat(actUnits, equalTo(units));
-          verify(restClient).get(ArgumentMatchers.contains("(isDeleted==false) and (query)"), AcquisitionsUnitCollection.class, requestContext);
+          verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
           vertxTestContext.completeNow();
         });
   }
@@ -96,7 +97,7 @@ public class AcqUnitsServiceTest {
       .withAcquisitionsUnits(List.of(new AcquisitionsUnit().withId(acqUnitId)))
       .withTotalRecords(1);
 
-    doReturn(succeededFuture(units)).when(restClient).get(ArgumentMatchers.contains("isDeleted==false"), AcquisitionsUnitCollection.class, requestContext);
+    doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
     //When
     var future = acqUnitsService.getAcquisitionsUnits(StringUtils.EMPTY, 0, 10, requestContext);
 
@@ -106,7 +107,7 @@ public class AcqUnitsServiceTest {
 
         var actUnits = result.result();
         assertThat(actUnits, equalTo(units));
-        verify(restClient).get(ArgumentMatchers.contains("isDeleted==false"), AcquisitionsUnitCollection.class, requestContext);
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
 
@@ -131,7 +132,7 @@ public class AcqUnitsServiceTest {
 
         var actClause = result.result();
         assertThat(actClause, equalTo(NO_ACQ_UNIT_ASSIGNED_CQL));
-        verify(restClient).get(ArgumentMatchers.contains("(isDeleted==false) and (protectRead==false)"), AcquisitionsUnitCollection.class, requestContext);
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
 
         vertxTestContext.completeNow();
@@ -160,7 +161,7 @@ public class AcqUnitsServiceTest {
 
         var actClause = result.result();
         assertThat(actClause, equalTo("acqUnitIds=(" + unitId + ")" + " or " + "(" + NO_ACQ_UNIT_ASSIGNED_CQL + ")"));
-        verify(restClient).get(ArgumentMatchers.contains("(isDeleted==false) and (protectRead==false)"), AcquisitionsUnitCollection.class, requestContext);
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
         vertxTestContext.completeNow();
       });

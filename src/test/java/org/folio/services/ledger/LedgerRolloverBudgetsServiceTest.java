@@ -1,6 +1,7 @@
 package org.folio.services.ledger;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -11,21 +12,21 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
-import io.vertx.junit5.VertxExtension;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudget;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudgetCollection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
-@ExtendWith({MockitoExtension.class, VertxExtension.class})
+@ExtendWith(VertxExtension.class)
 public class LedgerRolloverBudgetsServiceTest {
 
   @InjectMocks
@@ -33,6 +34,11 @@ public class LedgerRolloverBudgetsServiceTest {
 
   @Mock
   private RestClient restClient;
+
+  @BeforeEach
+  public void initMocks() {
+    MockitoAnnotations.openMocks(this);
+  }
 
   @Test
   void shouldCallGetForRestClientWhenCalledRetrieveLedgerRolloversBudgets(VertxTestContext vertxTestContext) {
@@ -48,7 +54,7 @@ public class LedgerRolloverBudgetsServiceTest {
       vertxTestContext.assertComplete(future)
         .onComplete(result -> {
           assertTrue(result.succeeded());
-          verify(restClient).get(ArgumentMatchers.contains(query), eq(LedgerFiscalYearRolloverBudgetCollection.class), any(RequestContext.class));
+          verify(restClient).get(assertQueryContains(query), eq(LedgerFiscalYearRolloverBudgetCollection.class), any(RequestContext.class));
           vertxTestContext.completeNow();
         });
   }
@@ -66,7 +72,7 @@ public class LedgerRolloverBudgetsServiceTest {
         .onComplete(result -> {
           assertTrue(result.succeeded());
 
-          verify(restClient).get(eq(id), eq(LedgerFiscalYearRolloverBudget.class), any(RequestContext.class));
+          verify(restClient).get(assertQueryContains(id), eq(LedgerFiscalYearRolloverBudget.class), any(RequestContext.class));
           vertxTestContext.completeNow();
         });
   }

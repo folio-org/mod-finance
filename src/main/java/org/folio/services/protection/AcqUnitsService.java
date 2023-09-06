@@ -48,7 +48,7 @@ public class AcqUnitsService {
       .withLimit(limit)
       .withOffset(offset)
       .withQuery(query);
-    return restClient.get(requestEntry, AcquisitionsUnitCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitCollection.class, requestContext);
   }
 
   public Future<String> buildAcqUnitsCqlClause(RequestContext requestContext) {

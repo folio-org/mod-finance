@@ -61,9 +61,12 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   }
 
   private Future<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
-    checkEncumbranceStatusNotReleased(encumbrance);
 
-    return transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext)
+    return Future.succeededFuture()
+      .map(v -> {checkEncumbranceStatusNotReleased(encumbrance);
+        return null;
+      })
+      .compose(v-> transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext))
       .map(connected -> {
         if (connected) {
           logger.info("Tried to delete transaction {} but it is connected to an invoice.", encumbrance.getId());

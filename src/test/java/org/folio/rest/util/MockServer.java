@@ -6,6 +6,7 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
+import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.impl.FundsApiTest.X_CONFIG_HEADER_NAME;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
@@ -13,20 +14,8 @@ import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DI
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_FIRST_DIF_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_SECOND_DIF_GROUP;
-import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
 import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTION_ID;
-import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
-import static org.folio.rest.util.TestConstants.BAD_QUERY;
-import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.ERROR_TENANT;
-import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
-import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
+import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
@@ -37,10 +26,21 @@ import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.services.configuration.ConfigurationEntriesService.SYSTEM_CONFIG_MODULE_NAME;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -51,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import io.vertx.core.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -59,7 +58,6 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.vertx.core.Promise;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,9 +73,9 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.Group;
+import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
-import org.folio.rest.jaxrs.model.GroupsCollection;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
@@ -88,6 +86,7 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -559,7 +558,7 @@ public class MockServer {
   private JsonObject getGroupByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Group>> getFromFile = () -> {
       try {
-        return new JsonObject(getMockData(TestEntities.GROUP.getPathToFileWithData())).mapTo(GroupsCollection.class)
+        return new JsonObject(getMockData(TestEntities.GROUP.getPathToFileWithData())).mapTo(GroupCollection.class)
           .getGroups();
       } catch (IOException e) {
         return Collections.emptyList();
@@ -574,7 +573,7 @@ public class MockServer {
 
     Object record;
     if (isCollection) {
-      record = new GroupsCollection().withGroups(groups).withTotalRecords(groups.size());
+      record = new GroupCollection().withGroups(groups).withTotalRecords(groups.size());
     } else if (!groups.isEmpty()) {
       record = groups.get(0);
     } else {

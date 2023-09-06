@@ -5,6 +5,7 @@ import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,7 +80,7 @@ public class CommonTransactionServiceTest {
       .onComplete(result -> {
         assertEquals(transactions, result.result());
         String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s", fundId, fundId, fiscalYearId);
-        verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(TransactionCollection.class), eq(requestContext));
+        verify(restClient).get(assertQueryContains(expectedQuery), eq(TransactionCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
 
@@ -109,15 +110,14 @@ public class CommonTransactionServiceTest {
 
     Future<List<Transaction>> future = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
 
-    String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
-      fundId, fundId, fiscalYearId,
-      budgetExpenseClass1.getExpenseClassId(),
-      budgetExpenseClass2.getExpenseClassId());
-
-    verify(restClient).get(ArgumentMatchers.contains(expectedQuery), eq(TransactionCollection.class), eq(requestContext));
-
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
+        String expectedQuery = String.format("(fromFundId==%s OR toFundId==%s) AND fiscalYearId==%s AND expenseClassId==(%s or %s)",
+          fundId, fundId, fiscalYearId,
+          budgetExpenseClass1.getExpenseClassId(),
+          budgetExpenseClass2.getExpenseClassId());
+
+        verify(restClient).get(assertQueryContains(expectedQuery), eq(TransactionCollection.class), eq(requestContext));
         assertEquals(transactions, result.result());
         vertxTestContext.completeNow();
       });
