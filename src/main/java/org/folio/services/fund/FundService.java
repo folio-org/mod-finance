@@ -48,7 +48,7 @@ public class FundService {
   public Future<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .map(effectiveQuery -> new RequestEntry(FUNDS_STORAGE)
+      .map(effectiveQuery -> new RequestEntry(resourcesPath(FUNDS_STORAGE))
         .withOffset(offset)
         .withLimit(limit)
         .withQuery(effectiveQuery)
@@ -57,7 +57,7 @@ public class FundService {
   }
 
   public Future<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(FUNDS_STORAGE)
+    var requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
       .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);

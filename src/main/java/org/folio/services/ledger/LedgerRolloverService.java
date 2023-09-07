@@ -20,7 +20,6 @@ public class LedgerRolloverService {
   }
 
   public Future<LedgerFiscalYearRollover> createLedgerFyRollover(LedgerFiscalYearRollover ledgerFiscalYearRollover, RequestContext requestContext) {
-
     return restClient.post(resourcesPath(LEDGER_ROLLOVERS_STORAGE), ledgerFiscalYearRollover, LedgerFiscalYearRollover.class, requestContext);
   }
 
