@@ -34,13 +34,16 @@ public class ConfigurationEntriesService {
   }
 
   public Future<JsonObject> loadConfiguration(String moduleConfig, RequestContext requestContext) {
-    String query = String.format(CONFIG_QUERY, moduleConfig);
-    logger.info("GET request: {}", query);
-    var requestEntry = new RequestEntry(resourcesPath(CONFIGURATIONS))
-      .withOffset(0)
-      .withLimit(Integer.MAX_VALUE)
-      .withQuery(query);
-    return restClient.get(requestEntry.buildEndpoint(), Configs.class, requestContext)
+    return Future.succeededFuture()
+      .map(v -> {
+        String query = String.format(CONFIG_QUERY, moduleConfig);
+        logger.info("GET request: {}", query);
+        return new RequestEntry(resourcesPath(CONFIGURATIONS))
+          .withOffset(0)
+          .withLimit(Integer.MAX_VALUE)
+          .withQuery(query);
+      })
+      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), Configs.class, requestContext))
       .map(configs -> {
         if (logger.isDebugEnabled()) {
           logger.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
