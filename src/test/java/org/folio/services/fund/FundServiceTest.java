@@ -63,8 +63,7 @@ public class FundServiceTest {
   @BeforeEach
   public void initMocks() {
     MockitoAnnotations.openMocks(this);
-    Context context = Vertx.vertx()
-      .getOrCreateContext();
+    Context context = Vertx.vertx().getOrCreateContext();
     Map<String, String> okapiHeaders = new HashMap<>();
     okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
     okapiHeaders.put(X_OKAPI_TOKEN.getName(), X_OKAPI_TOKEN.getValue());
@@ -76,10 +75,8 @@ public class FundServiceTest {
   @Test
   void testShouldRetrieveFundById(VertxTestContext vertxTestContext) {
     // Given
-    String ledgerId = UUID.randomUUID()
-      .toString();
-    String fundId = UUID.randomUUID()
-      .toString();
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
     Fund fund = new Fund().withId(fundId)
       .withLedgerId(ledgerId);
 
@@ -112,9 +109,7 @@ public class FundServiceTest {
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
         HttpException actHttpException = (HttpException) result.cause();
-        Error actError = actHttpException.getErrors()
-          .getErrors()
-          .get(0);
+        Error actError = actHttpException.getErrors().getErrors().get(0);
         assertEquals(actError.getCode(), expError.getCode());
         assertEquals(actError.getMessage(), String.format(FUND_NOT_FOUND_ERROR.getDescription(), fundId));
         assertEquals(NOT_FOUND, actHttpException.getCode());
@@ -127,8 +122,7 @@ public class FundServiceTest {
   @Test
   void testShouldThrowNotHttpExceptionIfFundNotFound(VertxTestContext vertxTestContext) {
     // Given
-    String fundId = UUID.randomUUID()
-      .toString();
+    String fundId = UUID.randomUUID().toString();
     doReturn(Future.failedFuture(new RuntimeException())).when(restClient)
       .get(anyString(), eq(Fund.class), eq(requestContext));
     var future = fundService.getFundById(fundId, requestContext);
@@ -145,10 +139,8 @@ public class FundServiceTest {
   @Test
   void testShouldRetrieveFundsWithAcqUnits(VertxTestContext vertxTestContext) {
     // Given
-    String ledgerId = UUID.randomUUID()
-      .toString();
-    String fundId = UUID.randomUUID()
-      .toString();
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
     Fund fund = new Fund().withId(fundId)
       .withLedgerId(ledgerId);
     FundsCollection fundsCollection = new FundsCollection().withFunds(List.of(fund))
@@ -173,10 +165,8 @@ public class FundServiceTest {
   @Test
   void testShouldRetrieveFundsWithoutAcqUnits(VertxTestContext vertxTestContext) {
     // Given
-    String ledgerId = UUID.randomUUID()
-      .toString();
-    String fundId = UUID.randomUUID()
-      .toString();
+    String ledgerId = UUID.randomUUID().toString();
+    String fundId = UUID.randomUUID().toString();
     Fund fund = new Fund().withId(fundId)
       .withLedgerId(ledgerId);
     FundsCollection fundsCollection = new FundsCollection().withFunds(List.of(fund))
@@ -215,22 +205,10 @@ public class FundServiceTest {
         assertTrue(result.succeeded());
 
         var funds = result.result();
-        assertEquals(fund1.getId(), fundsCollection.getFunds()
-          .get(0)
-          .getId());
-        assertEquals(fund2.getId(), fundsCollection.getFunds()
-          .get(1)
-          .getId());
-        assertEquals(funds.get(0)
-          .getId(),
-            fundsCollection.getFunds()
-              .get(0)
-              .getId());
-        assertEquals(funds.get(1)
-          .getId(),
-            fundsCollection.getFunds()
-              .get(1)
-              .getId());
+        assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
+        assertEquals(fund2.getId(), fundsCollection.getFunds().get(1).getId());
+        assertEquals(funds.get(0).getId(),fundsCollection.getFunds().get(0).getId());
+        assertEquals(funds.get(1).getId(),fundsCollection.getFunds().get(1).getId());
         vertxTestContext.completeNow();
       });
   }
@@ -255,22 +233,10 @@ public class FundServiceTest {
         assertTrue(result.succeeded());
 
         var funds = result.result();
-        assertEquals(fund1.getId(), fundsCollection.getFunds()
-          .get(0)
-          .getId());
-        assertEquals(fund2.getId(), fundsCollection.getFunds()
-          .get(1)
-          .getId());
-        assertEquals(funds.get(0)
-          .getId(),
-            fundsCollection.getFunds()
-              .get(0)
-              .getId());
-        assertEquals(funds.get(1)
-          .getId(),
-            fundsCollection.getFunds()
-              .get(1)
-              .getId());
+        assertEquals(fund1.getId(), fundsCollection.getFunds().get(0).getId());
+        assertEquals(fund2.getId(), fundsCollection.getFunds().get(1).getId());
+        assertEquals(funds.get(0).getId(), fundsCollection.getFunds().get(0).getId());
+        assertEquals(funds.get(1).getId(), fundsCollection.getFunds().get(1).getId());
         vertxTestContext.completeNow();
       });
 
@@ -296,16 +262,8 @@ public class FundServiceTest {
         assertTrue(result.succeeded());
 
         var funds = result.result();
-        assertEquals(fundsCollection.getFunds()
-          .get(0)
-          .getId(),
-            funds.get(0)
-              .getId());
-        assertEquals(fundsCollection.getFunds()
-          .get(1)
-          .getId(),
-            funds.get(1)
-              .getId());
+        assertEquals(fundsCollection.getFunds().get(0).getId(), funds.get(0).getId());
+        assertEquals(fundsCollection.getFunds().get(1).getId(),funds.get(1).getId());
         vertxTestContext.completeNow();
       });
   }

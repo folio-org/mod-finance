@@ -165,6 +165,7 @@ public class RestClient {
     options.setKeepAlive(true);
     options.setConnectTimeout(2000);
     options.setIdleTimeout(5000);
+    options.setTryUseCompression(true);
 
     return WebClientFactory.getWebClient(context.owner(), options);
   }
