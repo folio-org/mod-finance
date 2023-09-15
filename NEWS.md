@@ -1,4 +1,17 @@
-## 4.7.0 - Unreleased
+## 4.8.0 - Unreleased
+
+## 4.7.0  - Released (Orchid R1 2023)
+The primary focus of this release was to restrict search/view of Fiscal year records based upon acquisitions unit
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.6.0...v4.7.0)
+
+### Stories
+* [MODFIN-293](https://issues.folio.org/browse/MODFIN-293) - Restrict search/view of Fiscal year records based upon acquisitions unit
+* [MODFIN-286](https://issues.folio.org/browse/MODFIN-286) - Logging improvement - Configuration
+
+### Bug Fixes
+* [MODFIN-299](https://issues.folio.org/browse/MODFIN-299) - Group and Ledger summary for Net Transfers do not include Rollover transfer amounts.
+* [MODFIN-264](https://issues.folio.org/browse/MODFIN-264) - Optimistic locking ignored when changing expense class and adding group
 
 ## 4.6.0 Nolana R3 2022 - Released
 This release contains RMB upgrade and implement new business API

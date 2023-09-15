@@ -41,7 +41,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void postFinanceFiscalYears(String lang, FiscalYear fiscalYear, Map<String, String> headers,
+  public void postFinanceFiscalYears(FiscalYear fiscalYear, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     if (!isFiscalYearValid(fiscalYear)) {
@@ -69,7 +69,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void getFinanceFiscalYears(int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceFiscalYears(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
@@ -79,7 +79,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void putFinanceFiscalYearsById(String id, String lang, FiscalYear fiscalYearRequest, Map<String, String> headers,
+  public void putFinanceFiscalYearsById(String id, FiscalYear fiscalYearRequest, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     if (!isFiscalYearValid(fiscalYearRequest)) {
@@ -110,7 +110,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void getFinanceFiscalYearsById(String id, boolean withFinancialSummary, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceFiscalYearsById(String id, boolean withFinancialSummary, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
     fiscalYearService.getFiscalYearById(id, withFinancialSummary, new RequestContext(ctx, headers))
@@ -120,7 +120,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
 
   @Validate
   @Override
-  public void deleteFinanceFiscalYearsById(String id, String lang, Map<String, String> headers,
+  public void deleteFinanceFiscalYearsById(String id, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     fiscalYearService.deleteFiscalYear(id, new RequestContext(ctx, headers))
       .thenAccept(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))

@@ -34,7 +34,6 @@ public class ResourcePathResolver {
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
-  private static final String LANG_PARAM = "?lang=%s";
   static {
     Map<String, String> apis = new HashMap<>();
     apis.put(BUDGETS_STORAGE, "/finance-storage/budgets");
@@ -65,10 +64,6 @@ public class ResourcePathResolver {
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue() + "/%s"))
     );
-  }
-
-  public static String resourceByIdPath(String field, String id, String lang) {
-    return String.format(SUB_OBJECT_ITEM_APIS.get(field).concat(LANG_PARAM), id, lang);
   }
 
   public static String resourceByIdPath(String field, String id) {

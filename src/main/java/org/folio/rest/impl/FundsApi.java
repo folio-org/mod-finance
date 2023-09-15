@@ -41,8 +41,8 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Override
   @Validate
-  public void postFinanceFunds(String lang, CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
+  public void postFinanceFunds(CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext);
 
     helper.createFund(compositeFund)
       .thenAccept(fund -> asyncResultHandler
@@ -52,10 +52,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Override
   @Validate
-  public void getFinanceFunds(int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceFunds(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     fundService.getFundsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
       .thenAccept(funds -> handler.handle(succeededFuture(helper.buildOkResponse(funds))))
@@ -64,8 +64,8 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Override
   @Validate
-  public void putFinanceFundsById(String id, String lang, CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext, lang);
+  public void putFinanceFundsById(String id, CompositeFund compositeFund, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    FundsHelper helper = new FundsHelper(okapiHeaders, vertxContext);
 
     // Set id if this is available only in path
     if (StringUtils.isEmpty(compositeFund.getFund().getId())) {
@@ -83,10 +83,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Override
   @Validate
-  public void getFinanceFundsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceFundsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     helper.getCompositeFund(id)
       .thenAccept(fund -> handler.handle(succeededFuture(helper.buildOkResponse(fund))))
@@ -95,10 +95,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void deleteFinanceFundsById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void deleteFinanceFundsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     helper.deleteFund(id)
       .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
@@ -107,9 +107,9 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void postFinanceFundTypes(String lang, FundType entity, Map<String, String> headers,
+  public void postFinanceFundTypes(FundType entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
     helper.createFundType(entity)
       .thenAccept(type -> handler
         .handle(succeededFuture(helper.buildResponseWithLocation(String.format(FUND_TYPES_LOCATION_PREFIX, type.getId()), type))))
@@ -118,10 +118,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void getFinanceFundTypes(int offset, int limit, String query, String lang, Map<String, String> headers,
+  public void getFinanceFundTypes(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     helper.getFundTypes(limit, offset, query)
       .thenAccept(types -> handler.handle(succeededFuture(helper.buildOkResponse(types))))
@@ -130,10 +130,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void putFinanceFundTypesById(String id, String lang, FundType entity, Map<String, String> headers,
+  public void putFinanceFundTypesById(String id, FundType entity, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     // Set id if this is available only in path
     if (StringUtils.isEmpty(entity.getId())) {
@@ -151,10 +151,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void getFinanceFundTypesById(String id, String lang, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
+  public void getFinanceFundTypesById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     helper.getFundType(id)
       .thenAccept(type -> handler.handle(succeededFuture(helper.buildOkResponse(type))))
@@ -163,10 +163,10 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void deleteFinanceFundTypesById(String id, String lang, Map<String, String> headers,
+  public void deleteFinanceFundTypesById(String id, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    FundsHelper helper = new FundsHelper(headers, ctx, lang);
+    FundsHelper helper = new FundsHelper(headers, ctx);
 
     helper.deleteFundType(id)
       .thenAccept(types -> handler.handle(succeededFuture(helper.buildNoContentResponse())))
@@ -175,17 +175,17 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
 
   @Validate
   @Override
-  public void getFinanceFundsExpenseClassesById(String id, String status, String lang, Map<String, String> okapiHeaders
-          , Handler<AsyncResult<Response>> handler, Context ctx) {
-    fundDetailsService.retrieveCurrentExpenseClasses(id, status, new RequestContext(ctx, okapiHeaders))
+  public void getFinanceFundsExpenseClassesById(String id, String status, String fiscalYearId,
+      Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context ctx) {
+    fundDetailsService.retrieveExpenseClasses(id, fiscalYearId, status, new RequestContext(ctx, okapiHeaders))
                 .thenAccept(obj -> handler.handle(succeededFuture(buildOkResponse(obj))))
                 .exceptionally(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
   @Override
-  public void getFinanceFundsBudgetById(String id, String status, String lang,
-    Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context ctx) {
+  public void getFinanceFundsBudgetById(String id, String status, Map<String, String> okapiHeaders,
+      Handler<AsyncResult<Response>> handler, Context ctx) {
     fundDetailsService.retrieveCurrentBudget(id, status, new RequestContext(ctx, okapiHeaders))
       .thenAccept(obj -> handler.handle(succeededFuture(buildOkResponse(obj))))
       .exceptionally(fail -> handleErrorResponse(handler, fail));

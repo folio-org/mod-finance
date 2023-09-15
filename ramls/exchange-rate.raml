@@ -15,14 +15,10 @@ types:
   currency_code:
       type: string
 
-traits:
-  language: !include raml-util/traits/language.raml
-
 /finance/exchange-rate:
   displayName: Exchange rate
   description: Exchange rate API
   get:
-    is: [language]
     description: "Get exchange rate"
     queryParameters:
       from:

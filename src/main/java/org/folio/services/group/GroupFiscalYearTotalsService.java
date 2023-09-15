@@ -81,7 +81,7 @@ public class GroupFiscalYearTotalsService {
 
   //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
   //    #totalFunding = allocated.add(netTransfers)
-  //    #available = totalFunding.subtract(unavailable).max(BigDecimal.ZERO)
+  //    #available = totalFunding.subtract(unavailable)
   //    #cashBalance = totalFunding.subtract(expended)
   //    #overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
   //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
@@ -103,7 +103,7 @@ public class GroupFiscalYearTotalsService {
       summary.withTotalFunding(totalFunding.doubleValue());
 
       BigDecimal unavailable = BigDecimal.valueOf(summary.getUnavailable());
-      BigDecimal available = totalFunding.subtract(unavailable).max(BigDecimal.ZERO);
+      BigDecimal available = totalFunding.subtract(unavailable);
       summary.withAvailable(available.doubleValue());
 
       BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());

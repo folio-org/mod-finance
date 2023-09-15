@@ -47,7 +47,6 @@ import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 public class HelperUtils {
   public static final String ID = "id";
-  public static final String LANG = "lang";
   public static final String OKAPI_URL = "X-Okapi-Url";
   public static final String EXCEPTION_CALLING_ENDPOINT_MSG = "Exception calling {} {}";
   public static final String CALLING_ENDPOINT_MSG = "Sending {} {}";
@@ -55,6 +54,8 @@ public class HelperUtils {
   private static final String ERROR_CAUSE = "cause";
   private static final String ERROR_MESSAGE = "errorMessage";
   private static final Pattern CQL_SORT_BY_PATTERN = Pattern.compile("(.*)(\\ssortBy\\s.*)", Pattern.CASE_INSENSITIVE);
+  private static final Pattern ERROR_PATTERN = Pattern.compile("(message).*(code).*(parameters)");
+  private static final Pattern ERRORS_PATTERN = Pattern.compile("(errors).*(message).*(code).*(parameters)");
 
   private HelperUtils() {
   }
@@ -84,10 +85,15 @@ public class HelperUtils {
 
   public static void verifyResponse(Response response) {
     if (!Response.isSuccess(response.getCode())) {
+      HttpException httpException;
       String errorMsg = response.getError().getString(ERROR_MESSAGE);
-      HttpException httpException = getErrorByCode(errorMsg)
-        .map(errorCode -> new HttpException(response.getCode(), errorCode))
-        .orElse(new HttpException(response.getCode(), errorMsg));
+      if (isErrorsMessageJson(errorMsg)) {
+        httpException = new HttpException(response.getCode(), mapToErrors(errorMsg));
+      } else {
+        httpException = getErrorByCode(errorMsg)
+          .map(errorCode -> new HttpException(response.getCode(), errorCode))
+          .orElse(new HttpException(response.getCode(), errorMsg));
+      }
       throw new CompletionException(httpException);
     }
   }
@@ -200,10 +206,20 @@ public class HelperUtils {
 
   public static boolean isErrorMessageJson(String errorMessage) {
     if (!StringUtils.isEmpty(errorMessage)) {
-      Pattern pattern = Pattern.compile("(message).*(code).*(parameters)");
-      Matcher matcher = pattern.matcher(errorMessage);
+      Matcher matcher = ERROR_PATTERN.matcher(errorMessage);
       if (matcher.find()) {
         return matcher.groupCount() == 3;
+      }
+    }
+    return false;
+  }
+
+  public static boolean isErrorsMessageJson(String errorsMessage) {
+    if (!StringUtils.isEmpty(errorsMessage)) {
+      errorsMessage = errorsMessage.replace("\r", "").replace("\n", "");
+      Matcher matcher = ERRORS_PATTERN.matcher(errorsMessage);
+      if (matcher.find()) {
+        return matcher.groupCount() == 4;
       }
     }
     return false;
@@ -240,6 +256,9 @@ public class HelperUtils {
     return error;
   }
 
+  private static Errors mapToErrors(String errorStr) {
+    return new JsonObject(errorStr).mapTo(Errors.class);
+  }
 
   public static javax.ws.rs.core.Response.ResponseBuilder createResponseBuilder(int code) {
     final javax.ws.rs.core.Response.ResponseBuilder responseBuilder;

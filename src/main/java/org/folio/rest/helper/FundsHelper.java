@@ -62,9 +62,9 @@ public class FundsHelper extends AbstractHelper {
 
   private GroupsHelper groupsHelper;
 
-  public FundsHelper(Map<String, String> okapiHeaders, Context ctx, String lang) {
-    super(okapiHeaders, ctx, lang);
-    groupsHelper = new GroupsHelper(httpClient, okapiHeaders, ctx, lang);
+  public FundsHelper(Map<String, String> okapiHeaders, Context ctx) {
+    super(okapiHeaders, ctx);
+    groupsHelper = new GroupsHelper(httpClient, okapiHeaders, ctx);
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
@@ -73,22 +73,22 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<FundTypesCollection> getFundTypes(int limit, int offset, String query) {
-    String endpoint = String.format(GET_FUND_TYPES_BY_QUERY, limit, offset, buildQueryParam(query, logger), lang);
+    String endpoint = String.format(GET_FUND_TYPES_BY_QUERY, limit, offset, buildQueryParam(query, logger));
     return handleGetRequest(endpoint)
       .thenCompose(json -> FolioVertxCompletableFuture.supplyBlockingAsync(ctx, () -> json.mapTo(FundTypesCollection.class)));
   }
 
   public CompletableFuture<FundType> getFundType(String id) {
-    return handleGetRequest(resourceByIdPath(FUND_TYPES, id, lang))
+    return handleGetRequest(resourceByIdPath(FUND_TYPES, id))
       .thenApply(json -> json.mapTo(FundType.class));
   }
 
   public CompletableFuture<Void> updateFundType(FundType fundType) {
-    return handleUpdateRequest(resourceByIdPath(FUND_TYPES, fundType.getId(), lang), fundType);
+    return handleUpdateRequest(resourceByIdPath(FUND_TYPES, fundType.getId()), fundType);
   }
 
   public CompletableFuture<Void> deleteFundType(String id) {
-    return handleDeleteRequest(resourceByIdPath(FUND_TYPES, id, lang));
+    return handleDeleteRequest(resourceByIdPath(FUND_TYPES, id));
   }
 
   public CompletableFuture<CompositeFund> createFund(CompositeFund compositeFund) {
@@ -136,7 +136,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<CompositeFund> getCompositeFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id))
       .thenApply(json -> new CompositeFund().withFund(json.mapTo(Fund.class)))
       .thenCompose(compositeFund -> ledgerDetailsService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
           .thenCompose(currentFY -> Objects.isNull(currentFY) ? CompletableFuture.completedFuture(null)
@@ -145,7 +145,7 @@ public class FundsHelper extends AbstractHelper {
   }
 
   public CompletableFuture<Fund> getFund(String id) {
-    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id, lang))
+    return handleGetRequest(resourceByIdPath(FUNDS_STORAGE, id))
       .thenApply(json -> json.mapTo(Fund.class));
   }
 
@@ -213,7 +213,7 @@ public class FundsHelper extends AbstractHelper {
   public CompletableFuture<Void> updateFund(CompositeFund compositeFund) {
     Fund fund = compositeFund.getFund();
     return getFund(fund.getId())
-      .thenCompose(fundFromStorage -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId(), lang), fund)
+      .thenCompose(fundFromStorage -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fund.getId()), fund)
         .thenCompose(v1 -> updateFundGroups(compositeFund)
           .handle((v2, t) -> rollbackFundPutIfNeeded(fundFromStorage, t))
           .thenCompose(Function.identity())
@@ -249,7 +249,7 @@ public class FundsHelper extends AbstractHelper {
     }
     return getFund(fundFromStorage.getId())
       .thenAccept(latestFund -> fundFromStorage.setVersion(latestFund.getVersion()))
-      .thenCompose(v -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fundFromStorage.getId(), lang), fundFromStorage))
+      .thenCompose(v -> handleUpdateRequest(resourceByIdPath(FUNDS_STORAGE, fundFromStorage.getId()), fundFromStorage))
       .handle((v2, t2) -> {
         throw new CompletionException((t1.getCause()));
       });
@@ -264,7 +264,7 @@ public class FundsHelper extends AbstractHelper {
     return groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, new RequestContext(ctx, okapiHeaders))
       .thenApply(collection -> collection.getGroupFundFiscalYears().stream().map(GroupFundFiscalYear::getId).collect(toSet()))
       .thenCompose(this::unassignGroupsForFund)
-      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS_STORAGE, id, lang)));
+      .thenCompose(vVoid -> handleDeleteRequest(resourceByIdPath(FUNDS_STORAGE, id)));
   }
 
 }
