@@ -180,8 +180,8 @@ public class FundsApi extends BaseApi implements FinanceFunds, FinanceFundTypes{
   public void getFinanceFundsExpenseClassesById(String id, String status, String fiscalYearId,
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context ctx) {
     fundDetailsService.retrieveExpenseClasses(id, fiscalYearId, status, new RequestContext(ctx, okapiHeaders))
-                .onSuccess(obj -> handler.handle(succeededFuture(buildOkResponse(obj))))
-                .onFailure(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(obj -> handler.handle(succeededFuture(buildOkResponse(obj))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate

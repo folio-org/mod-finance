@@ -35,16 +35,18 @@ public class TransactionSummariesHelper extends AbstractHelper {
         validateOrderTransactionCount(orderSummary.getNumTransactions());
         return null;
       })
-      .compose(ok -> restClient.post(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary, OrderTransactionSummary.class, requestContext));
+      .compose(ok -> restClient.post(resourcesPath(ORDER_TRANSACTION_SUMMARIES), orderSummary, OrderTransactionSummary.class, requestContext))
+      .map(createdSummary -> orderSummary.withId(createdSummary.getId()));
   }
 
   public Future<InvoiceTransactionSummary> createInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary, RequestContext requestContext) {
-    return Future.succeededFuture().map(v -> {
-      validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
-      return null;
+    return Future.succeededFuture()
+      .map(v -> {
+        validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
+        return null;
       })
       .compose(ok -> restClient.post(resourcesPath(INVOICE_TRANSACTION_SUMMARIES), invoiceSummary, InvoiceTransactionSummary.class, requestContext))
-      .map(invoiceTransactionSummary -> invoiceTransactionSummary);
+      .map(createdSummary -> invoiceSummary.withId(createdSummary.getId()));
   }
 
   /**
@@ -76,11 +78,11 @@ public class TransactionSummariesHelper extends AbstractHelper {
   }
 
   public Future<Void> updateInvoiceTransactionSummary(InvoiceTransactionSummary invoiceSummary, RequestContext requestContext) {
-    return Future.succeededFuture().map(v-> {
-
-       validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
-    return null;
-    })
+    return Future.succeededFuture()
+      .map(v-> {
+        validateInvoiceTransactionCount(invoiceSummary.getNumPaymentsCredits(), invoiceSummary.getNumPendingPayments());
+        return null;
+      })
       .compose(ok -> restClient.put(resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES, invoiceSummary.getId()), invoiceSummary, requestContext));
   }
 }

@@ -38,7 +38,7 @@ public class LedgerRolloverLogsApi extends BaseApi implements FinanceLedgerRollo
   public void getFinanceLedgerRolloversLogsById(String id, Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverLogsService.retrieveLedgerRolloverLogById(id, new RequestContext(vertxContext, okapiHeaders))
-        .onSuccess(rolloverLog -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverLog))))
-        .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(rolloverLog -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverLog))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 }
