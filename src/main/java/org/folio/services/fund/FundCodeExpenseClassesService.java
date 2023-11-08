@@ -72,7 +72,8 @@ public class FundCodeExpenseClassesService {
   }
 
   public Future<List<FundCodeExpenseClassesCollection>> buildFundCodeExpenseClassesCollection(List<FiscalYear> fiscalYearList,
-                                                                                        FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder, RequestContext requestContext) {
+                                                                                              FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder,
+                                                                                              RequestContext requestContext) {
     List<FiscalYear> separatedFiscalYears = fiscalYearList.stream().distinct().collect(Collectors.toList());
     List<Future<FundCodeExpenseClassesCollection>> completeFutures = separatedFiscalYears.stream()
       .map(fiscalYr -> getFundCodeVsExpenseClassesWithFiscalYear(fiscalYr, fundCodeExpenseClassesHolder, requestContext))
@@ -93,7 +94,8 @@ public class FundCodeExpenseClassesService {
   }
 
   public Future<FundCodeExpenseClassesCollection> getFundCodeVsExpenseClassesWithFiscalYear(FiscalYear fiscalYearUnit,
-                                                                                                        FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder, RequestContext requestContext) {
+                                                                                            FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder,
+                                                                                            RequestContext requestContext) {
     String fiscalYearCode = fiscalYearUnit.getCode();
     return fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext)
       .map(fundCodeExpenseClassesHolder::setFiscalYear)
@@ -109,7 +111,7 @@ public class FundCodeExpenseClassesService {
   }
 
   public Future<FundCodeExpenseClassesCollection> retrieveFundCodeVsExpenseClasses(RequestContext requestContext,
-                                                                                              FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder) {
+                                                                                   FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder) {
     return getActiveBudgetsByFiscalYear(fundCodeExpenseClassesHolder.getFiscalYear(), requestContext)
       // Future<BudgetsCollection>
       .map(budgetsCollection -> budgetsCollection.getBudgets()

@@ -95,7 +95,7 @@ public class FundDetailsService {
    * @return expense classes completable future
    */
   public Future<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
-                                                                      String budgetStatus, RequestContext rqContext) {
+                                                           String budgetStatus, RequestContext rqContext) {
 
     return retrieveBudget(fundId, fiscalYearId, null, rqContext)
       .compose(budget -> {

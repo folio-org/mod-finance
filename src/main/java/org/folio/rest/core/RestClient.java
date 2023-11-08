@@ -89,7 +89,6 @@ public class RestClient {
       .mapEmpty();
   }
 
-
   public Future<Void> delete(String endpointById, boolean skipError404, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.DELETE, endpointById);
 
@@ -116,6 +115,7 @@ public class RestClient {
       promise.fail(t);
     }
   }
+
   private void handleErrorResponse(Promise<Void> promise, Throwable t, boolean skipError404) {
     if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404){
       log.warn(t);
@@ -129,7 +129,6 @@ public class RestClient {
   public Future<Void> delete(String endpoint, RequestContext requestContext) {
     return delete(endpoint, false, requestContext);
   }
-
 
   public <T> Future<T> get(String endpoint, Class<T> responseType, RequestContext requestContext) {
     return get(endpoint, false, responseType, requestContext);

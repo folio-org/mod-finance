@@ -27,9 +27,10 @@ public class GroupsHelper extends AbstractHelper {
     return groupService.createGroup(group, requestContext);
   }
 
-  public Future<GroupCollection> getGroups(String query, int limit, int offset, RequestContext requestContext) {
+  public Future<GroupCollection> getGroups(String query, int offset, int limit, RequestContext requestContext) {
     return groupService.getGroupsWithAcqUnitsRestriction(query, offset, limit, requestContext);
   }
+
   public Future<Group> getGroup(String id, RequestContext requestContext) {
     return groupService.getGroupById(id, requestContext);
   }

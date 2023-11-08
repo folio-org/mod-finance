@@ -50,11 +50,11 @@ public class FundsHelper extends AbstractHelper {
   @Autowired
   private LedgerDetailsService ledgerDetailsService;
   @Autowired
-  FundService fundService;
+  private FundService fundService;
   @Autowired
-  BudgetService budgetService;
+  private BudgetService budgetService;
   @Autowired
-  GroupService groupService;
+  private GroupService groupService;
 
   public FundsHelper(Map<String, String> okapiHeaders, Context ctx) {
     super(okapiHeaders, ctx);
@@ -65,8 +65,8 @@ public class FundsHelper extends AbstractHelper {
     return fundService.createFundType(fundType, requestContext);
   }
 
-  public Future<FundTypesCollection> getFundTypes(int limit, int offset, String query, RequestContext requestContext) {
-    return fundService.getFundTypes(limit, offset, query, requestContext);
+  public Future<FundTypesCollection> getFundTypes(int offset, int limit, String query, RequestContext requestContext) {
+    return fundService.getFundTypes(offset, limit, query, requestContext);
   }
 
   public Future<FundType> getFundType(String id, RequestContext requestContext) {
@@ -131,9 +131,9 @@ public class FundsHelper extends AbstractHelper {
     return fundService.getFundById(id, requestContext)
       .map(fund -> new CompositeFund().withFund(fund))
       .compose(compositeFund -> ledgerDetailsService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
-          .compose(currentFY -> Objects.isNull(currentFY) ? succeededFuture(null)
-              : getGroupIdsThatFundBelongs(id, currentFY.getId()))
-          .map(compositeFund::withGroupIds));
+        .compose(currentFY -> Objects.isNull(currentFY) ? succeededFuture(null)
+          : getGroupIdsThatFundBelongs(id, currentFY.getId()))
+        .map(compositeFund::withGroupIds));
   }
 
   private Future<Void> assignFundToGroups(List<GroupFundFiscalYear> groupFundFiscalYears) {

@@ -94,7 +94,7 @@ public class FundService {
 
   }
 
-  public Future<FundTypesCollection> getFundTypes(int limit, int offset, String query, RequestContext requestContext) {
+  public Future<FundTypesCollection> getFundTypes(int offset, int limit, String query, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(FUND_TYPES))
       .withOffset(offset)
       .withLimit(limit)

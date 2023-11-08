@@ -30,8 +30,8 @@ public class GroupService {
       .compose(effectiveQuery -> {
         var requestEntry = new RequestEntry(resourcesPath(GROUPS))
           .withQuery(effectiveQuery)
-          .withLimit(limit)
-          .withOffset(offset);
+          .withOffset(offset)
+          .withLimit(limit);
         return restClient.get(requestEntry.buildEndpoint(), GroupCollection.class, requestContext);
       });
   }
