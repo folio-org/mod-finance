@@ -1403,7 +1403,8 @@
         "finance.invoice-transaction-summaries.item.post",
         "finance.invoice-transaction-summaries.item.put",
         "finance.exchange-rate.item.get",
-        "finance.expense-classes.all"
+        "finance.expense-classes.all",
+        "finance.acquisitions-units-assignments.all"
       ],
       "visible": false
     },
@@ -1449,6 +1450,25 @@
       "permissionName" : "finance.funds.budget.item.get",
       "displayName" : "budget-item get",
       "description" : "Fetch an budget for fund"
+    },
+    {
+      "permissionName": "finance.acquisitions-units-assignments.assign",
+      "displayName": "Acquisitions unit assignments - create unit assignments",
+      "description": "Assign acquisition units"
+    },
+    {
+      "permissionName": "finance.acquisitions-units-assignments.manage",
+      "displayName": "Acquisitions unit assignments - manage unit assignments",
+      "description": "Manage acquisition unit assignments"
+    },
+    {
+      "permissionName": "finance.acquisitions-units-assignments.all",
+      "displayName": "Acquisitions unit assignments - all permissions",
+      "description": "All acquisition unit assignments permissions",
+      "subPermissions": [
+        "finance.acquisitions-units-assignments.assign",
+        "finance.acquisitions-units-assignments.manage"
+      ]
     }
   ],
   "launchDescriptor": {
