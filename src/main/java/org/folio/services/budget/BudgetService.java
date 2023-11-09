@@ -37,8 +37,8 @@ public class BudgetService {
 
   public Future<BudgetsCollection> getBudgets(String query, int offset, int limit, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(BUDGETS_STORAGE))
-      .withLimit(limit)
       .withOffset(offset)
+      .withLimit(limit)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), BudgetsCollection.class, requestContext);
   }
@@ -83,7 +83,7 @@ public class BudgetService {
     if (t == null) {
       return succeededFuture(null);
     }
-    return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetFromStorage.getId()), Budget.class,requestContext)
+    return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetFromStorage.getId()), Budget.class, requestContext)
       .map(latestBudget -> {
         budgetFromStorage.setVersion(latestBudget.getVersion());
         return null;

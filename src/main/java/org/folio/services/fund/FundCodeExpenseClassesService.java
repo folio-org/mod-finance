@@ -119,7 +119,7 @@ public class FundCodeExpenseClassesService {
         .map(Budget::getId)
         .collect(Collectors.toList()))
       .map(fundCodeExpenseClassesHolder::withBudgetIds)
-      .compose(holder -> budgetExpenseClassService.getBudgetExpensesClass(holder.getBudgetIds(), requestContext))
+      .compose(holder -> budgetExpenseClassService.getBudgetExpenseClasses(holder.getBudgetIds(), requestContext))
       .map(fundCodeExpenseClassesHolder::withBudgetExpenseClassList)
       .compose(holder -> expenseClassService.getExpenseClassesByBudgetIds(holder.getBudgetIds(), requestContext))
       .map(fundCodeExpenseClassesHolder::withExpenseClassList)

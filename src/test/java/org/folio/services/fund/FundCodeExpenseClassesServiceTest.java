@@ -232,7 +232,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withStatus(BudgetExpenseClass.Status.ACTIVE);
 
     List<BudgetExpenseClass> budgetExpenseClassList = new ArrayList(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2));
-    when(budgetExpenseClassService.getBudgetExpensesClass(eq(budgetIds), eq(requestContext)))
+    when(budgetExpenseClassService.getBudgetExpenseClasses(eq(budgetIds), eq(requestContext)))
       .thenReturn(succeededFuture(budgetExpenseClassList));
 
     when(ledgerDetailsService.getCurrentFiscalYear(eq(ledgerId1), eq(requestContext)))
@@ -389,7 +389,7 @@ public class FundCodeExpenseClassesServiceTest {
     when(budgetService.getBudgets(anyString(), eq(0), eq(Integer.MAX_VALUE),
       eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
-    when(budgetExpenseClassService.getBudgetExpensesClass(eq(budgetIds), eq(requestContext)))
+    when(budgetExpenseClassService.getBudgetExpenseClasses(eq(budgetIds), eq(requestContext)))
       .thenReturn(succeededFuture(budgetExpenseClassList));
 
     ExpenseClass expenseClass1 = new ExpenseClass()

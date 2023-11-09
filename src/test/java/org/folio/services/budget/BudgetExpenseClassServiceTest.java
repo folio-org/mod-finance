@@ -416,7 +416,7 @@ public class BudgetExpenseClassServiceTest {
     //When
     when(restClient.get(anyString(), eq(BudgetExpenseClassCollection.class), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
 
-    var future = budgetExpenseClassService.getBudgetExpensesClass(budgetsIds, requestContextMock);
+    var future = budgetExpenseClassService.getBudgetExpenseClasses(budgetsIds, requestContextMock);
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         var budgetExpenseClassListFrom = result.result();
@@ -443,7 +443,7 @@ public class BudgetExpenseClassServiceTest {
     budgetExpenseClassCollection.setBudgetExpenseClasses(budgetExpenseClassList);
     //When
     when(restClient.get(anyString(), eq(BudgetExpenseClassCollection.class), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    var future = budgetExpenseClassService.getBudgetExpensesClassByIds(budgetsIds, requestContextMock);
+    var future = budgetExpenseClassService.getBudgetExpenseClassesByIds(budgetsIds, requestContextMock);
     //Then
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {

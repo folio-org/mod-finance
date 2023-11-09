@@ -151,14 +151,14 @@ public class BudgetExpenseClassService{
       .withStatus(BudgetExpenseClass.Status.fromValue(statusExpenseClass.getStatus().value()));
   }
 
-  public Future<List<BudgetExpenseClass>> getBudgetExpensesClass(List<String> budgetsIds, RequestContext requestContext) {
-    return collectResultsOnSuccess(ofSubLists(new ArrayList<>(budgetsIds), MAX_IDS_FOR_GET_RQ).map(ids -> getBudgetExpensesClassByIds(ids, requestContext)).collect(Collectors.toList()))
+  public Future<List<BudgetExpenseClass>> getBudgetExpenseClasses(List<String> budgetsIds, RequestContext requestContext) {
+    return collectResultsOnSuccess(ofSubLists(new ArrayList<>(budgetsIds), MAX_IDS_FOR_GET_RQ).map(ids -> getBudgetExpenseClassesByIds(ids, requestContext)).collect(Collectors.toList()))
       .map(lists -> lists.stream()
         .flatMap(Collection::stream)
         .collect(toList()));
   }
 
-  public  Future<List<BudgetExpenseClass>> getBudgetExpensesClassByIds(List<String> ids, RequestContext requestContext) {
+  public  Future<List<BudgetExpenseClass>> getBudgetExpenseClassesByIds(List<String> ids, RequestContext requestContext) {
     String budgetId = "budgetId";
     String query = convertIdsToCqlQuery(ids, budgetId);
     var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES))
