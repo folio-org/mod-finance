@@ -40,7 +40,7 @@ public class GroupService {
     return restClient.post(resourcesPath(GROUPS), group, Group.class, requestContext);
   }
 
-  public Future<GroupCollection> getGroups(int limit, int offset, String query, RequestContext requestContext) {
+  public Future<GroupCollection> getGroups(int offset, int limit, String query, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(GROUPS))
       .withOffset(offset)
       .withLimit(limit)

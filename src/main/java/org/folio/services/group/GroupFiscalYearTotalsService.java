@@ -62,12 +62,12 @@ public class GroupFiscalYearTotalsService {
 
     return restClient.get(requestEntry.buildEndpoint(), BudgetsCollection.class, requestContext)
       .compose(budgetsCollection -> groupFundFiscalYearService.getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext)
-        .map(groupFundFiscalYearCollection -> {
+        .map(groupFundFiscalYearsCollection -> {
           Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap = budgetsCollection.getBudgets()
             .stream()
             .collect(groupingBy(Budget::getFundId, groupingBy(Budget::getFiscalYearId, toList())));
 
-          List<GroupFiscalYearSummary> summaries = groupSummariesByGroupIdAndFiscalYearId(groupFundFiscalYearCollection, fundIdFiscalYearIdBudgetsMap)
+          List<GroupFiscalYearSummary> summaries = groupSummariesByGroupIdAndFiscalYearId(groupFundFiscalYearsCollection, fundIdFiscalYearIdBudgetsMap)
             .values().stream()
             .flatMap(summary -> summary.values().stream())
             .filter(Optional::isPresent)
@@ -78,7 +78,7 @@ public class GroupFiscalYearTotalsService {
             .withGroupFiscalYearSummaries(summaries)
             .withTotalRecords(summaries.size());
 
-          return buildHolderSkeletons(fundIdFiscalYearIdBudgetsMap, collection, groupFundFiscalYearCollection);
+          return buildHolderSkeletons(fundIdFiscalYearIdBudgetsMap, collection, groupFundFiscalYearsCollection);
         }))
       .compose(holders -> updateHoldersWithAllocations(holders, requestContext)
         .map(holder -> {

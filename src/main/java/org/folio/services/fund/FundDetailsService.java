@@ -54,11 +54,12 @@ public class FundDetailsService {
                                                          RequestContext rqContext) {
     return retrieveCurrentBudget(fundId, budgetStatus, rqContext)
       .recover(t -> {
-        logger.error("Failed to retrieve current budget", t);
+        logger.error("Failed to retrieve current budget for fundId: {}", fundId, t);
         if (skipThrowException) {
           return Future.succeededFuture();
         } else {
-          return Future.failedFuture(t);        }
+          return Future.failedFuture(t);
+        }
       });
   }
 
@@ -99,14 +100,14 @@ public class FundDetailsService {
 
     return retrieveBudget(fundId, fiscalYearId, null, rqContext)
       .compose(budget -> {
-      logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
-      var expenseClasses = getExpenseClasses(budget, rqContext);
-      var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
+        logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
+        var expenseClasses = getExpenseClasses(budget, rqContext);
+        var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
 
-      return GenericCompositeFuture.join(List.of(expenseClasses, budgetExpenseClassIds))
-        .map(cf -> expenseClasses.result().stream()
-          .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
-          .collect(toList()));
+        return GenericCompositeFuture.join(List.of(expenseClasses, budgetExpenseClassIds))
+          .map(cf -> expenseClasses.result().stream()
+            .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
+            .collect(toList()));
       })
       .onSuccess(expenseClasses -> logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
       .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t));

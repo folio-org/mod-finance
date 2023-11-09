@@ -116,24 +116,24 @@ public class FiscalYearService {
   public Future<FiscalYear> withFinancialSummary(FiscalYear fiscalYear, RequestContext requestContext) {
     String query = "fiscalYearId==" + fiscalYear.getId();
     return budgetService.getBudgets(query, 0, Integer.MAX_VALUE, requestContext)
-            .map(budgetsCollection -> populateFinancialSummary(fiscalYear, budgetsCollection.getBudgets()));
+      .map(budgetsCollection -> populateFinancialSummary(fiscalYear, budgetsCollection.getBudgets()));
   }
 
   private FiscalYear populateFinancialSummary(FiscalYear fiscalYear, List<Budget> budgets) {
     FinancialSummary financialSummary = new FinancialSummary()
-            .withAllocated(HelperUtils.calculateTotals(budgets, Budget::getAllocated))
-            .withAvailable(HelperUtils.calculateTotals(budgets, Budget::getAvailable))
-            .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
-            .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
-            .withAllocationTo(HelperUtils.calculateTotals(budgets, Budget::getAllocationTo))
-            .withAllocationFrom(HelperUtils.calculateTotals(budgets, Budget::getAllocationFrom))
-            .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
-            .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
-            .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
-            .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
-            .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
-            .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))
-            .withCashBalance(HelperUtils.calculateTotals(budgets, Budget::getCashBalance));
+      .withAllocated(HelperUtils.calculateTotals(budgets, Budget::getAllocated))
+      .withAvailable(HelperUtils.calculateTotals(budgets, Budget::getAvailable))
+      .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
+      .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
+      .withAllocationTo(HelperUtils.calculateTotals(budgets, Budget::getAllocationTo))
+      .withAllocationFrom(HelperUtils.calculateTotals(budgets, Budget::getAllocationFrom))
+      .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
+      .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
+      .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
+      .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))
+      .withCashBalance(HelperUtils.calculateTotals(budgets, Budget::getCashBalance));
     return fiscalYear.withFinancialSummary(financialSummary);
   }
 }

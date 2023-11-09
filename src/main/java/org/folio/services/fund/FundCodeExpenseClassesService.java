@@ -49,7 +49,7 @@ public class FundCodeExpenseClassesService {
   }
 
   public Future<FundCodeExpenseClassesCollection> retrieveCombinationFundCodeExpClasses(String fiscalYearCode,
-                                                                                                   RequestContext requestContext) {
+                                                                                        RequestContext requestContext) {
     FundCodeExpenseClassesHolder fundCodeExpenseClassesHolder = new FundCodeExpenseClassesHolder();
     if (fiscalYearCode != null) {
       FiscalYear fiscalYearUnit = new FiscalYear();
