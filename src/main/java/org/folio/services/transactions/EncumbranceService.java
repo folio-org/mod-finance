@@ -63,7 +63,8 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   private Future<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
 
     return Future.succeededFuture()
-      .map(v -> {checkEncumbranceStatusNotReleased(encumbrance);
+      .map(v -> {
+        checkEncumbranceStatusNotReleased(encumbrance);
         return null;
       })
       .compose(v-> transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext))

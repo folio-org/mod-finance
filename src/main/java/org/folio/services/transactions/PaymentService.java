@@ -33,10 +33,10 @@ public class PaymentService implements TransactionTypeManagingStrategy {
     return Future.succeededFuture()
       .map(v -> {
         transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
-        if (!Boolean.TRUE.equals(payment.getInvoiceCancelled())){
+        if (!Boolean.TRUE.equals(payment.getInvoiceCancelled())) {
           throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
         }
-          return null;
+        return null;
       })
       .compose(v -> transactionService.retrieveTransactionById(payment.getId(), requestContext))
       .map(existingTransaction -> {

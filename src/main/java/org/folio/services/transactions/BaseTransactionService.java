@@ -62,7 +62,7 @@ public class BaseTransactionService implements TransactionService {
   }
 
   public Future<Void> deleteTransaction(Transaction transaction, RequestContext requestContext) {
-    return restClient.delete(resourceByIdPath(TRANSACTIONS,transaction.getId()), requestContext);
+    return restClient.delete(resourceByIdPath(TRANSACTIONS, transaction.getId()), requestContext);
   }
 
   public void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType) {

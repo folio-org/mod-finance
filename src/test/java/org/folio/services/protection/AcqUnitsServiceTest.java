@@ -76,14 +76,14 @@ public class AcqUnitsServiceTest {
     //When
     var future = acqUnitsService.getAcquisitionsUnits("query", 0, 10, requestContext);
     vertxTestContext.assertComplete(future)
-        .onComplete(result -> {
-          assertTrue(result.succeeded());
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
 
-          var actUnits = result.result();
-          assertThat(actUnits, equalTo(units));
-          verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
-          vertxTestContext.completeNow();
-        });
+        var actUnits = result.result();
+        assertThat(actUnits, equalTo(units));
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test

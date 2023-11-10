@@ -11,8 +11,8 @@ public enum AcqDesiredPermissions {
   private static final List<String> values;
   static {
     values = Arrays.stream(AcqDesiredPermissions.values())
-        .map(AcqDesiredPermissions::getPermission)
-        .collect(Collectors.toList());
+      .map(AcqDesiredPermissions::getPermission)
+      .collect(Collectors.toList());
   }
 
   AcqDesiredPermissions(String permission) {

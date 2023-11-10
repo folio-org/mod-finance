@@ -33,8 +33,8 @@ public class LedgerRolloverProgressService {
 
   public Future<LedgerFiscalYearRolloverProgressCollection> retrieveLedgerRolloverProgresses(String query, int offset, int limit, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(LEDGER_ROLLOVERS_PROGRESS_STORAGE))
-      .withLimit(limit)
       .withOffset(offset)
+      .withLimit(limit)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), LedgerFiscalYearRolloverProgressCollection.class, requestContext);
   }

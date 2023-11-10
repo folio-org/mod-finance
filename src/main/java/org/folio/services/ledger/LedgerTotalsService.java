@@ -60,8 +60,8 @@ public class LedgerTotalsService {
 
   public Future<Ledger> populateLedgerTotals(Ledger ledger, FiscalYear fiscalYear, RequestContext requestContext) {
     return getBudgetsByLedgerIdFiscalYearId(ledger.getId(), fiscalYear.getId(), requestContext)
-        .map(budgets -> buildHolderSkeleton(fiscalYear.getId(), ledger,  budgets))
-        .compose(holder -> updateHolderWithAllocations(holder, requestContext)
+      .map(budgets -> buildHolderSkeleton(fiscalYear.getId(), ledger,  budgets))
+      .compose(holder -> updateHolderWithAllocations(holder, requestContext)
         .map(holderParam -> {
           updateLedgerWithAllocation(holder);
           return null;
@@ -92,7 +92,7 @@ public class LedgerTotalsService {
   }
 
   private Future<LedgerFiscalYearTransactionsHolder> updateHolderWithAllocations(LedgerFiscalYearTransactionsHolder holder,
-                                                                                            RequestContext requestContext) {
+                                                                                 RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
     var fromAllocations = baseTransactionService.retrieveFromTransactions(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);

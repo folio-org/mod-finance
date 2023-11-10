@@ -81,8 +81,7 @@ public class GroupServiceTest {
 
         var actGroups = result.result();
         assertThat(groupsCollection, equalTo(actGroups));
-        verify(restClient).get(assertQueryContains(NO_ACQ_UNIT_ASSIGNED_CQL), eq(GroupCollection.class), eq(requestContext))
-        ;
+        verify(restClient).get(assertQueryContains(NO_ACQ_UNIT_ASSIGNED_CQL), eq(GroupCollection.class), eq(requestContext));
         vertxTestContext.completeNow();
       });
   }

@@ -45,8 +45,8 @@ public class AcqUnitsService {
       query = combineCqlExpressions("and", ACTIVE_UNITS_CQL, query);
     }
     var requestEntry = new RequestEntry(resourcesPath(ACQUISITIONS_UNITS))
-      .withLimit(limit)
       .withOffset(offset)
+      .withLimit(limit)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitCollection.class, requestContext);
   }

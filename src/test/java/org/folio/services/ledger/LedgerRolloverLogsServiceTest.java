@@ -34,8 +34,7 @@ public class LedgerRolloverLogsServiceTest {
 
   @Mock
   private RestClient ledgerRolloverLogsRestClientMock;
-  @
-    BeforeEach
+  @BeforeEach
   public void initMocks() {
     MockitoAnnotations.openMocks(this);
   }
