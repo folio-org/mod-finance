@@ -1,11 +1,13 @@
 package org.folio.rest.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import io.vertx.core.json.JsonObject;
 
 public final class BudgetUtils {

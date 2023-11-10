@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;
@@ -14,13 +13,15 @@ import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
 
+import io.vertx.core.Future;
+
 public class LedgerDetailsService {
 
   public static final String SEARCH_CURRENT_FISCAL_YEAR_QUERY = "series==\"%s\" AND periodEnd>=%s sortBy periodStart";
 
   private final FiscalYearService fiscalYearService;
   private final LedgerService ledgerService;
-  private ConfigurationEntriesService configurationEntriesService;
+  private final ConfigurationEntriesService configurationEntriesService;
 
   public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, ConfigurationEntriesService configurationEntriesService) {
     this.fiscalYearService = fiscalYearService;
@@ -28,14 +29,14 @@ public class LedgerDetailsService {
     this.configurationEntriesService = configurationEntriesService;
   }
 
-  public CompletableFuture<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
+  public Future<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
     return getFirstThreeFiscalYears(ledgerId, requestContext)
-      .thenApply(this::defineCurrentFiscalYear);
+      .map(this::defineCurrentFiscalYear);
   }
 
-  public CompletableFuture<FiscalYear> getPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
+  public Future<FiscalYear> getPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
     return getFirstThreeFiscalYears(ledgerId, requestContext)
-      .thenApply(firstTwoFiscalYears -> {
+      .map(firstTwoFiscalYears -> {
          FiscalYear curFY = defineCurrentFiscalYear(firstTwoFiscalYears);
          int size = firstTwoFiscalYears.size();
          int curIndex = firstTwoFiscalYears.indexOf(curFY);
@@ -60,12 +61,13 @@ public class LedgerDetailsService {
     }
   }
 
-  private CompletableFuture<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
+  private Future<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
-      .thenCompose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
-      .thenCombine(configurationEntriesService.getSystemTimeZone(requestContext), this::buildCurrentFYQuery)
-      .thenCompose(query -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(query, 0, 3, requestContext))
-      .thenApply(FiscalYearsCollection::getFiscalYears);
+      .compose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
+      .compose(fyOne -> configurationEntriesService.getSystemTimeZone(requestContext)
+        .map(timeZone -> this.buildCurrentFYQuery(fyOne, timeZone)))
+      .compose(query -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(query, 0, 3, requestContext))
+      .map(FiscalYearsCollection::getFiscalYears);
   }
 
   private boolean isOverlapped(FiscalYear firstYear, FiscalYear secondYear) {

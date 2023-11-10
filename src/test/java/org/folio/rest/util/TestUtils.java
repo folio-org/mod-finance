@@ -2,6 +2,7 @@ package org.folio.rest.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,6 +12,7 @@ import java.util.Date;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.mockito.ArgumentMatchers;
 
 public final class TestUtils {
 
@@ -35,5 +37,9 @@ public final class TestUtils {
     return Date
       .from(dateToConvert.atZone(ZoneId.systemDefault())
         .toInstant());
+  }
+
+  public static String assertQueryContains(String query) {
+    return ArgumentMatchers.contains(URLEncoder.encode(query, StandardCharsets.UTF_8));
   }
 }

@@ -1,17 +1,16 @@
 package org.folio.models;
 
-import org.folio.rest.jaxrs.model.BudgetExpenseClass;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+
+import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 
 public class BudgetExpenseClassHolder {
 
-  private List<BudgetExpenseClass> createList;
-  private List<BudgetExpenseClass> updateList;
-  private List<BudgetExpenseClass> deleteList;
+  private final List<BudgetExpenseClass> createList;
+  private final List<BudgetExpenseClass> updateList;
+  private final List<BudgetExpenseClass> deleteList;
 
 
   public BudgetExpenseClassHolder() {

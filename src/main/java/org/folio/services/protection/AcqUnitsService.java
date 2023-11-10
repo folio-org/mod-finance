@@ -3,49 +3,57 @@ package org.folio.services.protection;
 import static org.folio.rest.RestVerticle.OKAPI_USERID_HEADER;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
+import static org.folio.rest.util.ResourcePathResolver.ACQUISITIONS_UNITS;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.ACTIVE_UNITS_CQL;
 import static org.folio.services.protection.AcqUnitConstants.IS_DELETED_PROP;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.acq.model.finance.AcquisitionsUnit;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitCollection;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitMembership;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import one.util.streamex.StreamEx;
 
 public class AcqUnitsService {
   public final Logger logger = LogManager.getLogger(AcqUnitsService.class);
 
-  private final RestClient acqUnitsStorageRestClient;
+  private final RestClient restClient;
   private final AcqUnitMembershipsService acqUnitMembershipsService;
 
-  public AcqUnitsService(RestClient acqUnitsStorageRestClient, AcqUnitMembershipsService acqUnitMembershipsService) {
-    this.acqUnitsStorageRestClient = acqUnitsStorageRestClient;
+  public AcqUnitsService(RestClient restClient, AcqUnitMembershipsService acqUnitMembershipsService) {
+    this.restClient = restClient;
     this.acqUnitMembershipsService = acqUnitMembershipsService;
   }
 
-  public CompletableFuture<AcquisitionsUnitCollection> getAcquisitionsUnits(String query, int offset, int limit, RequestContext requestContext) {
+  public Future<AcquisitionsUnitCollection> getAcquisitionsUnits(String query, int offset, int limit, RequestContext requestContext) {
     if (StringUtils.isEmpty(query)) {
       query = ACTIVE_UNITS_CQL;
     } else if (!query.contains(IS_DELETED_PROP)) {
       query = combineCqlExpressions("and", ACTIVE_UNITS_CQL, query);
     }
-    return acqUnitsStorageRestClient.get(query, offset, limit, requestContext, AcquisitionsUnitCollection.class);
+    var requestEntry = new RequestEntry(resourcesPath(ACQUISITIONS_UNITS))
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitCollection.class, requestContext);
   }
 
-  public CompletableFuture<String> buildAcqUnitsCqlClause(RequestContext requestContext) {
+  public Future<String> buildAcqUnitsCqlClause(RequestContext requestContext) {
     return getAcqUnitIdsForSearch(requestContext)
-      .thenApply(ids -> {
+      .map(ids -> {
         if (ids.isEmpty()) {
           return NO_ACQ_UNIT_ASSIGNED_CQL;
         }
@@ -53,17 +61,21 @@ public class AcqUnitsService {
       });
   }
 
-  private CompletableFuture<List<String>> getAcqUnitIdsForSearch(RequestContext requestContext) {
-    return getAcqUnitIdsForUser(requestContext.getHeaders().get(OKAPI_USERID_HEADER), requestContext)
-      .thenCombine(getOpenForReadAcqUnitIds(requestContext), (unitsForUser, unitsAllowRead) -> StreamEx.of(unitsForUser, unitsAllowRead)
+  private Future<List<String>> getAcqUnitIdsForSearch(RequestContext requestContext) {
+    var unitsForUser = getAcqUnitIdsForUser(requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
+    var unitsAllowRead = getOpenForReadAcqUnitIds(requestContext);
+
+    return CompositeFuture.join(unitsForUser, unitsAllowRead)
+      .map(cf -> StreamEx.of(unitsForUser.result(), unitsAllowRead.result())
         .flatCollection(strings -> strings)
         .distinct()
-        .toList());
+        .collect(Collectors.toList()));
   }
 
-  private CompletableFuture<List<String>> getAcqUnitIdsForUser(String userId, RequestContext requestContext) {
+
+  private Future<List<String>> getAcqUnitIdsForUser(String userId, RequestContext requestContext) {
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships("userId==" + userId, 0, Integer.MAX_VALUE, requestContext)
-      .thenApply(memberships -> {
+      .map(memberships -> {
         List<String> ids = memberships.getAcquisitionsUnitMemberships()
           .stream()
           .map(AcquisitionsUnitMembership::getAcquisitionsUnitId)
@@ -76,9 +88,9 @@ public class AcqUnitsService {
       });
   }
 
-  private CompletableFuture<List<String>> getOpenForReadAcqUnitIds(RequestContext requestContext) {
+  private Future<List<String>> getOpenForReadAcqUnitIds(RequestContext requestContext) {
     return getAcquisitionsUnits("protectRead==false", 0, Integer.MAX_VALUE, requestContext)
-      .thenApply(units -> {
+      .map(units -> {
         List<String> ids = units.getAcquisitionsUnits()
           .stream()
           .map(AcquisitionsUnit::getId)

@@ -1,11 +1,10 @@
 package org.folio.services;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -15,7 +14,6 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,30 +21,37 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.ExpenseClassCollection;
+import org.folio.rest.util.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.vertx.core.Future;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+
+@ExtendWith(VertxExtension.class)
 public class ExpenseClassServiceTest {
 
   @InjectMocks
   private ExpenseClassService expenseClassService;
 
   @Mock
-  private RestClient expenseClassClientMock;
+  private RestClient restClient;
 
   @Mock
   private RequestContext requestContext;
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
-  void getExpenseClassesByBudgetId() {
+  void getExpenseClassesByBudgetId(VertxTestContext vertxTestContext) {
 
     String budgetId = UUID.randomUUID().toString();
     List<ExpenseClass> expectedExpenseClasses = Collections.singletonList(new ExpenseClass()
@@ -57,21 +62,22 @@ public class ExpenseClassServiceTest {
       .withExpenseClasses(expectedExpenseClasses)
       .withTotalRecords(1);
 
-    when(expenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(expenseClassCollection));
+    when(restClient.get(anyString(), any(), any()))
+      .thenReturn(succeededFuture(expenseClassCollection));
 
-    CompletableFuture<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext);
+    Future<List<ExpenseClass>> future = expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        String expectedQuery =  String.format("budgetExpenseClass.budgetId==%s", budgetId);
+        verify(restClient).get(TestUtils.assertQueryContains(expectedQuery), eq(ExpenseClassCollection.class), eq(requestContext));
+        assertEquals(expectedExpenseClasses, result.result());
 
-    String expectedQuery =  String.format("budgetExpenseClass.budgetId==%s", budgetId);
-    verify(expenseClassClientMock).get(eq(expectedQuery), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(ExpenseClassCollection.class));
-
-    List<ExpenseClass> resultBudgetExpenseClasses = resultFuture.join();
-    assertEquals(expectedExpenseClasses, resultBudgetExpenseClasses);
-
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void getExpenseClassesByBudgetIdsInChunks() {
+  void getExpenseClassesByBudgetIdsInChunks(VertxTestContext vertxTestContext) {
 
     List<String> budgetIds = Stream.generate(() -> UUID.randomUUID().toString())
       .limit(40)
@@ -85,16 +91,20 @@ public class ExpenseClassServiceTest {
       .withExpenseClasses(expectedExpenseClasses)
       .withTotalRecords(1);
 
-    when(expenseClassClientMock.get(anyString(), anyInt(), anyInt(), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(expenseClassCollection));
+    when(restClient.get(anyString(), any(), any()))
+      .thenReturn(succeededFuture(expenseClassCollection));
 
-    CompletableFuture<List<ExpenseClass>> resultFuture = expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
+    Future<List<ExpenseClass>> future = expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
 
-    List<ExpenseClass> expenseClasses = resultFuture.join();
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertThat(result.result(), hasSize(1));
 
-    assertThat(expenseClasses, hasSize(1));
+        verify(restClient, times(3)).get(anyString(), any(), any());
 
-    verify(expenseClassClientMock, times(3)).get(anyString(), anyInt(), anyInt(), any(), any());
+        vertxTestContext.completeNow();
+      });
+
   }
 
 }

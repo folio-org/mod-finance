@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -18,11 +19,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
 import org.folio.ApiTestSuite;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
@@ -37,6 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import io.vertx.core.Future;
 
 public class LedgerRolloverApiTest {
 
@@ -65,10 +68,10 @@ public class LedgerRolloverApiTest {
   void shouldReturnLedgerRolloverCollectionWhenCallGetAndRolloverServiceReturnLedgerRollover() {
     LedgerFiscalYearRolloverCollection ledgerRollovers = new LedgerFiscalYearRolloverCollection()
       .withTotalRecords(1)
-      .withLedgerFiscalYearRollovers(Arrays.asList(new LedgerFiscalYearRollover()));
+      .withLedgerFiscalYearRollovers(List.of(new LedgerFiscalYearRollover()));
 
     when(mockLedgerRolloverService.retrieveLedgerRollovers(any(), anyInt(), anyInt(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerRollovers));
+      .thenReturn(succeededFuture(ledgerRollovers));
 
     // When call getFinanceLedgerRollovers successfully
     LedgerFiscalYearRolloverCollection rolloverCollection = verifyGet(TestEntities.LEDGER_ROLLOVER.getEndpoint(), APPLICATION_JSON,
@@ -83,8 +86,7 @@ public class LedgerRolloverApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverServiceReturnError() {
 
-    CompletableFuture<LedgerFiscalYearRolloverCollection> errorFuture = new CompletableFuture<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverService.retrieveLedgerRollovers(any(), anyInt(), anyInt(), any()))
       .thenReturn(errorFuture);
@@ -105,7 +107,7 @@ public class LedgerRolloverApiTest {
     String ledgerRolloverId = UUID.randomUUID().toString();
 
     when(mockLedgerRolloverService.retrieveLedgerRolloverById(anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
 
     // When call getFinanceLedgerRolloversById successfully
     LedgerFiscalYearRollover ledgerRollover = verifyGet(TestEntities.LEDGER_ROLLOVER.getEndpointWithId(ledgerRolloverId),
@@ -122,8 +124,7 @@ public class LedgerRolloverApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    CompletableFuture<LedgerFiscalYearRollover> errorFuture = new CompletableFuture<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRollover> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverService.retrieveLedgerRolloverById(anyString(), any()))
       .thenReturn(errorFuture);
@@ -149,8 +150,8 @@ public class LedgerRolloverApiTest {
       .withToFiscalYearId(UUID.randomUUID().toString())
       .withFromFiscalYearId(UUID.randomUUID().toString());
 
-    when(mockLedgerRolloverService.createLedger(any(LedgerFiscalYearRollover.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
+    when(mockLedgerRolloverService.createLedgerFyRollover(any(LedgerFiscalYearRollover.class), any()))
+      .thenReturn(succeededFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
 
     // When call postFinanceLedgerRollover successfully
     LedgerFiscalYearRollover ledgerRollover = verifyPostResponse(TestEntities.LEDGER_ROLLOVER.getEndpoint(), ledgerFiscalYearRollover,
@@ -169,8 +170,8 @@ public class LedgerRolloverApiTest {
     LedgerFiscalYearRollover ledgerFiscalYearRollover = new LedgerFiscalYearRollover()
       .withId(ledgerRolloverId);
 
-    when(mockLedgerRolloverService.createLedger(any(LedgerFiscalYearRollover.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
+    when(mockLedgerRolloverService.createLedgerFyRollover(any(LedgerFiscalYearRollover.class), any()))
+      .thenReturn(succeededFuture(new LedgerFiscalYearRollover().withId(ledgerRolloverId)));
 
     // When call postFinanceLedgerRollover without required parameters
     Errors errors = verifyPostResponse(TestEntities.LEDGER_ROLLOVER.getEndpoint(), ledgerFiscalYearRollover,

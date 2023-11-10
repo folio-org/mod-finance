@@ -720,8 +720,6 @@ public class FundsApiTest {
   }
 
   private void verifyCurrentFYQuery(FiscalYear fiscalYearOne) {
-  //  LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
-  //  String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, fiscalYearOne.getSeries(), now);
     String query = getQueryParams(FISCAL_YEAR.name()).get(0);
     String now = LocalDate.now(Clock.systemUTC()).toString();
     assertThat(query, containsString(fiscalYearOne.getSeries()));

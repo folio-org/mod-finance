@@ -2,13 +2,14 @@ package org.folio.services.budget;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,8 @@ import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.CommonTransactionService;
 
+import io.vertx.core.Future;
+
 public class BudgetExpenseClassTotalsService {
 
   private final RestClient restClient;
@@ -45,13 +48,13 @@ public class BudgetExpenseClassTotalsService {
     this.budgetExpenseClassService = budgetExpenseClassService;
   }
 
-  public CompletableFuture<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
-    return restClient.getById(budgetId, requestContext, Budget.class)
-      .thenCompose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
-        .thenCompose(expenseClasses -> transactionService.retrieveTransactions(budget, requestContext)
-        .thenApply(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
-      .thenCompose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
-        .thenApply(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));
+  public Future<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetId), Budget.class, requestContext)
+      .compose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
+        .compose(expenseClasses -> transactionService.retrieveTransactions(budget, requestContext)
+        .map(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
+      .compose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
+        .map(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));
   }
 
   private BudgetExpenseClassTotalsCollection buildBudgetExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions, Budget budget) {

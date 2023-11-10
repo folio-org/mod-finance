@@ -1,34 +1,23 @@
 package org.folio.rest.util;
 
-import io.vertx.core.json.JsonObject;
-import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
-import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
-import org.folio.rest.tools.parser.JsonPathParser;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestUtils.getMockData;
 
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.TestUtils.getMockData;
+import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
+import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
+import org.folio.rest.tools.parser.JsonPathParser;
+
+import io.vertx.core.json.JsonObject;
 
 public enum EntityForTest {
   FUND_CODE_EXPENSE_CLASS("fundCodeExpenseClass", getEndpoint(FinanceFundCodesExpenseClasses.class),
     FundCodeExpenseClassesCollection.class, "mockdata/finance/fund-codes-expense-class.json",
     "fund-codes-expense-class[0]", "name", "Updated name", 5, "allocated");
 
-  EntityForTest(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
-               Object updatedFieldValue, int collectionQuantity) {
-    this.name = name;
-    this.endpoint = endpoint;
-    this.clazz = clazz;
-    this.jsonPathToObject = jsonPathToSample;
-    this.pathToFileWithData = pathToSamples;
-    this.updatedFieldName = updatedFieldName;
-    this.updatedFieldValue = updatedFieldValue;
-    this.collectionQuantity = collectionQuantity;
-  }
-
-  EntityForTest(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  EntityForTest(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity, String ignoreProperties) {
     this.name = name;
     this.endpoint = endpoint;
@@ -42,14 +31,14 @@ public enum EntityForTest {
   }
 
   private final String name;
-  private int collectionQuantity;
-  private String endpoint;
-  private String jsonPathToObject;
-  private String pathToFileWithData;
-  private String updatedFieldName;
+  private final int collectionQuantity;
+  private final String endpoint;
+  private final String jsonPathToObject;
+  private final String pathToFileWithData;
+  private final String updatedFieldName;
   private String ignoreProperties;
-  private Object updatedFieldValue;
-  private Class clazz;
+  private final Object updatedFieldValue;
+  private final Class<?> clazz;
 
   public String getEndpoint() {
     return endpoint;

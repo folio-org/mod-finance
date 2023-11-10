@@ -1,10 +1,19 @@
 package org.folio.services.fund;
 
+import static io.vertx.core.Future.succeededFuture;
+import static java.util.stream.Collectors.toList;
+import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.completablefuture.FolioVertxCompletableFuture;
+import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -18,14 +27,7 @@ import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import static java.util.stream.Collectors.toList;
-import static org.folio.rest.util.ErrorCodes.CURRENT_BUDGET_NOT_FOUND;
+import io.vertx.core.Future;
 
 public class FundDetailsService {
   private static final Logger logger = LogManager.getLogger(FundDetailsService.class);
@@ -48,23 +50,20 @@ public class FundDetailsService {
     this.fiscalYearService = fiscalYearService;
   }
 
-  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
+  public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
                                                          RequestContext rqContext) {
-    CompletableFuture<Budget> future = new CompletableFuture<>();
-    retrieveCurrentBudget(fundId, budgetStatus, rqContext).thenApply(future::complete)
-      .exceptionally(t -> {
-        logger.error("Failed to retrieve current budget", t.getCause());
+    return retrieveCurrentBudget(fundId, budgetStatus, rqContext)
+      .recover(t -> {
+        logger.error("Failed to retrieve current budget for fundId: {}", fundId, t);
         if (skipThrowException) {
-          future.complete(null);
+          return Future.succeededFuture();
         } else {
-          future.completeExceptionally(t.getCause());
+          return Future.failedFuture(t);
         }
-        return null;
       });
-    return future;
   }
 
-  public CompletableFuture<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
+  public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, RequestContext rqContext) {
     return retrieveBudget(fundId, null, budgetStatus, rqContext);
   }
 
@@ -78,12 +77,12 @@ public class FundDetailsService {
    * @param rqContext    the request context
    * @return budget completable future
    */
-  public CompletableFuture<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
-    CompletableFuture<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
+  public Future<Budget> retrieveBudget(String fundId, String fiscalYearId, String budgetStatus, RequestContext rqContext) {
+    Future<FiscalYear> fiscalYear = StringUtils.isNotEmpty(fiscalYearId) ? fiscalYearService
       .getFiscalYearById(fiscalYearId, rqContext) : fundFiscalYearService.retrieveCurrentFiscalYear(fundId, rqContext);
-    return fiscalYear.thenApply(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
-      .thenCompose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
-      .thenApply(this::getFirstBudget);
+    return fiscalYear.map(fundFY -> buildBudgetQuery(fundId, budgetStatus, fundFY.getId()))
+      .compose(activeBudgetQuery -> budgetService.getBudgets(activeBudgetQuery, 0, Integer.MAX_VALUE, rqContext))
+      .map(this::getFirstBudget);
   }
 
   /**
@@ -96,35 +95,28 @@ public class FundDetailsService {
    * @param rqContext    the request context
    * @return expense classes completable future
    */
-  public CompletableFuture<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
-                                                                      String budgetStatus, RequestContext rqContext) {
-    CompletableFuture<List<ExpenseClass>> future = new FolioVertxCompletableFuture<>(rqContext.getContext());
-    retrieveBudget(fundId, fiscalYearId, null, rqContext).thenCompose(budget -> {
-      logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",
-        budget.getId(), fundId);
-      return retrieveBudgetExpenseClasses(budget, rqContext).thenCombine(
-        getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext),
-        (expenseClasses, budgetExpenseClassIds) -> expenseClasses.stream()
-          .filter(expenseClass -> budgetExpenseClassIds.contains(expenseClass.getId()))
-          .collect(toList()));
+  public Future<List<ExpenseClass>> retrieveExpenseClasses(String fundId, String fiscalYearId,
+                                                           String budgetStatus, RequestContext rqContext) {
+
+    return retrieveBudget(fundId, fiscalYearId, null, rqContext)
+      .compose(budget -> {
+        logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
+        var expenseClasses = getExpenseClasses(budget, rqContext);
+        var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
+
+        return GenericCompositeFuture.join(List.of(expenseClasses, budgetExpenseClassIds))
+          .map(cf -> expenseClasses.result().stream()
+            .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
+            .collect(toList()));
       })
-      .thenAccept(expenseClasses -> {
-        logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ",
-          fundId, expenseClasses.size());
-        future.complete(expenseClasses);
-      })
-      .exceptionally(t -> {
-        logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t.getCause());
-        future.completeExceptionally(t);
-        return null;
-      });
-    return future;
+      .onSuccess(expenseClasses -> logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
+      .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
   }
 
-  private CompletableFuture<List<ExpenseClass>> retrieveBudgetExpenseClasses(Budget budget, RequestContext rqContext) {
+  private Future<List<ExpenseClass>> getExpenseClasses(Budget budget, RequestContext rqContext) {
     return Optional.ofNullable(budget)
       .map(budgetP -> expenseClassService.getExpenseClassesByBudgetId(budgetP.getId(), rqContext))
-      .orElse(CompletableFuture.completedFuture(Collections.emptyList()));
+      .orElse(succeededFuture(Collections.emptyList()));
   }
 
   private Budget getFirstBudget(BudgetsCollection budgetsCollection) {
@@ -135,9 +127,9 @@ public class FundDetailsService {
       .orElseThrow(() -> new HttpException(404, CURRENT_BUDGET_NOT_FOUND.toError()));
   }
 
-  private CompletableFuture<List<String>> getBudgetExpenseClassIds(String budgetId, String status, RequestContext rqContext) {
+  private Future<List<String>> getBudgetExpenseClassIds(String budgetId, String status, RequestContext rqContext) {
     return budgetExpenseClassService.getBudgetExpenseClasses(budgetId, rqContext)
-      .thenApply(expenseClasses -> expenseClasses.stream()
+      .map(expenseClasses -> expenseClasses.stream()
         .filter(budgetExpenseClass -> isBudgetExpenseClassWithStatus(budgetExpenseClass, status))
         .map(BudgetExpenseClass::getExpenseClassId)
         .collect(toList()));

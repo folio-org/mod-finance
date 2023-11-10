@@ -1,9 +1,14 @@
 package org.folio.rest.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.HelperUtils.OKAPI_URL;
+import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
@@ -12,13 +17,10 @@ import org.folio.services.ledger.LedgerRolloverErrorsService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.ws.rs.core.Response;
-import java.util.Map;
-
-import static io.vertx.core.Future.succeededFuture;
-import static org.folio.rest.util.HelperUtils.OKAPI_URL;
-import static org.folio.rest.util.ResourcePathResolver.LEDGER_ROLLOVERS_ERRORS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 
 public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRolloversErrors {
 
@@ -35,8 +37,8 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.getLedgerRolloverErrors(query, offset, limit, accept, requestContext)
-      .thenAccept(rolloverErrors -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverErrors))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(rolloverErrors -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverErrors))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -45,10 +47,10 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
       Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.createLedgerRolloverError(entity, requestContext)
-      .thenAccept(rolloverError -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(
+      .onSuccess(rolloverError -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(
         okapiHeaders.get(OKAPI_URL), resourceByIdPath(LEDGER_ROLLOVERS_ERRORS_STORAGE, rolloverError.getId()),
         rolloverError))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -57,7 +59,7 @@ public class LedgerRolloversErrorsApi extends BaseApi implements FinanceLedgerRo
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     RequestContext requestContext = new RequestContext(vertxContext, okapiHeaders);
     ledgerRolloverErrorsService.deleteLedgerRolloverError(id, requestContext)
-      .thenAccept(rolloverError -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(rolloverError -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 }

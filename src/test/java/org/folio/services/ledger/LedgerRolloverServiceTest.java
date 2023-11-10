@@ -1,39 +1,50 @@
 package org.folio.services.ledger;
 
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverCollection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
-@ExtendWith(MockitoExtension.class)
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+
+@ExtendWith(VertxExtension.class)
 public class LedgerRolloverServiceTest {
 
   @InjectMocks
   private LedgerRolloverService ledgerRolloverService;
 
   @Mock
-  private RestClient ledgerRolloverRestClientMock;
+  private RestClient restClient;
+
+  @BeforeEach
+  public void initMocks() {
+    MockitoAnnotations.openMocks(this);
+  }
 
   @Test
-  void shouldCallPostForRestClientWhenCalledCreateLedgerRollover() {
+  void shouldCallPostForRestClientWhenCalledCreateLedgerRollover(VertxTestContext vertxTestContext) {
     // Given
     LedgerFiscalYearRollover ledgerFiscalYearRollover = new LedgerFiscalYearRollover()
       .withId(UUID.randomUUID().toString())
@@ -42,48 +53,60 @@ public class LedgerRolloverServiceTest {
       .withToFiscalYearId(UUID.randomUUID().toString());
 
     // When
-    when(ledgerRolloverRestClientMock.post(any(LedgerFiscalYearRollover.class), any(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerFiscalYearRollover));
+    when(restClient.post(anyString(), any(LedgerFiscalYearRollover.class), any(), any()))
+      .thenReturn(succeededFuture(ledgerFiscalYearRollover));
 
-    LedgerFiscalYearRollover ledgerRollover = ledgerRolloverService
-      .createLedger(ledgerFiscalYearRollover, mock(RequestContext.class)).join();
-    // Then
-    assertThat(ledgerRollover, hasProperty("id"));
-    assertThat(ledgerRollover, hasProperty("ledgerId"));
-    assertThat(ledgerRollover, hasProperty("toFiscalYearId"));
-    assertThat(ledgerRollover, hasProperty("fromFiscalYearId"));
-    verify(ledgerRolloverRestClientMock).post(eq(ledgerFiscalYearRollover), any(RequestContext.class), eq(LedgerFiscalYearRollover.class));
+    var future = ledgerRolloverService.createLedgerFyRollover(ledgerFiscalYearRollover, new RequestContext(Vertx.currentContext(), new HashMap<>()));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var ledgerRollover = result.result();
+        assertThat(ledgerRollover, hasProperty("id"));
+        assertThat(ledgerRollover, hasProperty("ledgerId"));
+        assertThat(ledgerRollover, hasProperty("toFiscalYearId"));
+        assertThat(ledgerRollover, hasProperty("fromFiscalYearId"));
+        verify(restClient).post(anyString(), eq(ledgerFiscalYearRollover), eq(LedgerFiscalYearRollover.class), any(RequestContext.class));
+
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void shouldCallGetForRestClientWhenCalledRetrieveLedgerRollovers() {
+  void shouldCallGetForRestClientWhenCalledRetrieveLedgerRollovers(VertxTestContext vertxTestContext) {
     // Given
     String query = "query";
     int offset = 0;
     int limit = 0;
 
     // When
-    when(ledgerRolloverRestClientMock.get(anyString(), anyInt(), anyInt(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverCollection()));
+    when(restClient.get(anyString(), any(), any(RequestContext.class)))
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverCollection()));
 
-    ledgerRolloverService.retrieveLedgerRollovers(query, offset, limit, mock(RequestContext.class)).join();
+    var future = ledgerRolloverService.retrieveLedgerRollovers(query, offset, limit, new RequestContext(Vertx.currentContext(), new HashMap<>()));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
 
-    // Then
-    verify(ledgerRolloverRestClientMock).get(eq(query), eq(offset), eq(limit), any(RequestContext.class), eq(LedgerFiscalYearRolloverCollection.class));
+        verify(restClient).get(assertQueryContains(query), eq(LedgerFiscalYearRolloverCollection.class),
+            any(RequestContext.class));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void shouldCallGetByIdForRestClientWhenCalledRetrieveLedgerRolloverById() {
+  void shouldCallGetByIdForRestClientWhenCalledRetrieveLedgerRolloverById(VertxTestContext vertxTestContext) {
     // Given
     String id = UUID.randomUUID().toString();
 
-    // When
-    when(ledgerRolloverRestClientMock.getById(anyString(), any(RequestContext.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRollover()));
+    when(restClient.get(anyString(), eq(LedgerFiscalYearRollover.class), any()))
+      .thenReturn(succeededFuture(new LedgerFiscalYearRollover()));
 
-    ledgerRolloverService.retrieveLedgerRolloverById(id,  mock(RequestContext.class)).join();
-
-    // Then
-    verify(ledgerRolloverRestClientMock).getById(eq(id), any(RequestContext.class), eq(LedgerFiscalYearRollover.class));
+    var future = ledgerRolloverService.retrieveLedgerRolloverById(id, new RequestContext(Vertx.currentContext(), new HashMap<>()));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        verify(restClient).get(assertQueryContains(id), eq(LedgerFiscalYearRollover.class), any());
+        vertxTestContext.completeNow();
+      });
   }
 }

@@ -49,9 +49,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
 
     RequestContext requestContext = new RequestContext(ctx, headers);
     createBudgetService.createBudget(budget, requestContext)
-      .thenAccept(createdBudget -> handler.handle(
-          succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(createdBudget -> handler.handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -60,8 +59,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     budgetService.getBudgets(query, offset, limit, new RequestContext(ctx, headers))
-      .thenAccept(budgets -> handler.handle(succeededFuture(buildOkResponse(budgets))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(budgets -> handler.handle(succeededFuture(buildOkResponse(budgets))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
 
   }
 
@@ -80,8 +79,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
     }
 
     budgetService.updateBudget(budget, new RequestContext(ctx, headers))
-      .thenAccept(v -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
 
   }
 
@@ -91,8 +90,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       Context ctx) {
 
     budgetService.getBudgetById(id, new RequestContext(ctx, headers))
-      .thenAccept(budget -> handler.handle(succeededFuture(buildOkResponse(budget))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(budget -> handler.handle(succeededFuture(buildOkResponse(budget))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
 
   }
 
@@ -102,16 +101,16 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       Context ctx) {
 
     budgetService.deleteBudget(id, new RequestContext(ctx, headers))
-      .thenAccept(v -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
 
   }
 
   @Override
   public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
 }
