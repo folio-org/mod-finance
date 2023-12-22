@@ -6,27 +6,15 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.folio.rest.RestVerticle.OKAPI_HEADER_TENANT;
-import static org.folio.rest.impl.FundsApiTest.X_CONFIG_HEADER_NAME;
+import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_FIRST_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_DIFFERENT_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_SAME_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_FIRST_DIF_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_SECOND_DIF_GROUP;
-import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
 import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTION_ID;
-import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
-import static org.folio.rest.util.TestConstants.BAD_QUERY;
-import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
-import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.ERROR_TENANT;
-import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
-import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
-import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
-import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
-import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
-import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.rest.impl.BudgetsApiTest.BUDGET_WITH_BOUNDED_TRANSACTION_ID;
+import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
@@ -37,10 +25,21 @@ import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
+import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import static org.folio.rest.util.TestConstants.BAD_QUERY;
+import static org.folio.rest.util.TestConstants.BASE_MOCK_DATA_PATH;
+import static org.folio.rest.util.TestConstants.EMPTY_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.ERROR_TENANT;
+import static org.folio.rest.util.TestConstants.ID_DOES_NOT_EXIST;
+import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
+import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
+import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
+import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
+import static org.folio.rest.util.TestUtils.getMockData;
 import static org.folio.services.configuration.ConfigurationEntriesService.SYSTEM_CONFIG_MODULE_NAME;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -51,13 +50,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -74,9 +73,9 @@ import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.Group;
+import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
-import org.folio.rest.jaxrs.model.GroupsCollection;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
@@ -87,6 +86,7 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -110,8 +110,8 @@ public class MockServer {
   private final int port;
   private final Vertx vertx;
 
-  public static Table<String, HttpMethod, List<JsonObject>> serverRqRs = HashBasedTable.create();
-  public static HashMap<String, List<String>> serverRqQueries = new HashMap<>();
+  public static final Table<String, HttpMethod, List<JsonObject>> serverRqRs = HashBasedTable.create();
+  public static final HashMap<String, List<String>> serverRqQueries = new HashMap<>();
 
   public MockServer(int port) {
     this.port = port;
@@ -121,16 +121,16 @@ public class MockServer {
   public void start() throws InterruptedException, ExecutionException, TimeoutException {
     // Setup Mock Server...
     HttpServer server = vertx.createHttpServer();
-    CompletableFuture<HttpServer> deploymentComplete = new CompletableFuture<>();
+    Promise<HttpServer> deploymentComplete = Promise.promise();
     server.requestHandler(defineRoutes()).listen(port, result -> {
-      if(result.succeeded()) {
+      if (result.succeeded()) {
         deploymentComplete.complete(result.result());
-      }
-      else {
-        deploymentComplete.completeExceptionally(result.cause());
+      } else {
+        deploymentComplete.fail(result.cause());
       }
     });
-    deploymentComplete.get(60, TimeUnit.SECONDS);
+
+    deploymentComplete.future().toCompletionStage().toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
   public void close() {
@@ -558,7 +558,7 @@ public class MockServer {
   private JsonObject getGroupByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Group>> getFromFile = () -> {
       try {
-        return new JsonObject(getMockData(TestEntities.GROUP.getPathToFileWithData())).mapTo(GroupsCollection.class)
+        return new JsonObject(getMockData(TestEntities.GROUP.getPathToFileWithData())).mapTo(GroupCollection.class)
           .getGroups();
       } catch (IOException e) {
         return Collections.emptyList();
@@ -573,7 +573,7 @@ public class MockServer {
 
     Object record;
     if (isCollection) {
-      record = new GroupsCollection().withGroups(groups).withTotalRecords(groups.size());
+      record = new GroupCollection().withGroups(groups).withTotalRecords(groups.size());
     } else if (!groups.isEmpty()) {
       record = groups.get(0);
     } else {
@@ -649,28 +649,18 @@ public class MockServer {
   }
 
   private JsonObject getEntries(TestEntities testEntity, List<String> ids, boolean isCollection) {
-    switch (testEntity) {
-    case BUDGET:
-      return getBudgetsByIds(ids, isCollection);
-    case FUND:
-      return getFundsByIds(ids, isCollection);
-    case FISCAL_YEAR:
-      return getFiscalYearsByIds(ids, isCollection);
-    case FUND_TYPE:
-      return getFundTypesByIds(ids, isCollection);
-    case GROUP_FUND_FISCAL_YEAR:
-      return getGroupFundFiscalYearsByIds(ids, isCollection);
-    case LEDGER:
-      return getLedgersByIds(ids, isCollection);
-    case GROUP:
-      return getGroupByIds(ids, isCollection);
-    case TRANSACTIONS:
-      return getTransactionsByIds(ids, isCollection);
-    case EXPENSE_CLASSES:
-        return getExpenseClassesByIds(ids, isCollection);
-    default:
-      throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
-    }
+    return switch (testEntity) {
+      case BUDGET -> getBudgetsByIds(ids, isCollection);
+      case FUND -> getFundsByIds(ids, isCollection);
+      case FISCAL_YEAR -> getFiscalYearsByIds(ids, isCollection);
+      case FUND_TYPE -> getFundTypesByIds(ids, isCollection);
+      case GROUP_FUND_FISCAL_YEAR -> getGroupFundFiscalYearsByIds(ids, isCollection);
+      case LEDGER -> getLedgersByIds(ids, isCollection);
+      case GROUP -> getGroupByIds(ids, isCollection);
+      case TRANSACTIONS -> getTransactionsByIds(ids, isCollection);
+      case EXPENSE_CLASSES -> getExpenseClassesByIds(ids, isCollection);
+      default -> throw new IllegalArgumentException(testEntity.name() + " entity is unknown");
+    };
   }
 
   private String resourceByIdPath(String field) {
@@ -678,20 +668,20 @@ public class MockServer {
   }
 
   private <T> void handleTransactionPutEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request()
       .getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
       serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID()
           .toString());
       }
       T entry = body.mapTo(tClass);
-      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
 
       if (ID_DOES_NOT_EXIST.equals(t.getId())) {
         serverResponse(ctx, 404, APPLICATION_JSON, t.getId());
@@ -712,20 +702,20 @@ public class MockServer {
   }
 
   private <T> void handleTransactionPostEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request()
       .getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
       serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID()
           .toString());
       }
       T entry = body.mapTo(tClass);
-      Transaction t = ctx.getBodyAsJson().mapTo(Transaction.class);
+      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
       if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
         addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name(), body);
       } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
@@ -746,7 +736,7 @@ public class MockServer {
   }
 
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {
-    logger.info("got: " + ctx.getBodyAsString());
+    logger.info("got: " + ctx.body().asString());
 
     String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT);
     if (ERROR_TENANT.equals(tenant)) {
@@ -756,13 +746,13 @@ public class MockServer {
         ",\"parameters\":[]}],\"total_records\":1}";
       List<JsonObject> rqRs = getRqRsEntries(HttpMethod.POST, entryName);
       JsonObject rsGroup = rqRs.get(0);
-      Group requestEntry = ctx.getBodyAsJson().mapTo(Group.class);
+      Group requestEntry = ctx.body().asJsonObject().mapTo(Group.class);
       Group dbEntry = rsGroup.mapTo(Group.class);
       if (requestEntry.getId().equals(dbEntry.getId())) {
         serverResponse(ctx, 400, APPLICATION_JSON, constraintStorageError);
       }
     } else {
-      JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.body().asJsonObject();
       if (body.getString(ID) == null) {
         body.put(ID, UUID.randomUUID().toString());
       }
@@ -794,9 +784,9 @@ public class MockServer {
   }
 
   private void handlePutGenericSubObj(RoutingContext ctx, String subObj) {
-    logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path());
+    logger.info("handlePutGenericSubObj got: PUT {} for {}", ctx.request().path(), subObj);
     String id = ctx.request().getParam(ID);
-    addServerRqRsData(HttpMethod.PUT, subObj, ctx.getBodyAsJson());
+    addServerRqRsData(HttpMethod.PUT, subObj, ctx.body().asJsonObject());
 
     if (ID_DOES_NOT_EXIST.equals(id)) {
       serverResponse(ctx, 404, APPLICATION_JSON, id);
@@ -855,7 +845,7 @@ public class MockServer {
   private List<String> extractIdsFromQuery(String fieldName, String relation, String query) {
     Matcher matcher = Pattern.compile(".*" + fieldName + relation + "\\(?([^)]+).*").matcher(query);
     if (matcher.find()) {
-      return StreamEx.split(matcher.group(1), " or ").toList();
+      return StreamEx.split(matcher.group(1), " or ").collect(Collectors.toList());
     } else {
       return Collections.emptyList();
     }
@@ -864,7 +854,6 @@ public class MockServer {
   private void handleConfigurationModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
-      String orgConfig = ctx.request().getHeader(X_CONFIG_HEADER_NAME) ;
 
       String fileName = StringUtils.EMPTY;
       if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {

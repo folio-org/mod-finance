@@ -2,12 +2,10 @@ package org.folio.rest.util;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.logging.log4j.LogManager;
 import org.folio.rest.RestVerticle;
 import org.folio.rest.tools.utils.NetworkUtils;
 import org.folio.spring.SpringContextUtil;
@@ -17,6 +15,7 @@ import io.restassured.http.Header;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Promise;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
@@ -41,16 +40,15 @@ public final class TestConfig {
     conf.put("http.port", okapiPort);
 
     final DeploymentOptions opt = new DeploymentOptions().setConfig(conf);
-    CompletableFuture<String> deploymentComplete = new CompletableFuture<>();
+    Promise<String> deploymentComplete = Promise.promise();
     vertx.deployVerticle(RestVerticle.class.getName(), opt, res -> {
-      if(res.succeeded()) {
+      if (res.succeeded()) {
         deploymentComplete.complete(res.result());
-      }
-      else {
-        deploymentComplete.completeExceptionally(res.cause());
+      } else {
+        deploymentComplete.fail(res.cause());
       }
     });
-    deploymentComplete.get(60, TimeUnit.SECONDS);
+    deploymentComplete.future().toCompletionStage().toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
   public static void initSpringContext(Class<?> defaultConfiguration) {

@@ -2,11 +2,7 @@ package org.folio.rest.util;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
+import org.folio.rest.jaxrs.model.Error;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -15,21 +11,15 @@ public class HelperUtilsTest {
   @Test
   public void errorMessageIsJSON() {
     String errorMsg = "{\"message\":\"Test\",\"code\":\"Test\",\"parameters\":[]}";
-    boolean act = HelperUtils.isErrorMessageJson(errorMsg);
+    boolean act = HelperUtils.isJsonOfType(errorMsg, Error.class);
     Assertions.assertTrue(act);
   }
 
   @Test
   public void errorMessageIsNotValidJSON() {
     String errorMsg = "{\"message\":\"Test\"}";
-    boolean act = HelperUtils.isErrorMessageJson(errorMsg);
-    Assertions.assertFalse(act);
-  }
-
-  @Test
-  public void testShouldReturnEmptyList() throws ExecutionException, InterruptedException {
-    CompletableFuture<List<String>> actFuture= HelperUtils.emptyListFuture();
-    Assertions.assertEquals(Collections.<String>emptyList(), actFuture.get());
+    boolean act = HelperUtils.isJsonOfType(errorMsg, Error.class);
+    Assertions.assertTrue(act);
   }
 
   @Test

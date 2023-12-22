@@ -1,28 +1,6 @@
 package org.folio.rest.impl;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.ApiTestSuite;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
-import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
-import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
-import org.folio.rest.util.RestTestUtils;
-import org.folio.services.fund.FundCodeExpenseClassesService;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.EntityForTest.FUND_CODE_EXPENSE_CLASS;
@@ -39,6 +17,28 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.folio.ApiTestSuite;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
+import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
+import org.folio.rest.jaxrs.resource.FinanceFundCodesExpenseClasses;
+import org.folio.rest.util.RestTestUtils;
+import org.folio.services.fund.FundCodeExpenseClassesService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 
 public class FundCodeExpenseClassesApiTest {
 
@@ -91,7 +91,7 @@ public class FundCodeExpenseClassesApiTest {
     fundCodeExpenseClassesCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpClassesTypeList);
 
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(fiscalYearCode), any()))
-      .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
+      .thenReturn(succeededFuture(fundCodeExpenseClassesCollection));
 
     FundCodeExpenseClassesCollection resultFundCodeCollection = verifyGetWithParam(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode(), "fiscalYearCode", fiscalYearCode).as(FundCodeExpenseClassesCollection.class);
@@ -113,7 +113,7 @@ public class FundCodeExpenseClassesApiTest {
     fundCodeExpenseClassesCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpClassesTypeList);
 
     when(fundCodeExpenseClassesService.retrieveCombinationFundCodeExpClasses(eq(null), any()))
-      .thenReturn(CompletableFuture.completedFuture(fundCodeExpenseClassesCollection));
+      .thenReturn(succeededFuture(fundCodeExpenseClassesCollection));
 
     FundCodeExpenseClassesCollection resultFundCodeCollection = RestTestUtils.verifyGet(FUND_CODE_EXPENSE_CLASS.getEndpoint(FinanceFundCodesExpenseClasses.class),
       APPLICATION_JSON, OK.getStatusCode()).as(FundCodeExpenseClassesCollection.class);

@@ -1,6 +1,32 @@
 package org.folio.services.fiscalyear;
 
-import org.apache.commons.collections4.CollectionUtils;
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
+import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -14,41 +40,23 @@ import org.folio.services.budget.BudgetService;
 import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import io.vertx.core.Future;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.folio.rest.util.ErrorCodes.FISCAL_YEARS_NOT_FOUND;
-import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+@ExtendWith(VertxExtension.class)
 public class FiscalYearServiceTest {
 
     @InjectMocks
     private FiscalYearService fiscalYearService;
 
     @Mock
-    private RestClient fiscalYearRestClient;
+    private RestClient restClient;
 
     @Mock
     private BudgetService budgetService;
@@ -65,7 +73,7 @@ public class FiscalYearServiceTest {
     }
 
     @Test
-    void shouldRetrieveBudgetsAndSumBudgetsTotalsWhenWithFinancialSummaryTrue() {
+    void shouldRetrieveBudgetsAndSumBudgetsTotalsWhenWithFinancialSummaryTrue(VertxTestContext vertxTestContext) {
 
         String fiscalYearId = UUID.randomUUID().toString();
 
@@ -105,30 +113,36 @@ public class FiscalYearServiceTest {
 
         BudgetsCollection budgetCollection = new BudgetsCollection().withBudgets(Arrays.asList(budget1, budget2));
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
-        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+        when(restClient.get(eq(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYearId)), eq(FiscalYear.class), eq(requestContext)))
+          .thenReturn(succeededFuture(fiscalYear));
+        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
-        FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext).join();
+        var future = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext);
 
-        FinancialSummary summary = resultFY.getFinancialSummary();
-        assertNotNull(summary);
-        assertEquals(0.06, summary.getInitialAllocation());
-        assertEquals(2.08, summary.getAllocationTo());
-        assertEquals(0.02, summary.getAllocationFrom());
-        assertEquals(2.12, summary.getAllocated());
-        assertEquals(0.22, summary.getAwaitingPayment());
-        assertEquals(0.94, summary.getEncumbered());
-        assertEquals(1.06, summary.getExpenditures());
-        assertEquals(2.22, summary.getUnavailable());
-        assertEquals(1.48, summary.getAvailable());
-        assertEquals(3.15, summary.getTotalFunding());
-        assertEquals(2.09, summary.getCashBalance());
-        assertEquals(0d, summary.getOverEncumbrance());
-        assertEquals(0.55, summary.getOverExpended());
+        vertxTestContext.assertComplete(future)
+          .onComplete(result -> {
+            FinancialSummary summary = result.result().getFinancialSummary();
+            assertNotNull(summary);
+            assertEquals(0.06, summary.getInitialAllocation());
+            assertEquals(2.08, summary.getAllocationTo());
+            assertEquals(0.02, summary.getAllocationFrom());
+            assertEquals(2.12, summary.getAllocated());
+            assertEquals(0.22, summary.getAwaitingPayment());
+            assertEquals(0.94, summary.getEncumbered());
+            assertEquals(1.06, summary.getExpenditures());
+            assertEquals(2.22, summary.getUnavailable());
+            assertEquals(1.48, summary.getAvailable());
+            assertEquals(3.15, summary.getTotalFunding());
+            assertEquals(2.09, summary.getCashBalance());
+            assertEquals(0d, summary.getOverEncumbrance());
+            assertEquals(0.55, summary.getOverExpended());
+            vertxTestContext.completeNow();
+          });
+
     }
 
     @Test
-    void shouldHasEmptyTotalsWhenNoBudgetsFound() {
+    void shouldHasEmptyTotalsWhenNoBudgetsFound(VertxTestContext vertxTestContext) {
 
         String fiscalYearId = UUID.randomUUID().toString();
 
@@ -136,46 +150,55 @@ public class FiscalYearServiceTest {
 
         BudgetsCollection budgetCollection = new BudgetsCollection();
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
-        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(CompletableFuture.completedFuture(budgetCollection));
+        when(restClient.get(eq(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYearId)), eq(FiscalYear.class), eq(requestContext)))
+          .thenReturn(succeededFuture(fiscalYear));
+        when(budgetService.getBudgets(eq("fiscalYearId==" + fiscalYearId), anyInt(), anyInt(), eq(requestContext))).thenReturn(succeededFuture(budgetCollection));
 
-        FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext).join();
+        var future = fiscalYearService.getFiscalYearById(fiscalYearId, true, requestContext);
 
-        FinancialSummary summary = resultFY.getFinancialSummary();
-        assertNotNull(summary);
-        assertEquals(0d, summary.getInitialAllocation());
-        assertEquals(0d, summary.getAllocationTo());
-        assertEquals(0d, summary.getAllocationFrom());
-        assertEquals(0d, summary.getAllocated());
-        assertEquals(0d, summary.getAwaitingPayment());
-        assertEquals(0d, summary.getEncumbered());
-        assertEquals(0d, summary.getExpenditures());
-        assertEquals(0d, summary.getUnavailable());
-        assertEquals(0d, summary.getAvailable());
-        assertEquals(0d, summary.getTotalFunding());
-        assertEquals(0d, summary.getCashBalance());
-        assertEquals(0d, summary.getOverEncumbrance());
-        assertEquals(0d, summary.getOverExpended());
+        vertxTestContext.assertComplete(future)
+        .onComplete(result -> {
+          FinancialSummary summary = result.result().getFinancialSummary();
+          assertNotNull(summary);
+          assertEquals(0d, summary.getInitialAllocation());
+          assertEquals(0d, summary.getAllocationTo());
+          assertEquals(0d, summary.getAllocationFrom());
+          assertEquals(0d, summary.getAllocated());
+          assertEquals(0d, summary.getAwaitingPayment());
+          assertEquals(0d, summary.getEncumbered());
+          assertEquals(0d, summary.getExpenditures());
+          assertEquals(0d, summary.getUnavailable());
+          assertEquals(0d, summary.getAvailable());
+          assertEquals(0d, summary.getTotalFunding());
+          assertEquals(0d, summary.getCashBalance());
+          assertEquals(0d, summary.getOverEncumbrance());
+          assertEquals(0d, summary.getOverExpended());
+          vertxTestContext.completeNow();
+        });
     }
 
     @Test
-    void shouldNotRetrieveBudgetsAndSumBudgetsTotalsWhenWithFinancialSummaryFalse() {
+    void shouldNotRetrieveBudgetsAndSumBudgetsTotalsWhenWithFinancialSummaryFalse(VertxTestContext vertxTestContext) {
 
         String fiscalYearId = UUID.randomUUID().toString();
 
         FiscalYear fiscalYear = new FiscalYear().withId(fiscalYearId);
 
-        when(fiscalYearRestClient.getById(eq(fiscalYearId), eq(requestContext), eq(FiscalYear.class))).thenReturn(CompletableFuture.completedFuture(fiscalYear));
+        when(restClient.get(eq(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYearId)), eq(FiscalYear.class), eq(requestContext)))
+          .thenReturn(succeededFuture(fiscalYear));
 
-        FiscalYear resultFY = fiscalYearService.getFiscalYearById(fiscalYearId, false, requestContext).join();
-
-        FinancialSummary summary = resultFY.getFinancialSummary();
-        assertNull(summary);
-        verify(budgetService, never()).getBudgets(any(), anyInt(), anyInt(), any());
+        var future = fiscalYearService.getFiscalYearById(fiscalYearId, false, requestContext);
+        vertxTestContext.assertComplete(future)
+          .onComplete(result -> {
+            FinancialSummary summary = result.result().getFinancialSummary();
+            assertNull(summary);
+            verify(budgetService, never()).getBudgets(any(), anyInt(), anyInt(), any());
+            vertxTestContext.completeNow();
+          });
     }
 
     @Test
-    void testGetFiscalYearByFiscalYearCode() {
+    void testGetFiscalYearByFiscalYearCode(VertxTestContext vertxTestContext) {
       FiscalYear fiscalYear = new FiscalYear()
         .withCode("FUND CODE");
       String fiscalYearCode = "FiscalCode";
@@ -185,61 +208,79 @@ public class FiscalYearServiceTest {
       FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
       fiscalYearsCollection.setTotalRecords(10);
       fiscalYearsCollection.setFiscalYears(fiscalYearList);
-      when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
-        .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
-      FiscalYear fiscalYear1 = checkFiscalYear(fiscalYearsCollection);
-      FiscalYear fiscalYearCodeRetrieve = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext).join();
-      assertEquals("FUND CODE", fiscalYearCodeRetrieve.getCode());
+      when(restClient.get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext)))
+        .thenReturn(succeededFuture(fiscalYearsCollection));
+
+      assertThat(fiscalYearsCollection.getFiscalYears(), is(not(empty())));
+
+      var future = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
+
+      vertxTestContext.assertComplete(future)
+        .onSuccess(result -> {
+          assertEquals("FUND CODE", future.result().getCode());
+
+          vertxTestContext.completeNow();
+        });
     }
 
   @Test
-  void testGetFiscalYearByFiscalYearCodeWithEmptyCollection() {
+  void testGetFiscalYearByFiscalYearCodeWithEmptyCollection(VertxTestContext vertxTestContext) {
     String fiscalYearCode = "FiscalCode";
     String query = getFiscalYearByFiscalYearCode(fiscalYearCode);
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection();
-    when(fiscalYearRestClient.get(eq(query), eq(0), eq(Integer.MAX_VALUE), eq(requestContext), eq(FiscalYearsCollection.class)))
-      .thenReturn(CompletableFuture.completedFuture(fiscalYearsCollection));
-    CompletableFuture<FiscalYear> result = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
-    CompletionException expectedException = assertThrows(CompletionException.class, result::join);
-    HttpException httpException = (HttpException) expectedException.getCause();
-    assertEquals(400, httpException.getCode());
+    when(restClient.get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext)))
+      .thenReturn(succeededFuture(fiscalYearsCollection));
+    Future<FiscalYear> future = fiscalYearService.getFiscalYearByFiscalYearCode(fiscalYearCode, requestContext);
+
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        HttpException httpException = (HttpException) result.cause();
+        assertEquals(400, httpException.getCode());
+        vertxTestContext.completeNow();
+      });
   }
 
+
   @Test
-  void testShouldRetrieveFiscalYearsWithAcqUnits() {
+  void testShouldRetrieveFiscalYearsWithAcqUnits(VertxTestContext vertxTestContext) {
     //Given
     FiscalYear fiscalYear = new FiscalYear().withId(UUID.randomUUID().toString()).withCode("TST");
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
-    doReturn(completedFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
-    doReturn(completedFuture(fiscalYearsCollection)).when(fiscalYearRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FiscalYearsCollection.class);
+    doReturn(succeededFuture(NO_ACQ_UNIT_ASSIGNED_CQL)).when(acqUnitsService).buildAcqUnitsCqlClause(requestContext);
+    doReturn(succeededFuture(fiscalYearsCollection))
+      .when(restClient).get(any(), eq(FiscalYearsCollection.class), eq(requestContext));
     //When
-    FiscalYearsCollection actFiscalYears = fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext).join();
+    var future = fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(StringUtils.EMPTY, 0,10, requestContext);
     //Then
-    assertThat(fiscalYearsCollection, equalTo(actFiscalYears));
-    verify(fiscalYearRestClient).get(NO_ACQ_UNIT_ASSIGNED_CQL, 0, 10, requestContext, FiscalYearsCollection.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertThat(fiscalYearsCollection, equalTo(result.result()));
+        verify(restClient).get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldRetrieveFiscalYearsWithoutAcqUnits() {
+  void testShouldRetrieveFiscalYearsWithoutAcqUnits(VertxTestContext vertxTestContext) {
     //Given
     FiscalYear fiscalYear = new FiscalYear().withId(UUID.randomUUID().toString()).withCode("TST");
     FiscalYearsCollection fiscalYearsCollection = new FiscalYearsCollection().withFiscalYears(List.of(fiscalYear)).withTotalRecords(1);
-    doReturn(completedFuture(fiscalYearsCollection)).when(fiscalYearRestClient).get("test_query", 0, 10, requestContext, FiscalYearsCollection.class);
+    doReturn(succeededFuture(fiscalYearsCollection))
+      .when(restClient).get(anyString(), eq(FiscalYearsCollection.class), eq(requestContext));
     //When
-    FiscalYearsCollection actFiscalYears = fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext).join();
+    var future = fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction("test_query", 0,10 , requestContext);
     //Then
-    assertThat(fiscalYearsCollection, equalTo(actFiscalYears));
-    verify(fiscalYearRestClient).get("test_query", 0, 10, requestContext, FiscalYearsCollection.class);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertThat(fiscalYearsCollection, equalTo(result.result()));
+        verify(restClient).get(assertQueryContains("test_query"), eq(FiscalYearsCollection.class), eq(requestContext));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
       return String.format("code=%s", fiscalYearCode);
     }
 
-    public FiscalYear checkFiscalYear(FiscalYearsCollection fiscalYearsCollection) {
-      if (CollectionUtils.isNotEmpty(fiscalYearsCollection.getFiscalYears())) {
-        return fiscalYearsCollection.getFiscalYears().get(0);
-      }
-      throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
-    }
 }

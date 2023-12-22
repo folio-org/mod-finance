@@ -5,7 +5,6 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
-import static org.folio.rest.util.TestConfig.deployVerticle;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
@@ -16,6 +15,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
 import org.folio.rest.jaxrs.model.Encumbrance;
@@ -31,8 +32,6 @@ import org.junit.jupiter.api.Test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 public class EncumbrancesTest {
 

@@ -6,12 +6,10 @@ import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY;
 import static org.folio.rest.util.HelperUtils.getEndpoint;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
+
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -20,6 +18,11 @@ import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
 import org.folio.services.ledger.LedgerRolloverProgressService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Context;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 
 public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerRolloversProgress {
 
@@ -37,16 +40,16 @@ public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerR
   public void getFinanceLedgerRolloversProgress(String query, String totalRecords, int offset, int limit,
     Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.retrieveLedgerRolloverProgresses(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(rolloverProgresses -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverProgresses))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(rolloverProgresses -> asyncResultHandler.handle(succeededFuture(buildOkResponse(rolloverProgresses))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   public void postFinanceLedgerRolloversProgress(LedgerFiscalYearRolloverProgress entity, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.createLedgerRolloverProgress(entity, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(progress -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(
+      .onSuccess(progress -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(
         LEDGER_ROLLOVER_PROGRESS_LOCATION_PREFIX, progress.getId()), progress))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -54,8 +57,8 @@ public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerR
   public void getFinanceLedgerRolloversProgressById(String id, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ledgerRolloverProgressService.retrieveLedgerRolloverProgressById(id, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(progress -> asyncResultHandler.handle(succeededFuture(buildOkResponse(progress))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(progress -> asyncResultHandler.handle(succeededFuture(buildOkResponse(progress))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -72,7 +75,7 @@ public class LedgerRolloverProgressApi extends BaseApi implements FinanceLedgerR
     }
 
     ledgerRolloverProgressService.updateLedgerRolloverProgressById(id, entity, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(progress -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(progress -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 }

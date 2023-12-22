@@ -1,17 +1,20 @@
 package org.folio.services.transactions;
 
+import static io.vertx.core.Future.failedFuture;
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
 import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.Transaction;
-
-import org.folio.completablefuture.FolioVertxCompletableFuture;
 import org.folio.services.fund.FundService;
+
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 
 public class TransactionRestrictService {
 
@@ -21,36 +24,39 @@ public class TransactionRestrictService {
     this.fundService = fundService;
   }
 
-  public CompletableFuture<Transaction> checkAllocation(Transaction transaction, RequestContext requestContext) {
+  public Future<Void> checkAllocation(Transaction transaction, RequestContext requestContext) {
     if (Objects.isNull(transaction.getFromFundId()) ^ Objects.isNull(transaction.getToFundId())) {
-      return CompletableFuture.completedFuture(transaction);
+      return succeededFuture();
     } else {
       return checkFundsAllocatedIds(transaction, requestContext);
     }
   }
 
-  public CompletableFuture<Transaction> checkTransfer(Transaction transaction, RequestContext requestContext) {
+  public Future<Void> checkTransfer(Transaction transaction, RequestContext requestContext) {
     return checkFundsAllocatedIds(transaction, requestContext);
   }
 
-  private CompletableFuture<Transaction> checkFundsAllocatedIds(Transaction transaction, RequestContext requestContext) {
-    CompletableFuture<Transaction> future = new FolioVertxCompletableFuture<>(requestContext.getContext());
+  private Future<Void> checkFundsAllocatedIds(Transaction transaction, RequestContext requestContext) {
     if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
-
-      return fundService.retrieveFundById(transaction.getFromFundId(), requestContext)
-        .thenCombine(fundService.retrieveFundById(transaction.getToFundId(), requestContext), (fromFund, toFund) ->
-          (fromFund.getAllocatedToIds().isEmpty() || fromFund.getAllocatedToIds().contains(transaction.getToFundId())) &&
-            (toFund.getAllocatedFromIds().isEmpty() || toFund.getAllocatedFromIds().contains(transaction.getFromFundId())))
-        .thenApply(isMatch -> {
-          if (Boolean.TRUE.equals(isMatch)) {
-            return transaction;
+      var fromFund = fundService.getFundById(transaction.getFromFundId(), requestContext);
+      var toFund = fundService.getFundById(transaction.getToFundId(), requestContext);
+      return CompositeFuture.join(toFund, fromFund)
+        .map(cf -> isAllocationAllowed(fromFund.result(), toFund.result(), transaction))
+        .compose(isAllocationAllowed -> {
+          if (Boolean.TRUE.equals(isAllocationAllowed)) {
+            return succeededFuture();
           } else {
-            throw new HttpException(422, ALLOCATION_IDS_MISMATCH);
+            return failedFuture(new HttpException(422, ALLOCATION_IDS_MISMATCH));
           }
         });
     } else {
-      future.completeExceptionally(new HttpException(422, MISSING_FUND_ID));
+      return failedFuture(new HttpException(422, MISSING_FUND_ID));
     }
-    return future;
+}
+
+  private boolean isAllocationAllowed(Fund fromFund, Fund toFund, Transaction transaction) {
+    return (fromFund.getAllocatedToIds().isEmpty() || fromFund.getAllocatedToIds().contains(transaction.getToFundId())) &&
+      (toFund.getAllocatedFromIds().isEmpty() || toFund.getAllocatedFromIds().contains(transaction.getFromFundId()));
   }
+
 }

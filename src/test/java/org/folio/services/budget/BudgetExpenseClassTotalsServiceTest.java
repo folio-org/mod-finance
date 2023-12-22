@@ -1,5 +1,7 @@
 package org.folio.services.budget;
 
+import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -13,7 +15,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -24,22 +25,26 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.ExpenseClassService;
-import org.folio.services.budget.BudgetExpenseClassService;
-import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import io.vertx.core.Future;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+
+@ExtendWith(VertxExtension.class)
 public class BudgetExpenseClassTotalsServiceTest {
 
   @InjectMocks
   private BudgetExpenseClassTotalsService budgetExpenseClassTotalsService;
 
   @Mock
-  private RestClient budgetRestClientMock;
+  private RestClient restClient;
 
   @Mock
   private ExpenseClassService expenseClassServiceMock;
@@ -69,7 +74,7 @@ public class BudgetExpenseClassTotalsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
     budget = new Budget()
       .withId(UUID.randomUUID().toString())
       .withFundId(UUID.randomUUID().toString())
@@ -92,7 +97,7 @@ public class BudgetExpenseClassTotalsServiceTest {
   }
 
   @Test
-  void getExpenseClassTotalsComplexPositiveTest() {
+  void getExpenseClassTotalsComplexPositiveTest(VertxTestContext vertxTestContext) {
 
     Transaction encumbrance1 = buildTransaction(7.5, Transaction.TransactionType.ENCUMBRANCE, expenseClass1.getId());
     Transaction encumbrance2 = buildTransaction(3.33, Transaction.TransactionType.ENCUMBRANCE, expenseClass1.getId());
@@ -115,49 +120,51 @@ public class BudgetExpenseClassTotalsServiceTest {
       encumbrance2, encumbrance3, pendingPayment1, pendingPayment2,
       pendingPayment3, payment1, payment2, credit, credit2);
 
-    when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
-    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(expenseClasses));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(transactions));
+    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(budgetExpenseClasses));
 
-    CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    Future<BudgetExpenseClassTotalsCollection> future = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassTotalsCollection = result.result();
+        verify(restClient).get(assertQueryContains(budget.getId()), eq(Budget.class), eq(requestContext));
+        verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
+        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
-    verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
-    verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
-    verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
+        assertEquals(2, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(2, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
-    BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
+        BudgetExpenseClassTotal expenseClassTotal1 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass1.getId())).findFirst().get();
 
-    assertEquals(2, budgetExpenseClassTotalsCollection.getTotalRecords());
-    assertEquals(2, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertNotNull(expenseClassTotal1);
+        assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal1.getExpenseClassStatus().value());
+        assertEquals(expenseClass1.getName(), expenseClassTotal1.getExpenseClassName());
+        assertEquals(10.83, expenseClassTotal1.getEncumbered()); // 7.5 + 3.33
+        assertEquals(9.44, expenseClassTotal1.getAwaitingPayment()); // 5 + 4.44
+        assertEquals(0, expenseClassTotal1.getExpended());
+        assertEquals(0, expenseClassTotal1.getPercentageExpended());
 
-    BudgetExpenseClassTotal expenseClassTotal1 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
-      .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass1.getId())).findFirst().get();
+        BudgetExpenseClassTotal expenseClassTotal2 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId())).findFirst().get();
 
-    assertNotNull(expenseClassTotal1);
-    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal1.getExpenseClassStatus().value());
-    assertEquals(expenseClass1.getName(), expenseClassTotal1.getExpenseClassName());
-    assertEquals(10.83, expenseClassTotal1.getEncumbered()); // 7.5 + 3.33
-    assertEquals(9.44, expenseClassTotal1.getAwaitingPayment()); // 5 + 4.44
-    assertEquals(0, expenseClassTotal1.getExpended());
-    assertEquals(0, expenseClassTotal1.getPercentageExpended());
+        assertNotNull(expenseClassTotal2);
+        assertEquals(budgetExpenseClass2.getStatus().value(), expenseClassTotal2.getExpenseClassStatus().value());
+        assertEquals(expenseClass2.getName(), expenseClassTotal2.getExpenseClassName());
+        assertEquals(0d, expenseClassTotal2.getEncumbered());
+        assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
+        assertEquals(1d, expenseClassTotal2.getExpended()); //11 - 4.44 - 5.56
+        assertEquals(6.25, expenseClassTotal2.getPercentageExpended()); // (1 / 16) * 100
 
-    BudgetExpenseClassTotal expenseClassTotal2 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
-      .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId())).findFirst().get();
-
-    assertNotNull(expenseClassTotal2);
-    assertEquals(budgetExpenseClass2.getStatus().value(), expenseClassTotal2.getExpenseClassStatus().value());
-    assertEquals(expenseClass2.getName(), expenseClassTotal2.getExpenseClassName());
-    assertEquals(0d, expenseClassTotal2.getEncumbered());
-    assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
-    assertEquals(1d, expenseClassTotal2.getExpended()); //11 - 4.44 - 5.56
-    assertEquals(6.25, expenseClassTotal2.getPercentageExpended()); // (1 / 16) * 100
-
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void getExpenseClassTotalsWhenBudgetExpendedTotalIsZeroPercentageExpendedMustBeNull() {
+  void getExpenseClassTotalsWhenBudgetExpendedTotalIsZeroPercentageExpendedMustBeNull(VertxTestContext vertxTestContext) {
     budget.withExpenditures(0d).withOverExpended(0d);
     Transaction payment1 = buildTransaction(11d, Transaction.TransactionType.PAYMENT, expenseClass1.getId());
     Transaction credit = buildTransaction(11d, Transaction.TransactionType.CREDIT, null);
@@ -165,90 +172,102 @@ public class BudgetExpenseClassTotalsServiceTest {
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
     List<Transaction> transactions = Arrays.asList(payment1, credit);
 
-    when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(transactions));
-    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(expenseClasses));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(transactions));
+    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(budgetExpenseClasses));
 
-    CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    Future<BudgetExpenseClassTotalsCollection> future = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassTotalsCollection = result.result();
 
-    verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
-    verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
-    verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
+        verify(restClient).get(assertQueryContains(budget.getId()), eq(Budget.class), eq(requestContext));
+        verify(expenseClassServiceMock).getExpenseClassesByBudgetId(assertQueryContains(budget.getId()), eq(requestContext));
+        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
-    BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
 
-    assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
-    assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
-    BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
+        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
 
-    assertNotNull(expenseClassTotal);
-    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
-    assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
-    assertEquals(0, expenseClassTotal.getEncumbered());
-    assertEquals(0, expenseClassTotal.getAwaitingPayment());
-    assertEquals(11d, expenseClassTotal.getExpended());
-    assertNull(expenseClassTotal.getPercentageExpended());
+        assertNotNull(expenseClassTotal);
+        assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
+        assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
+        assertEquals(0, expenseClassTotal.getEncumbered());
+        assertEquals(0, expenseClassTotal.getAwaitingPayment());
+        assertEquals(11d, expenseClassTotal.getExpended());
+        assertNull(expenseClassTotal.getPercentageExpended());
+
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void getExpenseClassTotalsWithoutLinkedExpenseClasses() {
+  void getExpenseClassTotalsWithoutLinkedExpenseClasses(VertxTestContext vertxTestContext) {
 
     Transaction credit = buildTransaction(11d, Transaction.TransactionType.CREDIT, null);
 
-    when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(credit)));
-    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(Collections.emptyList()));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(Collections.singletonList(credit)));
+    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(Collections.emptyList()));
 
-    CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    Future<BudgetExpenseClassTotalsCollection> future = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
-    verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
-    verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
-    verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassTotalsCollection = result.result();
+        verify(restClient).get(assertQueryContains(budget.getId()), eq(Budget.class), eq(requestContext));
+        verify(expenseClassServiceMock).getExpenseClassesByBudgetId(assertQueryContains(budget.getId()), eq(requestContext));
+        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
-    BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
-
-    assertEquals(0, budgetExpenseClassTotalsCollection.getTotalRecords());
-    assertEquals(0, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertEquals(0, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(0, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        vertxTestContext.completeNow();
+      });
 
   }
 
   @Test
-  void getExpenseClassTotalsWithoutTransactions() {
+  void getExpenseClassTotalsWithoutTransactions(VertxTestContext vertxTestContext) {
 
     List<ExpenseClass> expenseClasses = Collections.singletonList(expenseClass1);
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
-    when(budgetRestClientMock.getById(anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(budget));
-    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(CompletableFuture.completedFuture(expenseClasses));
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(CompletableFuture.completedFuture(Collections.emptyList()));
-    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(CompletableFuture.completedFuture(budgetExpenseClasses));
+    when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
+    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(expenseClasses));
+    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(Collections.emptyList()));
+    when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(budgetExpenseClasses));
 
-    CompletableFuture<BudgetExpenseClassTotalsCollection> resultFuture = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
+    var future = budgetExpenseClassTotalsService.getExpenseClassTotals(budget.getId(), requestContext);
 
-    verify(budgetRestClientMock).getById(eq(budget.getId()), eq(requestContext), eq(Budget.class));
-    verify(expenseClassServiceMock).getExpenseClassesByBudgetId(eq(budget.getId()), eq(requestContext));
-    verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
-    verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var budgetExpenseClassTotalsCollection = result.result();
+        verify(restClient).get(assertQueryContains(budget.getId()), eq(Budget.class), eq(requestContext));
+        verify(expenseClassServiceMock).getExpenseClassesByBudgetId(assertQueryContains(budget.getId()), eq(requestContext));
+        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
-    BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection = resultFuture.join();
+        assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
-    assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
-    assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
 
-    BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
+        assertNotNull(expenseClassTotal);
+        assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
+        assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
+        assertEquals(0d, expenseClassTotal.getEncumbered());
+        assertEquals(0d, expenseClassTotal.getAwaitingPayment());
+        assertEquals(0d, expenseClassTotal.getExpended());
+        assertEquals(0d, expenseClassTotal.getPercentageExpended());
 
-    assertNotNull(expenseClassTotal);
-    assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
-    assertEquals(expenseClass1.getName(), expenseClassTotal.getExpenseClassName());
-    assertEquals(0d, expenseClassTotal.getEncumbered());
-    assertEquals(0d, expenseClassTotal.getAwaitingPayment());
-    assertEquals(0d, expenseClassTotal.getExpended());
-    assertEquals(0d, expenseClassTotal.getPercentageExpended());
-
+        vertxTestContext.completeNow();
+      });
   }
 
 }

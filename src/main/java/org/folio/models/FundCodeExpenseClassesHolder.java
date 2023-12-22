@@ -1,5 +1,11 @@
 package org.folio.models;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
@@ -9,13 +15,6 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundCodeExpenseClassesCollection;
 import org.folio.rest.jaxrs.model.FundCodeVsExpClassesType;
 import org.folio.rest.jaxrs.model.Ledger;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 
 public class FundCodeExpenseClassesHolder {
@@ -103,11 +102,9 @@ public class FundCodeExpenseClassesHolder {
 
   public FundCodeExpenseClassesCollection buildFundCodeVsExpenseClassesTypeCollection() {
     Map<String, Ledger> ledgerIdVsLedgerMap = new HashMap<>();
-    List<Ledger> ledgerList = getLedgerList();
     for (Ledger ledger : ledgerList) {
       ledgerIdVsLedgerMap.put(ledger.getId(), ledger);
     }
-    List<Fund> fundList = getFundList();
     for (Ledger ledger : ledgerList) {
       for (Fund fund : fundList) {
         if (Objects.equals(ledger.getId(), fund.getLedgerId())) {
@@ -124,21 +121,17 @@ public class FundCodeExpenseClassesHolder {
   }
 
   private List<String> getActiveStatusBudgetExpenseClass(Fund fund) {
-    List<BudgetExpenseClass> budgetExpenseClassList = getBudgetExpenseClassList();
-    List<Budget> budgetList = getBudgetCollection().getBudgets();
     List<String> activeStatus = new ArrayList<>();
     List<Budget> budgetListByFundId = new ArrayList<>();
-    for (Budget budget : budgetList) {
+    for (Budget budget : budgetsCollection.getBudgets()) {
       if (budget.getFundId().equals(fund.getId())) {
         budgetListByFundId.add(budget);
       }
     }
     for (Budget budget : budgetListByFundId) {
       for (BudgetExpenseClass budgetExpenseClass : budgetExpenseClassList) {
-        if (budget.getId().equals(budgetExpenseClass.getBudgetId())) {
-          if (budgetExpenseClass.getStatus().equals(BudgetExpenseClass.Status.fromValue("Active"))) {
+        if (budget.getId().equals(budgetExpenseClass.getBudgetId()) && (budgetExpenseClass.getStatus() == BudgetExpenseClass.Status.ACTIVE)) {
             activeStatus.add(addFundCodeAndExpanseClassCode(budgetExpenseClass, fund));
-          }
         }
       }
     }
@@ -155,7 +148,6 @@ public class FundCodeExpenseClassesHolder {
   }
 
   private List<String> getInActiveStatusBudgetExpenseClass(Fund fund) {
-    List<BudgetExpenseClass> budgetExpenseClassList = getBudgetExpenseClassList();
     List<Budget> budgetList = getBudgetCollection().getBudgets();
     List<String> inActiveStatus = new ArrayList<>();
     List<Budget> budgetListByFundId = new ArrayList<>();
@@ -166,10 +158,8 @@ public class FundCodeExpenseClassesHolder {
     }
     for (Budget budget : budgetListByFundId) {
       for (BudgetExpenseClass budgetExpenseClass : budgetExpenseClassList) {
-        if (budget.getId().equals(budgetExpenseClass.getBudgetId())) {
-          if (budgetExpenseClass.getStatus().equals(BudgetExpenseClass.Status.fromValue("Inactive"))) {
-            inActiveStatus.add(addFundCodeAndExpanseClassCode(budgetExpenseClass, fund));
-          }
+        if (budget.getId().equals(budgetExpenseClass.getBudgetId()) && (budgetExpenseClass.getStatus() == BudgetExpenseClass.Status.INACTIVE)) {
+          inActiveStatus.add(addFundCodeAndExpanseClassCode(budgetExpenseClass, fund));
         }
       }
     }
@@ -181,11 +171,6 @@ public class FundCodeExpenseClassesHolder {
     fundCodeVsExpenseClassesTypeCollection.setDelimiter(":");
     fundCodeVsExpenseClassesTypeCollection.setFundCodeVsExpClassesTypes(fundCodeVsExpenseClassesTypeList);
     return fundCodeVsExpenseClassesTypeCollection;
-  }
-
-  public CompletableFuture<FiscalYear> getFiscalYearFuture() {
-    CompletableFuture<FiscalYear> f2 = CompletableFuture.supplyAsync(() -> fiscalYear);
-    return f2;
   }
 
   public FiscalYear getFiscalYear() {

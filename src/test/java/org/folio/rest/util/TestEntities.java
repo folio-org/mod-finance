@@ -1,6 +1,11 @@
 package org.folio.rest.util;
 
-import io.vertx.core.json.JsonObject;
+import static org.folio.rest.util.HelperUtils.ID;
+import static org.folio.rest.util.TestUtils.getMockData;
+
+import java.io.IOException;
+import java.util.function.Supplier;
+
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -11,9 +16,9 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
-import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudget;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
+import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
 import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -27,19 +32,15 @@ import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
 import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
-import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversLogs;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversBudgets;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversErrors;
+import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversLogs;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
 import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
 import org.folio.rest.tools.parser.JsonPathParser;
 
-import java.io.IOException;
-import java.util.function.Supplier;
-
-import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.TestUtils.getMockData;
+import io.vertx.core.json.JsonObject;
 
 public enum TestEntities {
   BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),
@@ -65,7 +66,7 @@ public enum TestEntities {
   LEDGER_ROLLOVER_PROGRESS("ledgerRolloverProgress", getEndpoint(FinanceLedgerRolloversProgress.class), LedgerFiscalYearRolloverProgress.class, "", "", "", 1, 1),
   LEDGER_ROLLOVER_ERRORS("ledgerRolloverErrors", getEndpoint(FinanceLedgerRolloversErrors.class), LedgerFiscalYearRolloverError.class, "", "", "", 1, 1);
 
-  TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  TestEntities(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
                Object updatedFieldValue, int collectionQuantity) {
     this.name = name;
     this.endpoint = endpoint;
@@ -77,7 +78,7 @@ public enum TestEntities {
     this.collectionQuantity = collectionQuantity;
   }
 
-  TestEntities(String name, String endpoint, Class clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
+  TestEntities(String name, String endpoint, Class<?> clazz, String pathToSamples, String jsonPathToSample, String updatedFieldName,
       Object updatedFieldValue, int collectionQuantity, String ignoreProperties) {
     this.name = name;
     this.endpoint = endpoint;
@@ -91,14 +92,14 @@ public enum TestEntities {
   }
 
   private final String name;
-  private int collectionQuantity;
-  private String endpoint;
-  private String jsonPathToObject;
-  private String pathToFileWithData;
-  private String updatedFieldName;
+  private final int collectionQuantity;
+  private final String endpoint;
+  private final String jsonPathToObject;
+  private final String pathToFileWithData;
+  private final String updatedFieldName;
   private String ignoreProperties;
-  private Object updatedFieldValue;
-  private Class clazz;
+  private final Object updatedFieldValue;
+  private final Class<?> clazz;
 
   public String getEndpoint() {
     return endpoint;
@@ -159,7 +160,4 @@ public enum TestEntities {
     return ignoreProperties;
   }
 
-  public void setIgnoreProperties(String ignoreProperties) {
-    this.ignoreProperties = ignoreProperties;
-  }
 }

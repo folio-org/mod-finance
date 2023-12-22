@@ -1,95 +1,117 @@
 package org.folio.services.fund;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.folio.rest.core.RestClient;
-import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.core.models.RequestEntry;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Error;
-import org.folio.rest.jaxrs.model.Fund;
-import org.folio.rest.jaxrs.model.FundsCollection;
-import org.folio.rest.util.HelperUtils;
-import org.folio.services.protection.AcqUnitsService;
+import static one.util.streamex.StreamEx.ofSubLists;
+import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
+import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-import static one.util.streamex.StreamEx.ofSubLists;
-import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
-import static org.folio.rest.RestConstants.NOT_FOUND;
-import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
-import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
-import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
-import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.rest.core.RestClient;
+import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundType;
+import org.folio.rest.jaxrs.model.FundTypesCollection;
+import org.folio.rest.jaxrs.model.FundsCollection;
+import org.folio.rest.util.HelperUtils;
+import org.folio.services.protection.AcqUnitsService;
+
+import io.vertx.core.Future;
 
 public class FundService {
-  private static final Logger logger = LogManager.getLogger(FundService.class);
-
-  private final RestClient fundStorageRestClient;
+  private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
   public static final String ID = "id";
-  private static final String ENDPOINT = "/finance/funds";
 
-  public FundService(RestClient fundStorageRestClient, AcqUnitsService acqUnitsService) {
-    this.fundStorageRestClient = fundStorageRestClient;
+  public FundService(RestClient restClient, AcqUnitsService acqUnitsService) {
+    this.restClient = restClient;
     this.acqUnitsService = acqUnitsService;
   }
 
-  public CompletableFuture<Fund> retrieveFundById(String fundId, RequestContext requestContext) {
-    return fundStorageRestClient.getById(fundId, requestContext, Fund.class)
-      .exceptionally(t -> {
-        if (t instanceof HttpException) {
-          HttpException httpException = (HttpException) t;
-          if (httpException.getCode() == NOT_FOUND) {
-            Error error = new Error().withCode(FUND_NOT_FOUND_ERROR.getCode()).withMessage(String.format(FUND_NOT_FOUND_ERROR.getDescription(), fundId));
-            throw new CompletionException(new HttpException(NOT_FOUND, error));
-          }
-        }
-        throw new CompletionException(t);
-      });
+  public Future<Fund> getFundById(String fundId, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(FUNDS_STORAGE, fundId), Fund.class, requestContext);
   }
 
-  public CompletableFuture<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+  public Future<Fund> createFund(Fund fund, RequestContext requestContext) {
+    return restClient.post(resourcesPath(FUNDS_STORAGE), fund, Fund.class, requestContext);
+  }
+
+  public Future<FundsCollection> getFundsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .thenApply(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .thenCompose(effectiveQuery -> fundStorageRestClient.get(effectiveQuery, offset, limit, requestContext, FundsCollection.class));
+      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .map(effectiveQuery -> new RequestEntry(resourcesPath(FUNDS_STORAGE))
+        .withOffset(offset)
+        .withLimit(limit)
+        .withQuery(effectiveQuery)
+      )
+      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext));
   }
 
-  public CompletableFuture<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
-    return fundStorageRestClient.get(query, offset, limit, requestContext, FundsCollection.class);
+  public Future<FundsCollection> getFundsWithoutAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext);
   }
 
-  public CompletableFuture<List<Fund>> getFundsByIds(Collection<String> ids, RequestContext requestContext) {
-    String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(ENDPOINT).withQuery(query)
-      .withLimit(MAX_IDS_FOR_GET_RQ)
-      .withOffset(0);
-    return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
-      .thenApply(FundsCollection::getFunds);
-  }
-
-  public CompletableFuture<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
+  public Future<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
-      ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ).map(ids -> getFundsByIds(ids, requestContext))
-        .toList()).thenApply(
-      lists -> lists.stream()
+      ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ)
+        .map(ids -> getFundsByIds(ids, requestContext))
+        .collect(Collectors.toList()))
+      .map(lists -> lists.stream()
         .flatMap(Collection::stream)
-        .collect(toList()));
+        .collect(Collectors.toList())
+    );
   }
 
-  private CompletableFuture<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
+  public Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
     String query = HelperUtils.convertIdsToCqlQuery(ids);
-    RequestEntry requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE)).withQuery(query)
+    var requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
+      .withQuery(query)
       .withOffset(0)
       .withLimit(MAX_IDS_FOR_GET_RQ);
-    return fundStorageRestClient.get(requestEntry, requestContext, FundsCollection.class)
-      .thenApply(FundsCollection::getFunds);
+    return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext)
+      .map(FundsCollection::getFunds);
+  }
+
+  public Future<FundType> getFundTypeById(String id, RequestContext requestContext) {
+    return restClient.get(resourceByIdPath(FUND_TYPES, id), FundType.class, requestContext);
+  }
+
+  public Future<FundType> createFundType(FundType fundType, RequestContext requestContext) {
+    return restClient.post(resourcesPath(FUND_TYPES), fundType, FundType.class, requestContext);
+
+  }
+
+  public Future<FundTypesCollection> getFundTypes(int offset, int limit, String query, RequestContext requestContext) {
+    var requestEntry = new RequestEntry(resourcesPath(FUND_TYPES))
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query);
+    return restClient.get(requestEntry.buildEndpoint(), FundTypesCollection.class, requestContext);
+
+  }
+
+  public Future<Void> updateFundType(FundType fundType, RequestContext requestContext) {
+    return restClient.put(resourceByIdPath(FUND_TYPES, fundType.getId()), fundType, requestContext);
+  }
+
+  public Future<Void> updateFund(Fund fund, RequestContext requestContext) {
+    return restClient.put(resourceByIdPath(FUNDS_STORAGE, fund.getId()), fund, requestContext);
+  }
+
+  public Future<Void> deleteFundType(String id, RequestContext requestContext) {
+    return restClient.delete(resourceByIdPath(FUND_TYPES, id), requestContext);
   }
 }

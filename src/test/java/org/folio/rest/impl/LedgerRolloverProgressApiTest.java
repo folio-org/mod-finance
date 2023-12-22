@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -19,11 +20,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
 import org.folio.ApiTestSuite;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Errors;
@@ -38,6 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+
+import io.vertx.core.Future;
 
 public class LedgerRolloverProgressApiTest {
 
@@ -66,10 +69,10 @@ public class LedgerRolloverProgressApiTest {
   void shouldReturnLedgerRolloverProgressCollectionWhenCallGetAndRolloverProgressServiceReturnLedgerRolloverProgress() {
     LedgerFiscalYearRolloverProgressCollection ledgerProgresses = new LedgerFiscalYearRolloverProgressCollection()
       .withTotalRecords(1)
-      .withLedgerFiscalYearRolloverProgresses(Arrays.asList(new LedgerFiscalYearRolloverProgress()));
+      .withLedgerFiscalYearRolloverProgresses(List.of(new LedgerFiscalYearRolloverProgress()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgresses(any(), anyInt(), anyInt(), any()))
-      .thenReturn(CompletableFuture.completedFuture(ledgerProgresses));
+      .thenReturn(succeededFuture(ledgerProgresses));
 
     // When call getFinanceLedgerRollovers successfully
     LedgerFiscalYearRolloverProgressCollection rolloverProgressCollection = verifyGet(TestEntities.LEDGER_ROLLOVER_PROGRESS.getEndpoint(), APPLICATION_JSON,
@@ -84,8 +87,7 @@ public class LedgerRolloverProgressApiTest {
   @Test
   void shouldReturnErrorWhenCallGetAndRolloverProgressServiceReturnError() {
 
-    CompletableFuture<LedgerFiscalYearRolloverProgressCollection> errorFuture = new CompletableFuture<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverProgressCollection> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgresses(any(), anyInt(), anyInt(), any()))
       .thenReturn(errorFuture);
@@ -106,7 +108,7 @@ public class LedgerRolloverProgressApiTest {
     String ledgerRolloverId = UUID.randomUUID().toString();
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgressById(anyString(), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverProgress().withId(ledgerRolloverId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverProgress().withId(ledgerRolloverId)));
 
     // When call getFinanceLedgerRolloversById successfully
     LedgerFiscalYearRolloverProgress progress = verifyGet(TestEntities.LEDGER_ROLLOVER_PROGRESS.getEndpointWithId(ledgerRolloverId),
@@ -123,8 +125,7 @@ public class LedgerRolloverProgressApiTest {
 
     String ledgerRolloverId = UUID.randomUUID().toString();
 
-    CompletableFuture<LedgerFiscalYearRolloverProgress> errorFuture = new CompletableFuture<>();
-    errorFuture.completeExceptionally(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    Future<LedgerFiscalYearRolloverProgress> errorFuture = Future.failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(mockLedgerRolloverProgressService.retrieveLedgerRolloverProgressById(anyString(), any()))
       .thenReturn(errorFuture);
@@ -149,7 +150,7 @@ public class LedgerRolloverProgressApiTest {
       .withLedgerRolloverId(UUID.randomUUID().toString());
 
     when(mockLedgerRolloverProgressService.createLedgerRolloverProgress(any(LedgerFiscalYearRolloverProgress.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverProgress().withId(progressId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverProgress().withId(progressId)));
 
     // When call postFinanceLedgerRollover successfully
     LedgerFiscalYearRolloverProgress rolloverProgress = verifyPostResponse(TestEntities.LEDGER_ROLLOVER_PROGRESS.getEndpoint(), progress,
@@ -169,7 +170,7 @@ public class LedgerRolloverProgressApiTest {
       .withId(progressId);
 
     when(mockLedgerRolloverProgressService.createLedgerRolloverProgress(any(LedgerFiscalYearRolloverProgress.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(new LedgerFiscalYearRolloverProgress().withId(progressId)));
+      .thenReturn(succeededFuture(new LedgerFiscalYearRolloverProgress().withId(progressId)));
 
     // When call postFinanceLedgerRollover without required parameters
     Errors errors = verifyPostResponse(TestEntities.LEDGER_ROLLOVER_PROGRESS.getEndpoint(), progress,
@@ -190,7 +191,7 @@ public class LedgerRolloverProgressApiTest {
       .withLedgerRolloverId(UUID.randomUUID().toString());
 
     when(mockLedgerRolloverProgressService.updateLedgerRolloverProgressById(anyString(), any(LedgerFiscalYearRolloverProgress.class), any()))
-      .thenReturn(CompletableFuture.completedFuture(null));
+      .thenReturn(succeededFuture(null));
 
     // When call postFinanceLedgerRollover successfully
     verifyPut(TestEntities.LEDGER_ROLLOVER_PROGRESS.getEndpointWithId(progressId), progress,

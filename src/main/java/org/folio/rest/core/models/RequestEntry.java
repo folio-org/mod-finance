@@ -1,20 +1,15 @@
 package org.folio.rest.core.models;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.glassfish.jersey.uri.UriTemplate;
+import static org.folio.rest.util.HelperUtils.encodeQuery;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.folio.rest.util.HelperUtils.encodeQuery;
+import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jersey.uri.UriTemplate;
 
 public class RequestEntry {
-
-
-  private static final Logger logger = LogManager.getLogger();
 
   private String baseEndpoint;
   private Map<String, String> pathParams = new HashMap<>();
@@ -43,7 +38,7 @@ public class RequestEntry {
     if (StringUtils.isEmpty(query)) {
       return this;
     }
-    queryParams.put("query", encodeQuery(query, logger));
+    queryParams.put("query", encodeQuery(query));
     return this;
   }
 

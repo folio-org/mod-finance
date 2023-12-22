@@ -45,9 +45,9 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   public void postFinanceLedgers(Ledger entity, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
     ledgerService.createLedger(entity, new RequestContext(ctx, headers))
-      .thenAccept(type -> handler
+      .onSuccess(type -> handler
         .handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(LEDGERS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -56,8 +56,8 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
      Handler<AsyncResult<Response>> handler, Context ctx) {
 
     ledgerService.retrieveLedgersWithAcqUnitsRestrictionAndTotals(query, offset, limit, fiscalYearId, new RequestContext(ctx, headers))
-      .thenAccept(ledgersCollection -> handler.handle(succeededFuture(buildOkResponse(ledgersCollection))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(ledgersCollection -> handler.handle(succeededFuture(buildOkResponse(ledgersCollection))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -74,8 +74,8 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
     }
 
     ledgerService.updateLedger(entity, new RequestContext(ctx, headers))
-      .thenAccept(types -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(types -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -84,8 +84,8 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
       Context ctx) {
 
     ledgerService.retrieveLedgerWithTotals(ledgerId, fiscalYearId, new RequestContext(ctx, headers))
-      .thenAccept(type -> handler.handle(succeededFuture(buildOkResponse(type))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(type -> handler.handle(succeededFuture(buildOkResponse(type))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -94,8 +94,8 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
       Context ctx) {
 
     ledgerService.deleteLedger(id, new RequestContext(ctx, headers))
-      .thenAccept(types -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(types -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -103,14 +103,14 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
   public void getFinanceLedgersCurrentFiscalYearById(String ledgerId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
 
     ledgerDetailsService.getCurrentFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(currentFiscalYear -> {
+      .onSuccess(currentFiscalYear -> {
         if(Objects.nonNull(currentFiscalYear)) {
           handler.handle(succeededFuture(buildOkResponse(currentFiscalYear)));
         } else {
           handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), HttpStatus.HTTP_NOT_FOUND.name()))));
         }
       })
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
 }

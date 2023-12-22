@@ -45,9 +45,8 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.ALLOCATION, allocation, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler
-        .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(type -> asyncResultHandler.handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -56,9 +55,9 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.TRANSFER, transfer, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler
+      .onSuccess(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -67,9 +66,9 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.ENCUMBRANCE, encumbrance, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler
+      .onSuccess(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -82,8 +81,8 @@ public class TransactionsApi extends BaseApi implements Finance {
     if (id.equals(encumbrance.getId())) {
 
       transactionStrategyFactory.updateTransaction(Transaction.TransactionType.ENCUMBRANCE, encumbrance, new RequestContext(vertxContext, okapiHeaders))
-        .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-        .exceptionally(fail -> handleErrorResponse(asyncResultHandler,  fail));
+        .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+        .onFailure(fail -> handleErrorResponse(asyncResultHandler,  fail));
     } else {
       asyncResultHandler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
     }
@@ -94,10 +93,10 @@ public class TransactionsApi extends BaseApi implements Finance {
   public void deleteFinanceEncumbrancesById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     transactionService.retrieveTransactionById(id, new RequestContext(vertxContext, okapiHeaders))
-        .thenCompose(transaction -> transactionStrategyFactory.deleteTransaction(Transaction.TransactionType.ENCUMBRANCE,
+        .compose(transaction -> transactionStrategyFactory.deleteTransaction(Transaction.TransactionType.ENCUMBRANCE,
           transaction, new RequestContext(vertxContext, okapiHeaders)))
-        .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-        .exceptionally(fail -> handleErrorResponse(asyncResultHandler,  fail));
+        .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+        .onFailure(fail -> handleErrorResponse(asyncResultHandler,  fail));
   }
 
   @Validate
@@ -106,8 +105,8 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionService.retrieveTransactions(query, offset, limit, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildOkResponse(types))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildOkResponse(types))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -116,8 +115,8 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionService.retrieveTransactionById(id, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler.handle(succeededFuture(buildOkResponse(type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(type -> asyncResultHandler.handle(succeededFuture(buildOkResponse(type))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -126,9 +125,9 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.PAYMENT, payment, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler
+      .onSuccess(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -142,8 +141,8 @@ public class TransactionsApi extends BaseApi implements Finance {
     }
     transactionStrategyFactory.updateTransaction(
         TransactionType.PAYMENT, payment, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -152,9 +151,9 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.PENDING_PAYMENT, pendingPayment, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(transaction -> asyncResultHandler
+      .onSuccess(transaction -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, transaction.getId()), transaction))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -168,8 +167,8 @@ public class TransactionsApi extends BaseApi implements Finance {
     }
     transactionStrategyFactory.updateTransaction(
       TransactionType.PENDING_PAYMENT, pendingPayment, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Validate
@@ -178,9 +177,9 @@ public class TransactionsApi extends BaseApi implements Finance {
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
 
     transactionStrategyFactory.createTransaction(Transaction.TransactionType.CREDIT, credit, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(type -> asyncResultHandler
+      .onSuccess(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(TRANSACTIONS_LOCATION_PREFIX, type.getId()), type))))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
@@ -194,8 +193,8 @@ public class TransactionsApi extends BaseApi implements Finance {
     }
     transactionStrategyFactory.updateTransaction(
         TransactionType.CREDIT, credit, new RequestContext(vertxContext, okapiHeaders))
-      .thenAccept(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(asyncResultHandler, fail));
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
 }

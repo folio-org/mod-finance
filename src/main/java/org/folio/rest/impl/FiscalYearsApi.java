@@ -58,9 +58,9 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     setFYearWithSeries(fiscalYear);
 
     fiscalYearService.createFiscalYear(fiscalYear, new RequestContext(ctx, headers))
-      .thenAccept(fy -> handler
+      .onSuccess(fy -> handler
         .handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(FISCAL_YEARS_LOCATION_PREFIX, fy.getId()), fy))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   private boolean isFiscalYearValid(FiscalYear fiscalYear) {
@@ -73,8 +73,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
     fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
-      .thenAccept(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -104,8 +104,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     setFYearWithSeries(fiscalYearRequest);
 
     fiscalYearService.updateFiscalYear(fiscalYearRequest, new RequestContext(ctx, headers))
-      .thenAccept(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -114,8 +114,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
       Context ctx) {
 
     fiscalYearService.getFiscalYearById(id, withFinancialSummary, new RequestContext(ctx, headers))
-      .thenAccept(fiscalYear -> handler.handle(succeededFuture(buildOkResponse(fiscalYear))))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildOkResponse(fiscalYear))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
@@ -123,8 +123,8 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void deleteFinanceFiscalYearsById(String id, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
     fiscalYearService.deleteFiscalYear(id, new RequestContext(ctx, headers))
-      .thenAccept(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
-      .exceptionally(fail -> handleErrorResponse(handler, fail));
+      .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   private void setFYearWithSeries(FiscalYear fiscalYear) {

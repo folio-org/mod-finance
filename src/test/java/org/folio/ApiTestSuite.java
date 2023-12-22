@@ -1,5 +1,13 @@
 package org.folio;
 
+import static org.folio.rest.util.TestConfig.closeMockServer;
+import static org.folio.rest.util.TestConfig.closeVertx;
+import static org.folio.rest.util.TestConfig.deployVerticle;
+import static org.folio.rest.util.TestConfig.startMockServer;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
+
 import org.folio.rest.impl.BudgetsApiTest;
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
@@ -10,9 +18,9 @@ import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
 import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgerRolloverApiTest;
-import org.folio.rest.impl.LedgerRolloverLogsApiTest;
 import org.folio.rest.impl.LedgerRolloverBudgetsApiTest;
 import org.folio.rest.impl.LedgerRolloverErrorsApiTest;
+import org.folio.rest.impl.LedgerRolloverLogsApiTest;
 import org.folio.rest.impl.LedgerRolloverProgressApiTest;
 import org.folio.rest.impl.LedgersApiTest;
 import org.folio.rest.impl.TransactionApiTest;
@@ -31,9 +39,9 @@ import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
 import org.folio.services.group.GroupServiceTest;
 import org.folio.services.ledger.LedgerDetailsServiceTest;
-import org.folio.services.ledger.LedgerRolloverLogsServiceTest;
 import org.folio.services.ledger.LedgerRolloverBudgetsServiceTest;
 import org.folio.services.ledger.LedgerRolloverErrorsServiceTest;
+import org.folio.services.ledger.LedgerRolloverLogsServiceTest;
 import org.folio.services.ledger.LedgerRolloverProgressServiceTest;
 import org.folio.services.ledger.LedgerRolloverServiceTest;
 import org.folio.services.ledger.LedgerServiceTest;
@@ -44,14 +52,6 @@ import org.folio.services.protection.ProtectionServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
-import static org.folio.rest.util.TestConfig.closeMockServer;
-import static org.folio.rest.util.TestConfig.closeVertx;
-import static org.folio.rest.util.TestConfig.deployVerticle;
-import static org.folio.rest.util.TestConfig.startMockServer;
 
 public class ApiTestSuite {
 

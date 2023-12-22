@@ -1,4 +1,23 @@
-## 4.8.0 - Unreleased
+## 4.9.0 - Unreleased
+
+## 4.8.0 - Released (Poppy R2 2023)
+The primary focus of this release was to add possibility to filter expense classes by fiscal year id
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.7.0...v4.8.0)
+
+### Stories
+* [MODFIN-329](https://issues.folio.org/browse/MODFIN-329) - Add missed permissions to module descriptor
+* [MODFIN-324](https://issues.folio.org/browse/MODFIN-324) - Add missing required interface to module descriptor
+* [MODFIN-322](https://issues.folio.org/browse/MODFIN-322) - Update to Java 17 mod-finance
+* [MODFIN-317](https://issues.folio.org/browse/MODFIN-317) - Add possibility to filter expense classes by fiscal year id
+* [MODFIN-316](https://issues.folio.org/browse/MODFIN-316) - Provide proxy endpoints to add and delete ledger rollover error in the business layer
+* [MODFIN-296](https://issues.folio.org/browse/MODFIN-296) - Update dependent raml-util
+
+### Bug Fixes
+* [MODFIN-308](https://issues.folio.org/browse/MODFIN-308) - Maintain displaying "Available" as a negative number for group and ledger
+
+### Dependencies
+* Bump `java version` from `11` to `17`
 
 ## 4.7.0  - Released (Orchid R1 2023)
 The primary focus of this release was to restrict search/view of Fiscal year records based upon acquisitions unit

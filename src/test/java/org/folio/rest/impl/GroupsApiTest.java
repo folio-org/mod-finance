@@ -1,5 +1,6 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.ErrorCodes.MISSING_FISCAL_YEAR_ID;
 import static org.folio.rest.util.MockServer.addMockEntry;
@@ -25,15 +26,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.folio.ApiTestSuite;
-import org.folio.rest.acq.model.finance.Group;
-import org.folio.rest.acq.model.finance.GroupCollection;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Group;
+import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.util.RestTestUtils;
 import org.folio.services.group.GroupExpenseClassTotalsService;
@@ -92,7 +92,7 @@ public class GroupsApiTest {
     String fiscalYearId = UUID.randomUUID().toString();
     GroupExpenseClassTotalsCollection groupExpenseClassTotalsCollection = new GroupExpenseClassTotalsCollection();
 
-    when(groupExpenseClassTotalsServiceMock.getExpenseClassTotals(anyString(), anyString(), any())).thenReturn(CompletableFuture.completedFuture(groupExpenseClassTotalsCollection));
+    when(groupExpenseClassTotalsServiceMock.getExpenseClassTotals(anyString(), anyString(), any())).thenReturn(succeededFuture(groupExpenseClassTotalsCollection));
 
     GroupExpenseClassTotalsCollection result = RestTestUtils.verifyGet(String.format("/finance/groups/%s/expense-classes-totals?fiscalYearId=%s", groupId, fiscalYearId), APPLICATION_JSON, 200)
       .as(GroupExpenseClassTotalsCollection.class);
@@ -105,9 +105,12 @@ public class GroupsApiTest {
   @Test
   void testGetGroups() {
     Group group = GROUP.getMockObject().mapTo(Group.class);
-    GroupCollection groupCollection = new GroupCollection().withGroups(List.of(group)).withTotalRecords(1);
+    GroupCollection groupCollection = new GroupCollection()
+      .withGroups(List.of(group))
+      .withTotalRecords(1);
+
     addMockEntry(GROUP.name(), JsonObject.mapFrom(groupCollection));
-    when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(CompletableFuture.completedFuture(groupCollection));
+    when(groupServiceMock.getGroupsWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(groupCollection));
 
     Map<String, Object> params = new HashMap<>();
     params.put("query", "status=Active");

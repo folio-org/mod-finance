@@ -1,6 +1,6 @@
 package org.folio.services.ledger;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.RestConstants.OKAPI_URL;
 import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -36,13 +37,17 @@ import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 
+@ExtendWith(VertxExtension.class)
 public class LedgerDetailsServiceTest {
   private RequestContext requestContext;
 
@@ -70,7 +75,7 @@ public class LedgerDetailsServiceTest {
   }
 
   @Test
-  void testShouldReturnCurrentFiscalYearIfNoNextYearAndOneCurrent() {
+  void testShouldReturnCurrentFiscalYearIfNoNextYearAndOneCurrent(VertxTestContext vertxTestContext) {
     //Given
     String curFiscalId = UUID.randomUUID().toString();
     String ledgerId = UUID.randomUUID().toString();
@@ -79,18 +84,23 @@ public class LedgerDetailsServiceTest {
     FiscalYear fiscalYear = new FiscalYear().withId(curFiscalId);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Collections.singletonList(fiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(curFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(curFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), equalTo(fiscalYear.getId()));
+    var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertThat(actFY.getId(), equalTo(fiscalYear.getId()));
+        vertxTestContext.completeNow();
+      });
+
   }
 
   @Test
-  void testShouldReturnCurrentFiscalYearIfNoNextYearAndTwoCurrentWithOverlapping() throws ParseException {
+  void testShouldReturnCurrentFiscalYearIfNoNextYearAndTwoCurrentWithOverlapping(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -111,18 +121,22 @@ public class LedgerDetailsServiceTest {
     FiscalYear secFiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstFiscalYear, secFiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), equalTo(secFiscalYear.getId()));
+    var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertThat(actFY.getId(), equalTo(secFiscalYear.getId()));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldReturnCurrentFiscalYearIfNextYearAndCurrentYear() throws ParseException {
+  void testShouldReturnCurrentFiscalYearIfNextYearAndCurrentYear(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -143,18 +157,23 @@ public class LedgerDetailsServiceTest {
     FiscalYear secfiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
+    var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
+
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldReturnNextFiscalYearIfNextYearAndCurrentYear() throws ParseException {
+  void testShouldReturnNextFiscalYearIfNextYearAndCurrentYear(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -175,18 +194,22 @@ public class LedgerDetailsServiceTest {
     FiscalYear nextfiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, nextfiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), equalTo(nextfiscalYear.getId()));
+    var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertThat(actFY.getId(), equalTo(nextfiscalYear.getId()));
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldReturnNullNextFYIfOnlyCurrentYear() throws ParseException {
+  void testShouldReturnNullNextFYIfOnlyCurrentYear(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -200,20 +223,24 @@ public class LedgerDetailsServiceTest {
 
     Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(firstCurFiscalId);
     FiscalYear firstfiscalYear = new FiscalYear().withId(firstCurFiscalId).withPeriodStart(fStartDate).withPeriodEnd(fEndDate);
-    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear));
+    FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(List.of(firstfiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertNull(actFY);
+    var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertNull(actFY);
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldReturnNullNextFiscalYearIfTwoCurrentWithOverlapping() throws ParseException {
+  void testShouldReturnNullNextFiscalYearIfTwoCurrentWithOverlapping(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -234,18 +261,22 @@ public class LedgerDetailsServiceTest {
     FiscalYear secfiscalYear = new FiscalYear().withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, secfiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertNull(actFY);
+    var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertNull(actFY);
+        vertxTestContext.completeNow();
+      });
   }
 
   @Test
-  void testShouldReturnCurrentYearRespectTheTenantChosenTimezone() throws ParseException {
+  void testShouldReturnCurrentYearRespectTheTenantChosenTimezone(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     Calendar calendar = Calendar.getInstance();
@@ -267,16 +298,21 @@ public class LedgerDetailsServiceTest {
     FiscalYear nextfiscalYear = new FiscalYear().withSeries("FY").withId(secCurFiscalId).withPeriodStart(sStartDate).withPeriodEnd(sEndDate);
     FiscalYearsCollection fyCol = new FiscalYearsCollection().withFiscalYears(Arrays.asList(firstfiscalYear, nextfiscalYear));
 
-    doReturn(completedFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
-    doReturn(completedFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
-    doReturn(completedFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(completedFuture("America/Los_Angeles")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
+    doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
+    doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
+    doReturn(succeededFuture("America/Los_Angeles")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
     //When
-    FiscalYear actFY = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext).join();
-    //Then
-    assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
-    LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
-    String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, "FY", now);
-    verify(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(eq(expQuery), eq(0), eq(3), eq(requestContext));
+    var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        var actFY = result.result();
+        assertThat(actFY.getId(), equalTo(firstfiscalYear.getId()));
+        LocalDate now = Instant.now().atZone(ZoneId.of("America/Los_Angeles")).toLocalDate();
+        String expQuery = String.format(SEARCH_CURRENT_FISCAL_YEAR_QUERY, "FY", now);
+        verify(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(eq(expQuery), eq(0), eq(3), eq(requestContext));
+
+        vertxTestContext.completeNow();
+      });
   }
 }
