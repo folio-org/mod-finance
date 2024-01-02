@@ -151,7 +151,7 @@ public class BudgetServiceTest {
     when(restClient.get(anyString(), eq(Budget.class), any()))
       .thenReturn(succeededFuture(budgetFromStorage));
 
-    Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> future = budgetService.updateBudgetWithoutAmountFields(sharedBudget, requestContextMock);
 
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
@@ -184,7 +184,7 @@ public class BudgetServiceTest {
     when(restClient.put(anyString(), any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.updateBudgetExpenseClassesLinks(any(), any())).thenReturn(succeededFuture(null));
 
-    Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> future = budgetService.updateBudgetWithoutAmountFields(sharedBudget, requestContextMock);
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(result.succeeded());
@@ -226,7 +226,7 @@ public class BudgetServiceTest {
 
     when(restClient.get(anyString(), eq(Budget.class), any())).thenReturn(succeededFuture(budgetFromStorage));
 
-    Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
+    Future<Void> future = budgetService.updateBudgetWithoutAmountFields(sharedBudget, requestContextMock);
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
         var exception = result.cause();

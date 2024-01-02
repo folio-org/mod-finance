@@ -67,4 +67,32 @@ resourceTypes:
         collection-get:
           exampleCollection: !include acq-models/mod-finance/examples/budget_expense_class_totals_collection.sample
           schemaCollection: budgetExpenseClassTotalsCollection
+    /recalculate:
+      displayName: Recalculate Budget
+      description: Recalculate the budget based on transactions.
+      post:
+        is: [ validate ]
+        description: Recalculate the budget
+        responses:
+          200:
+            description: "Budget recalculated successfully"
+          404:
+            description: "Budget with a given ID not found"
+            body:
+              text/plain:
+                example: "Budget not found"
+              application/json:
+                example:
+                  strict: false
+                  value: !include raml-util/examples/errors.sample
+          500:
+            description: "Internal server error, e.g. due to misconfiguration"
+            body:
+              text/plain:
+                example: "internal server error, contact administrator"
+              application/json:
+                example:
+                  strict: false
+                  value: !include raml-util/examples/errors.sample
+
 

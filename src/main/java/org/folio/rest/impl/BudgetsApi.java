@@ -18,6 +18,7 @@ import org.folio.rest.jaxrs.resource.FinanceBudgets;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
+import org.folio.services.budget.RecalculateBudgetService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,6 +37,8 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   private BudgetService budgetService;
   @Autowired
   private CreateBudgetService createBudgetService;
+  @Autowired
+  private RecalculateBudgetService recalculateBudgetService;
 
 
   public BudgetsApi() {
@@ -78,7 +81,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       return;
     }
 
-    budgetService.updateBudget(budget, new RequestContext(ctx, headers))
+    budgetService.updateBudgetWithoutAmountFields(budget, new RequestContext(ctx, headers))
       .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
 
@@ -109,6 +112,13 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   @Override
   public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
+
+  @Override
+  public void postFinanceBudgetsRecalculateById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    recalculateBudgetService.recalculateBudget(budgetId, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
