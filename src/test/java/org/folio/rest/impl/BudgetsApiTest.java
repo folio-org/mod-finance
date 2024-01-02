@@ -54,6 +54,7 @@ import org.folio.rest.util.TestEntities;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.CreateBudgetService;
+import org.folio.services.budget.RecalculateBudgetService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -74,6 +75,8 @@ public class BudgetsApiTest  {
   public BudgetExpenseClassTotalsService budgetExpenseClassTotalsMockService;
   @Autowired
   public BudgetService budgetMockService;
+  @Autowired
+  public RecalculateBudgetService recalculateBudgetMockService;
   @Autowired
   public CreateBudgetService mockCreateBudgetService;
 
@@ -105,6 +108,7 @@ public class BudgetsApiTest  {
   void resetMocks() {
     reset(budgetExpenseClassTotalsMockService);
     reset(budgetMockService);
+    reset(recalculateBudgetMockService);
     reset(mockCreateBudgetService);
   }
 
@@ -311,6 +315,11 @@ public class BudgetsApiTest  {
     @Bean
     public BudgetService budgetService() {
       return mock(BudgetService.class);
+    }
+
+    @Bean
+    public RecalculateBudgetService recalculateBudgetService() {
+      return mock(RecalculateBudgetService.class);
     }
 
     @Bean
