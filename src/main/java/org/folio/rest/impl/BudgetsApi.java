@@ -81,7 +81,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       return;
     }
 
-    budgetService.updateBudgetWithoutAmountFields(budget, new RequestContext(ctx, headers))
+    budgetService.updateBudgetExceptAmountFields(budget, new RequestContext(ctx, headers))
       .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
 

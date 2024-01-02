@@ -53,7 +53,7 @@ public class BudgetService {
     return restClient.put(resourceByIdPath(BUDGETS_STORAGE, sharedBudget.getId()), BudgetUtils.convertToBudget(sharedBudget), requestContext);
   }
 
-  public Future<Void> updateBudgetWithoutAmountFields(SharedBudget sharedBudget, RequestContext requestContext) {
+  public Future<Void> updateBudgetExceptAmountFields(SharedBudget sharedBudget, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, sharedBudget.getId()), Budget.class, requestContext)
       .compose(budgetFromStorage -> {
           SharedBudget updatedSharedBudget = mergeBudgets(sharedBudget, budgetFromStorage);

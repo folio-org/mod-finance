@@ -1,23 +1,14 @@
 package org.folio.services.budget;
 
 import io.vertx.core.Future;
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.BudgetUtils;
-import org.folio.rest.util.MoneyUtils;
 import org.folio.services.transactions.CommonTransactionService;
-import org.javamoney.moneta.Money;
-import org.javamoney.moneta.function.MonetaryFunctions;
 
-import javax.money.CurrencyUnit;
-import javax.money.Monetary;
-import javax.money.MonetaryAmount;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.groupingBy;
+import java.util.List;
 
 public class RecalculateBudgetService {
   private final BudgetService budgetService;
@@ -37,7 +28,6 @@ public class RecalculateBudgetService {
   }
 
   private SharedBudget recalculateBudgetBasedOnTransactions(SharedBudget budget, List<Transaction> transactions) {
-    String fundId = budget.getFundId();
     double initialAllocation = 0d;
     double allocationTo = 0d;
     double allocationFrom = 0d;
@@ -46,29 +36,19 @@ public class RecalculateBudgetService {
     double awaitingPayment = 0d;
     double expended = 0d;
 
-    if (!transactions.isEmpty()) {
-      CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
-      Map<Transaction.TransactionType, List<Transaction>> transactionGroupedByType = transactions.stream().collect(groupingBy(Transaction::getTransactionType));
-      List<Transaction> allocationToList = getSortedAllocationToList(transactionGroupedByType.getOrDefault(Transaction.TransactionType.ALLOCATION, Collections.emptyList()), fundId);
+    if (CollectionUtils.isNotEmpty(transactions)) {
+      String fundId = budget.getFundId();
+      RecalculatedBudgetBuilder budgetBuilder = new RecalculatedBudgetBuilder(transactions);
+      SharedBudget recalculatedBudget = budgetBuilder.withInitialAllocation(fundId).withAllocationTo(fundId)
+        .withAllocationFrom(fundId).withNetTransfers(fundId).withEncumbered().withAwaitingPayment().withExpended().build();
 
-      initialAllocation = getInitialAllocation(allocationToList, currency);
-      allocationTo = MoneyUtils.calculateTotalAmount(allocationToList, currency).subtract(Money.of(initialAllocation, currency))
-        .with(Monetary.getDefaultRounding()).getNumber().doubleValue();
-      allocationFrom = MoneyUtils.calculateTotalAmountWithRounding(getAllocationFromList(
-        transactionGroupedByType.getOrDefault(Transaction.TransactionType.ALLOCATION, Collections.emptyList()), fundId), currency);
-      netTransfers = calculateNetTransfers(transactionGroupedByType.getOrDefault(Transaction.TransactionType.TRANSFER,
-        Collections.emptyList()), fundId, currency);
-      encumbered = MoneyUtils.calculateTotalAmountWithRounding(
-        transactionGroupedByType.getOrDefault(Transaction.TransactionType.ENCUMBRANCE, Collections.emptyList()), currency);
-      awaitingPayment = MoneyUtils.calculateTotalAmountWithRounding(
-        transactionGroupedByType.getOrDefault(Transaction.TransactionType.PENDING_PAYMENT, Collections.emptyList()), currency);
-
-      MonetaryAmount tmpExpended = MoneyUtils.calculateTotalAmount(
-        transactionGroupedByType.getOrDefault(Transaction.TransactionType.PAYMENT, Collections.emptyList()), currency);
-      tmpExpended = tmpExpended.subtract(MoneyUtils.calculateTotalAmount(
-        transactionGroupedByType.getOrDefault(Transaction.TransactionType.CREDIT, Collections.emptyList()), currency));
-
-      expended = tmpExpended.with(Monetary.getDefaultRounding()).getNumber().doubleValue();
+      initialAllocation = recalculatedBudget.getInitialAllocation();
+      allocationTo = recalculatedBudget.getAllocationTo();
+      allocationFrom = recalculatedBudget.getAllocationFrom();
+      netTransfers = recalculatedBudget.getNetTransfers();
+      encumbered = recalculatedBudget.getEncumbered();
+      awaitingPayment = recalculatedBudget.getAwaitingPayment();
+      expended = recalculatedBudget.getExpenditures();
     }
 
     return budget
@@ -79,44 +59,6 @@ public class RecalculateBudgetService {
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
       .withExpenditures(expended);
-  }
-
-  private List<Transaction> getSortedAllocationToList(List<Transaction> transactions, String fundId) {
-    return getAllocationStreamByDirection(transactions, fundId, Transaction::getToFundId)
-      .sorted(Comparator.comparing(transaction -> transaction.getMetadata().getCreatedDate()))
-      .toList();
-  }
-
-  private List<Transaction> getAllocationFromList(List<Transaction> transactions, String fundId) {
-    return getAllocationStreamByDirection(transactions, fundId, Transaction::getFromFundId)
-      .toList();
-  }
-
-  private double getInitialAllocation(List<Transaction> allocationToList, CurrencyUnit currency) {
-    return allocationToList.stream()
-      .filter(transaction -> Objects.isNull(transaction.getFromFundId()))
-      .findFirst()
-      .map(transaction -> Money.of(transaction.getAmount(), currency))
-      .orElse(Money.zero(currency))
-      .with(Monetary.getDefaultRounding())
-      .getNumber().doubleValue();
-  }
-
-  private double calculateNetTransfers(List<Transaction> transferTransactions, String fundId, CurrencyUnit currency) {
-    return transferTransactions.stream()
-      .map(transaction -> {
-        MonetaryAmount amount = Money.of(transaction.getAmount(), currency);
-        return transaction.getFromFundId().equals(fundId) ? amount.negate() : amount;
-      })
-      .reduce(MonetaryFunctions::sum)
-      .orElse(Money.zero(currency))
-      .with(Monetary.getDefaultRounding())
-      .getNumber().doubleValue();
-  }
-
-  private Stream<Transaction> getAllocationStreamByDirection(List<Transaction> transactions, String fundId, Function<Transaction, String> fundIdExtractor) {
-    return transactions.stream()
-      .filter(transaction -> Objects.equals(fundIdExtractor.apply(transaction), fundId));
   }
 
 }

@@ -149,7 +149,7 @@ public class BudgetsApiTest  {
     assertThat(errors.getErrors(), hasSize(1));
     Error expectedError = MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError();
     assertEquals(expectedError, errors.getErrors().get(0));
-    verify(budgetMockService, never()).updateBudgetWithoutAmountFields(any(), any());
+    verify(budgetMockService, never()).updateBudgetExceptAmountFields(any(), any());
   }
 
   @Test
@@ -158,12 +158,12 @@ public class BudgetsApiTest  {
     SharedBudget budget = TestEntities.BUDGET.getMockObject().mapTo(SharedBudget.class)
       .withId(null);
 
-    when(budgetMockService.updateBudgetWithoutAmountFields(any(), any())).thenReturn(succeededFuture(null));
+    when(budgetMockService.updateBudgetExceptAmountFields(any(), any())).thenReturn(succeededFuture(null));
 
     RestTestUtils.verifyPut(TestEntities.BUDGET.getEndpointWithId(id), budget, "", NO_CONTENT.getStatusCode());
 
     final ArgumentCaptor<SharedBudget> budgetArgumentCaptor = ArgumentCaptor.forClass(SharedBudget.class);
-    verify(budgetMockService).updateBudgetWithoutAmountFields(budgetArgumentCaptor.capture(), any());
+    verify(budgetMockService).updateBudgetExceptAmountFields(budgetArgumentCaptor.capture(), any());
     SharedBudget argumentBudget = budgetArgumentCaptor.getValue();
     assertEquals(id, argumentBudget.getId());
   }
