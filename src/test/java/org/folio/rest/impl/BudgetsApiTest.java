@@ -302,6 +302,27 @@ public class BudgetsApiTest  {
     verify(budgetExpenseClassTotalsMockService).getExpenseClassTotals(eq(budgetId), ArgumentMatchers.any());
   }
 
+  @Test
+  void postFinanceBudgetsRecalculateById() {
+    when(recalculateBudgetMockService.recalculateBudget(anyString(), ArgumentMatchers.any())).thenReturn(succeededFuture());
+    String budgetId = UUID.randomUUID().toString();
+
+    RestTestUtils.verifyPostResponse(String.format("/finance/budgets/%s/recalculate", budgetId), null, APPLICATION_JSON, 200);
+
+    verify(recalculateBudgetMockService).recalculateBudget(eq(budgetId), ArgumentMatchers.any());
+  }
+
+  @Test
+  void postFinanceBudgetsRecalculateByIdWithError() {
+    Future<Void> failedFuture = Future.failedFuture(new HttpException(400, GENERIC_ERROR_CODE));
+    when(recalculateBudgetMockService.recalculateBudget(anyString(), ArgumentMatchers.any())).thenReturn(failedFuture);
+    String budgetId = UUID.randomUUID().toString();
+
+    RestTestUtils.verifyPostResponse(String.format("/finance/budgets/%s/recalculate", budgetId), null, APPLICATION_JSON, 400);
+
+    verify(recalculateBudgetMockService).recalculateBudget(eq(budgetId), ArgumentMatchers.any());
+  }
+
   /**
    * Define unit test specific beans to override actual ones
    */
