@@ -50,6 +50,12 @@ public class RecalculatedBudgetBuilder {
     this.transactionGroupedByType = transactions.stream().collect(groupingBy(Transaction::getTransactionType));
   }
 
+  /**
+   * Sets the initial allocation amount based on the first increase allocation transaction sorted by date.
+   *
+   * @param fundId Fund ID
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withInitialAllocation(String fundId) {
     initialAllocationSet = true;
     initialAllocation = getSortedAllocationToList(fundId).stream()
@@ -63,7 +69,13 @@ public class RecalculatedBudgetBuilder {
   }
 
   /**
-   * Use withInitialAllocation() before calling this method.
+   * Sets the allocation to amount based on the sum of all allocation transactions where the toFundId
+   * matches the fundId of the current budget.
+   * Requires that withInitialAllocation() is called before this method.
+   *
+   * @param fundId Fund ID
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   * @throws IllegalStateException if withInitialAllocation is not called before this method
    */
   public RecalculatedBudgetBuilder withAllocationTo(String fundId) {
     if (!initialAllocationSet) {
@@ -75,11 +87,25 @@ public class RecalculatedBudgetBuilder {
     return this;
   }
 
+  /**
+   * Sets the allocation from amount based on the sum of all allocation transactions where the fromFundId
+   * matches the fundId of the current budget.
+   *
+   * @param fundId Fund ID
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withAllocationFrom(String fundId) {
     allocationFrom = MoneyUtils.calculateTotalAmountWithRounding(getAllocationFromList(fundId), currency);
     return this;
   }
 
+  /**
+   * Sets the net transfers amount based on the sum of 'Transfer' transactions.
+   * Transfers originating from the budget are subtracted, while others are summed.
+   *
+   * @param fundId Fund ID
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withNetTransfers(String fundId) {
     netTransfers = getTransactionByType(TRANSFER).stream()
       .map(transaction -> {
@@ -93,16 +119,31 @@ public class RecalculatedBudgetBuilder {
     return this;
   }
 
+  /**
+   * Sets the encumbered amount based on the sum of 'Encumbrance' transactions.
+   *
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withEncumbered() {
     encumbered = MoneyUtils.calculateTotalAmountWithRounding(getTransactionByType(ENCUMBRANCE), currency);
     return this;
   }
 
+  /**
+   * Sets the awaiting payment amount based on the sum of 'Pending Payment' transactions.
+   *
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withAwaitingPayment() {
     awaitingPayment = MoneyUtils.calculateTotalAmountWithRounding(getTransactionByType(PENDING_PAYMENT), currency);
     return this;
   }
 
+  /**
+   * Sets the expended amount based on the sum of 'Payment' transactions minus the sum of 'Credit' transactions.
+   *
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
   public RecalculatedBudgetBuilder withExpended() {
     expended = MoneyUtils.calculateTotalAmount(getTransactionByType(PAYMENT), currency)
       .subtract(MoneyUtils.calculateTotalAmount(getTransactionByType(CREDIT), currency))
@@ -110,6 +151,11 @@ public class RecalculatedBudgetBuilder {
     return this;
   }
 
+  /**
+   * Builds and returns a SharedBudget instance with the calculated budget components.
+   *
+   * @return SharedBudget instance representing the recalculated budget
+   */
   public SharedBudget build() {
     return new SharedBudget()
       .withInitialAllocation(initialAllocation)

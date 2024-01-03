@@ -23,7 +23,7 @@ public class RecalculateBudgetService {
     return budgetService.getBudgetById(budgetId, requestContext)
       .compose(budget -> transactionService.retrieveTransactions(BudgetUtils.convertToBudget(budget), requestContext)
         .map(transactions -> recalculateBudgetBasedOnTransactions(budget, transactions)))
-      .compose(budget -> budgetService.updateBudget(budget, requestContext))
+      .compose(budget -> budgetService.updateBudgetWithAmountFields(budget, requestContext))
       .mapEmpty();
   }
 
