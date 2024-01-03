@@ -307,7 +307,7 @@ public class BudgetsApiTest  {
     when(recalculateBudgetMockService.recalculateBudget(anyString(), ArgumentMatchers.any())).thenReturn(succeededFuture());
     String budgetId = UUID.randomUUID().toString();
 
-    RestTestUtils.verifyPostResponse(String.format("/finance/budgets/%s/recalculate", budgetId), null, APPLICATION_JSON, 200);
+    RestTestUtils.verifyPostResponse(String.format("/finance/budgets/%s/recalculate", budgetId), null, "", 204);
 
     verify(recalculateBudgetMockService).recalculateBudget(eq(budgetId), ArgumentMatchers.any());
   }

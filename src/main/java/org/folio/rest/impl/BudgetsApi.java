@@ -119,7 +119,7 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   @Override
   public void postFinanceBudgetsRecalculateById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     recalculateBudgetService.recalculateBudget(budgetId, new RequestContext(vertxContext, okapiHeaders))
-      .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
+      .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
