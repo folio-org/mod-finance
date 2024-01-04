@@ -7,6 +7,7 @@ import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassService;
 import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.budget.RecalculateBudgetService;
 import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
@@ -245,6 +246,11 @@ public class ServicesConfiguration {
   @Bean
   public ProtectionService protectionService(AcqUnitsService acqUnitsService, AcqUnitMembershipsService acqUnitMembershipsService) {
     return new ProtectionService(acqUnitsService, acqUnitMembershipsService);
+  }
+
+  @Bean
+  public RecalculateBudgetService recalculateBudgetService(BudgetService budgetService, CommonTransactionService commonTransactionService) {
+    return new RecalculateBudgetService(budgetService, commonTransactionService);
   }
 
   @Bean

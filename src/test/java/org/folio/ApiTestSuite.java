@@ -31,6 +31,7 @@ import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
+import org.folio.services.budget.RecalculateBudgetServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
@@ -229,5 +230,8 @@ public class ApiTestSuite {
 
   @Nested
   class GroupServiceNested extends GroupServiceTest {}
+
+  @Nested
+  class RecalculateBudgetServiceTestNested extends RecalculateBudgetServiceTest {}
 
 }

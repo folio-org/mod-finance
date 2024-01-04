@@ -49,6 +49,10 @@ public class BudgetService {
         .map(budgetExpenseClasses -> BudgetUtils.buildSharedBudget(budget, budgetExpenseClasses)));
   }
 
+  public Future<Void> updateBudgetWithAmountFields(SharedBudget sharedBudget, RequestContext requestContext) {
+    return restClient.put(resourceByIdPath(BUDGETS_STORAGE, sharedBudget.getId()), BudgetUtils.convertToBudget(sharedBudget), requestContext);
+  }
+
   public Future<Void> updateBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, sharedBudget.getId()), Budget.class, requestContext)
       .compose(budgetFromStorage -> {

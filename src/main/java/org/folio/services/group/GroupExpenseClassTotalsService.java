@@ -13,6 +13,7 @@ import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
@@ -20,9 +21,11 @@ import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
+import org.folio.services.budget.RecalculatedBudgetBuilder;
 import org.folio.services.transactions.CommonTransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
@@ -104,29 +107,21 @@ public class GroupExpenseClassTotalsService {
   }
 
   private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions, double expendedGrandTotal) {
-
     double expended = 0d;
     double encumbered = 0d;
     double awaitingPayment = 0d;
     Double percentageExpended = 0d;
 
-    if (!transactions.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(transactions)) {
+      RecalculatedBudgetBuilder budgetBuilder = new RecalculatedBudgetBuilder(transactions);
+      SharedBudget recalculatedBudget = budgetBuilder.withEncumbered().withAwaitingPayment().withExpended().build();
+
+      expended = recalculatedBudget.getExpenditures();
+      encumbered = recalculatedBudget.getEncumbered();
+      awaitingPayment = recalculatedBudget.getAwaitingPayment();
+
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
-      Map<Transaction.TransactionType, List<Transaction>> transactionGroupedByType = transactions.stream().collect(groupingBy(Transaction::getTransactionType));
-
-      encumbered = MoneyUtils.calculateTotalAmountWithRounding(
-              transactionGroupedByType.getOrDefault(Transaction.TransactionType.ENCUMBRANCE, Collections.emptyList()), currency);
-      awaitingPayment = MoneyUtils.calculateTotalAmountWithRounding(
-              transactionGroupedByType.getOrDefault(Transaction.TransactionType.PENDING_PAYMENT, Collections.emptyList()), currency);
-
-      MonetaryAmount tmpExpended = MoneyUtils.calculateTotalAmount(
-              transactionGroupedByType.getOrDefault(Transaction.TransactionType.PAYMENT, Collections.emptyList()), currency);
-      tmpExpended = tmpExpended.subtract(MoneyUtils.calculateTotalAmount(
-              transactionGroupedByType.getOrDefault(Transaction.TransactionType.CREDIT, Collections.emptyList()), currency));
-
-      expended = tmpExpended.with(Monetary.getDefaultRounding()).getNumber().doubleValue();
-
-      percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(tmpExpended, expendedGrandTotal);
+      percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
     }
 
     return new GroupExpenseClassTotal()

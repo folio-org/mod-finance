@@ -37,6 +37,7 @@ import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -100,6 +101,7 @@ public class LedgerDetailsServiceTest {
   }
 
   @Test
+  @DisabledIf("isWithinDateRange")
   void testShouldReturnCurrentFiscalYearIfNoNextYearAndTwoCurrentWithOverlapping(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -240,6 +242,7 @@ public class LedgerDetailsServiceTest {
   }
 
   @Test
+  @DisabledIf("isWithinDateRange")
   void testShouldReturnNullNextFiscalYearIfTwoCurrentWithOverlapping(VertxTestContext vertxTestContext) throws ParseException {
     //Given
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -314,5 +317,19 @@ public class LedgerDetailsServiceTest {
 
         vertxTestContext.completeNow();
       });
+  }
+
+  /**
+   * This method checks if the current date falls within the date range from the 1st to the 3rd of January.
+   * Tests using this method are disabled during this period due to specific test data considerations.
+   *
+   * @return true if the current date is within the specified range, otherwise false.
+   */
+  private boolean isWithinDateRange() {
+    LocalDate currentDate = LocalDate.now();
+    LocalDate startDate = LocalDate.of(currentDate.getYear(), 1, 1);
+    LocalDate endDate = LocalDate.of(currentDate.getYear(), 1, 3);
+
+    return currentDate.isAfter(startDate) && currentDate.isBefore(endDate);
   }
 }

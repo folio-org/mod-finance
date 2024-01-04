@@ -87,6 +87,17 @@
             "finance-storage.transactions.collection.get",
             "finance-storage.budget-expense-classes.collection.get"
           ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/budgets/{id}/recalculate",
+          "permissionsRequired": ["finance.budgets-recalculate.item.post"],
+          "modulePermissions": [
+            "finance-storage.budgets.item.get",
+            "finance-storage.budgets.item.put",
+            "finance-storage.transactions.collection.get",
+            "finance-storage.expense-classes.collection.get"
+          ]
         }
       ]
     },
@@ -906,6 +917,11 @@
   ],
   "permissionSets": [
     {
+      "permissionName": "finance.budgets-recalculate.item.post",
+      "displayName" : "Recalculate budget item post",
+      "description" : "Recalculate the budget based on transactions"
+    },
+    {
       "permissionName": "finance.budgets-expense-classes-totals.collection.get",
       "displayName" : "expense-classes-totals collection get",
       "description" : "Get expense class totals within a budget"
@@ -945,7 +961,8 @@
         "finance.budgets.item.get",
         "finance.budgets.item.put",
         "finance.budgets.item.delete",
-        "finance.budgets-expense-classes-totals.collection.get"
+        "finance.budgets-expense-classes-totals.collection.get",
+        "finance.budgets-recalculate.item.post"
       ]
     },
     {
