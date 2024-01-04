@@ -1,6 +1,8 @@
 package org.folio.services.budget;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
@@ -28,6 +30,8 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 
 public class RecalculatedBudgetBuilder {
 
+  private static final Logger logger = LogManager.getLogger(RecalculatedBudgetBuilder.class);
+
   private double initialAllocation = 0d;
   private double allocationTo = 0d;
   private double allocationFrom = 0d;
@@ -43,6 +47,7 @@ public class RecalculatedBudgetBuilder {
 
   public RecalculatedBudgetBuilder(List<Transaction> transactions) {
     if (CollectionUtils.isEmpty(transactions)) {
+      logger.error("The transactions list is empty. Cannot proceed with RecalculatedBudgetBuilder creation.");
       throw new IllegalArgumentException("The transactions list cannot be empty");
     }
 
@@ -79,6 +84,7 @@ public class RecalculatedBudgetBuilder {
    */
   public RecalculatedBudgetBuilder withAllocationTo(String fundId) {
     if (!initialAllocationSet) {
+      logger.error("Cannot set Allocation To without calling withInitialAllocation first.");
       throw new IllegalStateException("withInitialAllocation must be called before withAllocationTo");
     }
 
