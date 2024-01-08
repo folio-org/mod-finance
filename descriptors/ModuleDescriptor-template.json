@@ -722,6 +722,16 @@
             "finance-storage.transactions.item.put",
             "finance-storage.order-transaction-summaries.item.put"
           ]
+        },
+        {
+          "method": ["POST"],
+          "pathPattern": "/finance/unrelease-encumbrance/{id}",
+          "permissionsRequired": ["finance.unrelease-encumbrance.item.post"],
+          "modulePermissions": [
+            "finance-storage.transactions.item.get",
+            "finance-storage.transactions.item.put",
+            "finance-storage.order-transaction-summaries.item.put"
+          ]
         }
       ]
     },
@@ -1359,6 +1369,11 @@
       "permissionName" :  "finance.release-encumbrance.item.post",
       "displayName" : "Release encumbrance",
       "description" : "Release any remaining money encumbered back to the budget's available pool"
+    },
+    {
+      "permissionName" :  "finance.unrelease-encumbrance.item.post",
+      "displayName" : "UnRelease encumbrance",
+      "description" : "Status of released encumbrance back to unreleased status"
     },
     {
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
