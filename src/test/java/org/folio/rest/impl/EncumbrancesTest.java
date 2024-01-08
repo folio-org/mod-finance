@@ -109,10 +109,13 @@ public class EncumbrancesTest {
   }
 
   @Test
-  void testPostUnreleaseEncumbrance() {
+  void testPostUnreleaseEncumbrance() throws IOException {
     logger.info("=== Test POST Unrelease Encumbrance ===");
 
     String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
+    Transaction releasedEncumbrance = new JsonObject(getMockData("mockdata/transactions/encumbrances.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
+    releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
     verifyPostResponse("/finance/unrelease-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
 
@@ -158,16 +161,6 @@ public class EncumbrancesTest {
     String transactionID = "bad-encumbrance-id";
 
     verifyPostResponse("/finance/unrelease-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
-  }
-
-  private Transaction getTransactionMockById(String id) throws IOException {
-    return new JsonObject(getMockData("mockdata/transactions/transactions.json"))
-      .mapTo(TransactionCollection.class)
-      .getTransactions()
-      .stream()
-      .filter(tr -> tr.getId().equals(id))
-      .findFirst()
-      .get();
   }
 
 }
