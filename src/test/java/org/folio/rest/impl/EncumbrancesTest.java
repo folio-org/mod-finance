@@ -4,6 +4,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.RestTestUtils.verifyPostResponse;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
@@ -24,7 +25,6 @@ import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 import org.folio.rest.util.MockServer;
-import org.folio.rest.util.RestTestUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,7 +65,7 @@ public class EncumbrancesTest {
 
     String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
 
-    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
+    verifyPostResponse("/finance/release-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
 
     Transaction updatedEncumbrance = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
     assertEquals(Encumbrance.Status.RELEASED, updatedEncumbrance.getEncumbrance().getStatus());
@@ -79,12 +79,11 @@ public class EncumbrancesTest {
     Transaction allocation = new JsonObject(getMockData("mockdata/transactions/allocations.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
 
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(allocation));
-    Errors errors = RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", 422).then()
+    Errors errors = verifyPostResponse("/finance/release-encumbrance/" + transactionID, null, "", 422).then()
       .extract()
       .as(Errors.class);
 
     assertEquals(INVALID_TRANSACTION_TYPE.getCode(), errors.getErrors().get(0).getCode());
-
   }
 
   @Test
@@ -96,7 +95,7 @@ public class EncumbrancesTest {
     releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
-    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
+    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
 
   }
 
@@ -106,18 +105,63 @@ public class EncumbrancesTest {
 
     String transactionID = "bad-encumbrance-id";
 
-    RestTestUtils.verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
-
+    verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
   }
 
-  private Transaction getTransactionMockById(String id) throws IOException {
-    return new JsonObject(getMockData("mockdata/transactions/transactions.json"))
-      .mapTo(TransactionCollection.class)
-      .getTransactions()
-      .stream()
-      .filter(tr -> tr.getId().equals(id))
-      .findFirst()
-      .get();
+  @Test
+  void testPostUnreleaseEncumbrance() throws IOException {
+    logger.info("=== Test POST Unrelease Encumbrance ===");
+
+    String encumbranceID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
+    Transaction releasedEncumbrance = new JsonObject(getMockData("mockdata/transactions/encumbrances.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
+    releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
+
+    verifyPostResponse("/finance/unrelease-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
+
+    Transaction updatedEncumbrance = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
+    assertEquals(Encumbrance.Status.UNRELEASED, updatedEncumbrance.getEncumbrance().getStatus());
+  }
+
+  @Test
+  void testPostUnreleaseNonEncumbrance() throws IOException {
+    logger.info("=== Test POST Unrelease non Encumbrance transaction ===");
+
+    String transactionID = "a0b1e290-c42f-435a-b9d7-4ae7f77eb4ef";
+    Transaction allocation = new JsonObject(getMockData("mockdata/transactions/allocations.json"))
+      .mapTo(TransactionCollection.class).getTransactions().get(0);
+
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(allocation));
+
+    Errors errors = verifyPostResponse("/finance/unrelease-encumbrance/" + transactionID, null, "", 422)
+      .then()
+      .extract()
+      .as(Errors.class);
+
+    assertEquals(INVALID_TRANSACTION_TYPE.getCode(), errors.getErrors().get(0).getCode());
+  }
+
+  @Test
+  void testPostUnreleasedEncumbrance() throws IOException {
+    logger.info("=== Test POST Unreleased Encumbrance transaction ===");
+
+    String transactionID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
+    Transaction releasedEncumbrance = new JsonObject(getMockData("mockdata/transactions/encumbrances.json"))
+      .mapTo(TransactionCollection.class).getTransactions().get(0);
+
+    releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.UNRELEASED);
+    addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
+
+    verifyPostResponse("/finance/unrelease-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
+  }
+
+  @Test
+  void testPostEncumbranceToUnreleaseInvalidId() {
+    logger.info("=== Test POST unrelease encumbrance bad ID ===");
+
+    String transactionID = "bad-encumbrance-id";
+
+    verifyPostResponse("/finance/unrelease-encumbrance/" + transactionID , null, "", BAD_REQUEST.getStatusCode());
   }
 
 }

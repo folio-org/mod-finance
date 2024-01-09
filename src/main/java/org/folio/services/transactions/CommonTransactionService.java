@@ -103,6 +103,25 @@ public class CommonTransactionService extends BaseTransactionService {
                     .compose(summary -> updateTransaction(transaction, requestContext));
   }
 
+  public Future<Void> unreleaseTransaction(String id, RequestContext requestContext) {
+    return retrieveTransactionById(id, requestContext)
+      .compose(transaction -> unreleaseTransaction(transaction, requestContext));
+  }
+
+  public Future<Void> unreleaseTransaction(Transaction transaction, RequestContext requestContext) {
+    logger.info("Start unreleasing transaction {}", transaction.getId()) ;
+
+    validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
+
+    if (transaction.getEncumbrance().getStatus() != Encumbrance.Status.RELEASED) {
+      return succeededFuture(null);
+    }
+
+    transaction.getEncumbrance().setStatus(Encumbrance.Status.UNRELEASED);
+    return createOrderTransactionSummary(transaction, 1, requestContext)
+      .compose(summary -> updateTransaction(transaction, requestContext));
+  }
+
   public Future<Void> createOrderTransactionSummary(Transaction transaction, int number, RequestContext requestContext) {
     String id = transaction.getEncumbrance().getSourcePurchaseOrderId();
     OrderTransactionSummary summary = new OrderTransactionSummary().withId(id).withNumTransactions(number);
