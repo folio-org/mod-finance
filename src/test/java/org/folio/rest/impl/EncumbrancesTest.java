@@ -132,6 +132,7 @@ public class EncumbrancesTest {
       .mapTo(TransactionCollection.class).getTransactions().get(0);
 
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(allocation));
+
     Errors errors = verifyPostResponse("/finance/unrelease-encumbrance/" + transactionID, null, "", 422)
       .then()
       .extract()
