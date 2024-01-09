@@ -724,7 +724,7 @@
           ]
         },
         {
-          "method": ["POST"],
+          "methods": ["POST"],
           "pathPattern": "/finance/unrelease-encumbrance/{id}",
           "permissionsRequired": ["finance.unrelease-encumbrance.item.post"],
           "modulePermissions": [
@@ -1362,7 +1362,8 @@
         "finance.credits.item.put",
         "finance.transactions.collection.get",
         "finance.transactions.item.get",
-        "finance.release-encumbrance.item.post"
+        "finance.release-encumbrance.item.post",
+        "finance.unrelease-encumbrance.item.post"
       ]
     },
     {
@@ -1373,7 +1374,7 @@
     {
       "permissionName" :  "finance.unrelease-encumbrance.item.post",
       "displayName" : "UnRelease encumbrance",
-      "description" : "Status of released encumbrance back to unreleased status"
+      "description" : "Updated status of encumbrance from released to unreleased status"
     },
     {
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
