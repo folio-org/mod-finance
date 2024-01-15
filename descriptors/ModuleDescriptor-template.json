@@ -96,7 +96,7 @@
             "finance-storage.budgets.item.get",
             "finance-storage.budgets.item.put",
             "finance-storage.transactions.collection.get",
-            "finance-storage.expense-classes.collection.get"
+            "finance-storage.budget-expense-classes.collection.get"
           ]
         }
       ]
