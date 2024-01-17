@@ -13,9 +13,11 @@ import javax.ws.rs.core.Response;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Batch;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.jaxrs.resource.Finance;
+import org.folio.services.transactions.BatchTransactionService;
 import org.folio.services.transactions.TransactionService;
 import org.folio.services.transactions.TransactionStrategyFactory;
 import org.folio.spring.SpringContextUtil;
@@ -34,6 +36,8 @@ public class TransactionsApi extends BaseApi implements Finance {
   private TransactionStrategyFactory transactionStrategyFactory;
   @Autowired
   private TransactionService transactionService;
+  @Autowired
+  private BatchTransactionService batchTransactionService;
 
   public TransactionsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -197,4 +201,12 @@ public class TransactionsApi extends BaseApi implements Finance {
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
+  @Validate
+  @Override
+  public void postFinanceBatchAllOrNothing(Batch batch, Map<String, String> okapiHeaders,
+    Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    batchTransactionService.processBatch(batch, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
 }

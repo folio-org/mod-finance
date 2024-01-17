@@ -32,6 +32,7 @@ import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
 import org.folio.services.transactions.AllocationService;
 import org.folio.services.transactions.BaseTransactionService;
+import org.folio.services.transactions.BatchTransactionService;
 import org.folio.services.transactions.CommonTransactionService;
 import org.folio.services.transactions.CreditService;
 import org.folio.services.transactions.EncumbranceService;
@@ -204,6 +205,11 @@ public class ServicesConfiguration {
   @Bean
   TransactionStrategyFactory transactionStrategyFactory(Set<TransactionTypeManagingStrategy> transactionTypeManagingStrategies) {
     return new TransactionStrategyFactory(transactionTypeManagingStrategies);
+  }
+
+  @Bean
+  public BatchTransactionService batchTransactionService(RestClient restClient) {
+    return new BatchTransactionService(restClient);
   }
 
   @Bean
