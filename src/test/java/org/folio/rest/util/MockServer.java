@@ -194,6 +194,8 @@ public class MockServer {
     .handler(ctx -> handlePostEntry(ctx, InvoiceTransactionSummary.class, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePostEntry(ctx, ExpenseClass.class, TestEntities.EXPENSE_CLASSES.name()));
+    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.BATCH_TRANSACTIONS_STORAGE))
+      .handler(this::handlePostEmpty);
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -761,6 +763,12 @@ public class MockServer {
 
       serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry).encodePrettily());
     }
+  }
+
+  public void handlePostEmpty(RoutingContext ctx) {
+    ctx.response()
+      .setStatusCode(204)
+      .end();
   }
 
   private void handleDeleteRequest(RoutingContext ctx, String type) {
