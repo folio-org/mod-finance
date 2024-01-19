@@ -50,9 +50,7 @@ public class RestClient {
 
   public <T> Future<T> post(String endpoint, T entity, Class<T> responseType, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
-    if (log.isDebugEnabled()) {
-      log.debug(REQUEST_MESSAGE_LOG_DEBUG, HttpMethod.POST, JsonObject.mapFrom(entity).encodePrettily());
-    }
+    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.POST, () -> JsonObject.mapFrom(entity).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
@@ -66,9 +64,7 @@ public class RestClient {
 
   public <T> Future<Void> postEmptyResponse(String endpoint, T entity, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
-    if (log.isDebugEnabled()) {
-      log.debug(REQUEST_MESSAGE_LOG_DEBUG, HttpMethod.POST, JsonObject.mapFrom(entity).encodePrettily());
-    }
+    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.POST, () -> JsonObject.mapFrom(entity).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
@@ -90,9 +86,7 @@ public class RestClient {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
     var recordData = JsonObject.mapFrom(dataObject);
-    if (log.isDebugEnabled()) {
-      log.debug(REQUEST_MESSAGE_LOG_DEBUG, HttpMethod.PUT, JsonObject.mapFrom(recordData).encodePrettily());
-    }
+    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.PUT, () -> JsonObject.mapFrom(recordData).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
 
     return getVertxWebClient(requestContext.context())
