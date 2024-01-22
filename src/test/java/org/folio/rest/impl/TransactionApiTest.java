@@ -9,6 +9,8 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_NOT_RELEASED;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.ResourcePathResolver.BATCH_TRANSACTIONS;
+import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
@@ -375,6 +377,12 @@ public class TransactionApiTest {
     Transaction transaction = TestEntities.TRANSACTIONS_CREDIT.getMockObject().mapTo(Transaction.class);
     RestTestUtils.verifyPut(TestEntities.TRANSACTIONS_CREDIT.getEndpointWithId(transaction.getId()),
       JsonObject.mapFrom(transaction), APPLICATION_JSON, 422);
+  }
+
+  @Test
+  void testTransactionBatch() throws Exception {
+    String batchAsString = getMockData("mockdata/transactions/batch_with_patch.json");
+    RestTestUtils.verifyPostResponse(resourcesPath(BATCH_TRANSACTIONS), new JsonObject(batchAsString), "", 204);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {

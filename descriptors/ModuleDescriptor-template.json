@@ -599,7 +599,7 @@
     },
     {
       "id": "finance.transactions",
-      "version": "5.0",
+      "version": "5.1",
       "handlers": [
         {
           "methods": ["POST"],
@@ -731,6 +731,14 @@
             "finance-storage.transactions.item.get",
             "finance-storage.transactions.item.put",
             "finance-storage.order-transaction-summaries.item.put"
+          ]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/transactions/batch-all-or-nothing",
+          "permissionsRequired": ["finance.transactions.batch"],
+          "modulePermissions": [
+            "finance-storage.transactions.batch"
           ]
         }
       ]
@@ -1345,6 +1353,11 @@
       "description": "Get an existing transaction"
     },
     {
+      "permissionName": "finance.transactions.batch",
+      "displayName": "Finances - Batch process transactions",
+      "description": "Process transactions in an all-or-nothing batch operation"
+    },
+    {
       "permissionName" : "finance.transactions.all",
       "displayName" : "All transactions permissions",
       "description" : "All permissions for the transaction APIs",
@@ -1363,7 +1376,8 @@
         "finance.transactions.collection.get",
         "finance.transactions.item.get",
         "finance.release-encumbrance.item.post",
-        "finance.unrelease-encumbrance.item.post"
+        "finance.unrelease-encumbrance.item.post",
+        "finance.transactions.batch"
       ]
     },
     {

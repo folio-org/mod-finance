@@ -23,6 +23,8 @@ public class ResourcePathResolver {
   public static final String LEDGER_ROLLOVERS_PROGRESS_STORAGE = "ledgerRolloverProgress";
   public static final String GROUPS = "groups";
   public static final String TRANSACTIONS = "transactions";
+  public static final String BATCH_TRANSACTIONS = "batchTransactions";
+  public static final String BATCH_TRANSACTIONS_STORAGE = "batchTransactionsStorage";
   public static final String CONFIGURATIONS = "configurations";
   public static final String ORDER_TRANSACTION_SUMMARIES = "orderTransactionSummaries";
   public static final String INVOICE_TRANSACTION_SUMMARIES = "invoiceTransactionSummaries";
@@ -49,6 +51,8 @@ public class ResourcePathResolver {
     apis.put(LEDGER_ROLLOVERS_PROGRESS_STORAGE, "/finance-storage/ledger-rollovers-progress");
     apis.put(GROUPS, "/finance-storage/groups");
     apis.put(TRANSACTIONS, "/finance-storage/transactions");
+    apis.put(BATCH_TRANSACTIONS, "/finance/batch-all-or-nothing");
+    apis.put(BATCH_TRANSACTIONS_STORAGE, "/finance-storage/transactions/batch-all-or-nothing");
     apis.put(CONFIGURATIONS, "/configurations/entries");
     apis.put(ORDER_TRANSACTION_SUMMARIES, "/finance-storage/order-transaction-summaries");
     apis.put(INVOICE_TRANSACTION_SUMMARIES, "/finance-storage/invoice-transaction-summaries");
