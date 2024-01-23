@@ -203,7 +203,7 @@ public class TransactionsApi extends BaseApi implements Finance {
 
   @Validate
   @Override
-  public void postFinanceBatchAllOrNothing(Batch batch, Map<String, String> okapiHeaders,
+  public void postFinanceTransactionsBatchAllOrNothing(Batch batch, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     batchTransactionService.processBatch(batch, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(types -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
