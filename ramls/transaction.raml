@@ -176,31 +176,31 @@ resourceTypes:
           schema: transaction
           exampleItem: !include acq-models/mod-finance/schemas/transaction.json
 
-  /batch-all-or-nothing:
-    displayName: Batch processing of transactions
-    post:
-      description: Process actions on transactions in a single all-or-nothing operation
-      is: [validate]
-      body:
-        application/json:
-          type: batch
-          example:
-            strict: false
-            value: !include acq-models/mod-finance/examples/batch.sample
-      responses:
-        204:
-          description: "Transactions processed successfully"
-        400:
-          description: "Bad request, for instance with the syntax. Details of the error provided in the response."
-          body:
-            application/json:
-              example:
-                strict: false
-                value: !include raml-util/examples/errors.sample
-        500:
-          description: "Internal server error"
-          body:
-            application/json:
-              example:
-                strict: false
-                value: !include raml-util/examples/errors.sample
+    /batch-all-or-nothing:
+      displayName: Batch processing of transactions
+      post:
+        description: Process actions on transactions in a single all-or-nothing operation
+        is: [validate]
+        body:
+          application/json:
+            type: batch
+            example:
+              strict: false
+              value: !include acq-models/mod-finance/examples/batch.sample
+        responses:
+          204:
+            description: "Transactions processed successfully"
+          400:
+            description: "Bad request, for instance with the syntax. Details of the error provided in the response."
+            body:
+              application/json:
+                example:
+                  strict: false
+                  value: !include raml-util/examples/errors.sample
+          500:
+            description: "Internal server error"
+            body:
+              application/json:
+                example:
+                  strict: false
+                  value: !include raml-util/examples/errors.sample

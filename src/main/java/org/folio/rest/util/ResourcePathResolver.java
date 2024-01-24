@@ -51,7 +51,7 @@ public class ResourcePathResolver {
     apis.put(LEDGER_ROLLOVERS_PROGRESS_STORAGE, "/finance-storage/ledger-rollovers-progress");
     apis.put(GROUPS, "/finance-storage/groups");
     apis.put(TRANSACTIONS, "/finance-storage/transactions");
-    apis.put(BATCH_TRANSACTIONS, "/finance/batch-all-or-nothing");
+    apis.put(BATCH_TRANSACTIONS, "/finance/transactions/batch-all-or-nothing");
     apis.put(BATCH_TRANSACTIONS_STORAGE, "/finance-storage/transactions/batch-all-or-nothing");
     apis.put(CONFIGURATIONS, "/configurations/entries");
     apis.put(ORDER_TRANSACTION_SUMMARIES, "/finance-storage/order-transaction-summaries");
