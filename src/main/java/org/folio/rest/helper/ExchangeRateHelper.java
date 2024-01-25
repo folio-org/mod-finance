@@ -32,4 +32,8 @@ public class ExchangeRateHelper extends AbstractHelper {
       throw new HttpException(400, e.getMessage());
     }
   }
+
+  public Double calculateExchange(Double rate, Double amount) {
+    return amount * rate;
+  }
 }
