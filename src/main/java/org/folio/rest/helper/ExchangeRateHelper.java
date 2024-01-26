@@ -1,15 +1,17 @@
 package org.folio.rest.helper;
 
-import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
-import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.ExchangeRate;
+import org.javamoney.moneta.Money;
 
+import javax.money.Monetary;
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
 
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.ExchangeRate;
-
-import io.vertx.core.Context;
+import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
+import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
 public class ExchangeRateHelper extends AbstractHelper {
   public ExchangeRateHelper(Context ctx) {
@@ -33,7 +35,15 @@ public class ExchangeRateHelper extends AbstractHelper {
     }
   }
 
-  public Double calculateExchange(Double rate, Double amount) {
-    return amount * rate;
+  public Future<Double> calculateExchange(String sourceCurrency, String targetCurrency, Number amount) {
+    return Future.succeededFuture()
+      .map(v -> {
+        var initialAmount = Money.of(amount, sourceCurrency);
+        var rate = getExchangeRate(sourceCurrency, targetCurrency).getExchangeRate();
+
+        return initialAmount.multiply(rate)
+          .with(Monetary.getDefaultRounding())
+          .getNumber().doubleValue();
+      });
   }
 }

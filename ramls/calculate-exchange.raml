@@ -13,12 +13,16 @@ types:
   errors: !include raml-util/schemas/error.schema
   amount:
     type: number
-    format: double
+    description: Amount expressed as a number of major currency units that needs to be calculate
+    example: 99.95
   currency_code:
+    description: currency_code expressed as a code of currency
     type: string
+    example: USD
   exchange_calculation:
     type: number
-    format: double
+    description: currency_code expressed as a total of exchange calculation
+    example: 99.95
 
 /finance/calculate_exchange:
   displayName: Calculate exchange
@@ -49,7 +53,7 @@ types:
               type: exchange_calculation
               example:
                 strict: false
-                value: sample
+                value: 200.0
         400:
           description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
           body:

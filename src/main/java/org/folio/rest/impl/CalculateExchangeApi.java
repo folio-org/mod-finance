@@ -16,10 +16,11 @@ import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 public class CalculateExchangeApi implements FinanceCalculateExchange {
 
   @Override
-  public void getFinanceCalculateExchange(String sourceCurrency, String targetCurrency, Number amount, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceCalculateExchange(String sourceCurrency, String targetCurrency, Number amount,
+                                          Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
+                                          Context vertxContext) {
     ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
-    var rate = helper.getExchangeRate(sourceCurrency, targetCurrency);
-    vertxContext.executeBlocking(promise -> promise.complete(helper.calculateExchange(rate.getExchangeRate(), amount.doubleValue())))
+    helper.calculateExchange(sourceCurrency, targetCurrency, amount)
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));
   }
