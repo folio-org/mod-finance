@@ -3,7 +3,7 @@ package org.folio.rest.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
-import org.folio.rest.helper.ExchangeRateHelper;
+import org.folio.rest.helper.ExchangeHelper;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
 
 import javax.ws.rs.core.Response;
@@ -19,7 +19,7 @@ public class CalculateExchangeApi implements FinanceCalculateExchange {
   public void getFinanceCalculateExchange(String sourceCurrency, String targetCurrency, Number amount,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {
-    ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
+    ExchangeHelper helper = new ExchangeHelper(vertxContext);
     helper.calculateExchange(sourceCurrency, targetCurrency, amount)
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));

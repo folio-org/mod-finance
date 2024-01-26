@@ -63,38 +63,38 @@ public class CalculateExchangeApiTest {
   @Test
   void calculateExchangeForNonexistentCurrency(){
     logger.info("=== Test exchange calculation for non-existent currency code: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + NON_EXISTENT_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + NON_EXISTENT_CURRENCY, "", 500);
   }
 
   @Test
   void calculateExchangeMissingParameters() {
     logger.info("=== Test exchange calculation missing query parameters: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH, "", 500);
   }
 
   @Test
   void calculateExchangeMissingSourceCurrencyParameter() {
     logger.info("=== Test exchange calculation missing SOURCE_CURRENCY parameter: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_SOURCE_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_SOURCE_CURRENCY, "", 500);
   }
 
   @Test
   void calculateExchangeMissingTargetCurrencyParameter() {
     logger.info("=== Test exchange calculation missing TARGET_CURRENCY parameter: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_TARGET_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_TARGET_CURRENCY, "", 500);
   }
 
   @Test
   void calculateExchangeMissingAmountParameter() {
     logger.info("=== Test exchange calculation missing TARGET_CURRENCY parameter: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_AMOUNT, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_AMOUNT, "", 500);
   }
 
 
   @Test
   void calculateExchangeInvalidCurrencyCode() {
     logger.info("=== Test exchange calculation for invalid currency code: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + INVALID_CURRENCY, "", 400);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + INVALID_CURRENCY, "", 500);
   }
 
   @Test

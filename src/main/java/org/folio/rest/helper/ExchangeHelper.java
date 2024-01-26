@@ -13,8 +13,9 @@ import javax.money.convert.MonetaryConversions;
 import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
 import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
-public class ExchangeRateHelper extends AbstractHelper {
-  public ExchangeRateHelper(Context ctx) {
+public class ExchangeHelper extends AbstractHelper {
+
+  public ExchangeHelper(Context ctx) {
     super(ctx);
   }
 
