@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 
 import org.folio.rest.annotations.Validate;
-import org.folio.rest.helper.ExchangeRateHelper;
+import org.folio.rest.helper.ExchangeHelper;
 import org.folio.rest.jaxrs.resource.FinanceExchangeRate;
 
 import io.vertx.core.AsyncResult;
@@ -21,7 +21,7 @@ public class ExchangeRateApi implements FinanceExchangeRate {
   @Validate
   public void getFinanceExchangeRate(String from, String to, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    ExchangeRateHelper helper = new ExchangeRateHelper(vertxContext);
+    ExchangeHelper helper = new ExchangeHelper(vertxContext);
     vertxContext.executeBlocking(promise -> promise.complete(helper.getExchangeRate(from, to)))
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(t -> handleErrorResponse(asyncResultHandler, helper, t));

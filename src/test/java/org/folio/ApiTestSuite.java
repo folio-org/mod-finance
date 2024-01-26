@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.folio.rest.impl.BudgetsApiTest;
+import org.folio.rest.impl.CalculateExchangeApiTest;
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeRateTest;
@@ -114,6 +115,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloversProgressApiTestNested extends LedgerRolloverProgressApiTest {
+  }
+
+  @Nested
+  class CalculateExchangeApiTestNested extends CalculateExchangeApiTest {
   }
 
   @Nested
