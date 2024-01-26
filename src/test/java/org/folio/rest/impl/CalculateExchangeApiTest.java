@@ -81,7 +81,7 @@ public class CalculateExchangeApiTest {
   @Test
   void calculateExchangeMissingTargetCurrencyParameter() {
     logger.info("=== Test exchange calculation missing TARGET_CURRENCY parameter: BAD_REQUEST ===");
-    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_TARGET_CURRENCY, "", 500);
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_RATE_PATH + MISSING_TARGET_CURRENCY, "", 400);
   }
 
   @Test
