@@ -1,17 +1,17 @@
 package org.folio.rest.impl;
 
+import static io.vertx.core.Future.succeededFuture;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.folio.rest.util.HelperUtils.handleErrorResponse;
+
+import javax.ws.rs.core.Response;
+import java.util.Map;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import org.folio.rest.helper.ExchangeHelper;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
-
-import javax.ws.rs.core.Response;
-import java.util.Map;
-
-import static io.vertx.core.Future.succeededFuture;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.folio.rest.util.HelperUtils.handleErrorResponse;
 
 public class CalculateExchangeApi implements FinanceCalculateExchange {
 
