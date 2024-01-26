@@ -1,17 +1,17 @@
 package org.folio.rest.helper;
 
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.ExchangeRate;
-import org.javamoney.moneta.Money;
+import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
+import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
 import javax.money.Monetary;
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
 
-import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
-import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.ExchangeRate;
+import org.javamoney.moneta.Money;
 
 public class ExchangeHelper extends AbstractHelper {
 
