@@ -22,7 +22,7 @@ public class ExchangeApi implements FinanceExchangeRate, FinanceCalculateExchang
   public void getFinanceExchangeRate(String from, String to, Map<String, String> okapiHeaders,
     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     ExchangeHelper helper = new ExchangeHelper(vertxContext);
-    vertxContext.executeBlocking(promise -> promise.complete(helper.getExchangeRate(from, to)))
+    vertxContext.executeBlocking(() -> helper.getExchangeRate(from, to))
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(t -> handleErrorResponse(asyncResultHandler, helper, t));
   }
@@ -32,7 +32,7 @@ public class ExchangeApi implements FinanceExchangeRate, FinanceCalculateExchang
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {
     ExchangeHelper helper = new ExchangeHelper(vertxContext);
-    helper.calculateExchange(from, to, amount)
+    vertxContext.executeBlocking(() -> helper.calculateExchange(from, to, amount))
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));
   }
