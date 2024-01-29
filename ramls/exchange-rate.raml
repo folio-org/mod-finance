@@ -1,19 +1,25 @@
 #%RAML 1.0
 
-title: Exchange rate
+title: Exchange
 version: v1
 protocols: [ HTTP, HTTPS ]
 baseUri: https://github.com/folio-org/mod-finance
 
 documentation:
-  - title: Exchange rate API
-    content: This documents the API calls that can be made to get exchange rates
+  - title: Exchange API
+    content: This documents the API calls that can be made to get exchange operations
 
 types:
   exchangeRate: !include acq-models/mod-finance/schemas/exchange_rate.json
   errors: !include raml-util/schemas/error.schema
   currency_code:
-      type: string
+    description: currency_code expressed as a code of currency
+    type: string
+    example: USD
+  amount:
+    type: number
+    description: Amount expressed as a number of major currency units that needs to be calculate
+    example: 99.95
 
 /finance/exchange-rate:
   displayName: Exchange rate
@@ -64,3 +70,58 @@ types:
               example:
                 strict: false
                 value: !include raml-util/examples/error.sample
+
+/finance/calculate_exchange:
+  displayName: Calculate exchange
+  description: Calculate exchange API
+  get:
+    description: "Get exchange calculation"
+    queryParameters:
+      from:
+        description: "Source currency code"
+        type: currency_code
+        required: true
+        example: USD
+      to:
+        description: "Target currency code"
+        type: currency_code
+        required: true
+        example: EUR
+      amount:
+        description: "The amount of money to calculate exchange"
+        type: amount
+        required: true
+        example: 100.0
+    responses:
+      200:
+        description: "Exchange calculation successfully retrieved"
+        body:
+          application/json:
+            type: amount
+            example:
+              strict: false
+              value: 200.0
+      400:
+        description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
+        body:
+          application/json:
+            type: errors
+            example:
+              strict: false
+              value: !include raml-util/examples/error.sample
+      404:
+        description: "Exchange rate is not available"
+        body:
+          application/json:
+            type: errors
+            example:
+              strict: false
+              value: !include raml-util/examples/error.sample
+      500:
+        description: "Internal server error, e.g. due to misconfiguration"
+        body:
+          application/json:
+            type: errors
+            example:
+              strict: false
+              value: !include raml-util/examples/error.sample
