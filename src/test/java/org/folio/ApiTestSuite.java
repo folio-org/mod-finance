@@ -9,10 +9,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.folio.rest.impl.BudgetsApiTest;
-import org.folio.rest.impl.CalculateExchangeApiTest;
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
-import org.folio.rest.impl.ExchangeRateTest;
+import org.folio.rest.impl.ExchangeTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundsApiTest;
@@ -118,11 +117,7 @@ public class ApiTestSuite {
   }
 
   @Nested
-  class CalculateExchangeApiTestNested extends CalculateExchangeApiTest {
-  }
-
-  @Nested
-  class ExchangeRateTestNested extends ExchangeRateTest {
+  class ExchangeTestNested extends ExchangeTest {
   }
 
   @Nested

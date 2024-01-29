@@ -18,9 +18,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class ExchangeRateTest {
+public class ExchangeTest {
 
-  private static final Logger logger = LogManager.getLogger(ExchangeRateTest.class);
+  private static final Logger logger = LogManager.getLogger(ExchangeTest.class);
   private static final double ONE = 1.0;
   private static final double ONE_HUNDRED = 100.0;
   private static final String EXCHANGE_RATE_PATH = "finance/exchange-rate";
