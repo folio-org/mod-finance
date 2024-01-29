@@ -16,11 +16,11 @@ import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
 public class CalculateExchangeApi implements FinanceCalculateExchange {
 
   @Override
-  public void getFinanceCalculateExchange(String sourceCurrency, String targetCurrency, Number amount,
+  public void getFinanceCalculateExchange(String from, String to, Number amount,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {
     ExchangeHelper helper = new ExchangeHelper(vertxContext);
-    helper.calculateExchange(sourceCurrency, targetCurrency, amount)
+    helper.calculateExchange(from, to, amount)
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));
   }

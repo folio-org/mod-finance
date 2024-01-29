@@ -30,12 +30,12 @@ types:
   get:
     description: "Get exchange calculation"
     queryParameters:
-      source_currency:
+      from:
         description: "Source currency code"
         type: currency_code
         required: true
         example: USD
-      target_currency:
+      to:
         description: "Target currency code"
         type: currency_code
         required: true
