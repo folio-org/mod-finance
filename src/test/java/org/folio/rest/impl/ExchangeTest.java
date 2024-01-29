@@ -31,7 +31,7 @@ public class ExchangeTest {
   private static final String MISSING_TO = "?from=USD";
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
-  private static final String CALCULATE_EXCHANGE_PATH = "finance/calculate_exchange";
+  private static final String CALCULATE_EXCHANGE_PATH = "finance/calculate-exchange";
   private static final String VALID_REQUEST_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0";
   private static final String SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE = "?from=USD&to=USD&amount=100.0";
   private static final String NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=ABC&to=EUR&amount=100.0";

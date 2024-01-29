@@ -20,6 +20,10 @@ types:
     type: number
     description: Amount expressed as a number of major currency units that needs to be calculate
     example: 99.95
+  exchange_calculation:
+    type: number
+    description: Exchange calculation expressed as a total calculation of exchange
+    example: 99.95
 
 /finance/exchange-rate:
   displayName: Exchange rate
@@ -71,7 +75,7 @@ types:
                 strict: false
                 value: !include raml-util/examples/error.sample
 
-/finance/calculate_exchange:
+/finance/calculate-exchange:
   displayName: Calculate exchange
   description: Calculate exchange API
   get:
@@ -89,7 +93,7 @@ types:
         example: EUR
       amount:
         description: "The amount of money to calculate exchange"
-        type: amount
+        type: exchange_calculation
         required: true
         example: 100.0
     responses:
