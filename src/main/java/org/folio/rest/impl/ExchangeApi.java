@@ -10,17 +10,29 @@ import java.util.Map;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
+import org.folio.rest.annotations.Validate;
 import org.folio.rest.helper.ExchangeHelper;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
+import org.folio.rest.jaxrs.resource.FinanceExchangeRate;
 
-public class CalculateExchangeApi implements FinanceCalculateExchange {
+public class ExchangeApi implements FinanceExchangeRate, FinanceCalculateExchange {
 
   @Override
-  public void getFinanceCalculateExchange(String sourceCurrency, String targetCurrency, Number amount,
+  @Validate
+  public void getFinanceExchangeRate(String from, String to, Map<String, String> okapiHeaders,
+                                     Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    ExchangeHelper helper = new ExchangeHelper(vertxContext);
+    vertxContext.executeBlocking(() -> helper.getExchangeRate(from, to))
+      .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
+      .onFailure(t -> handleErrorResponse(asyncResultHandler, helper, t));
+  }
+
+  @Override
+  public void getFinanceCalculateExchange(String from, String to, Number amount,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {
     ExchangeHelper helper = new ExchangeHelper(vertxContext);
-    helper.calculateExchange(sourceCurrency, targetCurrency, amount)
+    vertxContext.executeBlocking(() -> helper.calculateExchange(from, to, amount))
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));
   }

@@ -8,7 +8,6 @@ import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
 
 import io.vertx.core.Context;
-import io.vertx.core.Future;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.ExchangeRate;
 import org.javamoney.moneta.Money;
@@ -36,15 +35,12 @@ public class ExchangeHelper extends AbstractHelper {
     }
   }
 
-  public Future<Double> calculateExchange(String sourceCurrency, String targetCurrency, Number amount) {
-    return Future.succeededFuture()
-      .map(v -> {
-        var initialAmount = Money.of(amount, sourceCurrency);
-        var rate = getExchangeRate(sourceCurrency, targetCurrency).getExchangeRate();
+  public Double calculateExchange(String sourceCurrency, String targetCurrency, Number amount) {
+    var initialAmount = Money.of(amount, sourceCurrency);
+    var rate = getExchangeRate(sourceCurrency, targetCurrency).getExchangeRate();
 
-        return initialAmount.multiply(rate)
-          .with(Monetary.getDefaultRounding())
-          .getNumber().doubleValue();
-      });
+    return initialAmount.multiply(rate)
+      .with(Monetary.getDefaultRounding())
+      .getNumber().doubleValue();
   }
 }

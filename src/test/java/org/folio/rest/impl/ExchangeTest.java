@@ -18,10 +18,11 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class ExchangeRateTest {
-  private static final Logger logger = LogManager.getLogger(ExchangeRateTest.class);
+public class ExchangeTest {
 
+  private static final Logger logger = LogManager.getLogger(ExchangeTest.class);
   private static final double ONE = 1.0;
+  private static final double ONE_HUNDRED = 100.0;
   private static final String EXCHANGE_RATE_PATH = "finance/exchange-rate";
   private static final String VALID_REQUEST = "?from=USD&to=EUR";
   private static final String SAME_CURRENCIES = "?from=USD&to=USD";
@@ -30,6 +31,15 @@ public class ExchangeRateTest {
   private static final String MISSING_TO = "?from=USD";
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
+  private static final String CALCULATE_EXCHANGE_PATH = "finance/calculate-exchange";
+  private static final String VALID_REQUEST_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0";
+  private static final String SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE = "?from=USD&to=USD&amount=100.0";
+  private static final String NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=ABC&to=EUR&amount=100.0";
+  private static final String MISSING_FROM_FOR_CALCULATE_EXCHANGE = "?to=EUR&amount=100.0";
+  private static final String MISSING_TO_FOR_CALCULATE_EXCHANGE = "?from=USD&amount=100.0";
+  private static final String MISSING_AMOUNT = "?from=USD&to=EUR";
+  private static final String INVALID_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=US&to=USD&amount=100.0";
+  private static final String EXCHANGE_NOT_AVAILABLE = "?from=USD&to=ALL&amount=100.0";
   private static boolean runningOnOwn;
 
   @BeforeAll
@@ -98,5 +108,61 @@ public class ExchangeRateTest {
   void getExchangeRateNoRate() {
     logger.info("=== Test get exchange rate from USD to ALL : NOT_FOUND ===");
     RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
+  }
+
+  @Test
+  void calculateExchange() {
+    logger.info("=== Test get exchange calculation: Success ===");
+    var exchangeCalculation = RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + VALID_REQUEST_FOR_CALCULATE_EXCHANGE, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+  }
+
+  @Test
+  void calculateExchangeForSameCurrencies() {
+    logger.info("=== Test exchange calculation for same currency codes: Success, Amount=100.0 ===");
+    var exchangeCalculation = RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE, APPLICATION_JSON, 200).as(Double.class);
+    assertThat(ONE_HUNDRED, equalTo(exchangeCalculation));
+  }
+
+  @Test
+  void calculateExchangeForNonexistentCurrency(){
+    logger.info("=== Test exchange calculation for non-existent currency code: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 500);
+  }
+
+  @Test
+  void calculateExchangeMissingParameters() {
+    logger.info("=== Test exchange calculation missing query parameters: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH, "", 500);
+  }
+
+  @Test
+  void calculateExchangeMissingSourceCurrencyParameter() {
+    logger.info("=== Test exchange calculation missing FROM parameter: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_FROM_FOR_CALCULATE_EXCHANGE, "", 500);
+  }
+
+  @Test
+  void calculateExchangeMissingTargetCurrencyParameter() {
+    logger.info("=== Test exchange calculation missing TO parameter: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_TO_FOR_CALCULATE_EXCHANGE, "", 400);
+  }
+
+  @Test
+  void calculateExchangeMissingAmountParameter() {
+    logger.info("=== Test exchange calculation missing AMOUNT parameter: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_AMOUNT, "", 500);
+  }
+
+  @Test
+  void calculateExchangeInvalidCurrencyCode() {
+    logger.info("=== Test exchange calculation for invalid currency code: BAD_REQUEST ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + INVALID_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 500);
+  }
+
+  @Test
+  void getExchangeNoCalculation() {
+    logger.info("=== Test exchange calculation FROM currency USD, TO currency ALL : NOT_FOUND ===");
+    RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + EXCHANGE_NOT_AVAILABLE, "", 404);
   }
 }
