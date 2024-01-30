@@ -21,7 +21,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
 public class BaseApi {
-  private final Logger logger = LogManager.getLogger(this.getClass());
+  private static final Logger log = LogManager.getLogger();
 
   public Response buildOkResponse(Object body) {
     return Response.ok(body, APPLICATION_JSON)
@@ -49,12 +49,13 @@ public class BaseApi {
   }
 
   public Void handleErrorResponse(Handler<AsyncResult<Response>> asyncResultHandler, Throwable t) {
+    log.error("Exception encountered", t);
     asyncResultHandler.handle(succeededFuture(buildErrorResponse(t)));
     return null;
   }
 
   public Response buildErrorResponse(Throwable throwable) {
-    logger.error("Exception encountered", throwable);
+    log.error("Exception encountered", throwable);
     final int code = defineErrorCode(throwable);
     final Errors errors = convertToErrors(throwable);
     final Response.ResponseBuilder responseBuilder = createResponseBuilder(code);

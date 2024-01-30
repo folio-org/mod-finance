@@ -6,9 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.uri.UriTemplate;
 
+@Setter
+@Getter
 public class RequestEntry {
 
   private String baseEndpoint;
@@ -50,30 +54,6 @@ public class RequestEntry {
   public RequestEntry withOffset(Integer offset) {
     queryParams.put("offset", offset);
     return this;
-  }
-
-  public String getBaseEndpoint() {
-    return baseEndpoint;
-  }
-
-  public void setBaseEndpoint(String baseEndpoint) {
-    this.baseEndpoint = baseEndpoint;
-  }
-
-  public Map<String, String> getPathParams() {
-    return pathParams;
-  }
-
-  public void setPathParams(Map<String, String> pathParams) {
-    this.pathParams = pathParams;
-  }
-
-  public Map<String, Object> getQueryParams() {
-    return queryParams;
-  }
-
-  public void setQueryParams(Map<String, Object> queryParams) {
-    this.queryParams = queryParams;
   }
 
   public String buildEndpoint() {

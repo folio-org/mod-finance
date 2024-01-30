@@ -21,7 +21,7 @@ import io.vertx.core.Context;
 
 public abstract class AbstractHelper {
 
-  protected final Logger logger = LogManager.getLogger(this.getClass());
+  protected static final Logger log = LogManager.getLogger(AbstractHelper.class);
   protected final Context ctx;
   protected final Map<String, String> okapiHeaders;
   private final Errors processingErrors = new Errors();
@@ -55,7 +55,7 @@ public abstract class AbstractHelper {
   }
 
   protected int handleProcessingError(Throwable throwable) {
-    logger.error("Exception encountered", throwable);
+    log.error("Exception encountered", throwable);
     if (getErrors().isEmpty()) {
       final Errors errors = convertToErrors(throwable);
       addProcessingError(errors);
