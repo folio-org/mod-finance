@@ -28,7 +28,7 @@ import io.vertx.core.Future;
 import one.util.streamex.StreamEx;
 
 public class AcqUnitsService {
-  public final Logger logger = LogManager.getLogger(AcqUnitsService.class);
+  public final Logger logger = LogManager.getLogger();
 
   private final RestClient restClient;
   private final AcqUnitMembershipsService acqUnitMembershipsService;

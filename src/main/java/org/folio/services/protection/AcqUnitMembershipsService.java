@@ -10,10 +10,9 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 
-import io.vertx.core.Future;
-
 public class AcqUnitMembershipsService {
-  public final Logger logger = LogManager.getLogger(AcqUnitMembershipsService.class);
+
+  public final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
 

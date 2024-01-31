@@ -30,7 +30,7 @@ import one.util.streamex.StreamEx;
 
 public class CommonTransactionService extends BaseTransactionService {
 
-  private static final Logger logger = LogManager.getLogger(CommonTransactionService.class);
+  private static final Logger log = LogManager.getLogger();
 
   public CommonTransactionService(RestClient restClient) {
     super(restClient);
@@ -90,7 +90,7 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public Future<Void> releaseTransaction(Transaction transaction, RequestContext requestContext) {
-    logger.info("Start releasing transaction {}", transaction.getId()) ;
+    log.info("Start releasing transaction {}", transaction.getId()) ;
 
     validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
 
@@ -109,7 +109,7 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public Future<Void> unreleaseTransaction(Transaction transaction, RequestContext requestContext) {
-    logger.info("Start unreleasing transaction {}", transaction.getId()) ;
+    log.info("Start unreleasing transaction {}", transaction.getId()) ;
 
     validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
 

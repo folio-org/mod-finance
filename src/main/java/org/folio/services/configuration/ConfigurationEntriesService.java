@@ -15,7 +15,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 public class ConfigurationEntriesService {
-  private static final Logger logger = LogManager.getLogger();
+  private static final Logger log = LogManager.getLogger();
 
   private static final String CONFIG_QUERY = "module==%s";
   public static final String LOCALE_SETTINGS = "localeSettings";
@@ -37,7 +37,7 @@ public class ConfigurationEntriesService {
     return Future.succeededFuture()
       .map(v -> {
         String query = String.format(CONFIG_QUERY, moduleConfig);
-        logger.info("GET request: {}", query);
+        log.info("GET request: {}", query);
         return new RequestEntry(resourcesPath(CONFIGURATIONS))
           .withOffset(0)
           .withLimit(Integer.MAX_VALUE)
@@ -45,8 +45,8 @@ public class ConfigurationEntriesService {
       })
       .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), Configs.class, requestContext))
       .map(configs -> {
-        if (logger.isDebugEnabled()) {
-          logger.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
+        if (log.isDebugEnabled()) {
+          log.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
         }
         JsonObject config = new JsonObject();
         configs.getConfigs().forEach(entry -> config.put(entry.getConfigName(), entry.getValue()));

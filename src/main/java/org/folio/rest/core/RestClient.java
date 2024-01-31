@@ -30,7 +30,7 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
 public class RestClient {
 
-  private static final Logger log = LogManager.getLogger(RestClient.class);
+  private static final Logger log = LogManager.getLogger();
   private static final ErrorConverter ERROR_CONVERTER = ErrorConverter.createFullBody(
     result -> {
       String errorResponse = result.response().bodyAsString();

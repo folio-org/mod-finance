@@ -41,7 +41,7 @@ import org.folio.services.transactions.BaseTransactionService;
 import io.vertx.core.Future;
 
 public class GroupFiscalYearTotalsService {
-  private static final Logger log = LogManager.getLogger(GroupFiscalYearTotalsService.class);
+  private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;

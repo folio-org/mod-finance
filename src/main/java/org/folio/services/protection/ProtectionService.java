@@ -29,7 +29,7 @@ import org.folio.services.protection.models.ProtectedOperationType;
 import io.vertx.core.Future;
 
 public class ProtectionService {
-  public final Logger logger = LogManager.getLogger(ProtectionService.class);
+  public final Logger logger = LogManager.getLogger();
 
   private final AcqUnitsService acqUnitsService;
   private final AcqUnitMembershipsService acqUnitMembershipsService;
