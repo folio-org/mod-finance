@@ -4,6 +4,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.concurrent.ExecutionException;
@@ -33,6 +34,7 @@ public class ExchangeTest {
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
   private static final String CALCULATE_EXCHANGE_PATH = "finance/calculate-exchange";
   private static final String VALID_REQUEST_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0";
+  private static final String VALID_REQUEST_WITH_CUSTOM_RATE_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0&rate=1.08";
   private static final String SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE = "?from=USD&to=USD&amount=100.0";
   private static final String NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=ABC&to=EUR&amount=100.0";
   private static final String MISSING_FROM_FOR_CALCULATE_EXCHANGE = "?to=EUR&amount=100.0";
@@ -110,11 +112,21 @@ public class ExchangeTest {
     RestTestUtils.verifyGet(EXCHANGE_RATE_PATH + RATE_NOT_AVAILABLE, "", 404);
   }
 
+  /* Exchange Calculation API Test */
+
   @Test
   void calculateExchange() {
     logger.info("=== Test get exchange calculation: Success ===");
     var exchangeCalculation = RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + VALID_REQUEST_FOR_CALCULATE_EXCHANGE, APPLICATION_JSON, 200).as(Double.class);
     assertNotNull(exchangeCalculation);
+  }
+
+  @Test
+  void calculateExchangeWithCustomExchangeRate() {
+    logger.info("=== Test get exchange calculation: Success ===");
+    var exchangeCalculation = RestTestUtils.verifyGet(CALCULATE_EXCHANGE_PATH + VALID_REQUEST_FOR_CALCULATE_EXCHANGE, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+    assertEquals(92.28, exchangeCalculation); // custom exchange rate 1.08, 100.0 USD -> EUR
   }
 
   @Test
