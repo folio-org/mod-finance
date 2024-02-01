@@ -43,15 +43,20 @@ types:
         example: EUR
       amount:
         description: "The amount of money to calculate exchange"
-        type: exchange_calculation
+        type: amount
         required: true
         example: 100.0
+      rate:
+        description: "The User defined exchange rate"
+        type: amount
+        required: false
+        example: 1.08
     responses:
       200:
         description: "Exchange calculation successfully retrieved"
         body:
           application/json:
-            type: amount
+            type: exchange_calculation
             example:
               strict: false
               value: 200.0
