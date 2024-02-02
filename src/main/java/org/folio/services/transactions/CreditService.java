@@ -2,6 +2,8 @@ package org.folio.services.transactions;
 
 import static org.folio.rest.util.ErrorCodes.UPDATE_CREDIT_TO_CANCEL_INVOICE;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -11,6 +13,7 @@ import io.vertx.core.Future;
 
 public class CreditService implements TransactionTypeManagingStrategy {
 
+  private static final Logger log = LogManager.getLogger();
   private final TransactionService transactionService;
 
   public CreditService(TransactionService transactionService) {
@@ -29,10 +32,12 @@ return null;
 
   @Override
   public Future<Void> updateTransaction(Transaction credit, RequestContext requestContext) {
+    log.debug("updateTransaction:: Updating transaction '{}'", credit.getId());
     return Future.succeededFuture()
       .map(v -> {
         transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
-        if (!Boolean.TRUE.equals(credit.getInvoiceCancelled())) {
+        if (Boolean.FALSE.equals(credit.getInvoiceCancelled())) {
+          log.warn("updateTransaction:: Credit invoice is not cancelled");
           throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
         }
         return null;
@@ -45,6 +50,7 @@ return null;
         existingTransaction.setInvoiceCancelled(true);
         existingTransaction.setMetadata(credit.getMetadata());
         if (!existingTransaction.equals(credit)) {
+          log.warn("updateTransaction:: Existing transaction '{}' is equal to credit '{}'", existingTransaction.getId(), credit.getId());
           throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
         }
         return null;

@@ -90,11 +90,12 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public Future<Void> releaseTransaction(Transaction transaction, RequestContext requestContext) {
-    log.info("Start releasing transaction {}", transaction.getId()) ;
+    log.info("releaseTransaction:: Start releasing transaction {}", transaction.getId()) ;
 
     validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
 
     if (transaction.getEncumbrance().getStatus() == Encumbrance.Status.RELEASED) {
+      log.info("releaseTransaction:: encumbrance has already been RELEASED, so no action required");
       return succeededFuture(null);
     }
 
@@ -109,11 +110,12 @@ public class CommonTransactionService extends BaseTransactionService {
   }
 
   public Future<Void> unreleaseTransaction(Transaction transaction, RequestContext requestContext) {
-    log.info("Start unreleasing transaction {}", transaction.getId()) ;
+    log.info("unreleaseTransaction:: Start unreleasing transaction {}", transaction.getId()) ;
 
     validateTransactionType(transaction, Transaction.TransactionType.ENCUMBRANCE);
 
     if (transaction.getEncumbrance().getStatus() != Encumbrance.Status.RELEASED) {
+      log.info("releaseTransaction:: encumbrance hasn't been RELEASED, so no action required");
       return succeededFuture(null);
     }
 

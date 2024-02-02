@@ -54,7 +54,7 @@ public class BudgetExpenseClassTotalsService {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetId), Budget.class, requestContext)
       .compose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
         .compose(expenseClasses -> transactionService.retrieveTransactions(budget, requestContext)
-        .map(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
+          .map(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
       .compose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .map(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));
   }

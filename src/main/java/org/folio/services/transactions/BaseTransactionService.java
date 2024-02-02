@@ -28,6 +28,7 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 import io.vertx.core.Future;
 
 public class BaseTransactionService implements TransactionService {
+
   private static final Logger log = LogManager.getLogger();
   private static final int MAX_FUND_PER_QUERY = 5;
   private static final String ALLOCATION_TYPE_TRANSACTIONS_QUERY = "(fiscalYearId==%s AND %s) AND %s";
@@ -67,7 +68,7 @@ public class BaseTransactionService implements TransactionService {
 
   public void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType) {
     if (transaction.getTransactionType() != transactionType) {
-      log.info("Transaction {} type mismatch. {} expected", transaction.getId(), transactionType) ;
+      log.warn("validateTransactionType:: Transaction {} type mismatch. {} expected", transaction.getId(), transactionType) ;
       Parameter parameter = new Parameter().withKey("expected").withValue(transactionType.name());
       throw new HttpException(422, INVALID_TRANSACTION_TYPE.toError().withParameters(Collections.singletonList(parameter)));
     }

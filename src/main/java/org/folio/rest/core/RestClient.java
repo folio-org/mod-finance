@@ -59,7 +59,7 @@ public class RestClient {
       .sendJson(entity)
       .map(HttpResponse::bodyAsJsonObject)
       .map(body -> body.mapTo(responseType))
-      .onFailure(log::error);
+      .onFailure(t -> log.error("Error while post request", t));
   }
 
   public <T> Future<Void> postEmptyResponse(String endpoint, T entity, RequestContext requestContext) {
@@ -71,7 +71,7 @@ public class RestClient {
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(entity)
-      .onFailure(log::error)
+      .onFailure(t -> log.error("Error while post request for empty response", t))
       .mapEmpty();
   }
 
@@ -82,7 +82,7 @@ public class RestClient {
       .add("Accept", APPLICATION_JSON + ", " + TEXT_PLAIN);
   }
 
-  public <T> Future<Void> put(String endpoint, T dataObject,  RequestContext requestContext) {
+  public <T> Future<Void> put(String endpoint, T dataObject, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
     var recordData = JsonObject.mapFrom(dataObject);
@@ -94,7 +94,7 @@ public class RestClient {
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(recordData)
-      .onFailure(log::error)
+      .onFailure(t -> log.error("Error while put request", t))
       .mapEmpty();
   }
 
@@ -115,22 +115,22 @@ public class RestClient {
     return promise.future();
   }
 
-  private <T>void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
+  private <T> void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
     if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
-      log.warn(t);
+      log.warn("Resource not found", t);
       promise.complete();
     } else {
-      log.error(t);
+      log.error("Error while get operation", t);
       promise.fail(t);
     }
   }
 
   private void handleErrorResponse(Promise<Void> promise, Throwable t, boolean skipError404) {
-    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404){
-      log.warn(t);
+    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
+      log.warn("Resource not found", t);
       promise.complete();
     } else {
-      log.error(t);
+      log.error("Error while processing operation operation", t);
       promise.fail(t);
     }
   }
@@ -177,6 +177,7 @@ public class RestClient {
 
     return WebClientFactory.getWebClient(context.owner(), options);
   }
+
   protected String buildAbsEndpoint(MultiMap okapiHeaders, String endpoint) {
     var okapiURL = okapiHeaders.get(OKAPI_URL);
     return okapiURL + endpoint;

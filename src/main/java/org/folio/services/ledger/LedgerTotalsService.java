@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.models.LedgerFiscalYearTransactionsHolder;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
@@ -30,6 +32,8 @@ import org.folio.services.transactions.BaseTransactionService;
 import io.vertx.core.Future;
 
 public class LedgerTotalsService {
+
+  private static final Logger log = LogManager.getLogger();
   public static final String LEDGER_ID_AND_FISCAL_YEAR_ID = "ledger.id==%s AND fiscalYearId==%s";
 
   private final FiscalYearService fiscalYearService;
@@ -50,6 +54,7 @@ public class LedgerTotalsService {
   private Future<FiscalYear> getFiscalYear(String fiscalYearId, RequestContext requestContext) {
     return fiscalYearService.getFiscalYearById(fiscalYearId, requestContext)
       .recover(t -> {
+        log.error("Failed to get fiscal year", t);
         if (t instanceof HttpException httpException && httpException.getCode() == 404) {
           return Future.failedFuture(new HttpException(400, ErrorCodes.FISCAL_YEAR_NOT_FOUND));
         } else {

@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -26,6 +28,8 @@ import org.folio.rest.util.BudgetUtils;
 import io.vertx.core.Future;
 
 public class BudgetService {
+
+  private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final BudgetExpenseClassService budgetExpenseClassService;
@@ -56,13 +60,12 @@ public class BudgetService {
   public Future<Void> updateBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, sharedBudget.getId()), Budget.class, requestContext)
       .compose(budgetFromStorage -> {
-          SharedBudget updatedSharedBudget = mergeBudgets(sharedBudget, budgetFromStorage);
-          validateBudget(updatedSharedBudget);
-          return restClient.put(resourceByIdPath(BUDGETS_STORAGE, updatedSharedBudget.getId()), BudgetUtils.convertToBudget(updatedSharedBudget), requestContext)
-            .compose(aVoid -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
-              .recover(t -> rollbackBudgetPutIfNeeded(budgetFromStorage, t, requestContext))
-              .mapEmpty());
-
+        SharedBudget updatedSharedBudget = mergeBudgets(sharedBudget, budgetFromStorage);
+        validateBudget(updatedSharedBudget);
+        return restClient.put(resourceByIdPath(BUDGETS_STORAGE, updatedSharedBudget.getId()), BudgetUtils.convertToBudget(updatedSharedBudget), requestContext)
+          .compose(aVoid -> budgetExpenseClassService.updateBudgetExpenseClassesLinks(updatedSharedBudget, requestContext)
+            .recover(t -> rollbackBudgetPutIfNeeded(budgetFromStorage, t, requestContext))
+            .mapEmpty());
       });
   }
 
@@ -84,7 +87,9 @@ public class BudgetService {
   }
 
   private Future<Void> rollbackBudgetPutIfNeeded(Budget budgetFromStorage, Throwable t, RequestContext requestContext) {
+    log.debug("rollbackBudgetPutIfNeeded:: Rolling back budget '{}' if needed", budgetFromStorage.getId());
     if (t == null) {
+      log.info("rollbackBudgetPutIfNeeded:: There is no any throwable error");
       return succeededFuture(null);
     }
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetFromStorage.getId()), Budget.class, requestContext)
@@ -102,19 +107,23 @@ public class BudgetService {
   }
 
   private void validateBudget(SharedBudget budget) {
+    log.debug("validateBudget:: Validation budget");
     List<Error> errors = new ArrayList<>();
 
     errors.addAll(checkRemainingEncumbrance(budget));
     errors.addAll(checkRemainingExpenditure(budget));
 
     if (!errors.isEmpty()) {
+      log.error("validateBudget:: Error found during validation");
       throw new HttpException(422, new Errors()
         .withErrors(errors)
         .withTotalRecords(errors.size()));
     }
+    log.info("validateBudget:: Budget is passed from validation");
   }
 
   private List<Error> checkRemainingEncumbrance(SharedBudget budget) {
+    log.debug("checkRemainingEncumbrance:: Check remaining encumbrance for budget '{}'", budget.getId());
     BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
@@ -122,15 +131,18 @@ public class BudgetService {
 
     //[remaining amount we can encumber] = (allocated * allowableEncumbered) - (encumbered + awaitingPayment + expended)
     if (budget.getAllowableEncumbrance() != null) {
+      log.info("checkRemainingEncumbrance:: Budget allowable encumbrance is not null");
       BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
       if (totalFunding.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
         return Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
     }
+    log.info("checkRemainingEncumbrance:: Errors are not found");
     return Collections.emptyList();
   }
 
   private List<Error> checkRemainingExpenditure(SharedBudget budget) {
+    log.debug("checkRemainingExpenditure:: Check remaining expenditure for budget '{}'", budget.getId());
     BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
@@ -139,15 +151,18 @@ public class BudgetService {
 
     //[amount we can expend] = (allocated * allowableExpenditure) - (allocated - (unavailable + available)) - (awaitingPayment + expended)
     if (budget.getAllowableExpenditure() != null) {
+      log.info("checkRemainingExpenditure:: Budget allowable expenditure is not null");
       BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure())
         .movePointLeft(2);
       if (allocated.multiply(newAllowableExpenditure)
         .subtract(allocated.subtract(available.add(unavailable)))
         .subtract(expenditures.add(awaitingPayment))
         .compareTo(BigDecimal.ZERO) < 0) {
+        log.warn("checkRemainingExpenditure:: Allowable expenditure limit exceed");
         return Collections.singletonList(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());
       }
     }
+    log.info("checkRemainingExpenditure:: Errors are not found");
     return Collections.emptyList();
   }
 }

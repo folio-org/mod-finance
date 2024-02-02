@@ -7,6 +7,8 @@ import static org.folio.rest.util.ErrorCodes.MISSING_FUND_ID;
 
 import java.util.Objects;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Fund;
@@ -18,6 +20,7 @@ import io.vertx.core.Future;
 
 public class TransactionRestrictService {
 
+  private static final Logger log = LogManager.getLogger();
   private final FundService fundService;
 
   public TransactionRestrictService(FundService fundService) {
@@ -37,6 +40,7 @@ public class TransactionRestrictService {
   }
 
   private Future<Void> checkFundsAllocatedIds(Transaction transaction, RequestContext requestContext) {
+    log.debug("checkFundsAllocatedIds:: Checking funds allocated ids for transaction '{}'", transaction.getId());
     if (Objects.nonNull(transaction.getFromFundId()) && Objects.nonNull(transaction.getToFundId())) {
       var fromFund = fundService.getFundById(transaction.getFromFundId(), requestContext);
       var toFund = fundService.getFundById(transaction.getToFundId(), requestContext);
@@ -44,12 +48,15 @@ public class TransactionRestrictService {
         .map(cf -> isAllocationAllowed(fromFund.result(), toFund.result(), transaction))
         .compose(isAllocationAllowed -> {
           if (Boolean.TRUE.equals(isAllocationAllowed)) {
+            log.info("checkFundsAllocatedIds: Allocation is allowed");
             return succeededFuture();
           } else {
+            log.warn("checkFundsAllocatedIds:: Allocation ids is mismatch");
             return failedFuture(new HttpException(422, ALLOCATION_IDS_MISMATCH));
           }
         });
     } else {
+      log.warn("checkFundsAllocatedIds:: fundId is missing");
       return failedFuture(new HttpException(422, MISSING_FUND_ID));
     }
 }

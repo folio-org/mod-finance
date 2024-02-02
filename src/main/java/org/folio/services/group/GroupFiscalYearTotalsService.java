@@ -41,6 +41,7 @@ import org.folio.services.transactions.BaseTransactionService;
 import io.vertx.core.Future;
 
 public class GroupFiscalYearTotalsService {
+
   private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
@@ -55,6 +56,7 @@ public class GroupFiscalYearTotalsService {
   }
 
   public Future<GroupFiscalYearSummaryCollection> getGroupFiscalYearSummaries(String query, RequestContext requestContext) {
+    log.debug("getGroupFiscalYearSummaries:: Getting group fiscal year summaries by query={}", query);
     var requestEntry = new RequestEntry(resourcesPath(BUDGETS_STORAGE))
       .withOffset(0)
       .withLimit(Integer.MAX_VALUE)
@@ -82,11 +84,13 @@ public class GroupFiscalYearTotalsService {
         }))
       .compose(holders -> updateHoldersWithAllocations(holders, requestContext)
         .map(holder -> {
+          log.info("getGroupFiscalYearSummaries:: Updating group summary with allocation fields for '{}' holder(s)", holders.size());
           updateGroupSummaryWithAllocation(holders);
           return null;
         })
         .compose(v -> updateHoldersWithTransfers(holders, requestContext))
         .map(v -> {
+          log.info("getGroupFiscalYearSummaries:: Updating group summary with calculated fields for '{}' holder(s)", holders.size());
           updateGroupSummaryWithCalculatedFields(holders);
           return null;
         })
@@ -135,7 +139,7 @@ public class GroupFiscalYearTotalsService {
 
   private GroupFiscalYearSummaryCollection convertHolders(List<GroupFiscalYearTransactionsHolder> holders) {
     List<GroupFiscalYearSummary> summaries = holders.stream().map(GroupFiscalYearTransactionsHolder::getGroupFiscalYearSummary).collect(Collectors.toList());
-    return  new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
+    return new GroupFiscalYearSummaryCollection().withGroupFiscalYearSummaries(summaries).withTotalRecords(summaries.size());
   }
 
   private void updateGroupSummaryWithAllocation(List<GroupFiscalYearTransactionsHolder> holders) {
@@ -143,14 +147,14 @@ public class GroupFiscalYearTotalsService {
       removeInitialAllocationByFunds(holder);
       GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
       summary.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), Transaction::getAmount))
-             .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
+        .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
     });
   }
 
   private void removeInitialAllocationByFunds(GroupFiscalYearTransactionsHolder holder) {
     Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
     fundToTransactions.forEach((fundToId, transactions) -> {
-       transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
+      transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
       if (CollectionUtils.isNotEmpty(transactions)) {
         holder.getToAllocations().remove(transactions.get(0));
       }
@@ -158,12 +162,12 @@ public class GroupFiscalYearTotalsService {
   }
 
   private Map<String, Map<String, Optional<GroupFiscalYearSummary>>> groupSummariesByGroupIdAndFiscalYearId(
-      GroupFundFiscalYearCollection groupFundFiscalYearCollection,
-      Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap) {
+    GroupFundFiscalYearCollection groupFundFiscalYearCollection,
+    Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap) {
     return groupFundFiscalYearCollection.getGroupFundFiscalYears()
       .stream()
       .collect(groupingBy(GroupFundFiscalYear::getGroupId,
-          groupingBy(GroupFundFiscalYear::getFiscalYearId, mapping(map(fundIdFiscalYearIdBudgetsMap), reducing(reduce())))));
+        groupingBy(GroupFundFiscalYear::getFiscalYearId, mapping(map(fundIdFiscalYearIdBudgetsMap), reducing(reduce())))));
   }
 
   private Function<GroupFundFiscalYear, GroupFiscalYearSummary> map(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap) {
@@ -220,21 +224,22 @@ public class GroupFiscalYearTotalsService {
   private List<GroupFiscalYearTransactionsHolder> buildHolderSkeletons(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetsMap,
                                                                        GroupFiscalYearSummaryCollection groupFiscalYearSummaryCollection,
                                                                        GroupFundFiscalYearCollection groupFundFiscalYearCollection) {
+    log.debug("buildHolderSkeletons:: Building holder skeletons");
     List<GroupFiscalYearTransactionsHolder> holders = new ArrayList<>();
-    if (groupFiscalYearSummaryCollection != null
-      && groupFundFiscalYearCollection != null
-      && (!CollectionUtils.isEmpty(groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries()))
-      && (!CollectionUtils.isEmpty(groupFundFiscalYearCollection.getGroupFundFiscalYears())))
+    if (groupFiscalYearSummaryCollection != null && groupFundFiscalYearCollection != null
+      && (CollectionUtils.isNotEmpty(groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries()))
+      && (CollectionUtils.isNotEmpty(groupFundFiscalYearCollection.getGroupFundFiscalYears())))
     {
       groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries().forEach(groupFiscalYearSummary -> {
         String fiscalYearId = groupFiscalYearSummary.getFiscalYearId();
         String groupId = groupFiscalYearSummary.getGroupId();
         List<String> groupFundIds = groupFundFiscalYearCollection.getGroupFundFiscalYears().stream()
           .filter(groupFundFiscalYear -> groupFundFiscalYear.getGroupId().equals(groupId)
-                                         && groupFundFiscalYear.getFiscalYearId().equals(fiscalYearId))
+            && groupFundFiscalYear.getFiscalYearId().equals(fiscalYearId))
           .map(GroupFundFiscalYear::getFundId)
           .filter(fundId -> isBudgetExists(fundIdFiscalYearIdBudgetsMap, fundId, fiscalYearId))
           .collect(Collectors.toList());
+        log.info("buildHolderSkeletons:: Adding groupFiscalYearTransactionHolder  to holders with '{}' groupFundId(s)", groupFundIds.size());
         holders.add(new GroupFiscalYearTransactionsHolder(groupFiscalYearSummary).withGroupFundIds(groupFundIds));
       });
     }
@@ -242,22 +247,22 @@ public class GroupFiscalYearTotalsService {
   }
 
   private Future<Void> updateHoldersWithAllocations(List<GroupFiscalYearTransactionsHolder> holders,
-                                                               RequestContext requestContext) {
+                                                    RequestContext requestContext) {
     List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder ->
-       futures.add(updateHolderWithAllocations(requestContext, holder))
+      futures.add(updateHolderWithAllocations(requestContext, holder))
     );
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.debug("Number of holders updated with allocations: {}" , result.size()))
+      .onSuccess(result -> log.info("updateHoldersWithAllocations:: Number of holders updated with allocations: {}", result.size()))
       .mapEmpty();
   }
 
   private Future<Void> updateHoldersWithTransfers(List<GroupFiscalYearTransactionsHolder> holders,
-                                                               RequestContext requestContext) {
+                                                  RequestContext requestContext) {
     List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.debug("Number of holders updated with transfers: {}", result.size()))
+      .onSuccess(result -> log.info("updateHoldersWithTransfers:: Number of holders updated with transfers: {}", result.size()))
       .mapEmpty();
   }
 
@@ -328,7 +333,7 @@ public class GroupFiscalYearTotalsService {
 
   }
 
-  private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId,  String fiscalYearId) {
+  private boolean isBudgetExists(Map<String, Map<String, List<Budget>>> fundIdFiscalYearIdBudgetMap, String fundId, String fiscalYearId) {
     return Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)) && Objects.nonNull(fundIdFiscalYearIdBudgetMap.get(fundId)
       .get(fiscalYearId));
   }

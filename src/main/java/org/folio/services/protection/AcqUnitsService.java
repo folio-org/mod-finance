@@ -28,7 +28,8 @@ import io.vertx.core.Future;
 import one.util.streamex.StreamEx;
 
 public class AcqUnitsService {
-  public final Logger logger = LogManager.getLogger();
+
+  public final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final AcqUnitMembershipsService acqUnitMembershipsService;
@@ -39,7 +40,9 @@ public class AcqUnitsService {
   }
 
   public Future<AcquisitionsUnitCollection> getAcquisitionsUnits(String query, int offset, int limit, RequestContext requestContext) {
+    log.debug("getAcquisitionsUnits:: Getting acquisitionsUnits by query={}, offset={}, and limit={}", query, offset, limit);
     if (StringUtils.isEmpty(query)) {
+      log.info("getAcquisitionsUnits:: query is empty, so using '{}' query", ACTIVE_UNITS_CQL);
       query = ACTIVE_UNITS_CQL;
     } else if (!query.contains(IS_DELETED_PROP)) {
       query = combineCqlExpressions("and", ACTIVE_UNITS_CQL, query);
@@ -48,6 +51,7 @@ public class AcqUnitsService {
       .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
+    log.info("getAcquisitionsUnits:: Sending GET request with endpoint={}", requestEntry.buildEndpoint());
     return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitCollection.class, requestContext);
   }
 
@@ -81,8 +85,8 @@ public class AcqUnitsService {
           .map(AcquisitionsUnitMembership::getAcquisitionsUnitId)
           .collect(Collectors.toList());
 
-        if (logger.isDebugEnabled()) {
-          logger.debug("User belongs to {} acq units: {}", ids.size(), StreamEx.of(ids).joining(", "));
+        if (log.isDebugEnabled()) {
+          log.debug("User belongs to {} acq units: {}", ids.size(), StreamEx.of(ids).joining(", "));
         }
         return ids;
       });
@@ -95,8 +99,8 @@ public class AcqUnitsService {
           .stream()
           .map(AcquisitionsUnit::getId)
           .collect(Collectors.toList());
-        if (logger.isDebugEnabled()) {
-          logger.debug("{} acq units with 'protectRead==false' are found: {}", ids.size(), StreamEx.of(ids).joining(", "));
+        if (log.isDebugEnabled()) {
+          log.debug("{} acq units with 'protectRead==false' are found: {}", ids.size(), StreamEx.of(ids).joining(", "));
         }
         return ids;
     });

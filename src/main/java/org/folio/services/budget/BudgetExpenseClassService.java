@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.models.BudgetExpenseClassHolder;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
@@ -36,7 +38,9 @@ import org.folio.services.transactions.CommonTransactionService;
 
 import io.vertx.core.Future;
 
-public class BudgetExpenseClassService{
+public class BudgetExpenseClassService {
+
+  private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final CommonTransactionService transactionService;
@@ -47,6 +51,7 @@ public class BudgetExpenseClassService{
   }
 
   public Future<List<BudgetExpenseClass>> getBudgetExpenseClasses(String budgetId, RequestContext requestContext) {
+    log.debug("getBudgetExpenseClasses:: Trying to get Budget expense classes by budgetId: {}", budgetId);
     String query = String.format("budgetId==%s", budgetId);
     var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES))
       .withQuery(query)
@@ -99,7 +104,9 @@ public class BudgetExpenseClassService{
   }
 
   private Future<Void> deleteBudgetExpenseClasses(List<BudgetExpenseClass> deleteList, SharedBudget budget, RequestContext requestContext) {
+    log.debug("deleteBudgetExpenseClasses:: Trying to delete budget expense classes with budgetId '{}' and deleteList with size '{}'", budget.getId(), deleteList.size());
     if (deleteList.isEmpty()) {
+      log.info("deleteBudgetExpenseClasses:: deleteList is empty");
       return succeededFuture(null);
     }
     return checkNoTransactionsAssigned(deleteList, budget, requestContext)
@@ -110,11 +117,14 @@ public class BudgetExpenseClassService{
   }
 
   private Future<Void> checkNoTransactionsAssigned(List<BudgetExpenseClass> deleteList, SharedBudget budget, RequestContext requestContext) {
+    log.debug("checkNoTransactionsAssigned:: Checking there is no transaction assigned for budget: {} and deleteList with size: {}", budget.getId(), deleteList.size());
     return transactionService.retrieveTransactions(deleteList, budget, requestContext)
       .map(transactions -> {
         if (isNotEmpty(transactions)) {
+          log.error("checkNoTransactionsAssigned:: There is assigned transaction");
           throw new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR);
         }
+        log.info("checkNoTransactionsAssigned:: Transaction is not found");
         return null;
       });
   }
@@ -124,8 +134,8 @@ public class BudgetExpenseClassService{
       return succeededFuture(null);
     }
     return GenericCompositeFuture.all(updateList.stream()
-      .map(budgetExpenseClass -> restClient.put(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), budgetExpenseClass, requestContext))
-      .collect(Collectors.toList()))
+        .map(budgetExpenseClass -> restClient.put(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), budgetExpenseClass, requestContext))
+        .collect(Collectors.toList()))
       .mapEmpty();
   }
 
@@ -158,7 +168,7 @@ public class BudgetExpenseClassService{
         .collect(toList()));
   }
 
-  public  Future<List<BudgetExpenseClass>> getBudgetExpenseClassesByIds(List<String> ids, RequestContext requestContext) {
+  public Future<List<BudgetExpenseClass>> getBudgetExpenseClassesByIds(List<String> ids, RequestContext requestContext) {
     String budgetId = "budgetId";
     String query = convertIdsToCqlQuery(ids, budgetId);
     var requestEntry = new RequestEntry(resourcesPath(BUDGET_EXPENSE_CLASSES))

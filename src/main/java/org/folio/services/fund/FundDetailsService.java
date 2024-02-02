@@ -52,6 +52,7 @@ public class FundDetailsService {
 
   public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
                                                          RequestContext rqContext) {
+    log.debug("retrieveCurrentBudget:: Retrieving current budget by fundId '{}' and budgetStatus '{}'", fundId, budgetStatus);
     return retrieveCurrentBudget(fundId, budgetStatus, rqContext)
       .recover(t -> {
         log.error("Failed to retrieve current budget for fundId: {}", fundId, t);
@@ -109,7 +110,7 @@ public class FundDetailsService {
             .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
             .collect(toList()));
       })
-      .onSuccess(expenseClasses -> log.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
+      .onSuccess(expenseClasses -> log.info("retrieveExpenseClasses:: found expense classes for fund id={}", fundId))
       .onFailure(t -> log.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
   }
 

@@ -11,6 +11,8 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -28,6 +30,8 @@ import io.vertx.core.Future;
 
 public class FiscalYearService {
 
+  private static final Logger log = LogManager.getLogger();
+
   private final RestClient restClient;
   private final ConfigurationEntriesService configurationEntriesService;
   private final BudgetService budgetService;
@@ -41,6 +45,7 @@ public class FiscalYearService {
   }
 
   public Future<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
+    log.debug("createFiscalYear:: Creating fiscal year");
     return configurationEntriesService.getSystemCurrency(requestContext)
       .compose(currency -> {
         fiscalYear.setCurrency(currency);
@@ -88,9 +93,11 @@ public class FiscalYearService {
         if (CollectionUtils.isNotEmpty(collection.getFiscalYears())) {
           return collection.getFiscalYears().get(0);
         }
+        log.error("getFiscalYearByFiscalYearCode:: Error to get fiscal year by fiscal year code");
         throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
       });
   }
+
   public String getFiscalYearByFiscalYearCode(String fiscalYearCode) {
     return String.format("code=%s", fiscalYearCode);
   }
