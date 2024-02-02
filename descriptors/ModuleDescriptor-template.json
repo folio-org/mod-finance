@@ -1431,6 +1431,11 @@
       "description" : "Get Exchange Rate"
     },
     {
+      "permissionName" : "finance.calculate-exchange.item.get",
+      "displayName" : "Finances - Calculate exchange",
+      "description" : "Get Exchange calculation"
+    },
+    {
       "permissionName" : "finance.fund-codes-expense-classes.collection.get",
       "displayName" : "Pairs fund code - expense class code",
       "description" : "Return collection of the pairs  <fund code, expense classes>"
@@ -1454,6 +1459,7 @@
         "finance.order-transaction-summaries.item.put",
         "finance.invoice-transaction-summaries.item.post",
         "finance.invoice-transaction-summaries.item.put",
+        "finance.exchange-rate.item.get",
         "finance.exchange-rate.item.get",
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all"
