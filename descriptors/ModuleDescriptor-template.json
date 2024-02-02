@@ -804,8 +804,8 @@
       ]
     },
     {
-      "id": "finance.exchange",
-      "version": "2.0",
+      "id": "finance.exchange-rate",
+      "version": "1.0",
       "handlers": [
         {
           "methods": ["GET"],
