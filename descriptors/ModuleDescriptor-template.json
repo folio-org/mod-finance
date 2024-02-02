@@ -804,13 +804,18 @@
       ]
     },
     {
-      "id": "finance.exchange-rate",
-      "version": "1.0",
+      "id": "finance.exchange",
+      "version": "2.0",
       "handlers": [
         {
           "methods": ["GET"],
           "pathPattern": "/finance/exchange-rate",
           "permissionsRequired": ["finance.exchange-rate.item.get"]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/calculate-exchange",
+          "permissionsRequired": ["finance.calculation-exchange.item.get"]
         }
       ]
     },
