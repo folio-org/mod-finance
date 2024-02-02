@@ -815,7 +815,7 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/calculate-exchange",
-          "permissionsRequired": ["finance.calculation-exchange.item.get"]
+          "permissionsRequired": ["finance.calculate-exchange.item.get"]
         }
       ]
     },
