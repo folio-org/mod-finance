@@ -10,6 +10,8 @@ import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import static org.folio.rest.util.TestUtils.getMockData;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -20,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.config.ApplicationConfig;
+import org.folio.rest.jaxrs.model.Batch;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Transaction;
@@ -67,7 +70,9 @@ public class EncumbrancesTest {
 
     verifyPostResponse("/finance/release-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
 
-    Transaction updatedEncumbrance = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
+    Batch batch = MockServer.getRqRsEntries(HttpMethod.POST, "batchTransactions").get(0).mapTo(Batch.class);
+    assertThat(batch.getTransactionsToUpdate(), hasSize(1));
+    Transaction updatedEncumbrance = batch.getTransactionsToUpdate().get(0);
     assertEquals(Encumbrance.Status.RELEASED, updatedEncumbrance.getEncumbrance().getStatus());
   }
 
@@ -92,11 +97,15 @@ public class EncumbrancesTest {
 
     String transactionID = "5c9f769c-5fe2-4a6e-95fa-021f0d8834a0";
     Transaction releasedEncumbrance = new JsonObject(getMockData("mockdata/transactions/encumbrances.json")).mapTo(TransactionCollection.class).getTransactions().get(0);
-    releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.RELEASED);
+    releasedEncumbrance.getEncumbrance().setStatus(Encumbrance.Status.UNRELEASED);
     addMockEntry(TRANSACTIONS.name(), JsonObject.mapFrom(releasedEncumbrance));
 
     verifyPostResponse("/finance/release-encumbrance/" + transactionID , null, "", NO_CONTENT.getStatusCode());
 
+    Batch batch = MockServer.getRqRsEntries(HttpMethod.POST, "batchTransactions").get(0).mapTo(Batch.class);
+    assertThat(batch.getTransactionsToUpdate(), hasSize(1));
+    Transaction updatedEncumbrance = batch.getTransactionsToUpdate().get(0);
+    assertEquals(Encumbrance.Status.RELEASED, updatedEncumbrance.getEncumbrance().getStatus());
   }
 
   @Test
@@ -119,7 +128,9 @@ public class EncumbrancesTest {
 
     verifyPostResponse("/finance/unrelease-encumbrance/" + encumbranceID , null, "", NO_CONTENT.getStatusCode());
 
-    Transaction updatedEncumbrance = MockServer.getRqRsEntries(HttpMethod.PUT, TRANSACTIONS.name()).get(0).mapTo(Transaction.class);
+    Batch batch = MockServer.getRqRsEntries(HttpMethod.POST, "batchTransactions").get(0).mapTo(Batch.class);
+    assertThat(batch.getTransactionsToUpdate(), hasSize(1));
+    Transaction updatedEncumbrance = batch.getTransactionsToUpdate().get(0);
     assertEquals(Encumbrance.Status.UNRELEASED, updatedEncumbrance.getEncumbrance().getStatus());
   }
 

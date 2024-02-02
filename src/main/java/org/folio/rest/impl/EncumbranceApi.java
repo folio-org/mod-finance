@@ -10,7 +10,7 @@ import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.resource.FinanceReleaseEncumbranceId;
 import org.folio.rest.jaxrs.resource.FinanceUnreleaseEncumbranceId;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.BatchTransactionService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,7 +22,7 @@ import io.vertx.core.Vertx;
 public class EncumbranceApi extends BaseApi implements FinanceReleaseEncumbranceId, FinanceUnreleaseEncumbranceId {
 
   @Autowired
-  private CommonTransactionService commonTransactionService;
+  private BatchTransactionService batchTransactionService;
 
   public EncumbranceApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -32,7 +32,7 @@ public class EncumbranceApi extends BaseApi implements FinanceReleaseEncumbrance
   @Validate
   public void postFinanceReleaseEncumbranceById(String id, Map<String, String> okapiHeaders,
       Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    commonTransactionService.releaseTransaction(id, new RequestContext(vertxContext, okapiHeaders))
+    batchTransactionService.releaseEncumbrance(id, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
@@ -41,7 +41,7 @@ public class EncumbranceApi extends BaseApi implements FinanceReleaseEncumbrance
   @Validate
   public void postFinanceUnreleaseEncumbranceById(String id, Map<String, String> okapiHeaders,
                                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-    commonTransactionService.unreleaseTransaction(id, new RequestContext(vertxContext, okapiHeaders))
+    batchTransactionService.unreleaseEncumbrance(id, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
