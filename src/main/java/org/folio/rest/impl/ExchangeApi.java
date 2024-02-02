@@ -28,11 +28,11 @@ public class ExchangeApi implements FinanceExchangeRate, FinanceCalculateExchang
   }
 
   @Override
-  public void getFinanceCalculateExchange(String from, String to, Number amount,
+  public void getFinanceCalculateExchange(String from, String to, Number amount, Number rate,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {
     ExchangeHelper helper = new ExchangeHelper(vertxContext);
-    vertxContext.executeBlocking(() -> helper.calculateExchange(from, to, amount))
+    vertxContext.executeBlocking(() -> helper.calculateExchange(from, to, amount, rate))
       .onSuccess(body -> asyncResultHandler.handle(succeededFuture(Response.ok(body, APPLICATION_JSON).build())))
       .onFailure(e -> handleErrorResponse(asyncResultHandler, helper, e));
   }
