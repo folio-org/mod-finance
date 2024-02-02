@@ -1460,7 +1460,7 @@
         "finance.invoice-transaction-summaries.item.post",
         "finance.invoice-transaction-summaries.item.put",
         "finance.exchange-rate.item.get",
-        "finance.exchange-rate.item.get",
+        "finance.calculate-exchange.item.get",
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all"
       ],
