@@ -38,6 +38,7 @@ public class LedgerDetailsService {
   }
 
   public Future<FiscalYear> getPlannedFiscalYear(String ledgerId, RequestContext requestContext) {
+    log.debug("getPlannedFiscalYear:: Getting planned fiscal year with ledgerId={}", ledgerId);
     return getFirstThreeFiscalYears(ledgerId, requestContext)
       .map(firstTwoFiscalYears -> {
         FiscalYear curFY = defineCurrentFiscalYear(firstTwoFiscalYears);
@@ -45,8 +46,10 @@ public class LedgerDetailsService {
         int curIndex = firstTwoFiscalYears.indexOf(curFY);
         int nextIndex = curIndex + 1;
         if (curFY != null && nextIndex != size && size > 1) {
+          log.info("getPlannedFiscalYear:: curFY '{}', nextIndex '{}' is not null and size '{}' is greater than 1, returning (currentIndex '{}' + 1) - element", curFY, nextIndex, size, curIndex);
           return firstTwoFiscalYears.get(curIndex + 1);
         } else {
+          log.warn("getPlannedFiscalYear:: curFY '{}' or/and nextIndex '{}' is null or/and size '{}' is less than 1, so returning null", curFY, nextIndex, size);
           return null;
         }
       });
