@@ -7,7 +7,9 @@ baseUri: https://github.com/folio-org/mod-finance
 
 documentation:
   - title: Release encumbrance API
-    content: This documents the API calls that release any remaining money encumbered back to the budget's available pool; this should only be used by the UI, and only to release a single encumbrance - batch-all-or-nothing should be used otherwise
+    content: |
+      This documents the API calls that release any remaining money encumbered back to the budget's available pool.
+      It should only be used by the UI, and only to release a single encumbrance - <tt>batch-all-or-nothing</tt> should be used otherwise.
 
 types:
   errors: !include raml-util/schemas/errors.schema
@@ -24,10 +26,12 @@ traits:
         description: The UUID of an encumbrance
         type: UUID
     displayName: Finance release encumbrance
-    description: Finance release encumbrance APIs; this should only be used by the UI, and only to release a single encumbrance - batch-all-or-nothing should be used otherwise
+    description: |
+      Finance release encumbrance APIs.
+      It should only be used by the UI, and only to release a single encumbrance - <tt>batch-all-or-nothing</tt> should be used otherwise.
     post:
       is: [validate]
-      description: Release encumbrance (use only in UI for a single encumbrance - use batch-all-or-nothing otherwise)
+      description: Release encumbrance (use only in UI for a single encumbrance - use <tt>batch-all-or-nothing</tt> otherwise)
       responses:
         204:
           description: "Encumbrance successfully released"
