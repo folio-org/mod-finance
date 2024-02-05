@@ -227,9 +227,9 @@ public class GroupFiscalYearTotalsService {
     log.debug("buildHolderSkeletons:: Building holder skeletons");
     List<GroupFiscalYearTransactionsHolder> holders = new ArrayList<>();
     if (groupFiscalYearSummaryCollection != null && groupFundFiscalYearCollection != null
-      && (CollectionUtils.isNotEmpty(groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries()))
-      && (CollectionUtils.isNotEmpty(groupFundFiscalYearCollection.getGroupFundFiscalYears())))
-    {
+      && CollectionUtils.isNotEmpty(groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries())
+      && CollectionUtils.isNotEmpty(groupFundFiscalYearCollection.getGroupFundFiscalYears())) {
+
       groupFiscalYearSummaryCollection.getGroupFiscalYearSummaries().forEach(groupFiscalYearSummary -> {
         String fiscalYearId = groupFiscalYearSummary.getFiscalYearId();
         String groupId = groupFiscalYearSummary.getGroupId();

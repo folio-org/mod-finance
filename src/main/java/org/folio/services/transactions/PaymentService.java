@@ -37,7 +37,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
       .map(v -> {
         transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
         if (Boolean.FALSE.equals(payment.getInvoiceCancelled())) {
-          log.error("updateTransaction:: payment '{}' invoice is not cancelled", payment.getId());
+          log.warn("updateTransaction:: payment '{}' invoice is not cancelled", payment.getId());
           throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
         }
         return null;
@@ -45,14 +45,14 @@ public class PaymentService implements TransactionTypeManagingStrategy {
       .compose(v -> transactionService.retrieveTransactionById(payment.getId(), requestContext))
       .map(existingTransaction -> {
         if (Boolean.TRUE.equals(existingTransaction.getInvoiceCancelled())) {
-          log.error("updateTransaction:: Existing transaction '{}' already has invoiceCancelled flag set to true", existingTransaction.getId());
+          log.warn("updateTransaction:: Existing transaction '{}' already has invoiceCancelled flag set to true", existingTransaction.getId());
           throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
         }
         // compare new transaction with existing one: ignore invoiceCancelled and metadata changes
         existingTransaction.setInvoiceCancelled(true);
         existingTransaction.setMetadata(payment.getMetadata());
         if (!existingTransaction.equals(payment)) {
-          log.error("updateTransaction:: Existing transaction '{}' is not equal to payment '{}'", existingTransaction.getId(), payment.getId());
+          log.warn("updateTransaction:: Existing transaction '{}' is not equal to payment '{}'", existingTransaction.getId(), payment.getId());
           throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
         }
         return null;
