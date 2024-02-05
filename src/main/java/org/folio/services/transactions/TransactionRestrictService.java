@@ -48,15 +48,15 @@ public class TransactionRestrictService {
         .map(cf -> isAllocationAllowed(fromFund.result(), toFund.result(), transaction))
         .compose(isAllocationAllowed -> {
           if (Boolean.TRUE.equals(isAllocationAllowed)) {
-            log.info("checkFundsAllocatedIds: Allocation is allowed for transaction: {}", transaction);
+            log.info("checkFundsAllocatedIds: Allocation is allowed for transaction: {}", transaction.getId());
             return succeededFuture();
           } else {
-            log.warn("checkFundsAllocatedIds:: Allocation ids is mismatch in transaction: {}", transaction);
+            log.warn("checkFundsAllocatedIds:: Allocation ids is mismatch in transaction: {}", transaction.getId());
             return failedFuture(new HttpException(422, ALLOCATION_IDS_MISMATCH));
           }
         });
     } else {
-      log.warn("checkFundsAllocatedIds:: fundId is missing for transaction: {}", transaction);
+      log.warn("checkFundsAllocatedIds:: fundId is missing for transaction: {}", transaction.getId());
       return failedFuture(new HttpException(422, MISSING_FUND_ID));
     }
 }
