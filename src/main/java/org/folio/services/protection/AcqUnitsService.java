@@ -51,7 +51,6 @@ public class AcqUnitsService {
       .withOffset(offset)
       .withLimit(limit)
       .withQuery(query);
-    log.info("getAcquisitionsUnits:: Sending GET request with endpoint={}", requestEntry.buildEndpoint());
     return restClient.get(requestEntry.buildEndpoint(), AcquisitionsUnitCollection.class, requestContext);
   }
 
