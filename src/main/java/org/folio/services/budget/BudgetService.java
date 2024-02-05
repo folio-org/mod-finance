@@ -115,7 +115,7 @@ public class BudgetService {
     errors.addAll(checkRemainingExpenditure(budget));
 
     if (!errors.isEmpty()) {
-      log.error("validateBudget:: '{}' Error(s) found during validation for budget: {}", errors.size(), JsonObject.mapFrom(errors));
+      log.error("validateBudget:: '{}' Error(s) found during validation for budget: {}", errors.size(), budget.getId());
       throw new HttpException(422, new Errors()
         .withErrors(errors)
         .withTotalRecords(errors.size()));
