@@ -262,7 +262,7 @@ public class GroupFiscalYearTotalsService {
     List<Future<GroupFiscalYearTransactionsHolder>> futures = new ArrayList<>();
     holders.forEach(holder -> futures.add(updateHolderWithTransfers(requestContext, holder)));
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.info("updateHoldersWithTransfers:: Number of holders updated with transfers: {}", result.size()))
+      .onSuccess(result -> log.debug("updateHoldersWithTransfers:: Number of holders updated with transfers: {}", result.size()))
       .mapEmpty();
   }
 
