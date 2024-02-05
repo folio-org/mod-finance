@@ -45,7 +45,7 @@ public class FiscalYearService {
   }
 
   public Future<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    log.debug("createFiscalYear:: Creating fiscal year");
+    log.debug("createFiscalYear:: Creating fiscal year: {}", fiscalYear.getId());
     return configurationEntriesService.getSystemCurrency(requestContext)
       .compose(currency -> {
         fiscalYear.setCurrency(currency);
@@ -93,7 +93,7 @@ public class FiscalYearService {
         if (CollectionUtils.isNotEmpty(collection.getFiscalYears())) {
           return collection.getFiscalYears().get(0);
         }
-        log.error("getFiscalYearByFiscalYearCode:: Error to get fiscal year by fiscal year code");
+        log.error("getFiscalYearByFiscalYearCode:: Error to get fiscal year by fiscal year code: {}", fiscalYearCode);
         throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
       });
   }

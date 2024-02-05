@@ -37,7 +37,7 @@ public class PaymentService implements TransactionTypeManagingStrategy {
       .map(v -> {
         transactionService.validateTransactionType(payment, Transaction.TransactionType.PAYMENT);
         if (Boolean.FALSE.equals(payment.getInvoiceCancelled())) {
-          log.error("updateTransaction:: payment invoice is not cancelled");
+          log.error("updateTransaction:: payment '{}' invoice is not cancelled", payment.getId());
           throw new HttpException(422, UPDATE_PAYMENT_TO_CANCEL_INVOICE.toError());
         }
         return null;

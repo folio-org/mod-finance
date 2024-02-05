@@ -90,7 +90,7 @@ public class FundsHelper extends AbstractHelper {
       return ledgerDetailsService.getCurrentFiscalYear(compositeFund.getFund().getLedgerId(), new RequestContext(ctx, okapiHeaders))
         .compose(fiscalYear -> {
           if (Objects.isNull(fiscalYear)) {
-            log.error("createFund:: fiscalYear is not found");
+            log.error("createFund:: fiscalYear is not found for compositeFund with ledgerId={}", compositeFund.getFund().getLedgerId());
             throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
           }
           return fundService.createFund(compositeFund.getFund(), requestContext)
@@ -103,7 +103,7 @@ public class FundsHelper extends AbstractHelper {
         })
         .map(aVoid -> compositeFund);
     }
-    log.info("createFund:: compositeFund groupIds is empty");
+    log.info("createFund:: GroupIds is empty in compositeFund with ledgeId '{}'", compositeFund.getFund().getLedgerId());
     return fundService.createFund(compositeFund.getFund(), requestContext)
       .map(compositeFund::withFund);
   }
@@ -206,7 +206,7 @@ public class FundsHelper extends AbstractHelper {
           }
         });
     } else {
-      log.warn("createGroupFundFiscalYears:: groupIdsForCreation is empty");
+      log.warn("createGroupFundFiscalYears:: groupIdsForCreation is empty for compositeFund '{}'", compositeFund.getFund().getId());
       return succeededFuture(null);
     }
   }
@@ -241,16 +241,16 @@ public class FundsHelper extends AbstractHelper {
           return getGroupFundFiscalYearsThatFundBelongs(fund.getId(), currentFiscalYearId)
             .compose(groupFundFiscalYearCollection -> {
               List<String> groupIdsFromStorage = StreamEx.of(groupFundFiscalYearCollection).map(GroupFundFiscalYear::getGroupId).collect(Collectors.toList());
-              log.info("updateFundGroups:: Creating group fund fiscal years for new groups");
+              log.info("updateFundGroups:: Creating group fund fiscal years for new groups for compositeFund '{}'", compositeFund.getFund().getId());
               return createGroupFundFiscalYears(compositeFund, currentFiscalYearId, getSetDifference(groupIdsFromStorage, groupIds), requestContext)
                 .compose(vVoid -> deleteGroupFundFiscalYears(groupFundFiscalYearIdsForDeletion(
                   groupFundFiscalYearCollection, getSetDifference(groupIds, groupIdsFromStorage))));
             });
         } else if(groupIds.isEmpty()) {
-          log.warn("updateFundGroups:: GroupIds is empty");
+          log.warn("updateFundGroups:: GroupIds is empty in compositeFund '{}'", compositeFund.getFund().getId());
           return succeededFuture(null);
         } else {
-          log.error("updateFundGroups:: No fiscal years found and groups exist for update");
+          log.error("updateFundGroups:: No fiscal years found and groups exist for update in compositeFund '{}'", compositeFund.getFund().getId());
           throw new HttpException(422, FISCAL_YEARS_NOT_FOUND);
         }
       });

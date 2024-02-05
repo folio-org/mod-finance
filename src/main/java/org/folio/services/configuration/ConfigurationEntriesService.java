@@ -70,10 +70,10 @@ public class ConfigurationEntriesService {
     String localeSettings = config.getString(LOCALE_SETTINGS);
     String confValue;
     if (StringUtils.isEmpty(localeSettings)) {
-      log.info("extractLocalSettingConfigValueByName:: localeSettings is empty");
+      log.info("extractLocalSettingConfigValueByName:: localeSettings is empty for name: {}", name);
       confValue = defaultValue;
     } else {
-      log.info("extractLocalSettingConfigValueByName:: localeSettings is set by using localeSettings");
+      log.info("extractLocalSettingConfigValueByName:: localeSettings is set by using localeSettings with defaultValue: {}", defaultValue);
       confValue = new JsonObject(localeSettings).getString(name, defaultValue);
     }
     return confValue;

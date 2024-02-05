@@ -30,6 +30,7 @@ import org.folio.services.fiscalyear.FiscalYearService;
 import io.vertx.core.Future;
 
 public class FundDetailsService {
+
   private static final Logger log = LogManager.getLogger();
   private static final String BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
   private static final String BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";

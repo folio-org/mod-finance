@@ -121,10 +121,10 @@ public class BudgetExpenseClassService {
     return transactionService.retrieveTransactions(deleteList, budget, requestContext)
       .map(transactions -> {
         if (isNotEmpty(transactions)) {
-          log.error("checkNoTransactionsAssigned:: There is assigned transaction");
+          log.error("checkNoTransactionsAssigned:: There is assigned transaction for budget: '{}'", budget.getId());
           throw new HttpException(400, TRANSACTION_IS_PRESENT_BUDGET_EXPENSE_CLASS_DELETE_ERROR);
         }
-        log.info("checkNoTransactionsAssigned:: Transaction is not found");
+        log.info("checkNoTransactionsAssigned:: Transaction is not found for budget: '{}'", budget.getId());
         return null;
       });
   }

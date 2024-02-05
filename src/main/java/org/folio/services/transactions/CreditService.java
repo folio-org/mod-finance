@@ -37,7 +37,7 @@ return null;
       .map(v -> {
         transactionService.validateTransactionType(credit, Transaction.TransactionType.CREDIT);
         if (Boolean.FALSE.equals(credit.getInvoiceCancelled())) {
-          log.warn("updateTransaction:: Credit invoice is not cancelled");
+          log.warn("updateTransaction:: Credit '{}' invoice is not cancelled", credit.getId());
           throw new HttpException(422, UPDATE_CREDIT_TO_CANCEL_INVOICE.toError());
         }
         return null;

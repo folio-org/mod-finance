@@ -56,7 +56,7 @@ public class GroupExpenseClassTotalsService {
   private Future<GroupExpenseClassTotalsCollection> getGroupExpenseClassTotals(List<GroupFundFiscalYear> groupFfys, String fiscalYearId, RequestContext requestContext) {
     log.debug("getGroupExpenseClassTotals:: Retrieving group expense class totals for groupFys with '{}' size by fiscalYearId '{}'", groupFfys.size(), fiscalYearId);
     if (groupFfys.isEmpty()) {
-      log.info("getGroupExpenseClassTotals:: groupFfys is empty, so returning new collection");
+      log.info("getGroupExpenseClassTotals:: groupFfys is empty, so returning new collection for fiscalYearId: {}", fiscalYearId);
       return succeededFuture(new GroupExpenseClassTotalsCollection().withTotalRecords(0));
     }
     var transactions = getTransactions(groupFfys, fiscalYearId, requestContext);
