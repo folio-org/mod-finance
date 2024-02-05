@@ -131,7 +131,8 @@ public class GroupExpenseClassTotalsService {
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
       percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
     }
-    log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, and percentageExpended={}", encumbered, awaitingPayment, expenseClass, percentageExpended);
+    log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, and percentageExpended={}",
+      encumbered, awaitingPayment, expended, percentageExpended);
     return new GroupExpenseClassTotal()
       .withId(expenseClass.getId())
       .withExpenseClassName(expenseClass.getName())
