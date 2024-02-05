@@ -59,7 +59,7 @@ public class RestClient {
       .sendJson(entity)
       .map(HttpResponse::bodyAsJsonObject)
       .map(body -> body.mapTo(responseType))
-      .onFailure(t -> log.error("Error while post request", t));
+      .onFailure(log::error);
   }
 
   public <T> Future<Void> postEmptyResponse(String endpoint, T entity, RequestContext requestContext) {
@@ -71,7 +71,7 @@ public class RestClient {
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(entity)
-      .onFailure(t -> log.error("Error while post request for empty response", t))
+      .onFailure(log::error)
       .mapEmpty();
   }
 
@@ -94,7 +94,7 @@ public class RestClient {
       .putHeaders(caseInsensitiveHeader)
       .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(recordData)
-      .onFailure(t -> log.error("Error while put request", t))
+      .onFailure(log::error)
       .mapEmpty();
   }
 
@@ -117,20 +117,20 @@ public class RestClient {
 
   private <T> void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
     if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
-      log.warn("Resource not found", t);
+      log.warn(t);
       promise.complete();
     } else {
-      log.error("Error while get operation", t);
+      log.error(t);
       promise.fail(t);
     }
   }
 
   private void handleErrorResponse(Promise<Void> promise, Throwable t, boolean skipError404) {
-    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
-      log.warn("Resource not found", t);
+    if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404){
+      log.warn(t);
       promise.complete();
     } else {
-      log.error("Error while processing operation operation", t);
+      log.error(t);
       promise.fail(t);
     }
   }
