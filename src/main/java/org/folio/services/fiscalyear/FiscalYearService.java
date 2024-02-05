@@ -93,7 +93,7 @@ public class FiscalYearService {
         if (CollectionUtils.isNotEmpty(collection.getFiscalYears())) {
           return collection.getFiscalYears().get(0);
         }
-        log.error("getFiscalYearByFiscalYearCode:: Fiscal year by fiscalYearCode '{}' was not found", fiscalYearCode);
+        log.warn("getFiscalYearByFiscalYearCode:: Fiscal year by fiscalYearCode '{}' was not found", fiscalYearCode);
         throw new HttpException(400, FISCAL_YEARS_NOT_FOUND);
       });
   }
