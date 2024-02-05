@@ -29,7 +29,7 @@ public class ExchangeHelper extends AbstractHelper {
         .getExchangeRate(from, to)
         .getFactor()
         .doubleValue();
-      log.info("getExchangeRate:: Fetched exchange rate={}", exchangeRate);
+      log.debug("getExchangeRate:: Fetched exchange rate={}", exchangeRate);
       return new ExchangeRate().withFrom(from)
         .withTo(to)
         .withExchangeRate(exchangeRate);
@@ -46,7 +46,7 @@ public class ExchangeHelper extends AbstractHelper {
     log.debug("calculateExchange:: Calculating exchange sourceCurrency from={}, to={}, amount={} and customRate={}", from, to, amount, customRate);
     var initialAmount = Money.of(amount, from);
     var rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
-    log.info("calculateExchange:: rate is {}", rate);
+    log.debug("calculateExchange:: rate is {}", rate);
 
     return initialAmount.multiply(rate)
       .with(Monetary.getDefaultRounding())

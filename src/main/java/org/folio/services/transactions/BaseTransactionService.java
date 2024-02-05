@@ -68,7 +68,7 @@ public class BaseTransactionService implements TransactionService {
 
   public void validateTransactionType(Transaction transaction, Transaction.TransactionType transactionType) {
     if (transaction.getTransactionType() != transactionType) {
-      log.warn("validateTransactionType:: Transaction {} type mismatch. {} expected", transaction.getId(), transactionType) ;
+      log.warn("validateTransactionType:: Transaction '{}' type mismatch. '{}' expected", transaction.getId(), transactionType);
       Parameter parameter = new Parameter().withKey("expected").withValue(transactionType.name());
       throw new HttpException(422, INVALID_TRANSACTION_TYPE.toError().withParameters(Collections.singletonList(parameter)));
     }

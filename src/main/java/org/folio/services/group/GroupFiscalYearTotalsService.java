@@ -90,7 +90,7 @@ public class GroupFiscalYearTotalsService {
         })
         .compose(v -> updateHoldersWithTransfers(holders, requestContext))
         .map(v -> {
-          log.info("getGroupFiscalYearSummaries:: Updating group summary with calculated fields for '{}' holder(s)", holders.size());
+          log.debug("getGroupFiscalYearSummaries:: Updating group summary with calculated fields for '{}' holder(s)", holders.size());
           updateGroupSummaryWithCalculatedFields(holders);
           return null;
         })
@@ -253,7 +253,7 @@ public class GroupFiscalYearTotalsService {
       futures.add(updateHolderWithAllocations(requestContext, holder))
     );
     return collectResultsOnSuccess(futures)
-      .onSuccess(result -> log.info("updateHoldersWithAllocations:: Number of holders updated with allocations: {}", result.size()))
+      .onSuccess(result -> log.debug("updateHoldersWithAllocations:: Number of holders updated with allocations: {}", result.size()))
       .mapEmpty();
   }
 

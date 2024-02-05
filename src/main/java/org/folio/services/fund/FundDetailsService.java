@@ -111,7 +111,7 @@ public class FundDetailsService {
             .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
             .collect(toList()));
       })
-      .onSuccess(expenseClasses -> log.info("retrieveExpenseClasses:: found expense classes for fund id={}", fundId))
+      .onSuccess(expenseClasses -> log.debug("retrieveExpenseClasses:: found expense classes for fund id={}", fundId))
       .onFailure(t -> log.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
   }
 
