@@ -84,7 +84,7 @@ public class GroupFiscalYearTotalsService {
         }))
       .compose(holders -> updateHoldersWithAllocations(holders, requestContext)
         .map(holder -> {
-          log.info("getGroupFiscalYearSummaries:: Updating group summary with allocation fields for '{}' holder(s)", holders.size());
+          log.debug("getGroupFiscalYearSummaries:: Updating group summary with allocation fields for '{}' holder(s)", holders.size());
           updateGroupSummaryWithAllocation(holders);
           return null;
         })
