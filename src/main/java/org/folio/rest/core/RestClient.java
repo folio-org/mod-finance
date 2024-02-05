@@ -30,7 +30,7 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 
 public class RestClient {
 
-  private static final Logger log = LogManager.getLogger(RestClient.class);
+  private static final Logger log = LogManager.getLogger();
   private static final ErrorConverter ERROR_CONVERTER = ErrorConverter.createFullBody(
     result -> {
       String errorResponse = result.response().bodyAsString();
@@ -82,7 +82,7 @@ public class RestClient {
       .add("Accept", APPLICATION_JSON + ", " + TEXT_PLAIN);
   }
 
-  public <T> Future<Void> put(String endpoint, T dataObject,  RequestContext requestContext) {
+  public <T> Future<Void> put(String endpoint, T dataObject, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
     var recordData = JsonObject.mapFrom(dataObject);
@@ -115,7 +115,7 @@ public class RestClient {
     return promise.future();
   }
 
-  private <T>void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
+  private <T> void handleGetMethodErrorResponse(Promise<T> promise, Throwable t, boolean skipError404) {
     if (skipError404 && t instanceof HttpException httpException && httpException.getCode() == 404) {
       log.warn(t);
       promise.complete();
@@ -177,6 +177,7 @@ public class RestClient {
 
     return WebClientFactory.getWebClient(context.owner(), options);
   }
+
   protected String buildAbsEndpoint(MultiMap okapiHeaders, String endpoint) {
     var okapiURL = okapiHeaders.get(OKAPI_URL);
     return okapiURL + endpoint;

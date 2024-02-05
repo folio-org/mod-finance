@@ -30,7 +30,7 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 
 public class RecalculatedBudgetBuilder {
 
-  private static final Logger logger = LogManager.getLogger(RecalculatedBudgetBuilder.class);
+  private static final Logger log = LogManager.getLogger();
 
   private double initialAllocation = 0d;
   private double allocationTo = 0d;
@@ -47,7 +47,7 @@ public class RecalculatedBudgetBuilder {
 
   public RecalculatedBudgetBuilder(List<Transaction> transactions) {
     if (CollectionUtils.isEmpty(transactions)) {
-      logger.error("The transactions list is empty. Cannot proceed with RecalculatedBudgetBuilder creation.");
+      log.error("The transactions list is empty. Cannot proceed with RecalculatedBudgetBuilder creation.");
       throw new IllegalArgumentException("The transactions list cannot be empty");
     }
 
@@ -84,7 +84,7 @@ public class RecalculatedBudgetBuilder {
    */
   public RecalculatedBudgetBuilder withAllocationTo(String fundId) {
     if (!initialAllocationSet) {
-      logger.error("Cannot set Allocation To without calling withInitialAllocation first.");
+      log.error("Cannot set Allocation To without calling withInitialAllocation first.");
       throw new IllegalStateException("withInitialAllocation must be called before withAllocationTo");
     }
 

@@ -72,7 +72,7 @@ public class FundService {
       .map(lists -> lists.stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toList())
-    );
+      );
   }
 
   public Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {

@@ -15,6 +15,8 @@ import javax.money.MonetaryAmount;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
@@ -34,6 +36,8 @@ import io.vertx.core.Future;
 
 public class GroupExpenseClassTotalsService {
 
+  private static final Logger log = LogManager.getLogger();
+
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final CommonTransactionService transactionService;
   private final ExpenseClassService expenseClassService;
@@ -50,7 +54,9 @@ public class GroupExpenseClassTotalsService {
   }
 
   private Future<GroupExpenseClassTotalsCollection> getGroupExpenseClassTotals(List<GroupFundFiscalYear> groupFfys, String fiscalYearId, RequestContext requestContext) {
+    log.debug("getGroupExpenseClassTotals:: Retrieving group expense class totals for groupFys with '{}' size by fiscalYearId '{}'", groupFfys.size(), fiscalYearId);
     if (groupFfys.isEmpty()) {
+      log.info("getGroupExpenseClassTotals:: groupFfys is empty, so returning new collection for fiscalYearId: {}", fiscalYearId);
       return succeededFuture(new GroupExpenseClassTotalsCollection().withTotalRecords(0));
     }
     var transactions = getTransactions(groupFfys, fiscalYearId, requestContext);
@@ -70,7 +76,7 @@ public class GroupExpenseClassTotalsService {
   }
 
   private GroupExpenseClassTotalsCollection buildGroupExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions) {
-
+    log.debug("buildGroupExpenseClassesTotals:: Building Group Expense classes totals");
     Map<String, List<Transaction>> expenseClassIdTransactionsMap = transactions.stream()
       .filter(transaction -> StringUtils.isNotEmpty(transaction.getExpenseClassId()))
       .collect(groupingBy(Transaction::getExpenseClassId));
@@ -88,6 +94,7 @@ public class GroupExpenseClassTotalsService {
         expendedGrandTotal))
       .collect(toList());
 
+    log.info("buildGroupExpenseClassesTotals:: Creating collection for groupExpenseClassTotals with '{}' element(s) and expendedGrandTotal '{}'", groupExpenseClassTotals.size(), expendedGrandTotal);
     return new GroupExpenseClassTotalsCollection()
       .withGroupExpenseClassTotals(groupExpenseClassTotals)
       .withTotalRecords(groupExpenseClassTotals.size());
@@ -107,6 +114,7 @@ public class GroupExpenseClassTotalsService {
   }
 
   private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions, double expendedGrandTotal) {
+    log.debug("buildGroupExpenseClassTotal:: Building group expense class totals by using expendedGrandTotal={} and '{}' transaction(s)", expendedGrandTotal, transactions);
     double expended = 0d;
     double encumbered = 0d;
     double awaitingPayment = 0d;
@@ -123,7 +131,8 @@ public class GroupExpenseClassTotalsService {
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
       percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
     }
-
+    log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, and percentageExpended={}",
+      encumbered, awaitingPayment, expended, percentageExpended);
     return new GroupExpenseClassTotal()
       .withId(expenseClass.getId())
       .withExpenseClassName(expenseClass.getName())

@@ -15,7 +15,7 @@ import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
 public class ConfigurationEntriesService {
-  private static final Logger logger = LogManager.getLogger();
+  private static final Logger log = LogManager.getLogger();
 
   private static final String CONFIG_QUERY = "module==%s";
   public static final String LOCALE_SETTINGS = "localeSettings";
@@ -34,10 +34,11 @@ public class ConfigurationEntriesService {
   }
 
   public Future<JsonObject> loadConfiguration(String moduleConfig, RequestContext requestContext) {
+    log.debug("loadConfiguration:: Trying to load configuration by moduleConfig={}", moduleConfig);
     return Future.succeededFuture()
       .map(v -> {
         String query = String.format(CONFIG_QUERY, moduleConfig);
-        logger.info("GET request: {}", query);
+        log.info("loadConfiguration:: GET request with query: {}", query);
         return new RequestEntry(resourcesPath(CONFIGURATIONS))
           .withOffset(0)
           .withLimit(Integer.MAX_VALUE)
@@ -45,8 +46,8 @@ public class ConfigurationEntriesService {
       })
       .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), Configs.class, requestContext))
       .map(configs -> {
-        if (logger.isDebugEnabled()) {
-          logger.debug("The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
+        if (log.isDebugEnabled()) {
+          log.debug("loadConfiguration:: The response from mod-configuration: {}", JsonObject.mapFrom(configs).encodePrettily());
         }
         JsonObject config = new JsonObject();
         configs.getConfigs().forEach(entry -> config.put(entry.getConfigName(), entry.getValue()));
@@ -65,12 +66,15 @@ public class ConfigurationEntriesService {
   }
 
   private String extractLocalSettingConfigValueByName(JsonObject config, String name, String defaultValue) {
+    log.debug("extractLocalSettingConfigValueByName:: Trying to extract local setting config value by name: {}", name);
     String localeSettings = config.getString(LOCALE_SETTINGS);
     String confValue;
     if (StringUtils.isEmpty(localeSettings)) {
+      log.info("extractLocalSettingConfigValueByName:: localeSettings is empty for name: {}", name);
       confValue = defaultValue;
     } else {
-      confValue = new JsonObject(config.getString(LOCALE_SETTINGS)).getString(name, defaultValue);
+      log.info("extractLocalSettingConfigValueByName:: localeSettings is set by using localeSettings with defaultValue: {}", defaultValue);
+      confValue = new JsonObject(localeSettings).getString(name, defaultValue);
     }
     return confValue;
   }

@@ -17,7 +17,7 @@ import io.vertx.core.Future;
 
 public class EncumbranceService implements TransactionTypeManagingStrategy {
 
-  private static final Logger logger = LogManager.getLogger(EncumbranceService.class);
+  private static final Logger log = LogManager.getLogger();
   private final TransactionService transactionService;
 
   public EncumbranceService(TransactionService transactionService) {
@@ -61,16 +61,16 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
   }
 
   private Future<Void> validateDeletion(Transaction encumbrance, RequestContext requestContext) {
-
+    log.debug("validateDeletion:: Validation to delete encumbrance '{}'", encumbrance.getId());
     return Future.succeededFuture()
       .map(v -> {
         checkEncumbranceStatusNotReleased(encumbrance);
         return null;
       })
-      .compose(v-> transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext))
+      .compose(v -> transactionService.isConnectedToInvoice(encumbrance.getId(), requestContext))
       .map(connected -> {
         if (connected) {
-          logger.info("Tried to delete transaction {} but it is connected to an invoice.", encumbrance.getId());
+          log.warn("validateDeletion:: Tried to delete transaction {} but it is connected to an invoice.", encumbrance.getId());
           Parameter parameter = new Parameter().withKey("id").withValue(encumbrance.getId());
           throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError().withParameters(Collections.singletonList(parameter)));
         }
@@ -80,10 +80,9 @@ public class EncumbranceService implements TransactionTypeManagingStrategy {
 
   private void checkEncumbranceStatusNotReleased(Transaction encumbrance) {
     if (encumbrance.getEncumbrance().getStatus() != Encumbrance.Status.RELEASED) {
-      logger.info("Transaction {} should be released before deletion", encumbrance.getId());
+      log.warn("checkEncumbranceStatusNotReleased:: Transaction {} should be released before deletion", encumbrance.getId());
       Parameter parameter = new Parameter().withKey("id").withValue(encumbrance.getId());
       throw new HttpException(400, TRANSACTION_NOT_RELEASED.toError().withParameters(Collections.singletonList(parameter)));
-
     }
   }
 }

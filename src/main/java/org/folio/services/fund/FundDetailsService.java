@@ -30,7 +30,8 @@ import org.folio.services.fiscalyear.FiscalYearService;
 import io.vertx.core.Future;
 
 public class FundDetailsService {
-  private static final Logger logger = LogManager.getLogger(FundDetailsService.class);
+
+  private static final Logger log = LogManager.getLogger();
   private static final String BUDGET_QUERY_WITH_STATUS = "fundId==%s and fiscalYearId==%s and budgetStatus==%s";
   private static final String BUDGET_QUERY = "fundId==%s and fiscalYearId==%s";
 
@@ -52,9 +53,10 @@ public class FundDetailsService {
 
   public Future<Budget> retrieveCurrentBudget(String fundId, String budgetStatus, boolean skipThrowException,
                                                          RequestContext rqContext) {
+    log.debug("retrieveCurrentBudget:: Retrieving current budget by fundId '{}' and budgetStatus '{}'", fundId, budgetStatus);
     return retrieveCurrentBudget(fundId, budgetStatus, rqContext)
       .recover(t -> {
-        logger.error("Failed to retrieve current budget for fundId: {}", fundId, t);
+        log.error("Failed to retrieve current budget for fundId: {}", fundId, t);
         if (skipThrowException) {
           return Future.succeededFuture();
         } else {
@@ -100,7 +102,7 @@ public class FundDetailsService {
 
     return retrieveBudget(fundId, fiscalYearId, null, rqContext)
       .compose(budget -> {
-        logger.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
+        log.debug("retrieveExpenseClasses:: budget id='{}' was found for fund id='{}': ",budget.getId(), fundId);
         var expenseClasses = getExpenseClasses(budget, rqContext);
         var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
 
@@ -109,8 +111,8 @@ public class FundDetailsService {
             .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
             .collect(toList()));
       })
-      .onSuccess(expenseClasses -> logger.debug("retrieveExpenseClasses:: found expense classes for fund id='{}', size={} ", fundId, expenseClasses.size()))
-      .onFailure(t -> logger.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
+      .onSuccess(expenseClasses -> log.debug("retrieveExpenseClasses:: found expense classes for fund id={}", fundId))
+      .onFailure(t -> log.error("Retrieve expense classes for fund id='{}' failed", fundId, t));
   }
 
   private Future<List<ExpenseClass>> getExpenseClasses(Budget budget, RequestContext rqContext) {

@@ -16,8 +16,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.HttpStatus;
 import org.folio.rest.acq.model.finance.AcquisitionsUnit;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitCollection;
@@ -29,7 +27,6 @@ import org.folio.services.protection.models.ProtectedOperationType;
 import io.vertx.core.Future;
 
 public class ProtectionService {
-  public final Logger logger = LogManager.getLogger(ProtectionService.class);
 
   private final AcqUnitsService acqUnitsService;
   private final AcqUnitMembershipsService acqUnitMembershipsService;
@@ -71,7 +68,7 @@ public class ProtectionService {
   }
 
   private Future<Void> verifyUserIsMemberOfFundUnits(List<String> unitIdsAssignedToFund, String currentUserId,
-                                                                RequestContext requestContext) {
+                                                     RequestContext requestContext) {
     String query = String.format("userId==%s AND %s", currentUserId, convertIdsToCqlQuery(unitIdsAssignedToFund, ACQUISITIONS_UNIT_ID, true));
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships(query, 0, Integer.MAX_VALUE, requestContext)
       .map(unit -> {

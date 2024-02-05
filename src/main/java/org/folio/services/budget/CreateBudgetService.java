@@ -10,6 +10,8 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -28,6 +30,9 @@ import org.folio.services.transactions.CommonTransactionService;
 import io.vertx.core.Future;
 
 public class CreateBudgetService {
+
+  private static final Logger log = LogManager.getLogger();
+
   private final RestClient restClient;
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final FundFiscalYearService fundFiscalYearService;
@@ -50,18 +55,24 @@ public class CreateBudgetService {
   }
 
   public Future<SharedBudget> createBudget(SharedBudget sharedBudget, RequestContext requestContext) {
+    log.debug("createBudget:: Creating budget for shared budget id: {}", sharedBudget.getId());
     return fundFiscalYearService.retrievePlannedFiscalYear(BudgetUtils.convertToBudget(sharedBudget)
-      .getFundId(), requestContext)
+        .getFundId(), requestContext)
       .compose(plannedFiscalYear -> {
         Budget budget = BudgetUtils.convertToBudget(sharedBudget);
         if (plannedFiscalYear != null && budget.getFiscalYearId()
           .equals(plannedFiscalYear.getId())) {
+          log.info("createBudget:: Creating planned budget because planned fiscal year is not null and it is equal to budget fiscal year id for sharedBudget: {}", sharedBudget.getId());
           return createPlannedBudget(sharedBudget, requestContext);
         } else {
+          log.info("createBudget:: Creating new budget because planned fiscal year is null or it is not equal to budget fiscal year id for sharedBudget: {}", sharedBudget.getId());
           return createNewBudget(sharedBudget, requestContext);
         }
       })
-      .recover(this::processBudgetException);
+      .recover(e -> {
+        log.error("Failed to create budget for sharedBudget: {}", sharedBudget.getId(), e);
+        return processBudgetException(e);
+      });
   }
 
   private Future<SharedBudget> processBudgetException(Throwable t) {
@@ -80,11 +91,17 @@ public class CreateBudgetService {
   }
 
   private Future<Budget> allocateToBudget(Budget createdBudget, RequestContext requestContext) {
+    log.debug("allocateToBudget:: Allocating to created budget: {}", createdBudget.getId());
     if (createdBudget.getAllocated() > 0d) {
+      log.info("allocateToBudget:: allocation for created budget '{}' is greater than zero, allocation transaction is being created", createdBudget.getId());
       return transactionService.createAllocationTransaction(createdBudget, requestContext)
         .map(transaction -> createdBudget)
-        .recover(e -> Future.failedFuture(new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED)));
+        .recover(e -> {
+          log.error("Failed to create allocation transaction for budget '{}': {}", createdBudget.getId(), e.getMessage(), e);
+          return Future.failedFuture(new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED));
+        });
     }
+    log.info("allocateToBudget:: Allocation for createdBudget '{}' is zero or less, no transaction needed", createdBudget.getId());
     return succeededFuture(createdBudget);
   }
 
@@ -93,14 +110,17 @@ public class CreateBudgetService {
       return fundDetailsService.retrieveCurrentBudget(sharedBudget.getFundId(), null, true, requestContext)
         .compose(currBudget -> {
           if (currBudget != null) {
+            log.info("createPlannedBudget:: Current budget found for sharedBudget '{}', retrieving expense classes", sharedBudget.getId());
             return budgetExpenseClassService.getBudgetExpenseClasses(currBudget.getId(), requestContext)
               .map(ExpenseClassConverterUtils::buildStatusExpenseClassList)
               .map(sharedBudget::withStatusExpenseClasses)
               .compose(updatedSharedBudget -> createNewBudget(updatedSharedBudget, requestContext));
           }
+          log.info("createPlannedBudget:: Current budget is null for sharedBudget '{}', creating new budget without expense classes", sharedBudget.getId());
           return createNewBudget(sharedBudget, requestContext);
         });
     }
+    log.info("createPlannedBudget:: Status expense classes are already set in sharedBudget '{}', creating new budget directly", sharedBudget.getId());
     return createNewBudget(sharedBudget, requestContext);
   }
 
