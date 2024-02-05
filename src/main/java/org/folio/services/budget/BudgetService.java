@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.vertx.core.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
@@ -114,7 +115,7 @@ public class BudgetService {
     errors.addAll(checkRemainingExpenditure(budget));
 
     if (!errors.isEmpty()) {
-      log.error("validateBudget:: Error found during validation for budget: {}", budget.getId());
+      log.error("validateBudget:: '{}' Error(s) found during validation for budget: {}", errors.size(), JsonObject.mapFrom(errors));
       throw new HttpException(422, new Errors()
         .withErrors(errors)
         .withTotalRecords(errors.size()));
