@@ -208,8 +208,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  public BatchTransactionService batchTransactionService(RestClient restClient) {
-    return new BatchTransactionService(restClient);
+  public BatchTransactionService batchTransactionService(RestClient restClient, BaseTransactionService baseTransactionService) {
+    return new BatchTransactionService(restClient, baseTransactionService);
   }
 
   @Bean

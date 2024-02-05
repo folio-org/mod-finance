@@ -195,7 +195,7 @@ public class MockServer {
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePostEntry(ctx, ExpenseClass.class, TestEntities.EXPENSE_CLASSES.name()));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.BATCH_TRANSACTIONS_STORAGE))
-      .handler(this::handlePostEmpty);
+      .handler(this::handlePostBatchTransactions);
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
@@ -765,7 +765,8 @@ public class MockServer {
     }
   }
 
-  public void handlePostEmpty(RoutingContext ctx) {
+  public void handlePostBatchTransactions(RoutingContext ctx) {
+    addServerRqRsData(HttpMethod.POST, "batchTransactions", ctx.body().asJsonObject());
     ctx.response()
       .setStatusCode(204)
       .end();

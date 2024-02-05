@@ -1,26 +1,20 @@
 package org.folio.services.transactions;
 
-import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
-import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.FiscalYear;
-import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
@@ -129,5 +123,4 @@ public class CommonTransactionService extends BaseTransactionService {
     OrderTransactionSummary summary = new OrderTransactionSummary().withId(id).withNumTransactions(number);
     return restClient.put(resourceByIdPath(ORDER_TRANSACTION_SUMMARIES, id), summary, requestContext);
   }
-
 }
