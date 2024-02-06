@@ -719,8 +719,7 @@
           "permissionsRequired": ["finance.release-encumbrance.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.get",
-            "finance-storage.transactions.item.put",
-            "finance-storage.order-transaction-summaries.item.put"
+            "finance-storage.transactions.batch"
           ]
         },
         {
@@ -729,8 +728,7 @@
           "permissionsRequired": ["finance.unrelease-encumbrance.item.post"],
           "modulePermissions": [
             "finance-storage.transactions.item.get",
-            "finance-storage.transactions.item.put",
-            "finance-storage.order-transaction-summaries.item.put"
+            "finance-storage.transactions.batch"
           ]
         },
         {
