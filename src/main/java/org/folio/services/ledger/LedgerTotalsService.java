@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -70,7 +71,9 @@ public class LedgerTotalsService {
   }
 
   private void removeInitialAllocationByFunds(LedgerFiscalYearTransactionsHolder holder) {
-    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
+    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream()
+      .filter(transaction -> Objects.isNull(transaction.getFromFundId()))
+      .collect(groupingBy(Transaction::getToFundId));
     fundToTransactions.forEach((fundToId, transactions) -> {
       transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
       if (CollectionUtils.isNotEmpty(transactions)) {

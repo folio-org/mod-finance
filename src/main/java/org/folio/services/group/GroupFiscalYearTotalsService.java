@@ -134,7 +134,9 @@ public class GroupFiscalYearTotalsService {
   }
 
   private void removeInitialAllocationByFunds(GroupFiscalYearTransactionsHolder holder) {
-    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
+    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream()
+      .filter(transaction -> Objects.isNull(transaction.getFromFundId()))
+      .collect(groupingBy(Transaction::getToFundId));
     fundToTransactions.forEach((fundToId, transactions) -> {
        transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
       if (CollectionUtils.isNotEmpty(transactions)) {
