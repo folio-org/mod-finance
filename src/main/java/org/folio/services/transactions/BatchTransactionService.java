@@ -16,6 +16,7 @@ import org.folio.rest.jaxrs.model.TransactionCollection;
 import java.util.List;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.lang.Boolean.FALSE;
 import static java.util.Collections.singletonList;
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
@@ -86,7 +87,7 @@ public class BatchTransactionService {
     }
     return anyConnectedToInvoice(batch.getIdsOfTransactionsToDelete(), requestContext)
       .map(connected -> {
-        if (!connected) {
+        if (FALSE.equals(connected)) {
           return null;
         }
         logger.warn("validateDeletion:: Tried to delete transactions but one is connected to an invoice, ids={}",
