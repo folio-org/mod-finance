@@ -5,12 +5,12 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.removeInitialAllocationByFunds;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -144,20 +144,10 @@ public class GroupFiscalYearTotalsService {
 
   private void updateGroupSummaryWithAllocation(List<GroupFiscalYearTransactionsHolder> holders) {
     holders.forEach(holder -> {
-      removeInitialAllocationByFunds(holder);
+      removeInitialAllocationByFunds(holder.getToAllocations());
       GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
       summary.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), Transaction::getAmount))
         .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
-    });
-  }
-
-  private void removeInitialAllocationByFunds(GroupFiscalYearTransactionsHolder holder) {
-    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
-    fundToTransactions.forEach((fundToId, transactions) -> {
-      transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
-      if (CollectionUtils.isNotEmpty(transactions)) {
-        holder.getToAllocations().remove(transactions.get(0));
-      }
     });
   }
 

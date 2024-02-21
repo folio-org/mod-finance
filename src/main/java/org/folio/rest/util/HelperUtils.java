@@ -1,6 +1,7 @@
 package org.folio.rest.util;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.stream.Collectors.groupingBy;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
@@ -12,8 +13,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.ToDoubleFunction;
 import java.util.regex.Matcher;
@@ -22,6 +26,11 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.Path;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.okapi.common.GenericCompositeFuture;
@@ -31,13 +40,10 @@ import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Parameter;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import one.util.streamex.StreamEx;
+import org.folio.rest.jaxrs.model.Transaction;
 
 public final class HelperUtils {
   public static final String ID = "id";
@@ -220,5 +226,17 @@ public final class HelperUtils {
     return StreamEx.of(expressions)
       .filter(StringUtils::isNotBlank)
       .joining(") " + operator + " (", "(", ")") + sorting;
+  }
+
+  public static void removeInitialAllocationByFunds(List<Transaction> allocationToList) {
+    Map<String, List<Transaction>> fundToTransactions = allocationToList.stream()
+      .filter(transaction -> Objects.isNull(transaction.getFromFundId()))
+      .collect(groupingBy(Transaction::getToFundId));
+    fundToTransactions.forEach((fundToId, transactions) -> {
+      transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
+      if (CollectionUtils.isNotEmpty(transactions)) {
+        allocationToList.remove(transactions.get(0));
+      }
+    });
   }
 }
