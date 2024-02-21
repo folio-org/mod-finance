@@ -53,7 +53,7 @@ public class TransactionApiTest {
   private static final String ASIAHIST_ID = "55f48dc6-efa7-4cfe-bc7c-4786efe493e3";
 
   public static final String DELETE_TRANSACTION_ID = UUID.randomUUID().toString();
-  public static final String DELETE_CONNECTED_TRANSACTION_ID = UUID.randomUUID().toString();
+  public static final String DELETE_CONNECTED_TRANSACTION_ID = "ac857ef5-4e21-4929-8b97-1a4ae06add16";
 
   @BeforeAll
   static void before() throws InterruptedException, ExecutionException, TimeoutException {
@@ -383,6 +383,12 @@ public class TransactionApiTest {
   void testTransactionBatch() throws Exception {
     String batchAsString = getMockData("mockdata/transactions/batch_with_patch.json");
     RestTestUtils.verifyPostResponse(resourcesPath(BATCH_TRANSACTIONS), new JsonObject(batchAsString), "", 204);
+  }
+
+  @Test
+  void testTransactionBatchError() throws Exception {
+    String batchAsString = getMockData("mockdata/transactions/batch_with_delete.json");
+    RestTestUtils.verifyPostResponse(resourcesPath(BATCH_TRANSACTIONS), new JsonObject(batchAsString), "", 422);
   }
 
   private Transaction createTransaction(Transaction.TransactionType type) {
