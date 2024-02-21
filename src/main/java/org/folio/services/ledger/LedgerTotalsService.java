@@ -1,15 +1,12 @@
 package org.folio.services.ledger;
 
-import static java.util.stream.Collectors.groupingBy;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
+import static org.folio.rest.util.HelperUtils.removeInitialAllocationByFunds;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.LedgerFiscalYearTransactionsHolder;
@@ -79,18 +76,8 @@ public class LedgerTotalsService {
         .map(v -> holder.getLedger()));
   }
 
-  private void removeInitialAllocationByFunds(LedgerFiscalYearTransactionsHolder holder) {
-    Map<String, List<Transaction>> fundToTransactions = holder.getToAllocations().stream().collect(groupingBy(Transaction::getToFundId));
-    fundToTransactions.forEach((fundToId, transactions) -> {
-      transactions.sort(Comparator.comparing(tr -> tr.getMetadata().getCreatedDate()));
-      if (CollectionUtils.isNotEmpty(transactions)) {
-        holder.getToAllocations().remove(transactions.get(0));
-      }
-    });
-  }
-
   private void updateLedgerWithAllocation(LedgerFiscalYearTransactionsHolder holder) {
-      removeInitialAllocationByFunds(holder);
+      removeInitialAllocationByFunds(holder.getToAllocations());
       Ledger ledger = holder.getLedger();
       ledger.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), Transaction::getAmount))
         .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
