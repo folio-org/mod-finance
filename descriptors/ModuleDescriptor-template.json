@@ -736,7 +736,8 @@
           "pathPattern": "/finance/transactions/batch-all-or-nothing",
           "permissionsRequired": ["finance.transactions.batch"],
           "modulePermissions": [
-            "finance-storage.transactions.batch"
+            "finance-storage.transactions.batch",
+            "finance-storage.transactions.collection.get"
           ]
         }
       ]
