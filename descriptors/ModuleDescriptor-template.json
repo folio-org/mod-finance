@@ -1158,8 +1158,8 @@
       "description" : "Get collection of ledger rollover logs"
     },
     {
-      "permissionName" : "finance.ledger-rollovers-logs.collection.item.get",
-      "displayName" : "ledger rollover logs item get",
+      "permissionName" : "finance.ledger-rollovers-logs.item.get",
+      "displayName" : "Ledger rollover - get the ledger rollover log",
       "description" : "Fetch a ledger rollover log"
     },
     {
@@ -1168,14 +1168,24 @@
       "description" : "Get collection of ledger rollover budgets"
     },
     {
-      "permissionName" : "finance.ledger-rollovers-budgets.collection.item.get",
-      "displayName" : "ledger rollover budgets item get",
+      "permissionName" : "finance.ledger-rollovers-budgets.item.get",
+      "displayName" : "Ledger rollover - get the ledger rollover budget",
       "description" : "Fetch a ledger rollover budget"
     },
     {
       "permissionName" : "finance.ledger-rollovers-errors.collection.get",
       "displayName" : "ledger rollover errors collection get",
       "description" : "Get collection of ledgers rollover errors"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers-errors.item.post",
+      "displayName" : "ledger rollover error item post",
+      "description" : "Create a ledger rollover error"
+    },
+    {
+      "permissionName" : "finance.ledger-rollovers-errors.item.delete",
+      "displayName" : "ledger rollover error item delete",
+      "description" : "Delete a ledger rollover error"
     },
     {
       "permissionName" : "finance.ledger-rollovers-progress.collection.get",
@@ -1216,6 +1226,8 @@
         "finance.ledger-rollovers-budgets.item.get",
         "finance.ledgers.current-fiscal-year.item.get",
         "finance.ledger-rollovers-errors.collection.get",
+        "finance.ledger-rollovers-errors.item.post",
+        "finance.ledger-rollovers-errors.item.delete",
         "finance.ledger-rollovers-progress.collection.get",
         "finance.ledger-rollovers-progress.item.post",
         "finance.ledger-rollovers-progress.item.get",
