@@ -1,5 +1,13 @@
 ## 4.9.0 - Unreleased
 
+## 4.8.1 - Released (Poppy R2 2023)
+The primary focus of this release was to fix displaying increase allocation field in group financial summary view
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.8.0...v4.8.1)
+
+### Bug Fixes
+* [MODFIN-355](https://issues.folio.org/browse/MODFIN-355) - Incorrectly calculated increase allocation for group financial summary
+
 ## 4.8.0 - Released (Poppy R2 2023)
 The primary focus of this release was to add possibility to filter expense classes by fiscal year id
 
