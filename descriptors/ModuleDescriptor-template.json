@@ -931,6 +931,18 @@
       "version":"2.0"
     },
     {
+      "id": "finance-storage.ledger-rollovers-logs",
+      "version":"1.0"
+    },
+    {
+      "id": "finance-storage.ledger-rollovers-budgets",
+      "version":"1.0"
+    },
+    {
+      "id": "finance-storage.ledger-rollovers-progress",
+      "version":"1.0"
+    },
+    {
       "id": "finance-storage.ledger-rollovers-errors",
       "version":"1.0"
     }
