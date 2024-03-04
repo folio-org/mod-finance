@@ -925,6 +925,14 @@
     {
       "id": "finance-storage.invoice-transaction-summaries",
       "version":"2.1"
+    },
+    {
+      "id": "finance-storage.ledger-rollovers",
+      "version":"2.0"
+    },
+    {
+      "id": "finance-storage.ledger-rollovers-errors",
+      "version":"1.0"
     }
   ],
   "optional": [
