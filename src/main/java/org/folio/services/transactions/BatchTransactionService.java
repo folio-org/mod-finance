@@ -14,9 +14,9 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
 import java.util.List;
+import java.util.Optional;
 
 import static io.vertx.core.Future.succeededFuture;
-import static java.lang.Boolean.FALSE;
 import static java.util.Collections.singletonList;
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
@@ -82,33 +82,46 @@ public class BatchTransactionService {
   }
 
   private Future<Void> checkDeletions(Batch batch, RequestContext requestContext) {
-    if (batch.getIdsOfTransactionsToDelete().isEmpty()) {
+    List<String> ids = batch.getIdsOfTransactionsToDelete();
+    if (ids.isEmpty()) {
       return succeededFuture();
     }
-    return anyConnectedToInvoice(batch.getIdsOfTransactionsToDelete(), requestContext)
-      .map(connected -> {
-        if (FALSE.equals(connected)) {
+    // Usually it is not allowed to delete an encumbrance connected to an approved invoice.
+    // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction.
+    // It is OK to delete an encumbrance connected to an invoice *if* the batch includes a change to the
+    // matching pending payment to remove the link to the encumbrance.
+    String query = convertIdsToCqlQuery(ids, "awaitingPayment.encumbranceId", "==", " OR ");
+    return getTransactions(query, requestContext)
+      .map(pendingPayments -> {
+        if (pendingPayments.isEmpty()) {
           return null;
         }
-        logger.warn("validateDeletion:: Tried to delete transactions but one is connected to an invoice, ids={}",
-          batch.getIdsOfTransactionsToDelete());
-        throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError());
+        ids.forEach(id -> {
+          Optional<Transaction> existingPP = pendingPayments.stream()
+            .filter(pp -> id.equals(pp.getAwaitingPayment().getEncumbranceId())).findFirst();
+          if (existingPP.isEmpty()) {
+            return;
+          }
+          Optional<Transaction> matchingPPInBatch = batch.getTransactionsToUpdate().stream()
+            .filter(pp -> existingPP.get().getId().equals(pp.getId())).findFirst();
+          if (matchingPPInBatch.isPresent()) {
+            if (matchingPPInBatch.get().getAwaitingPayment().getEncumbranceId() == null) {
+              return;
+            }
+          }
+          logger.warn("validateDeletion:: Tried to delete transactions but one is connected to an invoice, id={}", id);
+          throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError());
+        });
+        return null;
       });
   }
 
-  private Future<Boolean> anyConnectedToInvoice(List<String> ids, RequestContext requestContext) {
-    // We want to know if the order with the given encumbrance is connected to an invoice.
-    // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction
-    String query = convertIdsToCqlQuery(ids, "awaitingPayment.encumbranceId", "==", " OR ");
-    return getTransactions(query, requestContext)
-      .map(collection -> collection.getTotalRecords() > 0);
-  }
-
-  private Future<TransactionCollection> getTransactions(String query, RequestContext requestContext) {
+  private Future<List<Transaction>> getTransactions(String query, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(TRANSACTIONS))
       .withOffset(0)
       .withLimit(Integer.MAX_VALUE)
       .withQuery(query);
-    return restClient.get(requestEntry.buildEndpoint(), TransactionCollection.class, requestContext);
+    return restClient.get(requestEntry.buildEndpoint(), TransactionCollection.class, requestContext)
+      .map(TransactionCollection::getTransactions);
   }
 }
