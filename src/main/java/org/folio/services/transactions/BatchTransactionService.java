@@ -104,10 +104,8 @@ public class BatchTransactionService {
           }
           Optional<Transaction> matchingPPInBatch = batch.getTransactionsToUpdate().stream()
             .filter(pp -> existingPP.get().getId().equals(pp.getId())).findFirst();
-          if (matchingPPInBatch.isPresent()) {
-            if (matchingPPInBatch.get().getAwaitingPayment().getEncumbranceId() == null) {
-              return;
-            }
+          if (matchingPPInBatch.isPresent() && matchingPPInBatch.get().getAwaitingPayment().getEncumbranceId() == null) {
+            return;
           }
           logger.warn("validateDeletion:: Tried to delete transactions but one is connected to an invoice, id={}", id);
           throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError());
