@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
@@ -88,7 +89,7 @@ public class BatchTransactionService {
     }
     // Usually it is not allowed to delete an encumbrance connected to an approved invoice.
     // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction.
-    // It is OK to delete an encumbrance connected to an invoice *if* the batch includes a change to the
+    // It is OK to delete an encumbrance connected to a *cancelled* invoice *if* the batch includes a change to the
     // matching pending payment to remove the link to the encumbrance.
     String query = convertIdsToCqlQuery(ids, "awaitingPayment.encumbranceId", "==", " OR ");
     return getTransactions(query, requestContext)
@@ -102,10 +103,12 @@ public class BatchTransactionService {
           if (existingPP.isEmpty()) {
             return;
           }
-          Optional<Transaction> matchingPPInBatch = batch.getTransactionsToUpdate().stream()
-            .filter(pp -> existingPP.get().getId().equals(pp.getId())).findFirst();
-          if (matchingPPInBatch.isPresent() && matchingPPInBatch.get().getAwaitingPayment().getEncumbranceId() == null) {
-            return;
+          if (TRUE.equals(existingPP.get().getInvoiceCancelled())) {
+            Optional<Transaction> matchingPPInBatch = batch.getTransactionsToUpdate().stream()
+              .filter(pp -> existingPP.get().getId().equals(pp.getId())).findFirst();
+            if (matchingPPInBatch.isPresent() && matchingPPInBatch.get().getAwaitingPayment().getEncumbranceId() == null) {
+              return;
+            }
           }
           logger.warn("validateDeletion:: Tried to delete transactions but one is connected to an invoice, id={}", id);
           throw new HttpException(422, DELETE_CONNECTED_TO_INVOICE.toError());
