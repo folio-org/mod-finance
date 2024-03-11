@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.vertx.core.Context;
 import org.apache.commons.lang.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -43,7 +44,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import io.vertx.core.impl.EventLoopContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
@@ -76,7 +76,7 @@ public class FundCodeExpenseClassesServiceTest {
 
   private RequestContext requestContext;
   @Mock
-  private EventLoopContext context;
+  private Context context;
 
   @BeforeEach
   public void initMocks() {
