@@ -33,6 +33,7 @@
     <java.version>17</java.version>
     <spring.version>6.0.2</spring.version>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
+    <raml-module-builder.version>35.2.0</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -41,30 +42,29 @@
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
 
     <!--Dependency Management Properties-->
-    <vertx.version>4.4.6</vertx.version>
+    <vertx.version>4.5.4</vertx.version>
     <junit.jupiter.version>5.10.0</junit.jupiter.version>
-    <log4j.version>2.20.0</log4j.version>
+    <log4j.version>2.23.0</log4j.version>
 
     <!--Dependency properties-->
     <mockito.version>5.1.1</mockito.version>
-    <aspectj.version>1.9.20.1</aspectj.version>
-    <rest-assured.version>5.3.2</rest-assured.version>
+    <aspectj.version>1.9.21.1</aspectj.version>
+    <rest-assured.version>5.4.0</rest-assured.version>
     <folio-di-support.version>2.0.1</folio-di-support.version>
-    <raml-module-builder.version>35.1.1</raml-module-builder.version>
     <mod-configuration-client.version>5.9.2</mod-configuration-client.version>
 
     <!--Maven plugin properties-->
-    <aspectj-maven-plugin.version>1.13.1</aspectj-maven-plugin.version>
-    <exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
+    <aspectj-maven-plugin.version>1.14</aspectj-maven-plugin.version>
+    <exec-maven-plugin.version>3.2.0</exec-maven-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-shade-plugin.version>3.5.1</maven-shade-plugin.version>
+    <maven-shade-plugin.version>3.5.2</maven-shade-plugin.version>
     <properties-maven-plugin.version>1.2.0</properties-maven-plugin.version>
     <jsonschema2pojo-maven-plugin.version>1.0.2</jsonschema2pojo-maven-plugin.version>
     <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
-    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
-    <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
+    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+    <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
     <copy-rename-maven-plugin.version>1.0.1</copy-rename-maven-plugin.version>
 
     <argLine />
