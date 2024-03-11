@@ -6,12 +6,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Batch;
 import org.folio.rest.jaxrs.model.Encumbrance;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.jaxrs.model.TransactionCollection;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +18,7 @@ import static io.vertx.core.Future.succeededFuture;
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
-import static org.folio.rest.util.HelperUtils.convertIdsToCqlQuery;
 import static org.folio.rest.util.ResourcePathResolver.BATCH_TRANSACTIONS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 public class BatchTransactionService {
@@ -82,17 +78,19 @@ public class BatchTransactionService {
     return processBatch(batch, requestContext);
   }
 
+  /**
+   * Check transaction deletions are allowed.
+   * Usually it is not allowed to delete an encumbrance connected to an approved invoice.
+   * To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction.
+   * It is OK to delete an encumbrance connected to a *cancelled* invoice *if* the batch includes a change to the
+   * matching pending payment to remove the link to the encumbrance.
+   */
   private Future<Void> checkDeletions(Batch batch, RequestContext requestContext) {
     List<String> ids = batch.getIdsOfTransactionsToDelete();
     if (ids.isEmpty()) {
       return succeededFuture();
     }
-    // Usually it is not allowed to delete an encumbrance connected to an approved invoice.
-    // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction.
-    // It is OK to delete an encumbrance connected to a *cancelled* invoice *if* the batch includes a change to the
-    // matching pending payment to remove the link to the encumbrance.
-    String query = convertIdsToCqlQuery(ids, "awaitingPayment.encumbranceId", "==", " OR ");
-    return getTransactions(query, requestContext)
+    return baseTransactionService.retrievePendingPaymentsByEncumbranceIds(ids, requestContext)
       .map(pendingPayments -> {
         if (pendingPayments.isEmpty()) {
           return null;
@@ -115,14 +113,5 @@ public class BatchTransactionService {
         });
         return null;
       });
-  }
-
-  private Future<List<Transaction>> getTransactions(String query, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(resourcesPath(TRANSACTIONS))
-      .withOffset(0)
-      .withLimit(Integer.MAX_VALUE)
-      .withQuery(query);
-    return restClient.get(requestEntry.buildEndpoint(), TransactionCollection.class, requestContext)
-      .map(TransactionCollection::getTransactions);
   }
 }

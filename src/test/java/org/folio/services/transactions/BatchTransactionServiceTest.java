@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +24,7 @@ import static org.folio.rest.util.ResourcePathResolver.BATCH_TRANSACTIONS_STORAG
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -32,13 +34,12 @@ public class BatchTransactionServiceTest {
   private RestClient restClient;
   @Mock
   private RequestContext requestContext;
-  @Mock
-  private BaseTransactionService baseTransactionService;
 
   private BatchTransactionService batchTransactionService;
 
   @BeforeEach
   void init() {
+    BaseTransactionService baseTransactionService = new BaseTransactionService(restClient);
     batchTransactionService = new BatchTransactionService(restClient, baseTransactionService);
   }
 
@@ -70,7 +71,8 @@ public class BatchTransactionServiceTest {
       .withIdsOfTransactionsToDelete(List.of(encumbranceId))
       .withTransactionsToUpdate(List.of(newPendingPayment));
 
-    when(restClient.get(anyString(), any(), eq(requestContext)))
+    String expectedQuery = URLEncoder.encode("awaitingPayment.encumbranceId==(" + encumbranceId + ")", StandardCharsets.UTF_8);
+    when(restClient.get(contains(expectedQuery), any(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(existingPendingPaymentCollection));
     when(restClient.postEmptyResponse(eq(resourcesPath(BATCH_TRANSACTIONS_STORAGE)), any(Batch.class), eq(requestContext)))
       .thenReturn(Future.succeededFuture());

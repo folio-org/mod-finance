@@ -31,6 +31,7 @@ public class BaseTransactionService implements TransactionService {
 
   private static final Logger log = LogManager.getLogger();
   private static final int MAX_FUND_PER_QUERY = 5;
+  private static final int MAX_TRANSACTIONS_PER_QUERY = 15;
   private static final String ALLOCATION_TYPE_TRANSACTIONS_QUERY = "(fiscalYearId==%s AND %s) AND %s";
   private static final String AWAITING_PAYMENT_WITH_ENCUMBRANCE = "awaitingPayment.encumbranceId==%s";
 
@@ -92,6 +93,15 @@ public class BaseTransactionService implements TransactionService {
                     .collect(Collectors.toList())).map(lists -> lists.stream().flatMap(Collection::stream).collect(Collectors.toList()));
   }
 
+  public Future<List<Transaction>> retrievePendingPaymentsByEncumbranceIds(List<String> encumbranceIds,
+      RequestContext requestContext) {
+    return collectResultsOnSuccess(
+      ofSubLists(new ArrayList<>(encumbranceIds), MAX_TRANSACTIONS_PER_QUERY)
+        .map(ids -> retrievePendingPaymentsByEncumbranceIdsChunk(ids, requestContext))
+        .toList())
+      .map(lists -> lists.stream().flatMap(Collection::stream).toList());
+  }
+
   public Future<Boolean> isConnectedToInvoice(String transactionId, RequestContext requestContext) {
     // We want to know if the order with the given encumbrance is connected to an invoice.
     // To avoid adding a dependency to mod-invoice, we check if there is a related awaitingPayment transaction
@@ -113,5 +123,12 @@ public class BaseTransactionService implements TransactionService {
     return transactions.stream()
       .filter(transaction -> !fundIds.contains(allocationDirection.apply(transaction)))
       .collect(Collectors.toList());
+  }
+
+  private Future<List<Transaction>> retrievePendingPaymentsByEncumbranceIdsChunk(List<String> encumbranceIds,
+      RequestContext requestContext) {
+    String query = convertIdsToCqlQuery(encumbranceIds, "awaitingPayment.encumbranceId", "==", " OR ");
+    return retrieveTransactions(query, 0, Integer.MAX_VALUE, requestContext)
+      .map(TransactionCollection::getTransactions);
   }
 }
