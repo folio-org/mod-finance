@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.core.Context;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -54,7 +55,6 @@ import org.mockito.MockitoAnnotations;
 
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.EventLoopContext;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
@@ -118,7 +118,7 @@ public class BudgetExpenseClassServiceTest {
 
     sharedBudget.withStatusExpenseClasses(Arrays.asList(expenseClass1, expenseClass2));
 
-    when(requestContextMock.context()).thenReturn(mock(EventLoopContext.class));
+    when(requestContextMock.context()).thenReturn(mock(Context.class));
     when(restClient.post(anyString(), any(), eq(BudgetExpenseClass.class), eq(requestContextMock))).thenReturn(succeededFuture(new BudgetExpenseClass()));
 
     var future = budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContextMock);
