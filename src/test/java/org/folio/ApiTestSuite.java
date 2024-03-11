@@ -50,6 +50,7 @@ import org.folio.services.ledger.LedgerTotalsServiceTest;
 import org.folio.services.protection.AcqUnitMembershipsServiceTest;
 import org.folio.services.protection.AcqUnitsServiceTest;
 import org.folio.services.protection.ProtectionServiceTest;
+import org.folio.services.transactions.BatchTransactionServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -233,5 +234,8 @@ public class ApiTestSuite {
 
   @Nested
   class RecalculateBudgetServiceTestNested extends RecalculateBudgetServiceTest {}
+
+  @Nested
+  class BatchTransactionServiceTestNested extends BatchTransactionServiceTest {}
 
 }
