@@ -31,7 +31,7 @@
   <properties>
     <!--Project properties-->
     <java.version>17</java.version>
-    <spring.version>6.0.2</spring.version>
+    <spring.version>6.1.5</spring.version>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <raml-module-builder.version>35.2.0</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
@@ -50,7 +50,7 @@
     <mockito.version>5.1.1</mockito.version>
     <aspectj.version>1.9.21.1</aspectj.version>
     <rest-assured.version>5.4.0</rest-assured.version>
-    <folio-di-support.version>2.0.1</folio-di-support.version>
+    <folio-di-support.version>2.1.0</folio-di-support.version>
     <mod-configuration-client.version>5.9.2</mod-configuration-client.version>
 
     <!--Maven plugin properties-->
@@ -234,6 +234,7 @@
         <configuration>
           <release>${java.version}</release>
           <encoding>${project.build.sourceEncoding}</encoding>
+          <parameters>true</parameters>
         </configuration>
       </plugin>
       <plugin>
@@ -559,6 +560,7 @@
                     <exclude>**/javamoney.properties</exclude>
                   </excludes>
                 </filter>
+              </filters>
               </filters>
               <artifactSet />
               <outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
