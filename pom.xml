@@ -561,7 +561,6 @@
                   </excludes>
                 </filter>
               </filters>
-              </filters>
               <artifactSet />
               <outputFile>${project.build.directory}/${project.artifactId}-fat.jar</outputFile>
             </configuration>
