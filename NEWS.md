@@ -1,4 +1,33 @@
-## 4.9.0 - Unreleased
+## 5.0.0 - Unreleased
+
+## 4.9.0 - Released (Quesnelia R1 2024)
+The primary focus of this release was to add new Batch Transactions API
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.8.0...v4.9.0)
+
+### Stories
+* [MODFIN-350](https://issues.folio.org/browse/MODFIN-350) - Use the batch API for the release/unrelease encumbrance endpoints
+* [MODFIN-349](https://issues.folio.org/browse/MODFIN-349) - Implement a new endpoint for currency exchange calculation
+* [MODFIN-346](https://issues.folio.org/browse/MODFIN-346) - Implement unrelease encumbrance endpoint
+* [MODFIN-344](https://issues.folio.org/browse/MODFIN-344) - Implement functionality to recalculate budgets based on conducted transactions
+* [MODFIN-342](https://issues.folio.org/browse/MODFIN-342) - Add restictByLocations flag to Fund in acq models
+* [MODFIN-337](https://issues.folio.org/browse/MODFIN-337) - Add locationIds to fund schema
+* [MODFIN-334](https://issues.folio.org/browse/MODFIN-334) - Update RMB and vertx to the latest version
+* [MODFIN-333](https://issues.folio.org/browse/MODFIN-333) - Add donor info to Fund
+* [MODFIN-320](https://issues.folio.org/browse/MODFIN-320) - Create batch endpoint to update list of transactions at single request
+
+### Bug Fixes
+* [MODFIN-363](https://folio-org.atlassian.net/browse/MODFIN-363) - Missing ledger-rollover interface dependency in module descriptor
+* [MODFIN-357](https://folio-org.atlassian.net/browse/MODFIN-357) - Missed declaration of backend permissions
+
+### Tech Dept
+* [MODFIN-327](https://folio-org.atlassian.net/browse/MODFIN-327) - Replace FolioVertxCompletableFuture usage
+* [MODFIN-248](https://folio-org.atlassian.net/browse/MODFIN-248) - Refactoring : Replace extra RestClients with one
+* [MODFIN-232](https://folio-org.atlassian.net/browse/MODFIN-232) - Logging improvement
+
+### Dependencies
+* Bump `rmb` from `35.0.1` to `35.2.0`
+* Bump `vertex` from `4.3.4` to `4.5.4`
 
 ## 4.8.0 - Released (Poppy R2 2023)
 The primary focus of this release was to add possibility to filter expense classes by fiscal year id
