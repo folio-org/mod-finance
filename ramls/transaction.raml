@@ -29,7 +29,7 @@ resourceTypes:
 /finance:
   /allocations:
     displayName: Create a transaction allocation
-    description: Create an allocation; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
+    description: Create an allocation; DEPRECATED - use batch-all-or-nothing instead
     type:
       post-with-201:
         requestSchema: transaction
@@ -38,11 +38,11 @@ resourceTypes:
         responseExample: !include acq-models/mod-finance/examples/transaction_allocation.sample
     is: [validate]
     post:
-      description: Create an allocation by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
+      description: Create an allocation by transaction; DEPRECATED - use batch-all-or-nothing instead
 
   /transfers:
     displayName: Create a transaction transfer
-    description: Create a transfer; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
+    description: Create a transfer; DEPRECATED - use batch-all-or-nothing instead
     type:
       post-with-201:
         requestSchema: transaction
@@ -51,7 +51,7 @@ resourceTypes:
         responseExample: !include acq-models/mod-finance/examples/transaction_transfer.sample
     is: [validate]
     post:
-      description: Create a transfer by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
+      description: Create a transfer by transaction; DEPRECATED - use batch-all-or-nothing instead
 
   /transactions:
     displayName: Transactions
