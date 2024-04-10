@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
-import static org.folio.rest.util.ErrorCodes.NEGATIVE_VALUE;
 
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -38,7 +37,6 @@ import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
-import org.folio.rest.jaxrs.model.Parameter;
 
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -186,22 +184,6 @@ public final class HelperUtils {
     };
   }
 
-  public static void validateAmount(double doubleAmount, String fieldName) {
-    BigDecimal amount = BigDecimal.valueOf(doubleAmount);
-    if (isNegative(amount)) {
-      Parameter parameter = new Parameter().withKey("field").withValue(fieldName);
-      throw new HttpException(422, NEGATIVE_VALUE.toError().withParameters(Collections.singletonList(parameter)));
-    }
-  }
-
-  private static boolean isNegative(BigDecimal amount) {
-    return amount.compareTo(BigDecimal.ZERO) < 0;
-  }
-
-  public static Future<Void> unsupportedOperationExceptionFuture() {
-    return Future.failedFuture(new UnsupportedOperationException());
-  }
-
   public static <T> double calculateTotals(List<T> budgets, ToDoubleFunction<T> getDouble) {
     return budgets.stream()
       .map(budget -> BigDecimal.valueOf(getDouble.applyAsDouble(budget)))
@@ -239,4 +221,32 @@ public final class HelperUtils {
       }
     });
   }
+
+  public static String errorsAsString(Errors errors) {
+    if (errors == null) {
+      return GENERIC_ERROR_CODE.getDescription();
+    }
+    List<Error> errorList = errors.getErrors();
+    if (errorList.isEmpty()) {
+      return GENERIC_ERROR_CODE.getDescription();
+    }
+    if (errorList.size() == 1) {
+      return errorAsString(errorList.get(0));
+    }
+    return JsonObject.mapFrom(errorList).encode();
+  }
+
+  public static String errorAsString(Error error) {
+    if (error == null) {
+      return GENERIC_ERROR_CODE.getDescription();
+    }
+    if (!error.getParameters().isEmpty()) {
+      return JsonObject.mapFrom(error).encode();
+    }
+    if (error.getMessage() == null) {
+      return GENERIC_ERROR_CODE.getDescription();
+    }
+    return error.getMessage();
+  }
+
 }

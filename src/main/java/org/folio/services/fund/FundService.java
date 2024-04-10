@@ -12,7 +12,6 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
@@ -64,23 +63,23 @@ public class FundService {
     return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext);
   }
 
-  public Future<List<Fund>> getFunds(List<String> fundIds, RequestContext requestContext) {
+  public Future<List<Fund>> getFundsByIds(List<String> fundIds, RequestContext requestContext) {
     return collectResultsOnSuccess(
       ofSubLists(new ArrayList<>(fundIds), MAX_IDS_FOR_GET_RQ)
-        .map(ids -> getFundsByIds(ids, requestContext))
-        .collect(Collectors.toList()))
+        .map(ids -> getFundsByIdsChunk(ids, requestContext))
+        .toList())
       .map(lists -> lists.stream()
         .flatMap(Collection::stream)
-        .collect(Collectors.toList())
+        .toList()
       );
   }
 
-  public Future<List<Fund>> getFundsByIds(List<String> ids, RequestContext requestContext) {
+  private Future<List<Fund>> getFundsByIdsChunk(List<String> ids, RequestContext requestContext) {
     String query = HelperUtils.convertIdsToCqlQuery(ids);
     var requestEntry = new RequestEntry(resourcesPath(FUNDS_STORAGE))
       .withQuery(query)
       .withOffset(0)
-      .withLimit(MAX_IDS_FOR_GET_RQ);
+      .withLimit(Integer.MAX_VALUE);
     return restClient.get(requestEntry.buildEndpoint(), FundsCollection.class, requestContext)
       .map(FundsCollection::getFunds);
   }

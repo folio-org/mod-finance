@@ -1,7 +1,7 @@
 #%RAML 1.0
 title: "mod-finance"
 baseUri: https://github.com/folio-org/mod-finance
-version: v1.1
+version: v6.0
 
 documentation:
   - title: mod-finance (Transactions)
@@ -23,7 +23,6 @@ traits:
 
 resourceTypes:
   post-with-201: !include rtypes/post-json-201.raml
-  put-json: !include rtypes/post-put-json.raml
   get-only: !include raml-util/rtypes/get-only-with-json-response.raml
   collection-item-get: !include raml-util/rtypes/item-collection-get-with-json-response.raml
 
@@ -53,100 +52,6 @@ resourceTypes:
     is: [validate]
     post:
       description: Create a transfer by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-
-  /encumbrances:
-    displayName: Create a transaction encumbrance
-    description: Create a encumbrance; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-    type:
-      post-with-201:
-        requestSchema: transaction
-        responseSchema: transaction
-        requestExample: !include acq-models/mod-finance/examples/transaction_encumbrance.sample
-        responseExample: !include acq-models/mod-finance/examples/transaction_encumbrance.sample
-    is: [validate]
-    post:
-      description: Create an encumbrance by transaction
-    /{id}:
-      displayName: Transaction instance
-      put:
-        description: Update a Transaction instance; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-        body:
-          application/json:
-            type: transaction
-      delete:
-        is: [validate]
-        description: Delete an encumbrance with given transactionId; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-
-  /payments:
-    displayName: Create a transaction payment
-    description: Create a payment; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-    type:
-      post-with-201:
-        requestSchema: transaction
-        responseSchema: transaction
-        requestExample: !include acq-models/mod-finance/examples/transaction_payment.sample
-        responseExample: !include acq-models/mod-finance/examples/transaction_payment.sample
-    is: [validate]
-    post:
-      description: Create a payment by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-    /{id}:
-      displayName: Transaction payment
-      type:
-        put-json:
-          schemaItem: transaction
-          exampleItem: !include acq-models/mod-finance/examples/transaction_payment.sample
-      is: [validate]
-      put:
-        description: |
-          Update a payment transaction (only allowed to set invoiceCancelled to true);
-          DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-
-  /pending-payments:
-      displayName: Create a transaction pending payment
-      description: Create a pending payment; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-      type:
-        post-with-201:
-          requestSchema: transaction
-          responseSchema: transaction
-          requestExample: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
-          responseExample: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
-      is: [validate]
-      post:
-        description: Create a pending payment by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-
-      /{id}:
-        displayName: Transaction pending payment
-        type:
-          put-json:
-            schemaItem: transaction
-            exampleItem: !include acq-models/mod-finance/examples/transaction_pending_payment.sample
-        is: [validate]
-        put:
-          description: Update a pending payment by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-
-  /credits:
-    displayName: Create a transaction credit
-    description: Create a credit; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-    type:
-      post-with-201:
-        requestSchema: transaction
-        responseSchema: transaction
-        requestExample: !include acq-models/mod-finance/examples/transaction_credit.sample
-        responseExample: !include acq-models/mod-finance/examples/transaction_credit.sample
-    is: [validate]
-    post:
-      description: Create a credit by transaction; DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
-    /{id}:
-      displayName: Transaction credit
-      type:
-        put-json:
-          schemaItem: transaction
-          exampleItem: !include acq-models/mod-finance/examples/transaction_credit.sample
-      is: [validate]
-      put:
-        description: |
-          Update a credit transaction (only allowed to set invoiceCancelled to true);
-          DEPRECATED - use <tt>batch-all-or-nothing</tt> instead
 
   /transactions:
     displayName: Transactions

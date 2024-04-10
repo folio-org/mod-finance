@@ -28,7 +28,7 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 
 import io.vertx.core.Future;
 import org.javamoney.moneta.Money;
@@ -37,12 +37,12 @@ public class BudgetExpenseClassTotalsService {
 
   private final RestClient restClient;
   private final ExpenseClassService expenseClassService;
-  private final CommonTransactionService transactionService;
+  private final TransactionService transactionService;
   private final BudgetExpenseClassService budgetExpenseClassService;
 
   public BudgetExpenseClassTotalsService(RestClient restClient,
                                          ExpenseClassService expenseClassService,
-                                         CommonTransactionService transactionService,
+                                         TransactionService transactionService,
                                          BudgetExpenseClassService budgetExpenseClassService) {
     this.restClient = restClient;
     this.expenseClassService = expenseClassService;
@@ -53,7 +53,7 @@ public class BudgetExpenseClassTotalsService {
   public Future<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetId), Budget.class, requestContext)
       .compose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
-        .compose(expenseClasses -> transactionService.retrieveTransactions(budget, requestContext)
+        .compose(expenseClasses -> transactionService.getBudgetTransactions(budget, requestContext)
           .map(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
       .compose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .map(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));

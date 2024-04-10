@@ -43,7 +43,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +68,7 @@ public class BudgetExpenseClassServiceTest {
   private RestClient restClient;
 
   @Mock
-  private CommonTransactionService transactionServiceMock;
+  private TransactionService transactionServiceMock;
 
   @Mock
   private RequestContext requestContextMock;
@@ -191,7 +191,7 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
+    when(transactionServiceMock.getBudgetTransactionsWithExpenseClasses(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
@@ -206,7 +206,7 @@ public class BudgetExpenseClassServiceTest {
         verify(restClient, never()).post(anyString(), any(), any(), any());
         verify(restClient, never()).put(anyString(), any(), any());
         ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
+        verify(transactionServiceMock).getBudgetTransactionsWithExpenseClasses(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
         List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
         assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
@@ -227,7 +227,7 @@ public class BudgetExpenseClassServiceTest {
       .withBudgetExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budgetExpenseClassCollection));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(Collections.singletonList(new Transaction())));
+    when(transactionServiceMock.getBudgetTransactionsWithExpenseClasses(anyList(), any(), any())).thenReturn(succeededFuture(Collections.singletonList(new Transaction())));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
     when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
@@ -246,7 +246,7 @@ public class BudgetExpenseClassServiceTest {
         verify(restClient, never()).post(anyString(), any(), any(), any());
         verify(restClient, never()).put(anyString(), any(), any());
         ArgumentCaptor<List<BudgetExpenseClass>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        verify(transactionServiceMock).retrieveTransactions(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
+        verify(transactionServiceMock).getBudgetTransactionsWithExpenseClasses(listArgumentCaptor.capture(), eq(sharedBudget), eq(requestContextMock));
         List<BudgetExpenseClass> budgetExpenseClasses = listArgumentCaptor.getValue();
         assertThat(budgetExpenseClasses, containsInAnyOrder(budgetExpenseClass1, budgetExpenseClass2, budgetExpenseClass3));
 
@@ -283,7 +283,7 @@ public class BudgetExpenseClassServiceTest {
         verify(restClient).get(assertQueryContains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
         verify(restClient, never()).post(anyString(), any(), any(), any());
         verify(restClient, never()).put(anyString(), any(), any());
-        verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
+        verify(transactionServiceMock, never()).getBudgetTransactionsWithExpenseClasses(any(), any(), any());
         verify(restClient, never()).delete(anyString(), any());
 
         vertxTestContext.completeNow();
@@ -321,7 +321,7 @@ public class BudgetExpenseClassServiceTest {
         verify(restClient).get(assertQueryContains(expectedQuery), eq(BudgetExpenseClassCollection.class), eq(requestContextMock));
         verify(restClient, never()).post(anyString(), any(), any(), any());
 
-        verify(transactionServiceMock, never()).retrieveTransactions(any(), any(), any());
+        verify(transactionServiceMock, never()).getBudgetTransactionsWithExpenseClasses(any(), any(), any());
         verify(restClient, never()).delete(anyString(), any());
 
         ArgumentCaptor<String> idArgumentCaptor = ArgumentCaptor.forClass(String.class);
@@ -368,7 +368,7 @@ public class BudgetExpenseClassServiceTest {
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture(null));
     when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(newBudgetExpenseClass));
     when(restClient.delete(anyString(), any())).thenReturn(succeededFuture(null));
-    when(transactionServiceMock.retrieveTransactions(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
+    when(transactionServiceMock.getBudgetTransactionsWithExpenseClasses(anyList(), any(), any())).thenReturn(succeededFuture(emptyList()));
     when(requestContextMock.context()).thenReturn(Vertx.vertx().getOrCreateContext());
 
     Future<Void> future = budgetExpenseClassService.updateBudgetExpenseClassesLinks(sharedBudget, requestContextMock);
@@ -382,7 +382,7 @@ public class BudgetExpenseClassServiceTest {
 
         List<BudgetExpenseClass> expectedToDeleteList = new ArrayList<>();
         expectedToDeleteList.add(budgetExpenseClassToBeDeleted);
-        verify(transactionServiceMock).retrieveTransactions(eq(expectedToDeleteList), eq(sharedBudget), eq(requestContextMock));
+        verify(transactionServiceMock).getBudgetTransactionsWithExpenseClasses(eq(expectedToDeleteList), eq(sharedBudget), eq(requestContextMock));
         verify(restClient).delete(assertQueryContains(budgetExpenseClassToBeDeleted.getId()), eq(requestContextMock));
 
 

@@ -25,13 +25,14 @@ import org.folio.rest.impl.LedgerRolloverProgressApiTest;
 import org.folio.rest.impl.LedgersApiTest;
 import org.folio.rest.impl.TransactionApiTest;
 import org.folio.rest.util.HelperUtilsTest;
-import org.folio.services.CommonTransactionServiceTest;
+import org.folio.services.TransactionServiceTest;
 import org.folio.services.ExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassServiceTest;
 import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.budget.RecalculateBudgetServiceTest;
+import org.folio.services.fiscalyear.FiscalYearApiServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
@@ -50,7 +51,7 @@ import org.folio.services.ledger.LedgerTotalsServiceTest;
 import org.folio.services.protection.AcqUnitMembershipsServiceTest;
 import org.folio.services.protection.AcqUnitsServiceTest;
 import org.folio.services.protection.ProtectionServiceTest;
-import org.folio.services.transactions.BatchTransactionServiceTest;
+import org.folio.services.transactions.TransactionApiServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -142,7 +143,11 @@ public class ApiTestSuite {
   }
 
   @Nested
-  class CommonTransactionServiceTestNested extends CommonTransactionServiceTest {
+  class TransactionServiceTestNested extends TransactionServiceTest {
+  }
+
+  @Nested
+  class TransactionApiServiceTestNested extends TransactionApiServiceTest {
   }
 
   @Nested
@@ -206,6 +211,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class FiscalYearApiServiceTestNested extends FiscalYearApiServiceTest {
+  }
+
+  @Nested
   class FiscalYearServiceTestNested extends FiscalYearServiceTest {
   }
 
@@ -234,8 +243,5 @@ public class ApiTestSuite {
 
   @Nested
   class RecalculateBudgetServiceTestNested extends RecalculateBudgetServiceTest {}
-
-  @Nested
-  class BatchTransactionServiceTestNested extends BatchTransactionServiceTest {}
 
 }

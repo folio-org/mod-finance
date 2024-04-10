@@ -25,9 +25,9 @@ import org.folio.rest.util.ExpenseClassConverterUtils;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.group.GroupFundFiscalYearService;
-import org.folio.services.transactions.CommonTransactionService;
 
 import io.vertx.core.Future;
+import org.folio.services.transactions.TransactionService;
 
 public class CreateBudgetService {
 
@@ -37,14 +37,14 @@ public class CreateBudgetService {
   private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final FundFiscalYearService fundFiscalYearService;
   private final BudgetExpenseClassService budgetExpenseClassService;
-  private final CommonTransactionService transactionService;
+  private final TransactionService transactionService;
   private final FundDetailsService fundDetailsService;
 
   public CreateBudgetService(RestClient restClient,
                              GroupFundFiscalYearService groupFundFiscalYearService,
                              FundFiscalYearService fundFiscalYearService,
                              BudgetExpenseClassService budgetExpenseClassService,
-                             CommonTransactionService transactionService,
+                             TransactionService transactionService,
                              FundDetailsService fundDetailsService) {
     this.restClient = restClient;
     this.groupFundFiscalYearService = groupFundFiscalYearService;
@@ -95,10 +95,10 @@ public class CreateBudgetService {
     if (createdBudget.getAllocated() > 0d) {
       log.info("allocateToBudget:: allocation for created budget '{}' is greater than zero, allocation transaction is being created", createdBudget.getId());
       return transactionService.createAllocationTransaction(createdBudget, requestContext)
-        .map(transaction -> createdBudget)
-        .recover(e -> {
-          log.error("Failed to create allocation transaction for budget '{}': {}", createdBudget.getId(), e.getMessage(), e);
-          return Future.failedFuture(new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED));
+        .map(v -> createdBudget)
+        .recover(t -> {
+          log.error("Failed to create allocation transaction for budget '{}': {}", createdBudget.getId(), t.getMessage(), t);
+          return Future.failedFuture(new HttpException(500, ErrorCodes.ALLOCATION_TRANSFER_FAILED, t));
         });
     }
     log.info("allocateToBudget:: Allocation for createdBudget '{}' is zero or less, no transaction needed", createdBudget.getId());
