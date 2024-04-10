@@ -39,14 +39,6 @@ public class FiscalYearService {
     return restClient.get(requestEntry.buildEndpoint(), FiscalYearsCollection.class, requestContext);
   }
 
-  public Future<FiscalYearsCollection> getFiscalYearByQuery(String query, int offset, int limit, RequestContext requestContext) {
-    var requestEntry = new RequestEntry(resourcesPath(FISCAL_YEARS_STORAGE))
-        .withOffset(offset)
-        .withLimit(limit)
-        .withQuery(query);
-    return restClient.get(requestEntry.buildEndpoint(), FiscalYearsCollection.class, requestContext);
-  }
-
   public Future<FiscalYear> getFiscalYearById(String id, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(FISCAL_YEARS_STORAGE, id), FiscalYear.class, requestContext);
   }

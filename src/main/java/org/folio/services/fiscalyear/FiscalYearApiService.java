@@ -49,10 +49,12 @@ public class FiscalYearApiService {
       });
   }
 
-  public Future<FiscalYearsCollection> getFiscalYearsWithAcqUnitsRestriction(String query, int offset, int limit, RequestContext requestContext) {
+  public Future<FiscalYearsCollection> getFiscalYearsWithAcqUnitsRestriction(String query, int offset, int limit,
+      RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .compose(effectiveQuery -> fiscalYearService.getFiscalYearByQuery(effectiveQuery, offset, limit, requestContext));
+      .compose(effectiveQuery -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(effectiveQuery, offset,
+        limit, requestContext));
   }
 
   public Future<FiscalYear> getFiscalYearById(String id, boolean withFinancialSummary, RequestContext requestContext) {
