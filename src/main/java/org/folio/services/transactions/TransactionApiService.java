@@ -195,6 +195,7 @@ public class TransactionApiService {
       .map(t -> List.of(t.getFromFundId(), t.getToFundId()))
       .flatMap(Collection::stream)
       .filter(Objects::nonNull)
+      .distinct()
       .toList();
     return fundService.getFundsByIds(fundIds, requestContext)
       .map(funds -> {
