@@ -149,7 +149,7 @@
     },
     {
       "id": "finance.funds",
-      "version": "2.0",
+      "version": "3.0",
       "handlers": [
         {
           "methods": ["GET"],
@@ -896,7 +896,7 @@
     },
     {
       "id": "finance-storage.funds",
-      "version": "4.0"
+      "version": "5.0"
     },
     {
       "id": "finance-storage.fiscal-years",
