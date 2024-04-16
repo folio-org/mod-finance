@@ -39,7 +39,7 @@ import org.folio.rest.jaxrs.model.Metadata;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
-import org.folio.services.transactions.BaseTransactionService;
+import org.folio.services.transactions.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +65,7 @@ public class LedgerTotalsServiceTest {
   private BudgetService budgetMockService;
 
   @Mock
-  private BaseTransactionService baseTransactionService;
+  private TransactionService transactionService;
 
   @Mock
   private RequestContext requestContextMock;
@@ -146,17 +146,17 @@ public class LedgerTotalsServiceTest {
 
     when(fiscalYearService.getFiscalYearById(anyString(), any())).thenReturn(succeededFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(allocToTrs));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(singletonList(allocFromTr)));
     List<Transaction.TransactionType> transfers = List.of(TRANSFER, ROLLOVER_TRANSFER);
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(List.of(tranToTr, tranToRollTr)));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(List.of(tranFromTr, tranFromRollTr)));
 
@@ -221,17 +221,17 @@ public class LedgerTotalsServiceTest {
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
     when(fiscalYearService.getFiscalYearById(anyString(), any())).thenReturn(succeededFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
     List<Transaction.TransactionType> transfers = List.of(TRANSFER, ROLLOVER_TRANSFER);
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
 
@@ -282,17 +282,17 @@ public class LedgerTotalsServiceTest {
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
     when(fiscalYearService.getFiscalYearById(anyString(), any())).thenReturn(succeededFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
     List<Transaction.TransactionType> transfers = List.of(TRANSFER, ROLLOVER_TRANSFER);
-    when(baseTransactionService.retrieveToTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    when(baseTransactionService.retrieveFromTransactions(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
+    when(transactionService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
 

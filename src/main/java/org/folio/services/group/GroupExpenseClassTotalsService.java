@@ -28,7 +28,7 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.RecalculatedBudgetBuilder;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
 
@@ -39,10 +39,10 @@ public class GroupExpenseClassTotalsService {
   private static final Logger log = LogManager.getLogger();
 
   private final GroupFundFiscalYearService groupFundFiscalYearService;
-  private final CommonTransactionService transactionService;
+  private final TransactionService transactionService;
   private final ExpenseClassService expenseClassService;
 
-  public GroupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, CommonTransactionService transactionService, ExpenseClassService expenseClassService) {
+  public GroupExpenseClassTotalsService(GroupFundFiscalYearService groupFundFiscalYearService, TransactionService transactionService, ExpenseClassService expenseClassService) {
     this.groupFundFiscalYearService = groupFundFiscalYearService;
     this.transactionService = transactionService;
     this.expenseClassService = expenseClassService;
@@ -67,7 +67,7 @@ public class GroupExpenseClassTotalsService {
 
   private Future<List<Transaction>> getTransactions(List<GroupFundFiscalYear> groupFundFiscalYears, String fiscalYearId, RequestContext requestContext) {
     List<String> fundIds = groupFundFiscalYears.stream().map(GroupFundFiscalYear::getFundId).collect(Collectors.toList());
-    return transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+    return transactionService.getTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
   }
 
   private Future<List<ExpenseClass>> getExpenseClasses(List<GroupFundFiscalYear> groupFundFiscalYears, RequestContext requestContext) {

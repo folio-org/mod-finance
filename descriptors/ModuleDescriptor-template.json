@@ -23,13 +23,13 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.put",
-            "finance-storage.transactions.item.post",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
             "finance-storage.budget-expense-classes.item.post",
             "finance-storage.funds.item.get",
             "finance-storage.ledgers.item.get",
+            "finance-storage.transactions.batch",
             "configuration.entries.collection.get"
           ]
         },
@@ -599,43 +599,15 @@
     },
     {
       "id": "finance.transactions",
-      "version": "5.1",
+      "version": "6.0",
       "handlers": [
         {
           "methods": ["POST"],
           "pathPattern": "/finance/allocations",
           "permissionsRequired": ["finance.allocations.item.post"],
           "modulePermissions": [
-            "finance-storage.transactions.item.post",
-            "finance-storage.funds.item.get"
-          ]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/encumbrances",
-          "permissionsRequired": ["finance.encumbrances.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/encumbrances/{id}",
-          "permissionsRequired": ["finance.encumbrances.item.put"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put"
-          ]
-        },
-        {
-          "methods": ["DELETE"],
-          "pathPattern": "/finance/encumbrances/{id}",
-          "permissionsRequired": ["finance.encumbrances.item.delete"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.get",
-            "finance-storage.transactions.item.put",
-            "finance-storage.transactions.item.delete",
-            "finance-storage.transactions.collection.get",
-            "finance-storage.order-transaction-summaries.item.put"
+            "finance-storage.funds.item.get",
+            "finance-storage.transactions.batch"
           ]
         },
         {
@@ -643,58 +615,8 @@
           "pathPattern": "/finance/transfers",
           "permissionsRequired": ["finance.transfers.item.post"],
           "modulePermissions": [
-            "finance-storage.transactions.item.post",
-            "finance-storage.funds.item.get"
-          ]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/payments",
-          "permissionsRequired": ["finance.payments.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/payments/{id}",
-          "permissionsRequired": ["finance.payments.item.put"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put",
-            "finance-storage.transactions.item.get"
-          ]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/pending-payments",
-          "permissionsRequired": ["finance.pending-payments.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/pending-payments/{id}",
-          "permissionsRequired": ["finance.pending-payments.item.put"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put"
-          ]
-        },
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/credits",
-          "permissionsRequired": ["finance.credits.item.post"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/credits/{id}",
-          "permissionsRequired": ["finance.credits.item.put"],
-          "modulePermissions": [
-            "finance-storage.transactions.item.put",
-            "finance-storage.transactions.item.get"
+            "finance-storage.funds.item.get",
+            "finance-storage.transactions.batch"
           ]
         },
         {
@@ -743,28 +665,6 @@
       ]
     },
     {
-      "id": "finance.order-transaction-summaries",
-      "version": "1.2",
-      "handlers": [
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/order-transaction-summaries",
-          "permissionsRequired": ["finance.order-transaction-summaries.item.post"],
-          "modulePermissions": [
-            "finance-storage.order-transaction-summaries.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/order-transaction-summaries/{id}",
-          "permissionsRequired": ["finance.order-transaction-summaries.item.put"],
-          "modulePermissions": [
-            "finance-storage.order-transaction-summaries.item.put"
-          ]
-        }
-      ]
-    },
-    {
       "id": "finance.group-fiscal-year-summaries",
       "version": "1.3",
       "handlers": [
@@ -776,28 +676,6 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.transactions.collection.get"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "finance.invoice-transaction-summaries",
-      "version": "2.1",
-      "handlers": [
-        {
-          "methods": ["POST"],
-          "pathPattern": "/finance/invoice-transaction-summaries",
-          "permissionsRequired": ["finance.invoice-transaction-summaries.item.post"],
-          "modulePermissions": [
-            "finance-storage.invoice-transaction-summaries.item.post"
-          ]
-        },
-        {
-          "methods": ["PUT"],
-          "pathPattern": "/finance/invoice-transaction-summaries/{id}",
-          "permissionsRequired": ["finance.invoice-transaction-summaries.item.put"],
-          "modulePermissions": [
-            "finance-storage.invoice-transaction-summaries.item.put"
           ]
         }
       ]
@@ -912,19 +790,11 @@
     },
     {
       "id": "finance-storage.transactions",
-      "version":"4.0"
+      "version":"4.1"
     },
     {
       "id": "configuration",
       "version":"2.0"
-    },
-    {
-      "id": "finance-storage.order-transaction-summaries",
-      "version":"1.1"
-    },
-    {
-      "id": "finance-storage.invoice-transaction-summaries",
-      "version":"2.1"
     },
     {
       "id": "finance-storage.ledger-rollovers",
@@ -1329,54 +1199,9 @@
       "description" : "Create a new allocation"
     },
     {
-      "permissionName" : "finance.encumbrances.item.post",
-      "displayName" : "Encumbrances - create a new transaction of type encumbrance",
-      "description" : "Create a new encumbrance"
-    },
-    {
-      "permissionName" : "finance.encumbrances.item.put",
-      "displayName" : "Encumbrances - update transaction of type encumbrance",
-      "description" : "Update an encumbrance"
-    },
-    {
-      "permissionName" : "finance.encumbrances.item.delete",
-      "displayName" : "Encumbrances - delete transaction of type encumbrance",
-      "description" : "Delete an encumbrance"
-    },
-    {
       "permissionName" : "finance.transfers.item.post",
       "displayName" : "Transfers - create a new transaction of type transfer",
       "description" : "Create a new transfer"
-    },
-    {
-      "permissionName" : "finance.payments.item.post",
-      "displayName" : "Payments - create a new transaction of type payment",
-      "description" : "Create a new payment"
-    },
-    {
-      "permissionName" : "finance.payments.item.put",
-      "displayName" : "Payments - update a transaction of type payment",
-      "description" : "Update a payment"
-    },
-    {
-      "permissionName" : "finance.pending-payments.item.post",
-      "displayName" : "Pending payments - create a new transaction of type pending payment",
-      "description" : "Create a new pending payment"
-    },
-    {
-      "permissionName" : "finance.pending-payments.item.put",
-      "displayName" : "Pending payments - update a transaction of type pending payment",
-      "description" : "Update a pending payment"
-    },
-    {
-      "permissionName" : "finance.credits.item.post",
-      "displayName" : "Credits - create a new transaction of type credit",
-      "description" : "Create a new credit"
-    },
-    {
-      "permissionName" : "finance.credits.item.put",
-      "displayName" : "Credits - update a transaction of type credit",
-      "description" : "Update a credit"
     },
     {
       "permissionName": "finance.transactions.collection.get",
@@ -1399,16 +1224,7 @@
       "description" : "All permissions for the transaction APIs",
       "subPermissions" : [
         "finance.allocations.item.post",
-        "finance.encumbrances.item.post",
-        "finance.encumbrances.item.put",
-        "finance.encumbrances.item.delete",
         "finance.transfers.item.post",
-        "finance.payments.item.post",
-        "finance.payments.item.put",
-        "finance.pending-payments.item.post",
-        "finance.pending-payments.item.put",
-        "finance.credits.item.post",
-        "finance.credits.item.put",
         "finance.transactions.collection.get",
         "finance.transactions.item.get",
         "finance.release-encumbrance.item.post",
@@ -1430,31 +1246,6 @@
       "permissionName": "finance.group-fiscal-year-summaries.collection.get",
       "displayName": "Finances - get group fiscal year summaries",
       "description": "Get group fiscal year summaries collection"
-    },
-    {
-      "permissionName" : "finance.order-transaction-summaries.item.post",
-      "displayName" : "Finances - Post Order transaction Summaries",
-      "description" : "Post Order Transaction Summary"
-    },
-    {
-      "permissionName" : "finance.order-transaction-summaries.item.put",
-      "displayName" : "Finances - Put Order transaction Summaries",
-      "description" : "Put Order Transaction Summary"
-    },
-    {
-      "permissionName" : "finance.order-transaction-summaries.item.get",
-      "displayName" : "Finances - Get Order transaction Summaries",
-      "description" : "Get Order Transaction Summary"
-    },
-    {
-      "permissionName" : "finance.invoice-transaction-summaries.item.post",
-      "displayName" : "Finances - Post Invoice transaction Summaries",
-      "description" : "Post Invoice Transaction Summary"
-    },
-    {
-      "permissionName" : "finance.invoice-transaction-summaries.item.put",
-      "displayName" : "Finances - Put Invoice transaction Summaries",
-      "description" : "Put Invoice Transaction Summary"
     },
     {
       "permissionName" : "finance.exchange-rate.item.get",
@@ -1486,10 +1277,6 @@
         "finance.transactions.all",
         "finance.fund-codes-expense-classes.collection.get",
         "finance.group-fiscal-year-summaries.collection.get",
-        "finance.order-transaction-summaries.item.post",
-        "finance.order-transaction-summaries.item.put",
-        "finance.invoice-transaction-summaries.item.post",
-        "finance.invoice-transaction-summaries.item.put",
         "finance.exchange-rate.item.get",
         "finance.calculate-exchange.item.get",
         "finance.expense-classes.all",

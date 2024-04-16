@@ -255,7 +255,7 @@ public class FundServiceTest {
     fundsCollection.setFunds(fundsList);
     // When
     when(restClient.get(anyString(), eq(FundsCollection.class), any())).thenReturn(succeededFuture(fundsCollection));
-    var future = fundService.getFunds(ids, requestContext);
+    var future = fundService.getFundsByIds(ids, requestContext);
     // Then
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {

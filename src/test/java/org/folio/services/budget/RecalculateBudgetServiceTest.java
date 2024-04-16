@@ -9,7 +9,7 @@ import org.folio.rest.jaxrs.model.Metadata;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.BudgetUtils;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +44,7 @@ public class RecalculateBudgetServiceTest {
   @Mock
   private RequestContext requestContext;
   @Mock
-  private CommonTransactionService transactionServiceMock;
+  private TransactionService transactionServiceMock;
 
   private Budget budget;
 
@@ -86,13 +86,13 @@ public class RecalculateBudgetServiceTest {
 
     when(budgetServiceMock.getBudgetById(anyString(), any())).thenReturn(succeededFuture(BudgetUtils.convertToSharedBudget(budget)));
     when(budgetServiceMock.updateBudgetWithAmountFields(any(), any())).thenReturn(succeededFuture());
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(transactions));
+    when(transactionServiceMock.getBudgetTransactions(any(), any())).thenReturn(succeededFuture(transactions));
 
     Future<Void> future = recalculateBudgetService.recalculateBudget(budget.getId(), requestContext);
     vertxTestContext.assertComplete(future)
       .onSuccess(result -> {
         verify(budgetServiceMock).getBudgetById(eq(budget.getId()), eq(requestContext));
-        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetServiceMock).updateBudgetWithAmountFields(budgetCaptor.capture(), eq(requestContext));
 
         SharedBudget capturedBudget = budgetCaptor.getValue();
@@ -117,13 +117,13 @@ public class RecalculateBudgetServiceTest {
 
     when(budgetServiceMock.getBudgetById(anyString(), any())).thenReturn(succeededFuture(BudgetUtils.convertToSharedBudget(budget)));
     when(budgetServiceMock.updateBudgetWithAmountFields(any(), any())).thenReturn(succeededFuture());
-    when(transactionServiceMock.retrieveTransactions(any(), any())).thenReturn(succeededFuture(transactions));
+    when(transactionServiceMock.getBudgetTransactions(any(), any())).thenReturn(succeededFuture(transactions));
 
     Future<Void> future = recalculateBudgetService.recalculateBudget(budget.getId(), requestContext);
     vertxTestContext.assertComplete(future)
       .onSuccess(result -> {
         verify(budgetServiceMock).getBudgetById(eq(budget.getId()), eq(requestContext));
-        verify(transactionServiceMock).retrieveTransactions(eq(budget), eq(requestContext));
+        verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetServiceMock).updateBudgetWithAmountFields(budgetCaptor.capture(), eq(requestContext));
 
         SharedBudget capturedBudget = budgetCaptor.getValue();

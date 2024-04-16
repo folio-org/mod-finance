@@ -34,7 +34,7 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.BudgetExpenseClassCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 
 import io.vertx.core.Future;
 
@@ -43,9 +43,9 @@ public class BudgetExpenseClassService {
   private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
-  private final CommonTransactionService transactionService;
+  private final TransactionService transactionService;
 
-  public BudgetExpenseClassService(RestClient restClient, CommonTransactionService transactionService) {
+  public BudgetExpenseClassService(RestClient restClient, TransactionService transactionService) {
     this.restClient = restClient;
     this.transactionService = transactionService;
   }
@@ -118,7 +118,7 @@ public class BudgetExpenseClassService {
 
   private Future<Void> checkNoTransactionsAssigned(List<BudgetExpenseClass> deleteList, SharedBudget budget, RequestContext requestContext) {
     log.debug("checkNoTransactionsAssigned:: Checking there is no transaction assigned for budget: {} and deleteList with size: {}", budget.getId(), deleteList.size());
-    return transactionService.retrieveTransactions(deleteList, budget, requestContext)
+    return transactionService.getBudgetTransactionsWithExpenseClasses(deleteList, budget, requestContext)
       .map(transactions -> {
         if (isNotEmpty(transactions)) {
           log.error("checkNoTransactionsAssigned:: There is assigned transaction for budget: '{}'", budget.getId());

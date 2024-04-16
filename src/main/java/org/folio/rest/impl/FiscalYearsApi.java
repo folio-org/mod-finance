@@ -17,7 +17,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
-import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fiscalyear.FiscalYearApiService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,7 +33,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   private static final String FISCAL_YEAR_CODE_PATTERN = "^[a-zA-Z]+[0-9]{4}$";
 
   @Autowired
-  private FiscalYearService fiscalYearService;
+  private FiscalYearApiService fiscalYearApiService;
 
   public FiscalYearsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
@@ -57,7 +57,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     // series should always be calculated
     setFYearWithSeries(fiscalYear);
 
-    fiscalYearService.createFiscalYear(fiscalYear, new RequestContext(ctx, headers))
+    fiscalYearApiService.createFiscalYear(fiscalYear, new RequestContext(ctx, headers))
       .onSuccess(fy -> handler
         .handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(FISCAL_YEARS_LOCATION_PREFIX, fy.getId()), fy))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
@@ -72,7 +72,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void getFinanceFiscalYears(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
 
-    fiscalYearService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
+    fiscalYearApiService.getFiscalYearsWithAcqUnitsRestriction(query, offset, limit, new RequestContext(ctx, headers))
       .onSuccess(fiscalYears -> handler.handle(succeededFuture(buildOkResponse(fiscalYears))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }
@@ -103,7 +103,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
     // series should always be calculated
     setFYearWithSeries(fiscalYearRequest);
 
-    fiscalYearService.updateFiscalYear(fiscalYearRequest, new RequestContext(ctx, headers))
+    fiscalYearApiService.updateFiscalYear(fiscalYearRequest, new RequestContext(ctx, headers))
       .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }
@@ -113,7 +113,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   public void getFinanceFiscalYearsById(String id, boolean withFinancialSummary, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
 
-    fiscalYearService.getFiscalYearById(id, withFinancialSummary, new RequestContext(ctx, headers))
+    fiscalYearApiService.getFiscalYearById(id, withFinancialSummary, new RequestContext(ctx, headers))
       .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildOkResponse(fiscalYear))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }
@@ -122,7 +122,7 @@ public class FiscalYearsApi extends BaseApi implements FinanceFiscalYears {
   @Override
   public void deleteFinanceFiscalYearsById(String id, Map<String, String> headers,
       Handler<AsyncResult<Response>> handler, Context ctx) {
-    fiscalYearService.deleteFiscalYear(id, new RequestContext(ctx, headers))
+    fiscalYearApiService.deleteFiscalYear(id, new RequestContext(ctx, headers))
       .onSuccess(fiscalYear -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }

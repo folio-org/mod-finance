@@ -14,7 +14,6 @@ import static org.folio.rest.impl.GroupFiscalYearSummariesTest.FUND_ID_SECOND_SA
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_FIRST_DIF_GROUP;
 import static org.folio.rest.impl.GroupFiscalYearSummariesTest.TO_ALLOCATION_SECOND_DIF_GROUP;
 import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTION_ID;
-import static org.folio.rest.impl.TransactionApiTest.DELETE_TRANSACTION_ID;
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
@@ -25,9 +24,7 @@ import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
-import static org.folio.rest.util.ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES;
 import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.rest.util.TestConstants.BAD_QUERY;
@@ -76,10 +73,8 @@ import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
-import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
-import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
 
@@ -186,12 +181,6 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, Ledger.class, TestEntities.LEDGER.name()));
     router.route(HttpMethod.POST, resourcesPath(GROUPS))
       .handler(ctx -> handlePostEntry(ctx, Group.class, TestEntities.GROUP.name()));
-    router.route(HttpMethod.POST, resourcesPath(TRANSACTIONS))
-      .handler(ctx -> handleTransactionPostEntry(ctx, Transaction.class));
-    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.ORDER_TRANSACTION_SUMMARIES))
-    .handler(ctx -> handlePostEntry(ctx, OrderTransactionSummary.class, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
-    router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.INVOICE_TRANSACTION_SUMMARIES))
-    .handler(ctx -> handlePostEntry(ctx, InvoiceTransactionSummary.class, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePostEntry(ctx, ExpenseClass.class, TestEntities.EXPENSE_CLASSES.name()));
     router.route(HttpMethod.POST, resourcesPath(ResourcePathResolver.BATCH_TRANSACTIONS_STORAGE))
@@ -249,8 +238,6 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUPS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP.name()));
-    router.route(HttpMethod.DELETE, resourceByIdPath(TRANSACTIONS))
-      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.TRANSACTIONS.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.EXPENSE_CLASSES.name()));
 
@@ -268,12 +255,6 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
-    router.route(HttpMethod.PUT, resourceByIdPath(TRANSACTIONS))
-      .handler(ctx -> handleTransactionPutEntry(ctx, Transaction.class));
-    router.route(HttpMethod.PUT, resourceByIdPath(ORDER_TRANSACTION_SUMMARIES))
-      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.ORDER_TRANSACTION_SUMMARY.name()));
-    router.route(HttpMethod.PUT, resourceByIdPath(INVOICE_TRANSACTION_SUMMARIES))
-      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.INVOICE_TRANSACTION_SUMMARY.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.EXPENSE_CLASSES.name()));
     return router;
@@ -294,8 +275,7 @@ public class MockServer {
       serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
     } else if (query.contains(FUND_ID_FIRST_SAME_GROUP) || query.contains(FUND_ID_SECOND_SAME_GROUP)
                   || (query.contains(FUND_ID_SECOND_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_FROM_QUERY)))
-                  || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))
-                  || query.contains(DELETE_TRANSACTION_ID)) {
+                  || (query.contains(FUND_ID_FIRST_DIFFERENT_GROUP) && (query.matches(TRANSACTION_ALLOCATION_TO_QUERY)))) {
       JsonObject emptyCollection = new JsonObject().put(testEntity.getName(), new JsonArray());
       emptyCollection.put(TOTAL_RECORDS, 0);
       serverResponse(ctx,200, APPLICATION_JSON, emptyCollection.encodePrettily());
@@ -667,74 +647,6 @@ public class MockServer {
 
   private String resourceByIdPath(String field) {
     return resourcesPath(field) + ID_PATH_PARAM;
-  }
-
-  private <T> void handleTransactionPutEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.body().asString());
-
-    String tenant = ctx.request()
-      .getHeader(OKAPI_HEADER_TENANT);
-    if (ERROR_TENANT.equals(tenant)) {
-      serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    } else {
-      JsonObject body = ctx.body().asJsonObject();
-      if (body.getString(ID) == null) {
-        body.put(ID, UUID.randomUUID()
-          .toString());
-      }
-      T entry = body.mapTo(tClass);
-      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
-
-      if (ID_DOES_NOT_EXIST.equals(t.getId())) {
-        serverResponse(ctx, 404, APPLICATION_JSON, t.getId());
-        return;
-      } else if (t.getId().equals(ID_FOR_INTERNAL_SERVER_ERROR)) {
-        serverResponse(ctx, 500, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getReasonPhrase());
-        return;
-      }
-      if (t.getTransactionType() == Transaction.TransactionType.PENDING_PAYMENT) {
-        addServerRqRsData(HttpMethod.PUT, TestEntities.TRANSACTIONS_PENDING_PAYMENT.name(), body);
-      } else {
-        addServerRqRsData(HttpMethod.PUT, TestEntities.TRANSACTIONS.name(), body);
-      }
-
-      serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry)
-        .encodePrettily());
-    }
-  }
-
-  private <T> void handleTransactionPostEntry(RoutingContext ctx, Class<T> tClass) {
-    logger.info("got: " + ctx.body().asString());
-
-    String tenant = ctx.request()
-      .getHeader(OKAPI_HEADER_TENANT);
-    if (ERROR_TENANT.equals(tenant)) {
-      serverResponse(ctx, 500, TEXT_PLAIN, INTERNAL_SERVER_ERROR.getReasonPhrase());
-    } else {
-      JsonObject body = ctx.body().asJsonObject();
-      if (body.getString(ID) == null) {
-        body.put(ID, UUID.randomUUID()
-          .toString());
-      }
-      T entry = body.mapTo(tClass);
-      Transaction t = ctx.body().asJsonObject().mapTo(Transaction.class);
-      if (t.getTransactionType() == Transaction.TransactionType.ALLOCATION) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ALLOCATION.name(), body);
-      } else if (t.getTransactionType() == Transaction.TransactionType.TRANSFER) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_TRANSFER.name(), body);
-      } else if (t.getTransactionType() == Transaction.TransactionType.ENCUMBRANCE) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_ENCUMBRANCE.name(), body);
-      } else if (t.getTransactionType() == Transaction.TransactionType.PAYMENT) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_PAYMENT.name(), body);
-      } else if (t.getTransactionType() == Transaction.TransactionType.PENDING_PAYMENT) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_PENDING_PAYMENT.name(), body);
-      } else if (t.getTransactionType() == Transaction.TransactionType.CREDIT) {
-        addServerRqRsData(HttpMethod.POST, TestEntities.TRANSACTIONS_CREDIT.name(), body);
-      }
-
-      serverResponse(ctx, 201, APPLICATION_JSON, JsonObject.mapFrom(entry)
-        .encodePrettily());
-    }
   }
 
   private <T> void handlePostEntry(RoutingContext ctx, Class<T> tClass, String entryName) {

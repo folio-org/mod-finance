@@ -172,7 +172,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withId(fundId2);
 
     List<Fund> funds = Arrays.asList(fund1, fund2);
-    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
+    when(fundService.getFundsByIds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
 
     Ledger ledger1 = new Ledger()
       .withLedgerStatus(Ledger.LedgerStatus.ACTIVE)
@@ -316,7 +316,7 @@ public class FundCodeExpenseClassesServiceTest {
       .withId(fundId2);
 
     List<Fund> funds = Arrays.asList(fund1, fund2);
-    when(fundService.getFunds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
+    when(fundService.getFundsByIds(any(), eq(requestContext))).thenReturn(succeededFuture(funds));
 
     when(ledgerService.getLedgers(any(), eq(requestContext))).thenReturn(succeededFuture(ledgers));
 

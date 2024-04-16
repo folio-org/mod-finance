@@ -1,8 +1,8 @@
 package org.folio.services;
 
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.rest.util.ResourcePathResolver.BATCH_TRANSACTIONS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTIONS;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,16 +25,20 @@ import java.util.stream.Stream;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.Batch;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionCollection;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.transactions.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -45,9 +48,10 @@ import io.vertx.junit5.VertxTestContext;
 
 
 @ExtendWith(VertxExtension.class)
-public class CommonTransactionServiceTest {
+public class TransactionServiceTest {
 
-  private CommonTransactionService transactionService;
+  private TransactionService transactionService;
+  private AutoCloseable mockitoMocks;
 
   @Mock(name = "restClient")
   private RestClient restClient;
@@ -57,8 +61,14 @@ public class CommonTransactionServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
-    transactionService = new CommonTransactionService(restClient);
+    mockitoMocks = MockitoAnnotations.openMocks(this);
+    FiscalYearService fiscalYearService = new FiscalYearService(restClient);
+    transactionService = new TransactionService(restClient, fiscalYearService);
+  }
+
+  @AfterEach
+  public void afterEach() throws Exception {
+    mockitoMocks.close();
   }
 
   @Test
@@ -73,7 +83,7 @@ public class CommonTransactionServiceTest {
     when(restClient.get(anyString(), any(), eq(requestContext)))
       .thenReturn(succeededFuture(transactionCollection));
 
-    Future<List<Transaction>> future = transactionService.retrieveTransactions(budget, requestContext);
+    Future<List<Transaction>> future = transactionService.getBudgetTransactions(budget, requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
@@ -107,7 +117,7 @@ public class CommonTransactionServiceTest {
     when(restClient.get(anyString(), any(), eq(requestContext)))
       .thenReturn(succeededFuture(transactionCollection));
 
-    Future<List<Transaction>> future = transactionService.retrieveTransactions(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
+    Future<List<Transaction>> future = transactionService.getBudgetTransactionsWithExpenseClasses(Arrays.asList(budgetExpenseClass1, budgetExpenseClass2), budget, requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
@@ -135,26 +145,25 @@ public class CommonTransactionServiceTest {
       .withId(fiscalYearId)
       .withCurrency("BYN");
 
-    Transaction transaction = new Transaction()
-      .withId(UUID.randomUUID().toString())
-      .withToFundId(budget.getFundId())
-      .withFiscalYearId(budget.getFiscalYearId())
-      .withCurrency(fiscalYear.getCurrency())
-      .withAmount(budget.getAllocated())
-      .withTransactionType(Transaction.TransactionType.ALLOCATION)
-      .withSource(Transaction.Source.USER);
+    when(restClient.postEmptyResponse(eq(resourcesPath(BATCH_TRANSACTIONS_STORAGE)), any(Batch.class), eq(requestContext)))
+      .thenReturn(Future.succeededFuture());
+    when(restClient.get(eq(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYear.getId())), any(), any()))
+      .thenReturn(succeededFuture(fiscalYear));
 
-    when(restClient.post(eq(resourcesPath(TRANSACTIONS)), any(), eq(Transaction.class), eq(requestContext)))
-      .thenReturn(succeededFuture(transaction));
-    when(restClient.get(eq(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYear.getId())), any(), any())).thenReturn(succeededFuture(fiscalYear));
-
-    Future<Transaction> future = transactionService.createAllocationTransaction(budget, requestContext);
+    Future<Void> future = transactionService.createAllocationTransaction(budget, requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
-        verify(restClient).post(eq(resourcesPath(TRANSACTIONS)), refEq(transaction, "id"), eq(Transaction.class), eq(requestContext));
-        assertEquals(transaction, result.result());
-        assertEquals(result.result().getCurrency(), fiscalYear.getCurrency());
+        ArgumentCaptor<Batch> batchCaptor = ArgumentCaptor.forClass(Batch.class);
+        verify(restClient).postEmptyResponse(eq(resourcesPath(BATCH_TRANSACTIONS_STORAGE)), batchCaptor.capture(), eq(requestContext));
+        Batch batch = batchCaptor.getValue();
+        Transaction transaction = batch.getTransactionsToCreate().get(0);
+        assertEquals(budget.getFundId(), transaction.getToFundId());
+        assertEquals(budget.getFiscalYearId(), transaction.getFiscalYearId());
+        assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
+        assertEquals(budget.getAllocated(), transaction.getAmount());
+        assertEquals(budget.getAllocated(), transaction.getAmount());
+        assertEquals(Transaction.Source.USER, transaction.getSource());
 
         verify(restClient).get(resourceByIdPath(FISCAL_YEARS_STORAGE, fiscalYearId), FiscalYear.class, requestContext);
         vertxTestContext.completeNow();
@@ -178,9 +187,11 @@ public class CommonTransactionServiceTest {
       .withTotalRecords(1);
 
     when(restClient.get(anyString(), eq(TransactionCollection.class), any()))
-      .thenReturn(succeededFuture(transactionCollection), succeededFuture(new TransactionCollection()), succeededFuture(new TransactionCollection()));
+      .thenReturn(succeededFuture(transactionCollection))
+      .thenReturn(succeededFuture(new TransactionCollection()))
+      .thenReturn(succeededFuture(new TransactionCollection()));
 
-    Future<List<Transaction>> future = transactionService.retrieveTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
+    Future<List<Transaction>> future = transactionService.getTransactionsByFundIds(fundIds, fiscalYearId, requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {

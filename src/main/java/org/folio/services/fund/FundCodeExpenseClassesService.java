@@ -102,7 +102,7 @@ public class FundCodeExpenseClassesService {
       .compose(fcecHolder -> getActiveBudgetsByFiscalYear(fcecHolder.getFiscalYear(), requestContext))
       .map(fundCodeExpenseClassesHolder::withBudgetCollectionList)
       .map(holder -> holder.getBudgetCollection().getBudgets().stream().map(Budget::getFundId).distinct().collect(Collectors.toList()))
-      .compose(fundsId -> fundService.getFunds(fundsId, requestContext))
+      .compose(fundsId -> fundService.getFundsByIds(fundsId, requestContext))
       .map(fundCodeExpenseClassesHolder::withFundList)
       .map(fcecHolder -> fcecHolder.getFundList().stream().map(Fund::getLedgerId).collect(Collectors.toList()))
       .compose(ledgerIds -> ledgerService.getLedgers(ledgerIds, requestContext))

@@ -6,22 +6,22 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.util.BudgetUtils;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
 
 import java.util.List;
 
 public class RecalculateBudgetService {
   private final BudgetService budgetService;
-  private final CommonTransactionService transactionService;
+  private final TransactionService transactionService;
 
-  public RecalculateBudgetService(BudgetService budgetService, CommonTransactionService transactionService) {
+  public RecalculateBudgetService(BudgetService budgetService, TransactionService transactionService) {
     this.budgetService = budgetService;
     this.transactionService = transactionService;
   }
 
   public Future<Void> recalculateBudget(String budgetId, RequestContext requestContext) {
     return budgetService.getBudgetById(budgetId, requestContext)
-      .compose(budget -> transactionService.retrieveTransactions(BudgetUtils.convertToBudget(budget), requestContext)
+      .compose(budget -> transactionService.getBudgetTransactions(BudgetUtils.convertToBudget(budget), requestContext)
         .map(transactions -> recalculateBudgetBasedOnTransactions(budget, transactions)))
       .compose(budget -> budgetService.updateBudgetWithAmountFields(budget, requestContext))
       .mapEmpty();

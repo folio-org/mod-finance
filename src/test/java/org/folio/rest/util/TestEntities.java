@@ -13,14 +13,12 @@ import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
-import org.folio.rest.jaxrs.model.InvoiceTransactionSummary;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRollover;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverBudget;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverError;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverLog;
 import org.folio.rest.jaxrs.model.LedgerFiscalYearRolloverProgress;
-import org.folio.rest.jaxrs.model.OrderTransactionSummary;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.resource.Finance;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
@@ -30,14 +28,12 @@ import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFunds;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceGroups;
-import org.folio.rest.jaxrs.resource.FinanceInvoiceTransactionSummaries;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRollovers;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversBudgets;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversErrors;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversLogs;
 import org.folio.rest.jaxrs.resource.FinanceLedgerRolloversProgress;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
-import org.folio.rest.jaxrs.resource.FinanceOrderTransactionSummaries;
 import org.folio.rest.tools.parser.JsonPathParser;
 
 import io.vertx.core.json.JsonObject;
@@ -53,12 +49,6 @@ public enum TestEntities {
   TRANSACTIONS("transactions", getEndpoint(Finance.class) + "/transactions", Transaction.class, "mockdata/transactions/transactions.json", "transactions[0]", "amount", 25, 3),
   TRANSACTIONS_ALLOCATION("Allocation", getEndpoint(Finance.class) + "/allocations", Transaction.class, "mockdata/transactions/allocations.json", "transactions[0]", "amount", 25, 1),
   TRANSACTIONS_TRANSFER("Transfer", getEndpoint(Finance.class) + "/transfers", Transaction.class, "mockdata/transactions/transfers.json", "transactions[0]", "amount", 25, 1),
-  TRANSACTIONS_ENCUMBRANCE("Encumbrance", getEndpoint(Finance.class) + "/encumbrances", Transaction.class, "mockdata/transactions/encumbrances.json", "transactions[0]", "amount", 25, 1),
-  TRANSACTIONS_PAYMENT("Payment", getEndpoint(Finance.class) + "/payments", Transaction.class, "mockdata/transactions/payments.json", "transactions[0]", "amount", 25, 1),
-  TRANSACTIONS_PENDING_PAYMENT("pendingPayment", getEndpoint(Finance.class) + "/pending-payments", Transaction.class, "mockdata/transactions/pending-payments.json", "transactions[0]", "amount", 25, 1),
-  TRANSACTIONS_CREDIT("Credit", getEndpoint(Finance.class) + "/credits", Transaction.class, "mockdata/transactions/credits.json", "transactions[0]", "amount", 25, 1),
-  ORDER_TRANSACTION_SUMMARY("orderTransactionSummary", getEndpoint(FinanceOrderTransactionSummaries.class), OrderTransactionSummary.class, "mockdata/transaction-summaries/order_transaction_summary.json", "", "numTransactions", 0, 1),
-  INVOICE_TRANSACTION_SUMMARY("invoiceTransactionSummary", getEndpoint(FinanceInvoiceTransactionSummaries.class), InvoiceTransactionSummary.class, "mockdata/transaction-summaries/invoice_transaction_summary.json", "", "numPaymentsCredits", -1, 1),
   EXPENSE_CLASSES("expenseClasses", getEndpoint(FinanceExpenseClasses.class), ExpenseClass.class, "mockdata/expense-classes/expense-classes.json", "expenseClasses[0]", "externalAccountNumberExt", 1, 1),
   LEDGER_ROLLOVER("ledgerRollover", getEndpoint(FinanceLedgerRollovers.class), LedgerFiscalYearRollover.class, "mockdata/ledger-rollovers/ledger-rollovers.json", "ledgerFiscalYearRollovers[0]", "toFiscalYearId", 1, 1),
   LEDGER_ROLLOVER_LOGS("ledgerRolloverLogs", getEndpoint(FinanceLedgerRolloversLogs.class), LedgerFiscalYearRolloverLog.class, "", "", "", 1, 1),

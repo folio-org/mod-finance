@@ -8,7 +8,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.HelperUtils.ID;
-import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.MockServer.getCollectionRecords;
 import static org.folio.rest.util.MockServer.getRecordById;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
@@ -25,22 +24,15 @@ import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
-import static org.folio.rest.util.TestEntities.INVOICE_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_BUDGETS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_ERRORS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_LOGS;
 import static org.folio.rest.util.TestEntities.LEDGER_ROLLOVER_PROGRESS;
-import static org.folio.rest.util.TestEntities.ORDER_TRANSACTION_SUMMARY;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_ALLOCATION;
-import static org.folio.rest.util.TestEntities.TRANSACTIONS_CREDIT;
-import static org.folio.rest.util.TestEntities.TRANSACTIONS_ENCUMBRANCE;
-import static org.folio.rest.util.TestEntities.TRANSACTIONS_PAYMENT;
-import static org.folio.rest.util.TestEntities.TRANSACTIONS_PENDING_PAYMENT;
 import static org.folio.rest.util.TestEntities.TRANSACTIONS_TRANSFER;
-import static org.folio.rest.util.TestUtils.getMockData;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -53,7 +45,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
@@ -96,9 +87,7 @@ import io.vertx.junit5.VertxExtension;
 public class EntitiesCrudBasicsTest {
 
   private static final Logger logger = LogManager.getLogger(EntitiesCrudBasicsTest.class);
-  private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_ENCUMBRANCE
-      , TRANSACTIONS_TRANSFER, TRANSACTIONS_PAYMENT, TRANSACTIONS_PENDING_PAYMENT
-        , TRANSACTIONS_CREDIT, ORDER_TRANSACTION_SUMMARY, INVOICE_TRANSACTION_SUMMARY);
+  private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER);
   private static boolean runningOnOwn;
 
 
@@ -120,7 +109,7 @@ public class EntitiesCrudBasicsTest {
   }
 
   /**
-   * Test entities except for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER, TRANSACTIONS_ENCUMBRANCE
+   * Test entities except for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER
    *
    * @return stream of test entities
    */
@@ -143,7 +132,10 @@ public class EntitiesCrudBasicsTest {
   }
 
   static Stream<TestEntities> getTestEntitiesWithPostEndpoint() {
-    return getTestEntities().filter(e -> !e.equals(TRANSACTIONS));
+    return getTestEntities()
+      .filter(e -> !e.equals(TRANSACTIONS))
+      .filter(e -> !e.equals(TRANSACTIONS_ALLOCATION))
+      .filter(e -> !e.equals(TRANSACTIONS_TRANSFER));
   }
 
   /**
@@ -152,8 +144,8 @@ public class EntitiesCrudBasicsTest {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
-    return Stream.concat(getTestEntitiesWithGetByIdEndpoint()
-      .filter(e -> !e.equals(TRANSACTIONS)), Stream.of(TRANSACTIONS_PENDING_PAYMENT));
+    return getTestEntitiesWithGetByIdEndpoint()
+      .filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -166,13 +158,12 @@ public class EntitiesCrudBasicsTest {
   }
 
   /**
-   * Test entities only for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER, TRANSACTIONS_ENCUMBRANCE
+   * Test entities only for TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER
    *
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesForOnlyTransactionTypes() {
-    return transactionEntities.stream().filter(e -> !e.equals(ORDER_TRANSACTION_SUMMARY)
-            && !e.equals(INVOICE_TRANSACTION_SUMMARY));
+    return transactionEntities.stream();
   }
 
   @BeforeAll
@@ -276,10 +267,6 @@ public class EntitiesCrudBasicsTest {
   @MethodSource("getTestEntitiesWithPostEndpoint")
   void testPostRecord(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record ===", testEntity.name());
-    if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
-      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
-      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
-    }
 
     JsonObject record = testEntity.getMockObject();
     RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, CREATED.getStatusCode());
@@ -308,10 +295,6 @@ public class EntitiesCrudBasicsTest {
   @MethodSource("getTestEntitiesWithPostEndpoint")
   void testPostRecordServerError(TestEntities testEntity) throws IOException {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
-    if (testEntity.equals(TRANSACTIONS_ALLOCATION) || testEntity.equals(TRANSACTIONS_TRANSFER)) {
-      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/HIST.json")));
-      addMockEntry(FUND.name(), new JsonObject(getMockData("mockdata/funds/CANHIST.json")));
-    }
 
     Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
     JsonObject record = testEntity.getMockObject();
@@ -394,27 +377,6 @@ public class EntitiesCrudBasicsTest {
 
     RestTestUtils.verifyDeleteResponse(testEntity.getEndpointWithId(ID_DOES_NOT_EXIST), APPLICATION_JSON, NOT_FOUND.getStatusCode())
       .as(Errors.class);
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY", "INVOICE_TRANSACTION_SUMMARY"})
-  void testPostRecordMinimumValidation(TestEntities testEntity) {
-    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
-
-    JsonObject record = testEntity.getMockObject();
-    record.put(testEntity.getUpdatedFieldName(), testEntity.getUpdatedFieldValue());
-    RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
-  }
-
-  @ParameterizedTest
-  @EnumSource(value = TestEntities.class, names = {"ORDER_TRANSACTION_SUMMARY", "INVOICE_TRANSACTION_SUMMARY"})
-  void testPutRecordMinimumValidation(TestEntities testEntity) {
-    logger.info("=== Test create {} record with less then minimum validation fails===", testEntity.name());
-
-    JsonObject record = testEntity.getMockObject();
-    record.put(testEntity.getUpdatedFieldName(), 4);
-    RestTestUtils.verifyPut(testEntity.getEndpointWithId(UUID.randomUUID().toString()), record, "", 422);
-    RestTestUtils.verifyPut(testEntity.getEndpointWithDefaultId(), record, "", 204);
   }
 
   @ParameterizedTest

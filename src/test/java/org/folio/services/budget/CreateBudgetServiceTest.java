@@ -23,11 +23,11 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.group.GroupFundFiscalYearService;
-import org.folio.services.transactions.CommonTransactionService;
+import org.folio.services.transactions.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +48,7 @@ public class CreateBudgetServiceTest {
   @Mock
   private RestClient restClient;
   @Mock
-  private CommonTransactionService transactionMockService;
+  private TransactionService transactionMockService;
   @Mock
   private BudgetExpenseClassService budgetExpenseClassMockService;
   @Mock
@@ -62,6 +62,7 @@ public class CreateBudgetServiceTest {
   @Mock
   private RequestContext requestContextMock;
 
+  private AutoCloseable mockitoMocks;
   private SharedBudget currSharedBudget;
   private Budget currBudget;
   private SharedBudget plannedSharedBudget;
@@ -71,7 +72,7 @@ public class CreateBudgetServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    mockitoMocks = MockitoAnnotations.openMocks(this);
     String currBudgetId = UUID.randomUUID().toString();
     String currFiscalYearId = UUID.randomUUID().toString();
     String fundId = UUID.randomUUID().toString();
@@ -88,6 +89,11 @@ public class CreateBudgetServiceTest {
     plannedSharedBudget = new SharedBudget().withId(UUID.randomUUID().toString()).withFiscalYearId(plannedFiscalYear.getId()).withFundId(fundId);
   }
 
+  @AfterEach
+  public void afterEach() throws Exception {
+    mockitoMocks.close();
+  }
+
   @Test
   void testCurrentCreateBudgetWithAllocated(VertxTestContext vertxTestContext) {
     currSharedBudget.withAllocated(100.43);
@@ -100,7 +106,7 @@ public class CreateBudgetServiceTest {
     when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(groupFundFiscalYearMockService.updateBudgetIdForGroupFundFiscalYears(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
 
     var future = createBudgetService.createBudget(currSharedBudget, requestContextMock);
       vertxTestContext.assertComplete(future)
@@ -140,7 +146,7 @@ public class CreateBudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(null));
 
     var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
@@ -183,7 +189,7 @@ public class CreateBudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(Collections.emptyList()));
 
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
     Future<SharedBudget> future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
@@ -229,7 +235,7 @@ public class CreateBudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
     var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
@@ -277,7 +283,7 @@ public class CreateBudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
     var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
@@ -322,7 +328,7 @@ public class CreateBudgetServiceTest {
     when(budgetExpenseClassMockService.createBudgetExpenseClasses(any(), any())).thenReturn(succeededFuture(null));
     when(budgetExpenseClassMockService.getBudgetExpenseClasses(currBudget.getId(), requestContextMock)).thenReturn(succeededFuture(currBudgetExpenseClasses));
 
-    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(new Transaction()));
+    when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(succeededFuture(null));
     when(fundDetailsMockService.retrieveCurrentBudget(plannedSharedBudget.getFundId(), null, true, requestContextMock)).thenReturn(succeededFuture(currBudget));
 
     var future = createBudgetService.createBudget(plannedSharedBudget, requestContextMock);
@@ -392,7 +398,7 @@ public class CreateBudgetServiceTest {
       .withFiscalYearId(currSharedBudget.getFiscalYearId())
       .withFundId(currSharedBudget.getFundId());
 
-    Future<Transaction> errorFuture = Future.failedFuture(new Exception());
+    Future<Void> errorFuture = Future.failedFuture(new Exception());
 
     when(restClient.post(anyString(), any(), any(), any())).thenReturn(succeededFuture(budgetFromStorage));
     when(transactionMockService.createAllocationTransaction(any(Budget.class), any())).thenReturn(errorFuture);
