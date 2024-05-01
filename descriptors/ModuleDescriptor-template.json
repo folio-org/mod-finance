@@ -606,6 +606,7 @@
           "pathPattern": "/finance/allocations",
           "permissionsRequired": ["finance.allocations.item.post"],
           "modulePermissions": [
+            "finance-storage.funds.collection.get",
             "finance-storage.funds.item.get",
             "finance-storage.transactions.batch"
           ]
@@ -615,6 +616,7 @@
           "pathPattern": "/finance/transfers",
           "permissionsRequired": ["finance.transfers.item.post"],
           "modulePermissions": [
+            "finance-storage.funds.collection.get",
             "finance-storage.funds.item.get",
             "finance-storage.transactions.batch"
           ]
