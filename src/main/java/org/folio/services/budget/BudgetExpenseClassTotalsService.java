@@ -59,8 +59,7 @@ public class BudgetExpenseClassTotalsService {
   }
 
   private BudgetExpenseClassTotalsCollection buildBudgetExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions, Budget budget) {
-
-    double totalExpended = getBudgetTotalExpended(budget);
+    double totalExpended = budget.getExpenditures();
 
     Map<String, List<Transaction>> groupedByExpenseClassId = transactions.stream()
       .filter(transaction -> Objects.nonNull(transaction.getExpenseClassId()))
@@ -74,10 +73,6 @@ public class BudgetExpenseClassTotalsService {
     return new BudgetExpenseClassTotalsCollection()
       .withBudgetExpenseClassTotals(budgetExpenseClassTotals)
       .withTotalRecords(budgetExpenseClassTotals.size());
-  }
-
-  private double getBudgetTotalExpended(Budget budget) {
-    return budget.getExpenditures();
   }
 
   private List<BudgetExpenseClassTotal> buildBudgetExpenseClassesTotals(Map<ExpenseClass, List<Transaction>> groupedByExpenseClass, double totalExpended) {
