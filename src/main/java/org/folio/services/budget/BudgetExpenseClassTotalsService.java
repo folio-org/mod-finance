@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -78,8 +77,7 @@ public class BudgetExpenseClassTotalsService {
   }
 
   private double getBudgetTotalExpended(Budget budget) {
-    BigDecimal totalExpended = BigDecimal.valueOf(budget.getExpenditures()).add(BigDecimal.valueOf(budget.getOverExpended()));
-    return totalExpended.doubleValue();
+    return budget.getExpenditures();
   }
 
   private List<BudgetExpenseClassTotal> buildBudgetExpenseClassesTotals(Map<ExpenseClass, List<Transaction>> groupedByExpenseClass, double totalExpended) {
