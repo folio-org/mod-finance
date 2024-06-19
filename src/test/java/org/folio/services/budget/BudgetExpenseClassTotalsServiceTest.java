@@ -157,7 +157,7 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0d, expenseClassTotal2.getEncumbered());
         assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
         assertEquals(1d, expenseClassTotal2.getExpended()); //11 - 4.44 - 5.56
-        assertEquals(6.25, expenseClassTotal2.getPercentageExpended()); // (1 / 16) * 100
+        assertEquals(6.67, expenseClassTotal2.getPercentageExpended()); // (1 / 15) * 100
 
         vertxTestContext.completeNow();
       });
