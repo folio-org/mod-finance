@@ -79,6 +79,7 @@ public class BudgetService {
       .withAllocationFrom(budgetFromStorage.getAllocationFrom())
       .withAwaitingPayment(budgetFromStorage.getAwaitingPayment())
       .withExpenditures(budgetFromStorage.getExpenditures())
+      .withCredits(budgetFromStorage.getCredits())
       .withEncumbered(budgetFromStorage.getEncumbered())
       .withOverEncumbrance(budgetFromStorage.getOverEncumbrance())
       .withOverExpended(budgetFromStorage.getOverExpended())
@@ -126,6 +127,7 @@ public class BudgetService {
     log.debug("checkRemainingEncumbrance:: Check remaining encumbrance for budget: {}", budget.getId());
     BigDecimal encumbered = BigDecimal.valueOf(budget.getEncumbered());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
+    BigDecimal credits = BigDecimal.valueOf(budget.getCredits());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
     BigDecimal totalFunding = BigDecimal.valueOf(budget.getTotalFunding());
 
@@ -133,7 +135,7 @@ public class BudgetService {
     if (budget.getAllowableEncumbrance() != null) {
       log.info("checkRemainingEncumbrance:: Budget '{}' allowable encumbrance is not null", budget.getId());
       BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
-      if (totalFunding.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures)) < 0) {
+      if (totalFunding.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures).subtract(credits)) < 0) {
         log.error("checkRemainingEncumbrance:: Allowable encumbrance limit exceeded for budget: {}", budget.getId());
         return Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
@@ -145,6 +147,7 @@ public class BudgetService {
     log.debug("checkRemainingExpenditure:: Check remaining expenditure for budget: {}", budget.getId());
     BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
+    BigDecimal credits = BigDecimal.valueOf(budget.getCredits());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
     BigDecimal available = BigDecimal.valueOf(budget.getAvailable());
     BigDecimal unavailable = BigDecimal.valueOf(budget.getUnavailable());
@@ -156,7 +159,7 @@ public class BudgetService {
         .movePointLeft(2);
       if (allocated.multiply(newAllowableExpenditure)
         .subtract(allocated.subtract(available.add(unavailable)))
-        .subtract(expenditures.add(awaitingPayment))
+        .subtract(expenditures.subtract(credits).add(awaitingPayment))
         .compareTo(BigDecimal.ZERO) < 0) {
         log.error("checkRemainingExpenditure:: Allowable expenditure limit exceed for budget: {}", budget.getId());
         return Collections.singletonList(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());

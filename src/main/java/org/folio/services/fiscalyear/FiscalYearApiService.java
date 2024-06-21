@@ -96,6 +96,7 @@ public class FiscalYearApiService {
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
       .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withCredits(HelperUtils.calculateTotals(budgets, Budget::getCredits))
       .withOverEncumbrance(HelperUtils.calculateTotals(budgets, Budget::getOverEncumbrance))
       .withOverExpended(HelperUtils.calculateTotals(budgets, Budget::getOverExpended))
       .withTotalFunding(HelperUtils.calculateTotals(budgets, Budget::getTotalFunding))

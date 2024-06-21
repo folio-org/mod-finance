@@ -16,24 +16,12 @@ public final class MoneyUtils {
 
   }
 
-  public static Number sumValues(Number d1, Number d2, String currency) {
-    return Money.of(d1, currency).add(Money.of(d2, currency)).getNumber();
-  }
-
-  public static Number subtractValues(Number d1, Number d2, String currency) {
-    return Money.of(d1, currency).subtract(Money.of(d2, currency)).getNumber();
-  }
-
-  public static Double sumDoubleValues(Double d1, Double d2, String currency) {
-    return sumValues(d1, d2, currency).doubleValue();
-  }
-
-  public static Double subtractDoubleValues(Double d1, Double d2, String currency) {
-    return subtractValues(d1, d2, currency).doubleValue();
-  }
-
   public static double calculateExpendedPercentage(MonetaryAmount expended, double totalExpended) {
     return expended.divide(totalExpended).multiply(100).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
+  }
+
+  public static double calculateCreditedPercentage(MonetaryAmount credited, double totalCredited) {
+    return credited.divide(totalCredited).multiply(100).with(Monetary.getDefaultRounding()).getNumber().doubleValue();
   }
 
   public static MonetaryAmount calculateTotalAmount(List<Transaction> transactions, CurrencyUnit currency) {

@@ -35,12 +35,14 @@ public class RecalculateBudgetService {
     double encumbered = 0d;
     double awaitingPayment = 0d;
     double expended = 0d;
+    double credited = 0d;
 
     if (CollectionUtils.isNotEmpty(transactions)) {
       String fundId = budget.getFundId();
       RecalculatedBudgetBuilder budgetBuilder = new RecalculatedBudgetBuilder(transactions);
       SharedBudget recalculatedBudget = budgetBuilder.withInitialAllocation(fundId).withAllocationTo(fundId)
-        .withAllocationFrom(fundId).withNetTransfers(fundId).withEncumbered().withAwaitingPayment().withExpended().build();
+        .withAllocationFrom(fundId).withNetTransfers(fundId).withEncumbered()
+        .withAwaitingPayment().withExpended().withCredited().build();
 
       initialAllocation = recalculatedBudget.getInitialAllocation();
       allocationTo = recalculatedBudget.getAllocationTo();
@@ -49,6 +51,7 @@ public class RecalculateBudgetService {
       encumbered = recalculatedBudget.getEncumbered();
       awaitingPayment = recalculatedBudget.getAwaitingPayment();
       expended = recalculatedBudget.getExpenditures();
+      credited = recalculatedBudget.getCredits();
     }
 
     return budget
@@ -58,7 +61,8 @@ public class RecalculateBudgetService {
       .withNetTransfers(netTransfers)
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
-      .withExpenditures(expended);
+      .withExpenditures(expended)
+      .withCredits(credited);
   }
 
 }
