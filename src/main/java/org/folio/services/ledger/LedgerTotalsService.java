@@ -126,7 +126,8 @@ public class LedgerTotalsService {
       .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
-      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures));
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withCredits(HelperUtils.calculateTotals(budgets, Budget::getCredits));
     return new LedgerFiscalYearTransactionsHolder(fiscalYearId, ledger, budgets);
   }
 

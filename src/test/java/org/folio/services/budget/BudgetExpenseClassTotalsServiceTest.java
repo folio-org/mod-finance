@@ -26,6 +26,7 @@ import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,9 @@ public class BudgetExpenseClassTotalsServiceTest {
   @Mock
   private RequestContext requestContext;
 
+  @Mock
+  private AutoCloseable closeable;
+
   private Budget budget;
   private ExpenseClass expenseClass1;
   private ExpenseClass expenseClass2;
@@ -74,7 +78,7 @@ public class BudgetExpenseClassTotalsServiceTest {
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     budget = new Budget()
       .withId(UUID.randomUUID().toString())
       .withFundId(UUID.randomUUID().toString())
@@ -96,6 +100,10 @@ public class BudgetExpenseClassTotalsServiceTest {
     .withStatus(BudgetExpenseClass.Status.INACTIVE);
   }
 
+  @AfterEach
+  public void releaseMocks() throws Exception {
+    closeable.close();
+  }
   @Test
   void getExpenseClassTotalsComplexPositiveTest(VertxTestContext vertxTestContext) {
 
@@ -112,7 +120,7 @@ public class BudgetExpenseClassTotalsServiceTest {
     Transaction credit2 = buildTransaction(5.56d, Transaction.TransactionType.CREDIT, expenseClass2.getId());
     Transaction payment2 = buildTransaction(15d, Transaction.TransactionType.PAYMENT, null);
 
-    budget.withExpenditures(15d).withOverExpended(1d); // 15 + 1 = 11 + 15 - 4.44 - 5.56
+    budget.withExpenditures(15d).withOverExpended(1d).withCredits(20d); // 15 + 1 = 11 + 15 - 4.44 - 5.56
 
     List<ExpenseClass> expenseClasses = Arrays.asList(expenseClass1, expenseClass2);
     List<BudgetExpenseClass> budgetExpenseClasses = Arrays.asList(budgetExpenseClass1, budgetExpenseClass2);
@@ -156,8 +164,10 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(expenseClass2.getName(), expenseClassTotal2.getExpenseClassName());
         assertEquals(0d, expenseClassTotal2.getEncumbered());
         assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
-        assertEquals(1d, expenseClassTotal2.getExpended()); //11 - 4.44 - 5.56
-        assertEquals(6.67, expenseClassTotal2.getPercentageExpended()); // (1 / 15) * 100
+        assertEquals(11d, expenseClassTotal2.getExpended()); // 11 without credits
+        assertEquals(10, expenseClassTotal2.getCredited());
+        assertEquals(50, expenseClassTotal2.getPercentageCredited()); // (10 / 20) * 100
+        assertEquals(73.33, expenseClassTotal2.getPercentageExpended()); // (11 / 15) * 100
 
         vertxTestContext.completeNow();
       });

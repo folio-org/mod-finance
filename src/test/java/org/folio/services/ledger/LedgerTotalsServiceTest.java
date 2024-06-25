@@ -40,6 +40,7 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.transactions.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,9 +71,17 @@ public class LedgerTotalsServiceTest {
   @Mock
   private RequestContext requestContextMock;
 
+  @Mock
+  private AutoCloseable closeable;
+
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
+  }
+
+  @AfterEach
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -92,6 +101,7 @@ public class LedgerTotalsServiceTest {
       .withEncumbered(0.01d)
       .withAwaitingPayment(0d)
       .withExpenditures(0d)
+      .withCredits(0d)
       .withTotalFunding(120.01)
       .withCashBalance(120.01)
       .withOverEncumbrance(0d)
@@ -106,6 +116,7 @@ public class LedgerTotalsServiceTest {
       .withEncumbered(40d)
       .withAwaitingPayment(20d)
       .withExpenditures(100d)
+      .withCredits(10d)
       .withTotalFunding(280.97)
       .withCashBalance(180.97)
       .withOverEncumbrance(0d)
@@ -121,6 +132,7 @@ public class LedgerTotalsServiceTest {
       .withEncumbered(0d)
       .withAwaitingPayment(0d)
       .withExpenditures(0d)
+      .withCredits(0d)
       .withTotalFunding(120.55)
       .withCashBalance(120.55)
       .withOverEncumbrance(0d)
@@ -173,6 +185,7 @@ public class LedgerTotalsServiceTest {
         double expectedAllocationFrom = 200d;
         double expectedEncumbered = 40.01;
         double expectedExpenditures = 100d;
+        double expectedCredits = 10d;
         double expectedAwaitingPayment = 20d;
         double expectedTotalFunding = 723.53;
         double expectedCashBalance = 623.53;
@@ -187,6 +200,7 @@ public class LedgerTotalsServiceTest {
         assertEquals(expectedAllocationFrom, resultLedger.getAllocationFrom());
         assertEquals(expectedEncumbered, resultLedger.getEncumbered());
         assertEquals(expectedExpenditures, resultLedger.getExpenditures());
+        assertEquals(expectedCredits, resultLedger.getCredits());
         assertEquals(expectedAwaitingPayment, resultLedger.getAwaitingPayment());
         assertEquals(expectedTotalFunding, resultLedger.getTotalFunding());
         assertEquals(expectedCashBalance, resultLedger.getCashBalance());
