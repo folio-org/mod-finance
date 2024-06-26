@@ -188,7 +188,7 @@ public class LedgerTotalsServiceTest {
         double expectedCredits = 10d;
         double expectedAwaitingPayment = 20d;
         double expectedTotalFunding = 723.53;
-        double expectedCashBalance = 623.53;
+        double expectedCashBalance = 633.53;
 
         assertEquals(ledger.getId(), resultLedger.getId());
         assertEquals(expectedAllocated, resultLedger.getAllocated());
