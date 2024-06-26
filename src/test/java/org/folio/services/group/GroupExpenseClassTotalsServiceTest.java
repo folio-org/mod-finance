@@ -163,6 +163,8 @@ public class GroupExpenseClassTotalsServiceTest {
         assertEquals(expenseClass.getName(), groupExpenseClassTotal.getExpenseClassName());
         assertEquals(0d, groupExpenseClassTotal.getExpended());
         assertEquals(0d, groupExpenseClassTotal.getPercentageExpended());
+        assertEquals(0d, groupExpenseClassTotal.getCredited());
+        assertEquals(0d, groupExpenseClassTotal.getPercentageCredited());
 
         verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(eq(groupId), eq(fiscalYearId), eq(requestContext));
         verify(transactionServiceMock).getTransactionsByFundIds(eq(Collections.singletonList(groupFundFiscalYear.getFundId())), eq(fiscalYearId), eq(requestContext));
@@ -293,7 +295,6 @@ public class GroupExpenseClassTotalsServiceTest {
           .withPercentageCredited(0d)
           .withExpended(905d)
           .withPercentageExpended(90.05);
-
 
         assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), containsInAnyOrder(expected1, expected2));
 

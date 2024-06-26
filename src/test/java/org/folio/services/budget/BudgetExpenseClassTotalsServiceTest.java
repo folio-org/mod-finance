@@ -120,7 +120,7 @@ public class BudgetExpenseClassTotalsServiceTest {
     Transaction credit2 = buildTransaction(5.56d, Transaction.TransactionType.CREDIT, expenseClass2.getId());
     Transaction payment2 = buildTransaction(15d, Transaction.TransactionType.PAYMENT, null);
 
-    budget.withExpenditures(15d).withOverExpended(1d).withCredits(20d); // 15 + 1 = 11 + 15 - 4.44 - 5.56
+    budget.withExpenditures(15d).withOverExpended(1d).withCredits(20d);
 
     List<ExpenseClass> expenseClasses = Arrays.asList(expenseClass1, expenseClass2);
     List<BudgetExpenseClass> budgetExpenseClasses = Arrays.asList(budgetExpenseClass1, budgetExpenseClass2);
@@ -155,6 +155,9 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(9.44, expenseClassTotal1.getAwaitingPayment()); // 5 + 4.44
         assertEquals(0, expenseClassTotal1.getExpended());
         assertEquals(0, expenseClassTotal1.getPercentageExpended());
+        assertEquals(0, expenseClassTotal1.getCredited());
+        assertEquals(0, expenseClassTotal1.getPercentageCredited());
+
 
         BudgetExpenseClassTotal expenseClassTotal2 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
           .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId())).findFirst().get();
@@ -165,9 +168,9 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0d, expenseClassTotal2.getEncumbered());
         assertEquals(0d, expenseClassTotal2.getAwaitingPayment());
         assertEquals(11d, expenseClassTotal2.getExpended()); // 11 without credits
+        assertEquals(73.33, expenseClassTotal2.getPercentageExpended()); // (11 / 15) * 100
         assertEquals(10, expenseClassTotal2.getCredited());
         assertEquals(50, expenseClassTotal2.getPercentageCredited()); // (10 / 20) * 100
-        assertEquals(73.33, expenseClassTotal2.getPercentageExpended()); // (11 / 15) * 100
 
         vertxTestContext.completeNow();
       });
@@ -176,11 +179,11 @@ public class BudgetExpenseClassTotalsServiceTest {
   @Test
   void getExpenseClassTotalsWhenBudgetExpendedTotalIsZeroPercentageExpendedMustBeNull(VertxTestContext vertxTestContext) {
     budget.withExpenditures(0d).withOverExpended(0d);
-    Transaction payment1 = buildTransaction(11d, Transaction.TransactionType.PAYMENT, expenseClass1.getId());
+    Transaction payment = buildTransaction(11d, Transaction.TransactionType.PAYMENT, expenseClass1.getId());
     Transaction credit = buildTransaction(11d, Transaction.TransactionType.CREDIT, null);
     List<ExpenseClass> expenseClasses = Collections.singletonList(expenseClass1);
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
-    List<Transaction> transactions = Arrays.asList(payment1, credit);
+    List<Transaction> transactions = Arrays.asList(payment, credit);
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(expenseClasses));
@@ -210,6 +213,8 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0, expenseClassTotal.getAwaitingPayment());
         assertEquals(11d, expenseClassTotal.getExpended());
         assertNull(expenseClassTotal.getPercentageExpended());
+        assertEquals(0d, expenseClassTotal.getCredited()); // credit transaction don't have expenseClassId
+        assertNull(expenseClassTotal.getPercentageCredited());
 
         vertxTestContext.completeNow();
       });
@@ -275,6 +280,8 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0d, expenseClassTotal.getAwaitingPayment());
         assertEquals(0d, expenseClassTotal.getExpended());
         assertEquals(0d, expenseClassTotal.getPercentageExpended());
+        assertEquals(0d, expenseClassTotal.getCredited());
+        assertEquals(0d, expenseClassTotal.getCredited());
 
         vertxTestContext.completeNow();
       });

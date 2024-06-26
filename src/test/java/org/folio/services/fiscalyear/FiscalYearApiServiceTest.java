@@ -84,7 +84,8 @@ public class FiscalYearApiServiceTest {
       .withNetTransfers(1.03)
       .withAwaitingPayment(0.11)
       .withEncumbered(0.47)
-      .withExpenditures(0.03)
+      .withExpenditures(0.04)
+      .withCredits(0.01)
       .withUnavailable(0.61)
       .withAvailable(1.48)
       .withTotalFunding(2.09)
@@ -100,7 +101,8 @@ public class FiscalYearApiServiceTest {
       .withNetTransfers(0d)
       .withAwaitingPayment(0.11)
       .withEncumbered(0.47)
-      .withExpenditures(1.03)
+      .withExpenditures(2.04)
+      .withCredits(1.01)
       .withUnavailable(1.61)
       .withAvailable(0d)
       .withTotalFunding(1.06)
@@ -126,7 +128,8 @@ public class FiscalYearApiServiceTest {
         assertEquals(2.12, summary.getAllocated());
         assertEquals(0.22, summary.getAwaitingPayment());
         assertEquals(0.94, summary.getEncumbered());
-        assertEquals(1.06, summary.getExpenditures());
+        assertEquals(2.08, summary.getExpenditures());
+        assertEquals(1.02, summary.getCredits());
         assertEquals(2.22, summary.getUnavailable());
         assertEquals(1.48, summary.getAvailable());
         assertEquals(3.15, summary.getTotalFunding());
@@ -160,6 +163,7 @@ public class FiscalYearApiServiceTest {
         assertEquals(0d, summary.getAwaitingPayment());
         assertEquals(0d, summary.getEncumbered());
         assertEquals(0d, summary.getExpenditures());
+        assertEquals(0d, summary.getCredits());
         assertEquals(0d, summary.getUnavailable());
         assertEquals(0d, summary.getAvailable());
         assertEquals(0d, summary.getTotalFunding());

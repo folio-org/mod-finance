@@ -173,7 +173,8 @@ public class BudgetServiceTest {
     budgetFromStorage.setAllocated(200.12);
     budgetFromStorage.setAvailable(101.12);
     budgetFromStorage.setUnavailable(100d);
-    budgetFromStorage.setExpenditures(55d);
+    budgetFromStorage.setExpenditures(65d);
+    budgetFromStorage.setCredits(10d);
     budgetFromStorage.setAwaitingPayment(12.5);
     budgetFromStorage.setEncumbered(42.5);
     budgetFromStorage.setOverEncumbrance(5d);
@@ -201,6 +202,7 @@ public class BudgetServiceTest {
         assertEquals(budgetFromStorage.getUnavailable(), sharedBudget.getUnavailable());
         assertEquals(budgetFromStorage.getEncumbered(), sharedBudget.getEncumbered());
         assertEquals(budgetFromStorage.getExpenditures(), sharedBudget.getExpenditures());
+        assertEquals(budgetFromStorage.getCredits(), sharedBudget.getCredits());
         assertEquals(budgetFromStorage.getAwaitingPayment(), sharedBudget.getAwaitingPayment());
         assertEquals(budgetFromStorage.getNetTransfers(), sharedBudget.getNetTransfers());
         assertEquals(budgetFromStorage.getOverExpended(), sharedBudget.getOverExpended());
@@ -222,7 +224,8 @@ public class BudgetServiceTest {
       .withUnavailable(9686.55)
       .withAwaitingPayment(150.60)
       .withEncumbered(7307.4)
-      .withExpenditures(2228.55);
+      .withExpenditures(2228.55)
+      .withCredits(80.05);
 
     when(restClient.get(anyString(), eq(Budget.class), any())).thenReturn(succeededFuture(budgetFromStorage));
 

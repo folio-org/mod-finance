@@ -289,7 +289,9 @@ public class BudgetsApiTest {
       .withEncumbered(0d)
       .withAwaitingPayment(50d)
       .withExpended(100d)
-      .withPercentageExpended(100d);
+      .withPercentageExpended(100d)
+      .withCredited(10d)
+      .withPercentageCredited(10d);
     BudgetExpenseClassTotalsCollection expectedExpenseClassTotalsCollection = new BudgetExpenseClassTotalsCollection();
     expectedExpenseClassTotalsCollection.withBudgetExpenseClassTotals(Collections.singletonList(expenseClassTotal))
       .withTotalRecords(1);
