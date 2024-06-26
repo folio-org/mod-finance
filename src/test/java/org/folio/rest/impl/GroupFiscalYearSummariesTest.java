@@ -3,6 +3,7 @@ package org.folio.rest.impl;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.MockServer.addMockEntry;
+import static org.folio.rest.util.RestTestUtils.verifyGet;
 import static org.folio.rest.util.TestConfig.clearServiceInteractions;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
@@ -185,6 +186,7 @@ public class GroupFiscalYearSummariesTest {
     assertEquals(0d, groupFiscalYearSummary2.getEncumbered());
     assertEquals(0d, groupFiscalYearSummary2.getAwaitingPayment());
     assertEquals(0d, groupFiscalYearSummary2.getExpenditures());
+    assertEquals(0d, groupFiscalYearSummary2.getCredits());
     assertEquals(0d, groupFiscalYearSummary2.getOverExpended());
     assertEquals(300.0, groupFiscalYearSummary2.getCashBalance());
     assertEquals(0d, groupFiscalYearSummary2.getOverEncumbrance());
@@ -269,7 +271,10 @@ public class GroupFiscalYearSummariesTest {
   void testGetCollectionGffyNotFound() {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Group Fund Fiscal Years Not Found ===");
 
-    GroupFiscalYearSummaryCollection collection = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + UUID.randomUUID() + ")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    GroupFiscalYearSummaryCollection collection =
+      verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + UUID.randomUUID() + ")"),
+        APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+
     assertThat(collection.getTotalRecords(), is(0));
     assertThat(collection.getTotalRecords(), is(0));
   }
@@ -279,7 +284,9 @@ public class GroupFiscalYearSummariesTest {
     logger.info("=== Test Get Group Fiscal Year Summaries Collection - Budgets Not Found ===");
     GroupFundFiscalYear groupFundFiscalYear = buildGroupFundFiscalYear(UUID.randomUUID().toString(), UUID.randomUUID().toString());
     addMockEntry(GROUP_FUND_FISCAL_YEAR.name(), JsonObject.mapFrom(groupFundFiscalYear));
-    GroupFiscalYearSummaryCollection collection = RestTestUtils.verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + groupFundFiscalYear.getId() +")"), APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
+    var collection =
+      verifyGet(HelperUtils.getEndpoint(FinanceGroupFiscalYearSummaries.class) + RestTestUtils.buildQueryParam("id==(" + groupFundFiscalYear.getId() +")"),
+        APPLICATION_JSON, OK.getStatusCode()).as(GroupFiscalYearSummaryCollection.class);
 
     assertThat(collection.getTotalRecords(), is(1));
     assertThat(collection.getGroupFiscalYearSummaries(), hasSize(1));
