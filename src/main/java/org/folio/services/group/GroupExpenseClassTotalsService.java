@@ -85,10 +85,10 @@ public class GroupExpenseClassTotalsService {
 
     List<Transaction> payments = transactions.stream()
       .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.PAYMENT)
-      .collect(Collectors.toList());
+      .toList();
     List<Transaction> credits = transactions.stream()
       .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.CREDIT)
-      .collect(Collectors.toList());
+      .toList();
 
     double expendedGrandTotal = calculateTransactionsAmount(payments);
     double creditedGrandTotal = calculateTransactionsAmount(credits);

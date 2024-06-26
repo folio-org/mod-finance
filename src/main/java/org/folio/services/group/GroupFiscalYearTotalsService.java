@@ -103,7 +103,7 @@ public class GroupFiscalYearTotalsService {
    * allocated = initialAllocation + allocationTo - allocationFrom <br>
    * totalFunding = allocated + netTransfers <br>
    * available = totalFunding - unavailable <br>
-   * cashBalance = totalFunding - expended <br>
+   * cashBalance = totalFunding - expended + credited <br>
    * overEncumbered = encumbered - totalFunding <br>
    * overExpended = expended - credited + awaitingPayment - totalFunding
    * </p>
@@ -132,7 +132,7 @@ public class GroupFiscalYearTotalsService {
 
       BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());
       BigDecimal credited = BigDecimal.valueOf(summary.getCredits());
-      summary.withCashBalance(totalFunding.subtract(expended).doubleValue());
+      summary.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
       BigDecimal encumbered = BigDecimal.valueOf(summary.getEncumbered());
       BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);

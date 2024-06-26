@@ -152,7 +152,8 @@ public class BudgetService {
     BigDecimal available = BigDecimal.valueOf(budget.getAvailable());
     BigDecimal unavailable = BigDecimal.valueOf(budget.getUnavailable());
 
-    //[amount we can expend] = (allocated * allowableExpenditure) - (allocated - (unavailable + available)) - (awaitingPayment + expended)
+    //[amount we can expend] = (allocated * allowableExpenditure) - (allocated - (unavailable + available)) -
+    // (expended - credited + awaitingPayment)
     if (budget.getAllowableExpenditure() != null) {
       log.info("checkRemainingExpenditure:: Budget '{}' allowable expenditure is not null", budget.getId());
       BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure())
