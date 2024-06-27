@@ -236,14 +236,14 @@ public class GroupFiscalYearSummariesTest {
             .withAvailable(450d)
             .withNetTransfers(0d)
             .withUnavailable(550d)
-            .withInitialAllocation(100d)
+            .withInitialAllocation(500d)
             .withAllocationTo(0d)
             .withAllocationFrom(0d)
             .withEncumbered(200d)
             .withAwaitingPayment(250d)
             .withExpenditures(60d)
             .withCredits(10d)
-            .withTotalFunding(950d)
+            .withTotalFunding(400d)
             .withCashBalance(900d)
             .withOverEncumbrance(0d)
             .withOverExpended(0d);
@@ -260,21 +260,21 @@ public class GroupFiscalYearSummariesTest {
     Map<String, List<GroupFiscalYearSummary>> actualSummariesMap = actualSummaries.stream().collect(Collectors.groupingBy(GroupFiscalYearSummary::getGroupId));
 
     GroupFiscalYearSummary groupFiscalYearSummary = actualSummariesMap.get(firstGroupFundFiscalYear.getGroupId()).get(0);
-    assertEquals(200d, groupFiscalYearSummary.getAllocated());
-    assertEquals(200d, groupFiscalYearSummary.getTotalFunding());
-    assertEquals(-350d, groupFiscalYearSummary.getAvailable());
+    assertEquals(600d, groupFiscalYearSummary.getAllocated());
+    assertEquals(600d, groupFiscalYearSummary.getTotalFunding());
+    assertEquals(50d, groupFiscalYearSummary.getAvailable());
     assertEquals(550d, groupFiscalYearSummary.getUnavailable());
     assertEquals(0d, groupFiscalYearSummary.getNetTransfers());
-    assertEquals(200d, groupFiscalYearSummary.getInitialAllocation());
+    assertEquals(600d, groupFiscalYearSummary.getInitialAllocation());
     assertEquals(0d, groupFiscalYearSummary.getAllocationTo());
     assertEquals(0d, groupFiscalYearSummary.getAllocationFrom());
     assertEquals(200d, groupFiscalYearSummary.getEncumbered());
     assertEquals(250d, groupFiscalYearSummary.getAwaitingPayment());
     assertEquals(120d, groupFiscalYearSummary.getExpenditures());
     assertEquals(20d, groupFiscalYearSummary.getCredits());
-    assertEquals(100d, groupFiscalYearSummary.getCashBalance());
-    assertEquals(150d, groupFiscalYearSummary.getOverEncumbrance());
-    assertEquals(150d, groupFiscalYearSummary.getOverExpended());
+    assertEquals(500d, groupFiscalYearSummary.getCashBalance());
+    assertEquals(0d, groupFiscalYearSummary.getOverEncumbrance());
+    assertEquals(0d, groupFiscalYearSummary.getOverExpended());
   }
 
   @Test
