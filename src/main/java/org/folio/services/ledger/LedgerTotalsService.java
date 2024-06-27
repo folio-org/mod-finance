@@ -136,20 +136,15 @@ public class LedgerTotalsService {
    * <p>
    * allocated = initialAllocation + allocationTo - allocationFrom <br>
    * totalFunding = allocated + netTransfers <br>
+   * unavailable = encumbered + awaitingPayment - expended - credited <br>
    * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
    * cashBalance = totalFunding - expended + credited <br>
-   * overEncumbered = encumbered - totalFunding <br>
-   * overExpended = expended - credited + awaitingPayment - totalFunding
+   * overExpended = max(expended - credited + awaitingPayment - max(totalFunding, 0), 0) <br>
+   * overCommitted = max(unavailable - max(totalFunding, 0), 0) <br>
+   * overEncumbered = overCommitted - overExpended <br>
    * </p>
    * @param holder LedgerFiscalYearTransactionsHolder
    */
-  //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
-  //    #totalFunding = allocated.add(netTransfers)
-  //    #available = totalFunding.subtract(unavailable)
-  //    #cashBalance = totalFunding.subtract(expended)
-  //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overEncumbered = overCommitted.subtract(overExpended)
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
     Ledger ledger = holder.getLedger();
     double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
@@ -176,8 +171,10 @@ public class LedgerTotalsService {
       .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
     ledger.withOverExpended(overExpended.doubleValue());
 
-    BigDecimal available = totalFunding.subtract(
-      encumbered.add(awaitingPayment).add(expended).subtract(credited));
+    BigDecimal unavailableAmount = encumbered.add(awaitingPayment).add(expended).subtract(credited);
+    BigDecimal unavailable = unavailableAmount.max(BigDecimal.ZERO);
+    ledger.withUnavailable(unavailable.doubleValue());
+    BigDecimal available = totalFunding.subtract(unavailableAmount);
     ledger.withAvailable(available.doubleValue());
 
     BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);

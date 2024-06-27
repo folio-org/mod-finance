@@ -137,8 +137,10 @@ public class GroupFiscalYearTotalsService {
         .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
       summary.withOverExpended(overExpended.doubleValue());
 
-      BigDecimal available = totalFunding.subtract(
-        encumbered.add(awaitingPayment).add(expended).subtract(credited));
+      BigDecimal unavailableAmount = encumbered.add(awaitingPayment).add(expended).subtract(credited);
+      BigDecimal unavailable = unavailableAmount.max(BigDecimal.ZERO);
+      summary.withUnavailable(unavailable.doubleValue());
+      BigDecimal available = totalFunding.subtract(unavailableAmount);
       summary.withAvailable(available.doubleValue());
 
       BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
