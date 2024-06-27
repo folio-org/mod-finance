@@ -102,6 +102,7 @@ public class GroupFiscalYearTotalsService {
   //    #available = totalFunding.subtract(unavailable)
   //    #cashBalance = totalFunding.subtract(expended)
   //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
   //    #overEncumbered = overCommitted.subtract(overExpended)
   private void updateGroupSummaryWithCalculatedFields(List<GroupFiscalYearTransactionsHolder> holders) {
     holders.forEach(holder -> {
