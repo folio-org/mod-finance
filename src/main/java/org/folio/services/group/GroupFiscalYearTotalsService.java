@@ -101,8 +101,9 @@ public class GroupFiscalYearTotalsService {
   //    #totalFunding = allocated.add(netTransfers)
   //    #available = totalFunding.subtract(unavailable)
   //    #cashBalance = totalFunding.subtract(expended)
-  //    #overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
   //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overEncumbered = overCommitted.subtract(overExpended)
   private void updateGroupSummaryWithCalculatedFields(List<GroupFiscalYearTransactionsHolder> holders) {
     holders.forEach(holder -> {
       GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
@@ -127,13 +128,13 @@ public class GroupFiscalYearTotalsService {
       BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());
       summary.withCashBalance(totalFunding.subtract(expended).doubleValue());
 
-      BigDecimal encumbered = BigDecimal.valueOf(summary.getEncumbered());
-      BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
-      summary.withOverEncumbrance(overEncumbered.doubleValue());
-
       BigDecimal awaitingPayment = BigDecimal.valueOf(summary.getAwaitingPayment());
       BigDecimal overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
       summary.withOverExpended(overExpended.doubleValue());
+
+      BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      BigDecimal overEncumbered = overCommitted.subtract(overExpended);
+      summary.withOverEncumbrance(overEncumbered.doubleValue());
     });
   }
 
