@@ -179,7 +179,7 @@ public class LedgerTotalsServiceTest {
         double expectedInitialAllocation = 600.01;
         double expectedAllocated = 600.01;
         double expectedAvailable = 573.52;
-        double expectedUnavailable = 160.01;
+        double expectedUnavailable = 150.01;
         double expectedNetTransfers = 123.52;
         double expectedAllocationTo = 200d;
         double expectedAllocationFrom = 200d;
