@@ -115,8 +115,7 @@ public class GroupExpenseClassTotalsService {
   }
 
   private MonetaryAmount toMoney(Transaction transaction) {
-    MonetaryAmount amount = Money.of(transaction.getAmount(), transaction.getCurrency());
-    return transaction.getTransactionType() == Transaction.TransactionType.CREDIT ? amount.negate() : amount;
+    return Money.of(transaction.getAmount(), transaction.getCurrency());
   }
 
   private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions,
@@ -142,8 +141,8 @@ public class GroupExpenseClassTotalsService {
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
       percentageExpended = expendedGrandTotal == 0 ? null : calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
       percentageCredited = creditedGrandTotal == 0 ? null : calculateCreditedPercentage(Money.of(recalculatedBudget.getCredits(), currency), creditedGrandTotal);
-
     }
+
     log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, percentageExpended={}, credited={}, and percentageCredited= {}",
       encumbered, awaitingPayment, expended, percentageExpended, credited, percentageCredited);
     return new GroupExpenseClassTotal()

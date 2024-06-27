@@ -282,7 +282,7 @@ public class GroupExpenseClassTotalsServiceTest {
           .withEncumbered(11.31)
           .withAwaitingPayment(3d)
           .withCredited(5d)
-          .withPercentageCredited(-100d)
+          .withPercentageCredited(100d)
           .withExpended(100d)
           .withPercentageExpended(9.95);
 

@@ -102,10 +102,10 @@ public class GroupFiscalYearTotalsService {
    * <p>
    * allocated = initialAllocation + allocationTo - allocationFrom <br>
    * totalFunding = allocated + netTransfers <br>
-   * available = totalFunding - unavailable <br>
+   * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
    * cashBalance = totalFunding - expended + credited <br>
-   * overEncumbered = encumbered - totalFunding <br>
-   * overExpended = expended - credited + awaitingPayment - totalFunding
+   * overEncumbered = max(encumbered - max(totalFunding, 0), 0) <br>
+   * overExpended = max(expended - credited + awaitingPayment - max(totalFunding, 0), 0)
    * </p>
    * @param holders GroupFiscalYearTransactionsHolder list
    */
@@ -126,10 +126,6 @@ public class GroupFiscalYearTotalsService {
       BigDecimal totalFunding = allocated.add(netTransfers);
       summary.withTotalFunding(totalFunding.doubleValue());
 
-      BigDecimal unavailable = BigDecimal.valueOf(summary.getUnavailable());
-      BigDecimal available = totalFunding.subtract(unavailable);
-      summary.withAvailable(available.doubleValue());
-
       BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());
       BigDecimal credited = BigDecimal.valueOf(summary.getCredits());
       summary.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
@@ -139,8 +135,13 @@ public class GroupFiscalYearTotalsService {
       summary.withOverEncumbrance(overEncumbered.doubleValue());
 
       BigDecimal awaitingPayment = BigDecimal.valueOf(summary.getAwaitingPayment());
-      BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
+        .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
       summary.withOverExpended(overExpended.doubleValue());
+
+      BigDecimal available = totalFunding.subtract(
+        encumbered.add(awaitingPayment).add(expended).subtract(credited));
+      summary.withAvailable(available.doubleValue());
     });
   }
 
