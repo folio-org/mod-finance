@@ -273,7 +273,8 @@ public class GroupFiscalYearSummariesTest {
     assertEquals(120d, groupFiscalYearSummary.getExpenditures());
     assertEquals(20d, groupFiscalYearSummary.getCredits());
     assertEquals(100d, groupFiscalYearSummary.getCashBalance());
-
+    assertEquals(150d, groupFiscalYearSummary.getOverEncumbrance());
+    assertEquals(150d, groupFiscalYearSummary.getOverExpended());
   }
 
   @Test

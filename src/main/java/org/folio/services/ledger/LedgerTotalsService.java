@@ -143,6 +143,13 @@ public class LedgerTotalsService {
    * </p>
    * @param holder LedgerFiscalYearTransactionsHolder
    */
+  //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
+  //    #totalFunding = allocated.add(netTransfers)
+  //    #available = totalFunding.subtract(unavailable)
+  //    #cashBalance = totalFunding.subtract(expended)
+  //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
+  //    #overEncumbered = overCommitted.subtract(overExpended)
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
     Ledger ledger = holder.getLedger();
     double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
@@ -164,9 +171,6 @@ public class LedgerTotalsService {
     ledger.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
     BigDecimal encumbered = BigDecimal.valueOf(ledger.getEncumbered());
-    BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
-    ledger.withOverEncumbrance(overEncumbered.doubleValue());
-
     BigDecimal awaitingPayment = BigDecimal.valueOf(ledger.getAwaitingPayment());
     BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
       .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
@@ -175,5 +179,9 @@ public class LedgerTotalsService {
     BigDecimal available = totalFunding.subtract(
       encumbered.add(awaitingPayment).add(expended).subtract(credited));
     ledger.withAvailable(available.doubleValue());
+
+    BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+    BigDecimal overEncumbered = overCommitted.subtract(overExpended);
+    ledger.withOverEncumbrance(overEncumbered.doubleValue());
   }
 }

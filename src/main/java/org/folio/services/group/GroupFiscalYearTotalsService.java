@@ -104,8 +104,9 @@ public class GroupFiscalYearTotalsService {
    * totalFunding = allocated + netTransfers <br>
    * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
    * cashBalance = totalFunding - expended + credited <br>
-   * overEncumbered = max(encumbered - max(totalFunding, 0), 0) <br>
    * overExpended = max(expended - credited + awaitingPayment - max(totalFunding, 0), 0)
+   * overCommitted = max(unavailable - max(totalFunding, 0), 0)
+   * overEncumbered = overCommitted - overExpended <br>
    * </p>
    * @param holders GroupFiscalYearTransactionsHolder list
    */
@@ -131,9 +132,6 @@ public class GroupFiscalYearTotalsService {
       summary.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
       BigDecimal encumbered = BigDecimal.valueOf(summary.getEncumbered());
-      BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
-      summary.withOverEncumbrance(overEncumbered.doubleValue());
-
       BigDecimal awaitingPayment = BigDecimal.valueOf(summary.getAwaitingPayment());
       BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
         .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
@@ -142,6 +140,11 @@ public class GroupFiscalYearTotalsService {
       BigDecimal available = totalFunding.subtract(
         encumbered.add(awaitingPayment).add(expended).subtract(credited));
       summary.withAvailable(available.doubleValue());
+
+      BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      BigDecimal overEncumbered = overCommitted.subtract(overExpended);
+      summary.withOverEncumbrance(overEncumbered.doubleValue());
+
     });
   }
 
