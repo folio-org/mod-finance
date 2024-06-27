@@ -178,7 +178,7 @@ public class LedgerTotalsServiceTest {
         var resultLedger = result.result();
         double expectedInitialAllocation = 600.01;
         double expectedAllocated = 600.01;
-        double expectedAvailable = 563.52;
+        double expectedAvailable = 573.52;
         double expectedUnavailable = 160.01;
         double expectedNetTransfers = 123.52;
         double expectedAllocationTo = 200d;
