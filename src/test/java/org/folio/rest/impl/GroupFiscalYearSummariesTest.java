@@ -262,7 +262,7 @@ public class GroupFiscalYearSummariesTest {
     GroupFiscalYearSummary groupFiscalYearSummary = actualSummariesMap.get(firstGroupFundFiscalYear.getGroupId()).get(0);
     assertEquals(200d, groupFiscalYearSummary.getAllocated());
     assertEquals(200d, groupFiscalYearSummary.getTotalFunding());
-    assertEquals(-300d, groupFiscalYearSummary.getAvailable());
+    assertEquals(-350d, groupFiscalYearSummary.getAvailable());
     assertEquals(500d, groupFiscalYearSummary.getUnavailable());
     assertEquals(0d, groupFiscalYearSummary.getNetTransfers());
     assertEquals(200d, groupFiscalYearSummary.getInitialAllocation());

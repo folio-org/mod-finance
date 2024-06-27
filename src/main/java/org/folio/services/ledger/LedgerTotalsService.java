@@ -136,7 +136,7 @@ public class LedgerTotalsService {
    * <p>
    * allocated = initialAllocation + allocationTo - allocationFrom <br>
    * totalFunding = allocated + netTransfers <br>
-   * available = totalFunding - unavailable <br>
+   * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
    * cashBalance = totalFunding - expended + credited <br>
    * overEncumbered = encumbered - totalFunding <br>
    * overExpended = expended - credited + awaitingPayment - totalFunding
@@ -144,36 +144,36 @@ public class LedgerTotalsService {
    * @param holder LedgerFiscalYearTransactionsHolder
    */
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
-      Ledger ledger = holder.getLedger();
-      double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
-      double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), Transaction::getAmount);
-      BigDecimal netTransfers = BigDecimal.valueOf(toTransfer).subtract(BigDecimal.valueOf(fromTransfer));
-      ledger.withNetTransfers(netTransfers.doubleValue());
+    Ledger ledger = holder.getLedger();
+    double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
+    double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), Transaction::getAmount);
+    BigDecimal netTransfers = BigDecimal.valueOf(toTransfer).subtract(BigDecimal.valueOf(fromTransfer));
+    ledger.withNetTransfers(netTransfers.doubleValue());
 
-      BigDecimal initialAllocation = BigDecimal.valueOf(ledger.getInitialAllocation());
-      BigDecimal allocationTo = BigDecimal.valueOf(ledger.getAllocationTo());
-      BigDecimal allocationFrom = BigDecimal.valueOf(ledger.getAllocationFrom());
-      BigDecimal allocated = initialAllocation.add(allocationTo).subtract(allocationFrom);
-      ledger.withAllocated(allocated.doubleValue());
+    BigDecimal initialAllocation = BigDecimal.valueOf(ledger.getInitialAllocation());
+    BigDecimal allocationTo = BigDecimal.valueOf(ledger.getAllocationTo());
+    BigDecimal allocationFrom = BigDecimal.valueOf(ledger.getAllocationFrom());
+    BigDecimal allocated = initialAllocation.add(allocationTo).subtract(allocationFrom);
+    ledger.withAllocated(allocated.doubleValue());
 
-      BigDecimal totalFunding = allocated.add(netTransfers);
-      ledger.withTotalFunding(totalFunding.doubleValue());
+    BigDecimal totalFunding = allocated.add(netTransfers);
+    ledger.withTotalFunding(totalFunding.doubleValue());
 
-      BigDecimal unavailable = BigDecimal.valueOf(ledger.getUnavailable());
-      BigDecimal available = totalFunding.subtract(unavailable);
-      ledger.withAvailable(available.doubleValue());
+    BigDecimal expended = BigDecimal.valueOf(ledger.getExpenditures());
+    BigDecimal credited = BigDecimal.valueOf(ledger.getCredits());
+    ledger.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
-      BigDecimal expended = BigDecimal.valueOf(ledger.getExpenditures());
-      BigDecimal credited = BigDecimal.valueOf(ledger.getCredits());
-      ledger.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
+    BigDecimal encumbered = BigDecimal.valueOf(ledger.getEncumbered());
+    BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+    ledger.withOverEncumbrance(overEncumbered.doubleValue());
 
-      BigDecimal encumbered = BigDecimal.valueOf(ledger.getEncumbered());
-      BigDecimal overEncumbered = encumbered.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
-      ledger.withOverEncumbrance(overEncumbered.doubleValue());
+    BigDecimal awaitingPayment = BigDecimal.valueOf(ledger.getAwaitingPayment());
+    BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
+      .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+    ledger.withOverExpended(overExpended.doubleValue());
 
-      BigDecimal awaitingPayment = BigDecimal.valueOf(ledger.getAwaitingPayment());
-      BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
-        .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
-      ledger.withOverExpended(overExpended.doubleValue());
+    BigDecimal available = totalFunding.subtract(
+      encumbered.add(awaitingPayment).add(expended).subtract(credited));
+    ledger.withAvailable(available.doubleValue());
   }
 }
