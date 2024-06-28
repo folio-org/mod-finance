@@ -122,8 +122,7 @@ public class LedgerTotalsService {
   }
 
   private LedgerFiscalYearTransactionsHolder buildHolderSkeleton(String fiscalYearId, Ledger ledger, List<Budget> budgets) {
-    ledger.withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
-      .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
+    ledger.withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
       .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
