@@ -2,6 +2,8 @@ package org.folio.services.budget;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static org.folio.rest.util.MoneyUtils.calculateCreditedPercentage;
+import static org.folio.rest.util.MoneyUtils.calculateExpendedPercentage;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 
@@ -25,7 +27,6 @@ import org.folio.rest.jaxrs.model.BudgetExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.TransactionService;
 
@@ -60,6 +61,7 @@ public class BudgetExpenseClassTotalsService {
 
   private BudgetExpenseClassTotalsCollection buildBudgetExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions, Budget budget) {
     double totalExpended = budget.getExpenditures();
+    double totalCredited = budget.getCredits();
 
     Map<String, List<Transaction>> groupedByExpenseClassId = transactions.stream()
       .filter(transaction -> Objects.nonNull(transaction.getExpenseClassId()))
@@ -68,35 +70,41 @@ public class BudgetExpenseClassTotalsService {
     Map<ExpenseClass, List<Transaction>> groupedByExpenseClass = expenseClasses.stream()
       .collect(toMap(Function.identity(), expenseClass -> groupedByExpenseClassId.getOrDefault(expenseClass.getId(), Collections.emptyList())));
 
-    List<BudgetExpenseClassTotal> budgetExpenseClassTotals = buildBudgetExpenseClassesTotals(groupedByExpenseClass, totalExpended);
+    List<BudgetExpenseClassTotal> budgetExpenseClassTotals = buildBudgetExpenseClassesTotals(groupedByExpenseClass, totalExpended, totalCredited);
 
     return new BudgetExpenseClassTotalsCollection()
       .withBudgetExpenseClassTotals(budgetExpenseClassTotals)
       .withTotalRecords(budgetExpenseClassTotals.size());
   }
 
-  private List<BudgetExpenseClassTotal> buildBudgetExpenseClassesTotals(Map<ExpenseClass, List<Transaction>> groupedByExpenseClass, double totalExpended) {
+  private List<BudgetExpenseClassTotal> buildBudgetExpenseClassesTotals(Map<ExpenseClass, List<Transaction>> groupedByExpenseClass,
+                                                                        double totalExpended, double totalCredited) {
     return groupedByExpenseClass.entrySet().stream()
-      .map(entry -> buildBudgetExpenseClassTotals(entry.getKey(), entry.getValue(), totalExpended))
+      .map(entry -> buildBudgetExpenseClassTotals(entry.getKey(), entry.getValue(), totalExpended, totalCredited))
       .collect(Collectors.toList());
   }
 
-  private BudgetExpenseClassTotal buildBudgetExpenseClassTotals(ExpenseClass expenseClass, List<Transaction> transactions, double totalExpended) {
+  private BudgetExpenseClassTotal buildBudgetExpenseClassTotals(ExpenseClass expenseClass, List<Transaction> transactions,
+                                                                double totalExpended, double totalCredited) {
+    double credited = 0d;
     double expended = 0d;
     double encumbered = 0d;
     double awaitingPayment = 0d;
     Double expendedPercentage = 0d;
+    Double creditedPercentage = 0d;
 
     if (CollectionUtils.isNotEmpty(transactions)) {
       RecalculatedBudgetBuilder budgetBuilder = new RecalculatedBudgetBuilder(transactions);
-      SharedBudget recalculatedBudget = budgetBuilder.withEncumbered().withAwaitingPayment().withExpended().build();
+      SharedBudget recalculatedBudget = budgetBuilder.withEncumbered().withAwaitingPayment().withExpended().withCredited().build();
 
       expended = recalculatedBudget.getExpenditures();
+      credited = recalculatedBudget.getCredits();
       encumbered = recalculatedBudget.getEncumbered();
       awaitingPayment = recalculatedBudget.getAwaitingPayment();
 
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
-      expendedPercentage = totalExpended == 0 ? null : MoneyUtils.calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), totalExpended);
+      expendedPercentage = totalExpended == 0 ? null : calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), totalExpended);
+      creditedPercentage = totalCredited == 0 ? null : calculateCreditedPercentage(Money.of(recalculatedBudget.getCredits(), currency), totalCredited);
     }
 
     return new BudgetExpenseClassTotal()
@@ -105,7 +113,9 @@ public class BudgetExpenseClassTotalsService {
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
       .withExpended(expended)
-      .withPercentageExpended(expendedPercentage);
+      .withPercentageExpended(expendedPercentage)
+      .withCredited(credited)
+      .withPercentageCredited(creditedPercentage);
   }
 
   private BudgetExpenseClassTotalsCollection updateExpenseClassStatus(BudgetExpenseClassTotalsCollection budgetExpenseClassTotalsCollection,

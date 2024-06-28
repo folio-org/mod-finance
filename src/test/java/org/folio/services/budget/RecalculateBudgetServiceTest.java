@@ -103,7 +103,8 @@ public class RecalculateBudgetServiceTest {
         assertEquals(50d, capturedBudget.getNetTransfers()); // transferTo - transferFrom
         assertEquals(120d, capturedBudget.getEncumbered()); // encumbrance
         assertEquals(30d, capturedBudget.getAwaitingPayment()); // pendingPayment1 + pendingPayment2
-        assertEquals(-30d, capturedBudget.getExpenditures()); // credit - payment
+        assertEquals(60d, capturedBudget.getExpenditures()); // payment
+        assertEquals(90d, capturedBudget.getCredits()); // credit
 
         vertxTestContext.completeNow();
       }).onFailure(vertxTestContext::failNow);
@@ -135,6 +136,7 @@ public class RecalculateBudgetServiceTest {
         assertEquals(0d, capturedBudget.getEncumbered());
         assertEquals(0d, capturedBudget.getAwaitingPayment());
         assertEquals(0d, capturedBudget.getExpenditures());
+        assertEquals(0d, capturedBudget.getCredits());
 
         vertxTestContext.completeNow();
       }).onFailure(vertxTestContext::failNow);

@@ -7,6 +7,7 @@
       "description": "PO_Line: History of Incas",
       "encumbrance": {
         "amountExpended": 1567.92,
+        "amountCredited": 0,
         "amountAwaitingPayment": 12.50,
         "initialAmountEncumbered": 1720.50,
         "status": "Unreleased",

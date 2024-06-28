@@ -122,21 +122,28 @@ public class LedgerTotalsService {
   }
 
   private LedgerFiscalYearTransactionsHolder buildHolderSkeleton(String fiscalYearId, Ledger ledger, List<Budget> budgets) {
-    ledger.withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
-      .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
+    ledger.withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
-      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures));
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withCredits(HelperUtils.calculateTotals(budgets, Budget::getCredits));
     return new LedgerFiscalYearTransactionsHolder(fiscalYearId, ledger, budgets);
   }
 
-  //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
-  //    #totalFunding = allocated.add(netTransfers)
-  //    #available = totalFunding.subtract(unavailable)
-  //    #cashBalance = totalFunding.subtract(expended)
-  //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overEncumbered = overCommitted.subtract(overExpended)
+  /**
+   * The method follows this formula: <br>
+   * <p>
+   * allocated = initialAllocation + allocationTo - allocationFrom <br>
+   * totalFunding = allocated + netTransfers <br>
+   * unavailable = encumbered + awaitingPayment - expended - credited <br>
+   * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
+   * cashBalance = totalFunding - expended + credited <br>
+   * overExpended = max(expended - credited + awaitingPayment - max(totalFunding, 0), 0) <br>
+   * overCommitted = max(unavailable - max(totalFunding, 0), 0) <br>
+   * overEncumbered = overCommitted - overExpended <br>
+   * </p>
+   * @param holder LedgerFiscalYearTransactionsHolder
+   */
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
     Ledger ledger = holder.getLedger();
     double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
@@ -153,16 +160,21 @@ public class LedgerTotalsService {
     BigDecimal totalFunding = allocated.add(netTransfers);
     ledger.withTotalFunding(totalFunding.doubleValue());
 
-    BigDecimal unavailable = BigDecimal.valueOf(ledger.getUnavailable());
-    BigDecimal available = totalFunding.subtract(unavailable);
-    ledger.withAvailable(available.doubleValue());
-
     BigDecimal expended = BigDecimal.valueOf(ledger.getExpenditures());
-    ledger.withCashBalance(totalFunding.subtract(expended).doubleValue());
+    BigDecimal credited = BigDecimal.valueOf(ledger.getCredits());
+    ledger.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
+    BigDecimal encumbered = BigDecimal.valueOf(ledger.getEncumbered());
     BigDecimal awaitingPayment = BigDecimal.valueOf(ledger.getAwaitingPayment());
-    BigDecimal overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+    BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
+      .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
     ledger.withOverExpended(overExpended.doubleValue());
+
+    BigDecimal unavailableAmount = encumbered.add(awaitingPayment).add(expended).subtract(credited);
+    BigDecimal unavailable = unavailableAmount.max(BigDecimal.ZERO);
+    ledger.withUnavailable(unavailable.doubleValue());
+    BigDecimal available = totalFunding.subtract(unavailableAmount);
+    ledger.withAvailable(available.doubleValue());
 
     BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
     BigDecimal overEncumbered = overCommitted.subtract(overExpended);

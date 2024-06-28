@@ -97,13 +97,19 @@ public class GroupFiscalYearTotalsService {
         .map(v -> convertHolders(holders)));
   }
 
-  //    #allocated = initialAllocation.add(allocationTo).subtract(allocationFrom)
-  //    #totalFunding = allocated.add(netTransfers)
-  //    #available = totalFunding.subtract(unavailable)
-  //    #cashBalance = totalFunding.subtract(expended)
-  //    #overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO)
-  //    #overEncumbered = overCommitted.subtract(overExpended)
+  /**
+   * The method follows this formula: <br>
+   * <p>
+   * allocated = initialAllocation + allocationTo - allocationFrom <br>
+   * totalFunding = allocated + netTransfers <br>
+   * available = totalFunding - (encumbered + awaitingPayment - expended - credited) <br>
+   * cashBalance = totalFunding - expended + credited <br>
+   * overExpended = max(expended - credited + awaitingPayment - max(totalFunding, 0), 0)
+   * overCommitted = max(unavailable - max(totalFunding, 0), 0)
+   * overEncumbered = overCommitted - overExpended <br>
+   * </p>
+   * @param holders GroupFiscalYearTransactionsHolder list
+   */
   private void updateGroupSummaryWithCalculatedFields(List<GroupFiscalYearTransactionsHolder> holders) {
     holders.forEach(holder -> {
       GroupFiscalYearSummary summary = holder.getGroupFiscalYearSummary();
@@ -121,20 +127,26 @@ public class GroupFiscalYearTotalsService {
       BigDecimal totalFunding = allocated.add(netTransfers);
       summary.withTotalFunding(totalFunding.doubleValue());
 
-      BigDecimal unavailable = BigDecimal.valueOf(summary.getUnavailable());
-      BigDecimal available = totalFunding.subtract(unavailable);
-      summary.withAvailable(available.doubleValue());
-
       BigDecimal expended = BigDecimal.valueOf(summary.getExpenditures());
-      summary.withCashBalance(totalFunding.subtract(expended).doubleValue());
+      BigDecimal credited = BigDecimal.valueOf(summary.getCredits());
+      summary.withCashBalance(totalFunding.subtract(expended).add(credited).doubleValue());
 
+      BigDecimal encumbered = BigDecimal.valueOf(summary.getEncumbered());
       BigDecimal awaitingPayment = BigDecimal.valueOf(summary.getAwaitingPayment());
-      BigDecimal overExpended = expended.add(awaitingPayment).subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
+      BigDecimal overExpended = expended.subtract(credited).add(awaitingPayment)
+        .subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
       summary.withOverExpended(overExpended.doubleValue());
+
+      BigDecimal unavailableAmount = encumbered.add(awaitingPayment).add(expended).subtract(credited);
+      BigDecimal unavailable = unavailableAmount.max(BigDecimal.ZERO);
+      summary.withUnavailable(unavailable.doubleValue());
+      BigDecimal available = totalFunding.subtract(unavailableAmount);
+      summary.withAvailable(available.doubleValue());
 
       BigDecimal overCommitted = unavailable.subtract(totalFunding.max(BigDecimal.ZERO)).max(BigDecimal.ZERO);
       BigDecimal overEncumbered = overCommitted.subtract(overExpended);
       summary.withOverEncumbrance(overEncumbered.doubleValue());
+
     });
   }
 
@@ -193,6 +205,7 @@ public class GroupFiscalYearTotalsService {
       .withAwaitingPayment(0d)
       .withEncumbered(0d)
       .withExpenditures(0d)
+      .withCredits(0d)
       .withNetTransfers(0d)
       .withInitialAllocation(0d)
       .withTotalFunding(0d)
@@ -205,11 +218,11 @@ public class GroupFiscalYearTotalsService {
     GroupFiscalYearSummary summary = buildDefaultGroupFiscalYearSummary(fiscalYearId, groupId);
 
     summary
-      .withUnavailable(HelperUtils.calculateTotals(budgets, Budget::getUnavailable))
       .withInitialAllocation(HelperUtils.calculateTotals(budgets, Budget::getInitialAllocation))
       .withAwaitingPayment(HelperUtils.calculateTotals(budgets, Budget::getAwaitingPayment))
       .withEncumbered(HelperUtils.calculateTotals(budgets, Budget::getEncumbered))
-      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures));
+      .withExpenditures(HelperUtils.calculateTotals(budgets, Budget::getExpenditures))
+      .withCredits(HelperUtils.calculateTotals(budgets, Budget::getCredits));
     return summary;
   }
 
@@ -309,6 +322,9 @@ public class GroupFiscalYearTotalsService {
       .doubleValue());
     original.setExpenditures(BigDecimal.valueOf(original.getExpenditures())
       .add(BigDecimal.valueOf(update.getExpenditures()))
+      .doubleValue());
+    original.setCredits(BigDecimal.valueOf(original.getCredits())
+      .add(BigDecimal.valueOf(update.getCredits()))
       .doubleValue());
     original.setTotalFunding(BigDecimal.valueOf(original.getTotalFunding())
       .add(BigDecimal.valueOf(update.getTotalFunding()))

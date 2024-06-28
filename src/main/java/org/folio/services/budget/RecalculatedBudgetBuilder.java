@@ -39,6 +39,7 @@ public class RecalculatedBudgetBuilder {
   private double encumbered = 0d;
   private double awaitingPayment = 0d;
   private double expended = 0d;
+  private double credited = 0d;
 
   private boolean initialAllocationSet = false;
 
@@ -152,7 +153,17 @@ public class RecalculatedBudgetBuilder {
    */
   public RecalculatedBudgetBuilder withExpended() {
     expended = MoneyUtils.calculateTotalAmount(getTransactionByType(PAYMENT), currency)
-      .subtract(MoneyUtils.calculateTotalAmount(getTransactionByType(CREDIT), currency))
+      .with(Monetary.getDefaultRounding()).getNumber().doubleValue();
+    return this;
+  }
+
+  /**
+   * Sets the credited amount based on the sum of 'Credit' transactions.
+   *
+   * @return This RecalculatedBudgetBuilder instance for method chaining
+   */
+  public RecalculatedBudgetBuilder withCredited() {
+    credited = MoneyUtils.calculateTotalAmount(getTransactionByType(CREDIT), currency)
       .with(Monetary.getDefaultRounding()).getNumber().doubleValue();
     return this;
   }
@@ -170,7 +181,8 @@ public class RecalculatedBudgetBuilder {
       .withNetTransfers(netTransfers)
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
-      .withExpenditures(expended);
+      .withExpenditures(expended)
+      .withCredits(credited);
   }
 
   private List<Transaction> getSortedAllocationToList(String fundId) {

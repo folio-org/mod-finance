@@ -27,6 +27,7 @@ import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.transactions.TransactionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,14 +58,22 @@ public class GroupExpenseClassTotalsServiceTest {
   @Mock
   private RequestContext requestContext;
 
+  @Mock
+  private AutoCloseable closeable;
+
   private String groupId;
   private String fiscalYearId;
 
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     groupId = UUID.randomUUID().toString();
     fiscalYearId = UUID.randomUUID().toString();
+  }
+
+  @AfterEach
+  public void releaseMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -154,6 +163,8 @@ public class GroupExpenseClassTotalsServiceTest {
         assertEquals(expenseClass.getName(), groupExpenseClassTotal.getExpenseClassName());
         assertEquals(0d, groupExpenseClassTotal.getExpended());
         assertEquals(0d, groupExpenseClassTotal.getPercentageExpended());
+        assertEquals(0d, groupExpenseClassTotal.getCredited());
+        assertEquals(0d, groupExpenseClassTotal.getPercentageCredited());
 
         verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(eq(groupId), eq(fiscalYearId), eq(requestContext));
         verify(transactionServiceMock).getTransactionsByFundIds(eq(Collections.singletonList(groupFundFiscalYear.getFundId())), eq(fiscalYearId), eq(requestContext));
@@ -264,21 +275,26 @@ public class GroupExpenseClassTotalsServiceTest {
       .onComplete(result -> {
         var groupExpenseClassTotalsCollection = result.result();
         assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(2));
+
         GroupExpenseClassTotal expected1 = new GroupExpenseClassTotal()
           .withExpenseClassName(expenseClass1.getName())
           .withId(expenseClassId1)
           .withEncumbered(11.31)
           .withAwaitingPayment(3d)
-          .withExpended(95d)
-          .withPercentageExpended(9.5);
+          .withCredited(5d)
+          .withPercentageCredited(100d)
+          .withExpended(100d)
+          .withPercentageExpended(9.95);
 
         GroupExpenseClassTotal expected2 = new GroupExpenseClassTotal()
           .withExpenseClassName(expenseClass2.getName())
           .withId(expenseClassId2)
           .withEncumbered(41.32)
           .withAwaitingPayment(0d)
+          .withCredited(0d)
+          .withPercentageCredited(0d)
           .withExpended(905d)
-          .withPercentageExpended(90.5);
+          .withPercentageExpended(90.05);
 
         assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), containsInAnyOrder(expected1, expected2));
 

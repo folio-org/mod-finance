@@ -3,6 +3,8 @@ package org.folio.services.group;
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.folio.rest.util.MoneyUtils.calculateCreditedPercentage;
+import static org.folio.rest.util.MoneyUtils.calculateExpendedPercentage;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,7 +27,6 @@ import org.folio.rest.jaxrs.model.GroupExpenseClassTotalsCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.util.MoneyUtils;
 import org.folio.services.ExpenseClassService;
 import org.folio.services.budget.RecalculatedBudgetBuilder;
 import org.folio.services.transactions.TransactionService;
@@ -75,26 +76,31 @@ public class GroupExpenseClassTotalsService {
     return expenseClassService.getExpenseClassesByBudgetIds(budgetIds, requestContext);
   }
 
-  private GroupExpenseClassTotalsCollection buildGroupExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions) {
+  private GroupExpenseClassTotalsCollection buildGroupExpenseClassesTotals(List<ExpenseClass> expenseClasses,
+                                                                           List<Transaction> transactions) {
     log.debug("buildGroupExpenseClassesTotals:: Building Group Expense classes totals");
     Map<String, List<Transaction>> expenseClassIdTransactionsMap = transactions.stream()
       .filter(transaction -> StringUtils.isNotEmpty(transaction.getExpenseClassId()))
       .collect(groupingBy(Transaction::getExpenseClassId));
 
-    List<Transaction> paymentsCredits = transactions.stream()
-            .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.PAYMENT
-                    || transaction.getTransactionType() == Transaction.TransactionType.CREDIT)
-            .collect(Collectors.toList());
+    List<Transaction> payments = transactions.stream()
+      .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.PAYMENT)
+      .toList();
+    List<Transaction> credits = transactions.stream()
+      .filter(transaction -> transaction.getTransactionType() == Transaction.TransactionType.CREDIT)
+      .toList();
 
-    double expendedGrandTotal = calculateTransactionsAmount(paymentsCredits);
+    double expendedGrandTotal = calculateTransactionsAmount(payments);
+    double creditedGrandTotal = calculateTransactionsAmount(credits);
 
-    List<GroupExpenseClassTotal> groupExpenseClassTotals =  expenseClasses.stream()
+    List<GroupExpenseClassTotal> groupExpenseClassTotals = expenseClasses.stream()
       .map(expenseClass -> buildGroupExpenseClassTotal(expenseClass,
-        expenseClassIdTransactionsMap.getOrDefault(expenseClass.getId(),  Collections.emptyList()),
-        expendedGrandTotal))
+        expenseClassIdTransactionsMap.getOrDefault(expenseClass.getId(), Collections.emptyList()),
+        expendedGrandTotal, creditedGrandTotal))
       .collect(toList());
 
-    log.info("buildGroupExpenseClassesTotals:: Creating collection for groupExpenseClassTotals with '{}' element(s) and expendedGrandTotal '{}'", groupExpenseClassTotals.size(), expendedGrandTotal);
+    log.info("buildGroupExpenseClassesTotals:: Creating collection for groupExpenseClassTotals with '{}' element(s) and expendedGrandTotal '{}'",
+      groupExpenseClassTotals.size(), expendedGrandTotal);
     return new GroupExpenseClassTotalsCollection()
       .withGroupExpenseClassTotals(groupExpenseClassTotals)
       .withTotalRecords(groupExpenseClassTotals.size());
@@ -109,37 +115,45 @@ public class GroupExpenseClassTotalsService {
   }
 
   private MonetaryAmount toMoney(Transaction transaction) {
-    MonetaryAmount amount = Money.of(transaction.getAmount(), transaction.getCurrency());
-    return transaction.getTransactionType() == Transaction.TransactionType.CREDIT ? amount.negate() : amount;
+    return Money.of(transaction.getAmount(), transaction.getCurrency());
   }
 
-  private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions, double expendedGrandTotal) {
+  private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions,
+                                                             double expendedGrandTotal, double creditedGrandTotal) {
     log.debug("buildGroupExpenseClassTotal:: Building group expense class totals by using expendedGrandTotal={} and '{}' transaction(s)", expendedGrandTotal, transactions);
     double expended = 0d;
+    double credited = 0d;
     double encumbered = 0d;
     double awaitingPayment = 0d;
     Double percentageExpended = 0d;
+    Double percentageCredited = 0d;
 
     if (CollectionUtils.isNotEmpty(transactions)) {
       RecalculatedBudgetBuilder budgetBuilder = new RecalculatedBudgetBuilder(transactions);
-      SharedBudget recalculatedBudget = budgetBuilder.withEncumbered().withAwaitingPayment().withExpended().build();
+      SharedBudget recalculatedBudget = budgetBuilder.withEncumbered().withAwaitingPayment()
+        .withExpended().withCredited().build();
 
       expended = recalculatedBudget.getExpenditures();
+      credited = recalculatedBudget.getCredits();
       encumbered = recalculatedBudget.getEncumbered();
       awaitingPayment = recalculatedBudget.getAwaitingPayment();
 
       CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
-      percentageExpended = expendedGrandTotal == 0 ? null : MoneyUtils.calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
+      percentageExpended = expendedGrandTotal == 0 ? null : calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), expendedGrandTotal);
+      percentageCredited = creditedGrandTotal == 0 ? null : calculateCreditedPercentage(Money.of(recalculatedBudget.getCredits(), currency), creditedGrandTotal);
     }
-    log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, and percentageExpended={}",
-      encumbered, awaitingPayment, expended, percentageExpended);
+
+    log.info("buildGroupExpenseClassTotal:: Creating groupExpenseClass total for encumbered={}, awaitingPayment={}, expended={}, percentageExpended={}, credited={}, and percentageCredited= {}",
+      encumbered, awaitingPayment, expended, percentageExpended, credited, percentageCredited);
     return new GroupExpenseClassTotal()
       .withId(expenseClass.getId())
       .withExpenseClassName(expenseClass.getName())
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
       .withExpended(expended)
-      .withPercentageExpended(percentageExpended);
+      .withPercentageExpended(percentageExpended)
+      .withCredited(credited)
+      .withPercentageCredited(percentageCredited);
   }
 
 }
