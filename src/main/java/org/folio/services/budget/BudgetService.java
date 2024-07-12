@@ -129,13 +129,20 @@ public class BudgetService {
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal credits = BigDecimal.valueOf(budget.getCredits());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
-    BigDecimal totalFunding = BigDecimal.valueOf(budget.getTotalFunding());
+    BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
+    BigDecimal netTransfers = BigDecimal.valueOf(budget.getNetTransfers());
 
-    //[remaining amount we can encumber] = (allocated * allowableEncumbered) - (encumbered + awaitingPayment + expended)
+    // [remaining amount we can encumber] = (allocated + netTransfers) * allowableEncumbered - (encumbered + awaitingPayment + expended - credits)
+    // calculations should be consistent with BatchTransactionChecks in mod-finance-storage
     if (budget.getAllowableEncumbrance() != null) {
       log.info("checkRemainingEncumbrance:: Budget '{}' allowable encumbrance is not null", budget.getId());
-      BigDecimal newAllowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
-      if (totalFunding.multiply(newAllowableEncumbrance).compareTo(encumbered.add(awaitingPayment).add(expenditures).subtract(credits)) < 0) {
+      BigDecimal allowableEncumbrance = BigDecimal.valueOf(budget.getAllowableEncumbrance()).movePointLeft(2);
+      BigDecimal totalFunding = allocated.add(netTransfers);
+      // unavailable amount shouldn't be negative
+      BigDecimal unavailable = ensureNonNegative(encumbered.add(awaitingPayment).add(expenditures).subtract(credits));
+
+      double remaining = totalFunding.multiply(allowableEncumbrance).subtract(unavailable).doubleValue();
+      if (remaining < 0) {
         log.error("checkRemainingEncumbrance:: Allowable encumbrance limit exceeded for budget: {}", budget.getId());
         return Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError());
       }
@@ -146,26 +153,30 @@ public class BudgetService {
   private List<Error> checkRemainingExpenditure(SharedBudget budget) {
     log.debug("checkRemainingExpenditure:: Check remaining expenditure for budget: {}", budget.getId());
     BigDecimal allocated = BigDecimal.valueOf(budget.getAllocated());
+    BigDecimal netTransfers = BigDecimal.valueOf(budget.getNetTransfers());
     BigDecimal expenditures = BigDecimal.valueOf(budget.getExpenditures());
     BigDecimal credits = BigDecimal.valueOf(budget.getCredits());
     BigDecimal awaitingPayment = BigDecimal.valueOf(budget.getAwaitingPayment());
-    BigDecimal available = BigDecimal.valueOf(budget.getAvailable());
-    BigDecimal unavailable = BigDecimal.valueOf(budget.getUnavailable());
 
-    //[amount we can expend] = (allocated * allowableExpenditure) - (allocated - (unavailable + available)) -
-    // (expended - credited + awaitingPayment)
+    // [remaining amount we can expend] = (allocated + netTransfers) * allowableExpenditure - (awaitingPayment + expended - credited)
+    // calculations should be consistent with BatchTransactionChecks in mod-finance-storage
     if (budget.getAllowableExpenditure() != null) {
       log.info("checkRemainingExpenditure:: Budget '{}' allowable expenditure is not null", budget.getId());
-      BigDecimal newAllowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure())
-        .movePointLeft(2);
-      if (allocated.multiply(newAllowableExpenditure)
-        .subtract(allocated.subtract(available.add(unavailable)))
-        .subtract(expenditures.subtract(credits).add(awaitingPayment))
-        .compareTo(BigDecimal.ZERO) < 0) {
+      BigDecimal allowableExpenditure = BigDecimal.valueOf(budget.getAllowableExpenditure()).movePointLeft(2);
+      BigDecimal totalFunding  = allocated.add(netTransfers);
+      // unavailable amount shouldn't be negative
+      BigDecimal unavailable = ensureNonNegative(awaitingPayment.add(expenditures).subtract(credits));
+
+      double remaining = totalFunding.multiply(allowableExpenditure).subtract(unavailable).doubleValue();
+      if (remaining < 0) {
         log.error("checkRemainingExpenditure:: Allowable expenditure limit exceed for budget: {}", budget.getId());
         return Collections.singletonList(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError());
       }
     }
     return Collections.emptyList();
+  }
+
+  private BigDecimal ensureNonNegative(BigDecimal amount) {
+    return amount.max(BigDecimal.ZERO);
   }
 }
