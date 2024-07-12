@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.core.AsyncResult;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -33,6 +34,7 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
+import org.folio.rest.util.ErrorCodes;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -155,14 +157,27 @@ public class BudgetServiceTest {
 
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
-        assertThat(result.cause(), IsInstanceOf.instanceOf(HttpException.class));
-        HttpException cause = (HttpException) result.cause();
-        Errors errors = new Errors().withErrors(Collections.singletonList(ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED.toError())).withTotalRecords(1);
-        assertEquals(422, cause.getCode());
-        assertEquals(errors, cause.getErrors());
+        verifyLimitExceeded(result, ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED);
+        vertxTestContext.completeNow();
+      });
+  }
 
-        verify(restClient).get(anyString(), eq(Budget.class), eq(requestContextMock));
-        verify(restClient, never()).put(anyString(), any(), any());
+  @Test
+  void testUpdateBudgetWithExceededAllowableEncumberedSimplifiedCase(VertxTestContext vertxTestContext) {
+    sharedBudget
+      .withAllowableEncumbrance(90d);
+
+    Budget budgetFromStorage = new Budget()
+      .withAllocated(10d)
+      .withEncumbered(10d);
+
+    when(restClient.get(anyString(), eq(Budget.class), any()))
+      .thenReturn(succeededFuture(budgetFromStorage));
+
+    Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        verifyLimitExceeded(result, ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED);
         vertxTestContext.completeNow();
       });
   }
@@ -232,17 +247,27 @@ public class BudgetServiceTest {
     Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
-        var exception = result.cause();
-        assertThat(exception, IsInstanceOf.instanceOf(HttpException.class));
-        HttpException cause = (HttpException) exception;
-        Errors errors = new Errors().withErrors(Collections.singletonList(ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED.toError())).withTotalRecords(1);
-        assertEquals(422, cause.getCode());
-        assertEquals(errors, cause.getErrors());
+        verifyLimitExceeded(result, ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED);
+        vertxTestContext.completeNow();
+      });
 
-        verify(restClient)
-          .get(assertQueryContains(sharedBudget.getId()), eq(Budget.class), eq(requestContextMock));
-        verify(restClient, never()).put(anyString(), any(), any());
+  }
 
+  @Test
+  void testUpdateBudgetWithExceededAllowableExpenditureSimplifiedCase(VertxTestContext vertxTestContext) {
+    sharedBudget
+      .withAllowableExpenditure(90d);
+
+    Budget budgetFromStorage = new Budget()
+      .withAllocated(10d)
+      .withAwaitingPayment(15d);
+
+    when(restClient.get(anyString(), eq(Budget.class), any())).thenReturn(succeededFuture(budgetFromStorage));
+
+    Future<Void> future = budgetService.updateBudget(sharedBudget, requestContextMock);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        verifyLimitExceeded(result, ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED);
         vertxTestContext.completeNow();
       });
 
@@ -286,4 +311,14 @@ public class BudgetServiceTest {
 
   }
 
+  private void verifyLimitExceeded(AsyncResult<Void> result, ErrorCodes errorCode) {
+    assertThat(result.cause(), IsInstanceOf.instanceOf(HttpException.class));
+    HttpException cause = (HttpException) result.cause();
+    Errors errors = new Errors().withErrors(Collections.singletonList(errorCode.toError())).withTotalRecords(1);
+    assertEquals(422, cause.getCode());
+    assertEquals(errors, cause.getErrors());
+
+    verify(restClient).get(anyString(), eq(Budget.class), eq(requestContextMock));
+    verify(restClient, never()).put(anyString(), any(), any());
+  }
 }

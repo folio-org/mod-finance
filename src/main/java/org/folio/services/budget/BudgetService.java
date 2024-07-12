@@ -177,6 +177,6 @@ public class BudgetService {
   }
 
   private BigDecimal ensureNonNegative(BigDecimal amount) {
-    return amount.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : amount;
+    return amount.max(BigDecimal.ZERO);
   }
 }
