@@ -85,17 +85,20 @@ public class TransactionApiService {
     return processBatch(batch, requestContext)
       .map(v -> allocation)
       .onSuccess(v -> log.info("Success creating allocation, id={}", allocation.getId()))
-      .onFailure(t -> {
+      .recover(t -> {
         log.error("Error creating allocation, id={}", allocation.getId(), t);
         if (t instanceof HttpException httpException) {
           var errorCode = httpException.getErrors().getErrors().get(0).getCode();
           if (errorCode.equals("budgetRestrictedExpendituresError")) {
             var params = httpException.getErrors().getErrors().get(0).getParameters();
-            String msg = String.format(ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.getDescription(), params.get(0));
-            var error = ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.toError().withMessage(msg).withParameters(params);
-            throw new HttpException(422, error);
+            String msg = String.format(ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.getDescription(),
+              params.get(0).getValue());
+            var error = ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.toError()
+              .withMessage(msg).withParameters(params);
+            return failedFuture(new HttpException(422, error));
           }
         }
+        return failedFuture(t);
       });
   }
 
