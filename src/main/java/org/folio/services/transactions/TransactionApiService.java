@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toMap;
 import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ALLOCATION;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
+import static org.folio.rest.util.ErrorCodes.ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_IDS_MISMATCH;
 import static org.folio.rest.util.ErrorCodes.DELETE_CONNECTED_TO_INVOICE;
 import static org.folio.rest.util.ErrorCodes.INVALID_TRANSACTION_TYPE;
@@ -84,7 +85,18 @@ public class TransactionApiService {
     return processBatch(batch, requestContext)
       .map(v -> allocation)
       .onSuccess(v -> log.info("Success creating allocation, id={}", allocation.getId()))
-      .onFailure(t -> log.error("Error creating allocation, id={}", allocation.getId(), t));
+      .onFailure(t -> {
+        log.error("Error creating allocation, id={}", allocation.getId(), t);
+        if (t instanceof HttpException httpException) {
+          var errorCode = httpException.getErrors().getErrors().get(0).getCode();
+          if (errorCode.equals("budgetRestrictedExpendituresError")) {
+            var params = httpException.getErrors().getErrors().get(0).getParameters();
+            String msg = String.format(ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.getDescription(), params.get(0));
+            var error = ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND.toError().withMessage(msg).withParameters(params);
+            throw new HttpException(422, error);
+          }
+        }
+      });
   }
 
   public Future<Transaction> createTransfer(Transaction transfer, RequestContext requestContext) {

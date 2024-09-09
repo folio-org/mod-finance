@@ -18,6 +18,7 @@ public enum ErrorCodes {
   FISCAL_YEAR_NOT_FOUND("fiscalYearNotFound", "Fiscal year not found for the specified fiscalYearId"),
   ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED("allowableEncumbranceLimitExceeded", "Allowable encumbrance limit exceeded"),
   ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED("allowableExpenditureLimitExceeded", "Allowable expenditures limit exceeded"),
+  ALLOCATION_EXCEEDS_TOTAL_ALLOCATION_OF_FUND("allocationExceedsTotalAllocationOfFund", "Allocation exceeds total amount of %s"),
   TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR("transactionIsPresentBudgetDeleteError",
     "Budget related transactions found. Deletion of the budget is forbidden."),
   MISSING_FUND_ID("missingFundId", "Missing to/from fund id"),
