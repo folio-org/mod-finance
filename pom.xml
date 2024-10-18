@@ -31,7 +31,7 @@
   <properties>
     <!--Project properties-->
     <java.version>17</java.version>
-    <spring.version>6.1.5</spring.version>
+    <spring.version>6.1.14</spring.version>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
     <raml-module-builder.version>35.2.0</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
