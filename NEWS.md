@@ -1,4 +1,24 @@
-## 5.0.0 - Unreleased
+## 5.1.0 - Unreleased
+
+## 5.0.0 - Released (Ramsons R2 2024)
+The primary focus of this release was to improve budget and expenditure handling, and update core functionality.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.9.0...v5.0.0)
+
+### Stories
+* [MODFIN-380](https://issues.folio.org/browse/MODFIN-380) - Update libraries of dependant acq modules to the latest versions
+* [MODFIN-374](https://issues.folio.org/browse/MODFIN-374) - Update budget validation when updating a budget
+* [MODFIN-371](https://issues.folio.org/browse/MODFIN-371) - Separate credits from expenditures in mod-finance
+* [MODFIN-370](https://issues.folio.org/browse/MODFIN-370) - Update the schemas to separate credits from expenditures
+* [MODFIN-358](https://issues.folio.org/browse/MODFIN-358) - Add tenantId to the locations schema for restrict by Fund functionality
+* [MODFIN-352](https://issues.folio.org/browse/MODFIN-352) - Remove the old transaction API
+
+### Bug Fixes
+* [MODFIN-372](https://issues.folio.org/browse/MODFIN-372) - Wrong expense class percent of total expended when budget over expended
+
+### Dependencies
+* Bump `raml` from `35.2.0` to `35.3.0`
+* Added `folio-module-descriptor-validator` version `1.0.0`
 
 ## 4.9.0 - Released (Quesnelia R1 2024)
 The primary focus of this release was to add new Batch Transactions API
