@@ -13,6 +13,7 @@ public class ResourcePathResolver {
   public static final String BUDGETS_STORAGE = "budgets";
   public static final String FUNDS_STORAGE = "funds";
   public static final String FUND_TYPES = "fundTypes";
+  public static final String FUND_UPDATE_LOGS = "fundUpdateLogs";
   public static final String GROUP_FUND_FISCAL_YEARS = "groupFundFiscalYears";
   public static final String FISCAL_YEARS_STORAGE = "fiscalYears";
   public static final String LEDGERS_STORAGE = "ledgers";
@@ -39,6 +40,7 @@ public class ResourcePathResolver {
     apis.put(BUDGETS_STORAGE, "/finance-storage/budgets");
     apis.put(FUNDS_STORAGE, "/finance-storage/funds");
     apis.put(FUND_TYPES, "/finance-storage/fund-types");
+    apis.put(FUND_UPDATE_LOGS, "/finance-storage/fund-update-logs");
     apis.put(GROUP_FUND_FISCAL_YEARS, "/finance-storage/group-fund-fiscal-years");
     apis.put(FISCAL_YEARS_STORAGE, "/finance-storage/fiscal-years");
     apis.put(LEDGERS_STORAGE, "/finance-storage/ledgers");

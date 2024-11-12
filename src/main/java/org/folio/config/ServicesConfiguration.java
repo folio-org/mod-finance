@@ -14,6 +14,7 @@ import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
 import org.folio.services.fund.FundService;
+import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.group.GroupExpenseClassTotalsService;
 import org.folio.services.group.GroupFiscalYearTotalsService;
 import org.folio.services.group.GroupFundFiscalYearService;
@@ -209,5 +210,10 @@ public class ServicesConfiguration {
                                                               ExpenseClassService expenseClassService) {
     return new FundCodeExpenseClassesService(budgetService, budgetExpenseClassService,
       fundService, ledgerService, fiscalYearService, ledgerDetailsService, expenseClassService);
+  }
+
+  @Bean
+  FundUpdateLogService fundUpdateLogService(RestClient restClient) {
+    return new FundUpdateLogService(restClient);
   }
 }
