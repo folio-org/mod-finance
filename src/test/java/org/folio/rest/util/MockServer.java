@@ -22,6 +22,7 @@ import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_U
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
+import static org.folio.rest.util.ResourcePathResolver.FUND_UPDATE_LOGS;
 import static org.folio.rest.util.ResourcePathResolver.GROUPS;
 import static org.folio.rest.util.ResourcePathResolver.GROUP_FUND_FISCAL_YEARS;
 import static org.folio.rest.util.ResourcePathResolver.LEDGERS_STORAGE;
@@ -68,6 +69,8 @@ import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
+import org.folio.rest.jaxrs.model.FundUpdateLog;
+import org.folio.rest.jaxrs.model.FundUpdateLogCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupCollection;
@@ -175,6 +178,8 @@ public class MockServer {
       .handler(ctx -> handlePostEntry(ctx, FiscalYear.class, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.POST, resourcesPath(FUND_TYPES))
       .handler(ctx -> handlePostEntry(ctx, FundType.class, TestEntities.FUND_TYPE.name()));
+    router.route(HttpMethod.POST, resourcesPath(FUND_UPDATE_LOGS))
+      .handler(ctx -> handlePostEntry(ctx, FundUpdateLog.class, TestEntities.FUND_UPDATE_LOG.name()));
     router.route(HttpMethod.POST, resourcesPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handlePostEntry(ctx, GroupFundFiscalYear.class, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.POST, resourcesPath(LEDGERS_STORAGE))
@@ -194,6 +199,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(FUND_TYPES))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND_TYPE));
+    router.route(HttpMethod.GET, resourcesPath(FUND_UPDATE_LOGS))
+      .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND_UPDATE_LOG));
     router.route(HttpMethod.GET, resourcesPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR));
     router.route(HttpMethod.GET, resourcesPath(LEDGERS_STORAGE))
@@ -215,6 +222,8 @@ public class MockServer {
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FISCAL_YEAR));
     router.route(HttpMethod.GET, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND_TYPE));
+    router.route(HttpMethod.GET, resourceByIdPath(FUND_UPDATE_LOGS))
+      .handler(ctx -> handleGetRecordById(ctx, TestEntities.FUND_UPDATE_LOG));
     router.route(HttpMethod.GET, resourceByIdPath(LEDGERS_STORAGE))
       .handler(ctx -> handleGetRecordById(ctx, TestEntities.LEDGER));
     router.route(HttpMethod.GET, resourceByIdPath(GROUPS))
@@ -232,6 +241,8 @@ public class MockServer {
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND_TYPE.name()));
+    router.route(HttpMethod.DELETE, resourceByIdPath(FUND_UPDATE_LOGS))
+      .handler(ctx -> handleDeleteRequest(ctx, TestEntities.FUND_UPDATE_LOG.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(GROUP_FUND_FISCAL_YEARS))
       .handler(ctx -> handleDeleteRequest(ctx, TestEntities.GROUP_FUND_FISCAL_YEAR.name()));
     router.route(HttpMethod.DELETE, resourceByIdPath(LEDGERS_STORAGE))
@@ -249,6 +260,8 @@ public class MockServer {
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FISCAL_YEAR.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(FUND_TYPES))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND_TYPE.name()));
+    router.route(HttpMethod.PUT, resourceByIdPath(FUND_UPDATE_LOGS))
+      .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.FUND_UPDATE_LOG.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(LEDGERS_STORAGE))
       .handler(ctx -> handlePutGenericSubObj(ctx, TestEntities.LEDGER.name()));
     router.route(HttpMethod.PUT, resourceByIdPath(GROUPS))
@@ -508,6 +521,35 @@ public class MockServer {
     return JsonObject.mapFrom(record);
   }
 
+  private JsonObject getFundUpdateLogsByIds(List<String> ids, boolean isCollection) {
+    Supplier<List<FundUpdateLog>> getFromFile = () -> {
+      try {
+        return new JsonObject(getMockData(TestEntities.FUND_UPDATE_LOG.getPathToFileWithData()))
+          .mapTo(FundUpdateLogCollection.class)
+          .getFundUpdateLogs();
+      } catch (IOException e) {
+        return Collections.emptyList();
+      }
+    };
+
+    var logs = getMockEntries(TestEntities.FUND_UPDATE_LOG.name(), FundUpdateLog.class).orElseGet(getFromFile);
+
+    if (!ids.isEmpty()) {
+      logs.removeIf(item -> !ids.contains(item.getId()));
+    }
+
+    Object record;
+    if (isCollection) {
+      record = new FundUpdateLogCollection().withFundUpdateLogs(logs).withTotalRecords(logs.size());
+    } else if (!logs.isEmpty()) {
+      record = logs.get(0);
+    } else {
+      return null;
+    }
+
+    return JsonObject.mapFrom(record);
+  }
+
   private JsonObject getLedgersByIds(List<String> ids, boolean isCollection) {
     Supplier<List<Ledger>> getFromFile = () -> {
       try {
@@ -636,6 +678,7 @@ public class MockServer {
       case FUND -> getFundsByIds(ids, isCollection);
       case FISCAL_YEAR -> getFiscalYearsByIds(ids, isCollection);
       case FUND_TYPE -> getFundTypesByIds(ids, isCollection);
+      case FUND_UPDATE_LOG -> getFundUpdateLogsByIds(ids, isCollection);
       case GROUP_FUND_FISCAL_YEAR -> getGroupFundFiscalYearsByIds(ids, isCollection);
       case LEDGER -> getLedgersByIds(ids, isCollection);
       case GROUP -> getGroupByIds(ids, isCollection);
