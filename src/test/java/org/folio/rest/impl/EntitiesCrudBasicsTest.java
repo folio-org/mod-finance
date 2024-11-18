@@ -20,6 +20,7 @@ import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
+import static org.folio.rest.util.TestEntities.FINANCE_DATA;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
@@ -128,14 +129,16 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithGetByIdEndpoint() {
     return getTestEntitiesWithGetEndpoint()
-      .filter(e -> !e.equals(GROUP_FUND_FISCAL_YEAR));
+      .filter(e -> !e.equals(GROUP_FUND_FISCAL_YEAR))
+      .filter(e -> !e.equals(FINANCE_DATA));
   }
 
   static Stream<TestEntities> getTestEntitiesWithPostEndpoint() {
     return getTestEntities()
       .filter(e -> !e.equals(TRANSACTIONS))
       .filter(e -> !e.equals(TRANSACTIONS_ALLOCATION))
-      .filter(e -> !e.equals(TRANSACTIONS_TRANSFER));
+      .filter(e -> !e.equals(TRANSACTIONS_TRANSFER))
+      .filter(e -> !e.equals(FINANCE_DATA));
   }
 
   /**
@@ -145,7 +148,8 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
     return getTestEntitiesWithGetByIdEndpoint()
-      .filter(e -> !e.equals(TRANSACTIONS));
+      .filter(e -> !e.equals(TRANSACTIONS))
+      .filter(e -> !e.equals(FINANCE_DATA));
   }
 
   /**
@@ -154,7 +158,9 @@ public class EntitiesCrudBasicsTest {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithDeleteEndpoint() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TRANSACTIONS));
+    return getTestEntitiesWithGetEndpoint()
+      .filter(e -> !e.equals(TRANSACTIONS))
+      .filter(e -> !e.equals(FINANCE_DATA));
   }
 
   /**

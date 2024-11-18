@@ -12,6 +12,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
+import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
@@ -24,6 +25,7 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.resource.Finance;
 import org.folio.rest.jaxrs.resource.FinanceBudgets;
 import org.folio.rest.jaxrs.resource.FinanceExpenseClasses;
+import org.folio.rest.jaxrs.resource.FinanceFinanceData;
 import org.folio.rest.jaxrs.resource.FinanceFiscalYears;
 import org.folio.rest.jaxrs.resource.FinanceFundTypes;
 import org.folio.rest.jaxrs.resource.FinanceFundUpdateLogs;
@@ -42,6 +44,7 @@ import io.vertx.core.json.JsonObject;
 
 public enum TestEntities {
   BUDGET("budgets", getEndpoint(FinanceBudgets.class), Budget.class, "mockdata/budgets/budgets.json", "budgets[0]", "name", "Updated name", 1, "allocated"),
+  FINANCE_DATA("financeData", getEndpoint(FinanceFinanceData.class), FyFinanceData.class, "mockdata/financedata/fy-finance-data.json", "financeData[0]", "", "", 1),
   FUND("funds", getEndpoint(FinanceFunds.class), Fund.class, "mockdata/funds/funds.json", "funds[0]", "name", "History", 1),
   FUND_TYPE("fundTypes", getEndpoint(FinanceFundTypes.class), FundType.class, "mockdata/fund-types/types.json", "fundTypes[0]", "name", "New type name", 1),
   FUND_UPDATE_LOG("fundUpdateLogs", getEndpoint(FinanceFundUpdateLogs.class), FundUpdateLog.class, "mockdata/fund-update-logs/fund-update-logs.json", "fundUpdateLogs[0]", "jobName", "Yearly Update", 1),
