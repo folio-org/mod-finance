@@ -24,19 +24,19 @@ public class FinanceDataService {
 
   public Future<FyFinanceDataCollection> getFinanceDataWithAcqUnitsRestriction(String query, int offset, int limit,
                                                                  RequestContext requestContext) {
-
-    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
-      .map(effectiveQuery -> new RequestEntry(resourcesPath(FINANCE_DATA_STORAGE))
-        .withOffset(offset)
-        .withLimit(limit)
-        .withQuery(effectiveQuery)
-      )
-      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), FyFinanceDataCollection.class, requestContext));
+    return restClient.get(new RequestEntry(resourcesPath(FINANCE_DATA_STORAGE))
+      .withOffset(offset)
+      .withLimit(limit)
+      .withQuery(query)
+      .buildEndpoint(), FyFinanceDataCollection.class, requestContext);
+//    return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
+//      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+//      .map(effectiveQuery -> new RequestEntry(resourcesPath(FINANCE_DATA_STORAGE))
+//        .withOffset(offset)
+//        .withLimit(limit)
+//        .withQuery(effectiveQuery)
+//      )
+//      .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), FyFinanceDataCollection.class, requestContext));
   }
 }
-//    return restClient.get(new RequestEntry(resourcesPath(FINANCE_DATA_STORAGE))
-//      .withOffset(offset)
-//      .withLimit(limit)
-//      .withQuery(query)
-//      .buildEndpoint(), FyFinanceDataCollection.class, requestContext);
+
