@@ -12,6 +12,7 @@ import org.folio.rest.impl.BudgetsApiTest;
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeTest;
+import org.folio.rest.impl.FinanceDataApiTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundsApiTest;
@@ -32,6 +33,7 @@ import org.folio.services.budget.BudgetExpenseClassTotalsServiceTest;
 import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.budget.RecalculateBudgetServiceTest;
+import org.folio.services.financedata.FinanceDataServiceTest;
 import org.folio.services.fiscalyear.FiscalYearApiServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
@@ -244,4 +246,9 @@ public class ApiTestSuite {
   @Nested
   class RecalculateBudgetServiceTestNested extends RecalculateBudgetServiceTest {}
 
+  @Nested
+  class FinanceDataApiTestNested extends FinanceDataApiTest {}
+
+  @Nested
+  class FinanceDataServiceTestNested extends FinanceDataServiceTest {}
 }
