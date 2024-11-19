@@ -19,7 +19,6 @@ import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
-import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
@@ -73,8 +72,6 @@ import org.folio.rest.jaxrs.model.FundTypesCollection;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FundUpdateLogCollection;
 import org.folio.rest.jaxrs.model.FundsCollection;
-import org.folio.rest.jaxrs.model.FyFinanceData;
-import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.Group;
 import org.folio.rest.jaxrs.model.GroupCollection;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
@@ -196,8 +193,6 @@ public class MockServer {
 
     router.route(HttpMethod.GET, resourcesPath(BUDGETS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.BUDGET));
-    router.route(HttpMethod.GET, resourcesPath(FINANCE_DATA_STORAGE))
-      .handler(ctx -> handleGetCollection(ctx, TestEntities.FINANCE_DATA));
     router.route(HttpMethod.GET, resourcesPath(FUNDS_STORAGE))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.FUND));
     router.route(HttpMethod.GET, resourcesPath(FISCAL_YEARS_STORAGE))
@@ -471,34 +466,6 @@ public class MockServer {
     return JsonObject.mapFrom(record);
   }
 
-  private JsonObject getFinanceDataByIds(List<String> ids, boolean isCollection) {
-    Supplier<List<FyFinanceData>> getFromFile = () -> {
-      try {
-        return new JsonObject(getMockData(TestEntities.FINANCE_DATA.getPathToFileWithData())).mapTo(
-          FyFinanceDataCollection.class).getFyFinanceData();
-      } catch (IOException e) {
-        return Collections.emptyList();
-      }
-    };
-
-    List<FyFinanceData> records = getMockEntries(TestEntities.FINANCE_DATA.name(), FyFinanceData.class).orElseGet(getFromFile);
-
-    if (!ids.isEmpty()) {
-      records.removeIf(item -> !ids.contains(item.getFiscalYearId()));
-    }
-
-    Object record;
-    if (isCollection) {
-      record = new FyFinanceDataCollection().withFyFinanceData(records).withTotalRecords(records.size());
-    } else if (!records.isEmpty()) {
-      record = records.get(0);
-    } else {
-      return null;
-    }
-
-    return JsonObject.mapFrom(record);
-  }
-
   private JsonObject getFiscalYearsByIds(List<String> fiscalYearIds, boolean isCollection) {
     Supplier<List<FiscalYear>> getFromFile = () -> {
       try {
@@ -708,7 +675,6 @@ public class MockServer {
   private JsonObject getEntries(TestEntities testEntity, List<String> ids, boolean isCollection) {
     return switch (testEntity) {
       case BUDGET -> getBudgetsByIds(ids, isCollection);
-      case FINANCE_DATA -> getFinanceDataByIds(ids, isCollection);
       case FUND -> getFundsByIds(ids, isCollection);
       case FISCAL_YEAR -> getFiscalYearsByIds(ids, isCollection);
       case FUND_TYPE -> getFundTypesByIds(ids, isCollection);

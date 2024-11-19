@@ -7,6 +7,9 @@ import static org.folio.rest.util.ResourcePathResolver.ACQUISITIONS_UNITS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.ACTIVE_UNITS_CQL;
+import static org.folio.services.protection.AcqUnitConstants.FD_BUDGET_ACQUISITIONS_UNIT_IDS;
+import static org.folio.services.protection.AcqUnitConstants.FD_FUND_ACQUISITIONS_UNIT_IDS;
+import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.IS_DELETED_PROP;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 
@@ -60,7 +63,22 @@ public class AcqUnitsService {
         if (ids.isEmpty()) {
           return NO_ACQ_UNIT_ASSIGNED_CQL;
         }
-        return String.format("%s or (%s)", convertIdsToCqlQuery(ids, ACQUISITIONS_UNIT_IDS, false), NO_ACQ_UNIT_ASSIGNED_CQL);
+        return String.format("%s or (%s)",
+          convertIdsToCqlQuery(ids, ACQUISITIONS_UNIT_IDS, false),
+          NO_ACQ_UNIT_ASSIGNED_CQL);
+      });
+  }
+
+  public Future<String> buildAcqUnitsCqlClauseForFinanceData(RequestContext requestContext) {
+    return getAcqUnitIdsForSearch(requestContext)
+      .map(ids -> {
+        if (ids.isEmpty()) {
+          return NO_ACQ_UNIT_ASSIGNED_CQL;
+        }
+        return String.format("(%s and %s) or (%s)",
+          convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
+          convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
+          FD_NO_ACQ_UNIT_ASSIGNED_CQL);
       });
   }
 

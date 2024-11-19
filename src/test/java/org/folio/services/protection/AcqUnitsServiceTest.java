@@ -29,6 +29,7 @@ import org.folio.rest.acq.model.finance.AcquisitionsUnitMembership;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitMembershipCollection;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,9 +53,11 @@ public class AcqUnitsServiceTest {
   @Mock
   private RestClient restClient;
 
+  private AutoCloseable closeable;
+
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     Context context = Vertx.vertx().getOrCreateContext();
     Map<String, String> okapiHeaders = new HashMap<>();
     okapiHeaders.put(OKAPI_URL, "http://localhost:" + mockPort);
@@ -62,6 +65,11 @@ public class AcqUnitsServiceTest {
     okapiHeaders.put(X_OKAPI_TENANT.getName(), X_OKAPI_TENANT.getValue());
     okapiHeaders.put(X_OKAPI_USER_ID.getName(), X_OKAPI_USER_ID.getValue());
     requestContext = new RequestContext(context, okapiHeaders);
+  }
+
+  @AfterEach
+  void clearContext() throws Exception {
+    closeable.close();
   }
 
   @Test
@@ -163,5 +171,56 @@ public class AcqUnitsServiceTest {
         vertxTestContext.completeNow();
       });
 
+  }
+
+  @Test
+  void testShouldBuildCqlClauseForFinanceDataWhenIdsIsEmpty(VertxTestContext vertxTestContext) {
+    var units = new AcquisitionsUnitCollection()
+      .withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
+    var members = new AcquisitionsUnitMembershipCollection()
+      .withAcquisitionsUnitMemberships(Collections.emptyList()).withTotalRecords(0);
+    doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+    doReturn(succeededFuture(members)).when(acqUnitMembershipsService).getAcquisitionsUnitsMemberships(anyString(), anyInt(), anyInt(), eq(requestContext));
+
+    var future = acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(requestContext);
+
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+
+        var actClause = result.result();
+        assertThat(actClause, equalTo(NO_ACQ_UNIT_ASSIGNED_CQL));
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+        verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
+
+        vertxTestContext.completeNow();
+      });
+  }
+
+  @Test
+  void testShouldBuildCqlClauseForFinanceDataWhenIdsIsNotEmpty(VertxTestContext vertxTestContext) {
+    var unitId = UUID.randomUUID().toString();
+    var units = new AcquisitionsUnitCollection()
+      .withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
+    var memberId = UUID.randomUUID().toString();
+    var members = new AcquisitionsUnitMembershipCollection()
+      .withAcquisitionsUnitMemberships(List.of(new AcquisitionsUnitMembership().withAcquisitionsUnitId(unitId).withId(memberId)))
+      .withTotalRecords(1);
+    doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+    doReturn(succeededFuture(members)).when(acqUnitMembershipsService).getAcquisitionsUnitsMemberships(anyString(), anyInt(), anyInt(), eq(requestContext));
+
+    var future = acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(requestContext);
+
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+
+        var actClause = result.result();
+        assertThat(actClause, equalTo("fundAcqUnitIds=(" + unitId + ") and budgetAcqUnitIds=(" + unitId + ") or (" + NO_ACQ_UNIT_ASSIGNED_CQL + ")"));
+        verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+        verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
+
+        vertxTestContext.completeNow();
+      });
   }
 }

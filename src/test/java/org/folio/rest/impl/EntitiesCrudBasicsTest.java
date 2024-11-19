@@ -20,7 +20,6 @@ import static org.folio.rest.util.TestConstants.ID_FOR_INTERNAL_SERVER_ERROR;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
-import static org.folio.rest.util.TestEntities.FINANCE_DATA;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
 import static org.folio.rest.util.TestEntities.GROUP;
@@ -42,7 +41,6 @@ import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -129,16 +127,14 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithGetByIdEndpoint() {
     return getTestEntitiesWithGetEndpoint()
-      .filter(e -> !e.equals(GROUP_FUND_FISCAL_YEAR))
-      .filter(e -> !e.equals(FINANCE_DATA));
+      .filter(e -> !e.equals(GROUP_FUND_FISCAL_YEAR));
   }
 
   static Stream<TestEntities> getTestEntitiesWithPostEndpoint() {
     return getTestEntities()
       .filter(e -> !e.equals(TRANSACTIONS))
       .filter(e -> !e.equals(TRANSACTIONS_ALLOCATION))
-      .filter(e -> !e.equals(TRANSACTIONS_TRANSFER))
-      .filter(e -> !e.equals(FINANCE_DATA));
+      .filter(e -> !e.equals(TRANSACTIONS_TRANSFER));
   }
 
   /**
@@ -148,8 +144,7 @@ public class EntitiesCrudBasicsTest {
    */
   static Stream<TestEntities> getTestEntitiesWithPutEndpoint() {
     return getTestEntitiesWithGetByIdEndpoint()
-      .filter(e -> !e.equals(TRANSACTIONS))
-      .filter(e -> !e.equals(FINANCE_DATA));
+      .filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -158,9 +153,7 @@ public class EntitiesCrudBasicsTest {
    * @return stream of test entities
    */
   static Stream<TestEntities> getTestEntitiesWithDeleteEndpoint() {
-    return getTestEntitiesWithGetEndpoint()
-      .filter(e -> !e.equals(TRANSACTIONS))
-      .filter(e -> !e.equals(FINANCE_DATA));
+    return getTestEntitiesWithGetEndpoint().filter(e -> !e.equals(TRANSACTIONS));
   }
 
   /**
@@ -271,7 +264,7 @@ public class EntitiesCrudBasicsTest {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  void testPostRecord(TestEntities testEntity) throws IOException {
+  void testPostRecord(TestEntities testEntity) {
     logger.info("=== Test create {} record ===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
@@ -299,7 +292,7 @@ public class EntitiesCrudBasicsTest {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  void testPostRecordServerError(TestEntities testEntity) throws IOException {
+  void testPostRecordServerError(TestEntities testEntity) {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
 
     Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, ERROR_X_OKAPI_TENANT);
