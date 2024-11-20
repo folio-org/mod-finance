@@ -190,7 +190,7 @@ public class AcqUnitsServiceTest {
         assertTrue(result.succeeded());
 
         var actClause = result.result();
-        assertThat(actClause, equalTo(NO_ACQ_UNIT_ASSIGNED_CQL));
+        assertThat(actClause, equalTo(FD_NO_ACQ_UNIT_ASSIGNED_CQL));
         verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
 
