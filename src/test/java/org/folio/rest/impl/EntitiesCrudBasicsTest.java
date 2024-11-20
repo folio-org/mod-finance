@@ -41,7 +41,6 @@ import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -265,7 +264,7 @@ public class EntitiesCrudBasicsTest {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  void testPostRecord(TestEntities testEntity) throws IOException {
+  void testPostRecord(TestEntities testEntity) {
     logger.info("=== Test create {} record ===", testEntity.name());
 
     JsonObject record = testEntity.getMockObject();
@@ -293,7 +292,7 @@ public class EntitiesCrudBasicsTest {
 
   @ParameterizedTest
   @MethodSource("getTestEntitiesWithPostEndpoint")
-  void testPostRecordServerError(TestEntities testEntity) throws IOException {
+  void testPostRecordServerError(TestEntities testEntity) {
     logger.info("=== Test create {} record - Internal Server Error ===", testEntity.name());
 
     Headers headers = RestTestUtils.prepareHeaders(TestConfig.X_OKAPI_URL, ERROR_X_OKAPI_TENANT);

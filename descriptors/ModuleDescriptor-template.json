@@ -752,27 +752,58 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/fund-update-logs",
-          "permissionsRequired": ["finance.fund-update-logs.collection.get"]
+          "permissionsRequired": ["finance.fund-update-logs.collection.get"],
+          "modulePermissions": [
+            "finance-storage.fund-update-logs.collection.get"
+          ]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/fund-update-logs/{id}",
-          "permissionsRequired": ["finance.fund-update-logs.item.get"]
+          "permissionsRequired": ["finance.fund-update-logs.item.get"],
+          "modulePermissions": [
+            "finance-storage.fund-update-logs.item.get"
+          ]
         },
         {
           "methods": ["POST"],
           "pathPattern": "/finance/fund-update-logs",
-          "permissionsRequired": ["finance.fund-update-logs.item.post"]
+          "permissionsRequired": ["finance.fund-update-logs.item.post"],
+          "modulePermissions": [
+            "finance-storage.fund-update-logs.item.post"
+          ]
         },
         {
           "methods": ["PUT"],
           "pathPattern": "/finance/fund-update-logs/{id}",
-          "permissionsRequired": ["finance.fund-update-logs.item.put"]
+          "permissionsRequired": ["finance.fund-update-logs.item.put"],
+          "modulePermissions": [
+            "finance-storage.fund-update-logs.item.put"
+          ]
         },
         {
           "methods": ["DELETE"],
           "pathPattern": "/finance/fund-update-logs/{id}",
-          "permissionsRequired": ["finance.fund-update-logs.item.delete"]
+          "permissionsRequired": ["finance.fund-update-logs.item.delete"],
+          "modulePermissions": [
+            "finance-storage.fund-update-logs.item.delete"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "finance.finance-data",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/finance-data",
+          "permissionsRequired": ["finance.finance-data.collection.get"],
+          "modulePermissions": [
+            "finance-storage.finance-data.collection.get",
+            "acquisitions-units-storage.units.collection.get",
+            "acquisitions-units-storage.memberships.collection.get"
+          ]
         }
       ]
     },
@@ -852,6 +883,10 @@
     },
     {
       "id": "finance-storage.fund-update-logs",
+      "version":"1.0"
+    },
+    {
+      "id": "finance-storage.finance-data",
       "version":"1.0"
     }
   ],
@@ -1339,6 +1374,11 @@
       ]
     },
     {
+      "permissionName": "finance.finance-data.collection.get",
+      "displayName": "Finances - get finance data collection",
+      "description": "Get finance data collection"
+    },
+    {
       "permissionName": "finance.all",
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
@@ -1357,7 +1397,8 @@
         "finance.calculate-exchange.item.get",
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all",
-        "finance.fund-update-logs.all"
+        "finance.fund-update-logs.all",
+        "finance.finance-data.collection.get"
       ],
       "visible": false
     },
