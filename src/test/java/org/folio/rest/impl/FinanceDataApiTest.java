@@ -12,7 +12,8 @@ import static org.folio.rest.util.TestConfig.autowireDependencies;
 import static org.folio.rest.util.TestConfig.clearVertxContext;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
-import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.folio.services.protection.AcqUnitConstants.NO_FD_BUDGET_UNIT_ASSIGNED_CQL;
+import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -94,6 +95,7 @@ public class FinanceDataApiTest {
       .withFyFinanceData(List.of(new FyFinanceData().withFiscalYearId(fiscalYearId)))
       .withTotalRecords(1);
     String query = "fiscalYearId==" + fiscalYearId;
+    String notAcqUnitAssignedQuery = "(" + NO_FD_FUND_UNIT_ASSIGNED_CQL + " and " + NO_FD_BUDGET_UNIT_ASSIGNED_CQL + ")";
     int limit = 5;
     int offset = 1;
 
@@ -102,7 +104,7 @@ public class FinanceDataApiTest {
     params.put("limit", limit);
     params.put("offset", offset);
 
-    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(FD_NO_ACQ_UNIT_ASSIGNED_CQL));
+    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(notAcqUnitAssignedQuery));
     when(financeDataService.getFinanceDataWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any()))
       .thenReturn(succeededFuture(financeDataCollection));
 

@@ -9,9 +9,10 @@ import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_I
 import static org.folio.services.protection.AcqUnitConstants.ACTIVE_UNITS_CQL;
 import static org.folio.services.protection.AcqUnitConstants.FD_BUDGET_ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.FD_FUND_ACQUISITIONS_UNIT_IDS;
-import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.IS_DELETED_PROP;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.folio.services.protection.AcqUnitConstants.NO_FD_BUDGET_UNIT_ASSIGNED_CQL;
+import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,12 +74,21 @@ public class AcqUnitsService {
     return getAcqUnitIdsForSearch(requestContext)
       .map(ids -> {
         if (ids.isEmpty()) {
-          return FD_NO_ACQ_UNIT_ASSIGNED_CQL;
+          return String.format("(%s and %s)", NO_FD_FUND_UNIT_ASSIGNED_CQL, NO_FD_BUDGET_UNIT_ASSIGNED_CQL);
         }
-        return String.format("(%s and %s) or (%s)",
+        return String.format("(" +
+            "(%s and %s) or " + // Case 1: Both fund and budget have matching acqUnits
+            "(%s and %s) or " + // Case 2: Fund has matching acqUnit and budget is empty
+            "(%s and %s) or " + // Case 3: Fund is empty and budget has matching acqUnit
+            "(%s and %s))",
           convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
           convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
-          FD_NO_ACQ_UNIT_ASSIGNED_CQL);
+          convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
+          NO_FD_BUDGET_UNIT_ASSIGNED_CQL,
+          NO_FD_FUND_UNIT_ASSIGNED_CQL,
+          convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
+          NO_FD_FUND_UNIT_ASSIGNED_CQL,
+          NO_FD_BUDGET_UNIT_ASSIGNED_CQL);
       });
   }
 
@@ -120,6 +130,6 @@ public class AcqUnitsService {
           log.debug("{} acq units with 'protectRead==false' are found: {}", ids.size(), StreamEx.of(ids).joining(", "));
         }
         return ids;
-    });
+      });
   }
 }

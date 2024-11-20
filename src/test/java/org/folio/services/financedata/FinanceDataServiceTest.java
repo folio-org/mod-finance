@@ -2,7 +2,6 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
-import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -88,12 +87,13 @@ public class FinanceDataServiceTest {
   @Test
   void negative_shouldReturnEmptyCollectionWhenFinanceDataNotFound(VertxTestContext vertxTestContext) {
     String query = "fiscalYearId==non-existent-id";
-    String expectedQuery = "(" + FD_NO_ACQ_UNIT_ASSIGNED_CQL + ") and (" + query + ")";
+    String noFdUnitAssignedCql = "cql.allRecords=1 not fundAcqUnitIds <> [] and cql.allRecords=1 not budgetAcqUnitIds <> []";
+    String expectedQuery = "(" + noFdUnitAssignedCql + ") and (" + query + ")";
     int offset = 0;
     int limit = 10;
     FyFinanceDataCollection emptyCollection = new FyFinanceDataCollection().withTotalRecords(0);
 
-    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(FD_NO_ACQ_UNIT_ASSIGNED_CQL));
+    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(noFdUnitAssignedCql));
     when(restClient.get(anyString(), eq(FyFinanceDataCollection.class), any())).thenReturn(succeededFuture(emptyCollection));
 
     var future = financeDataService.getFinanceDataWithAcqUnitsRestriction(query, offset, limit, requestContextMock);
