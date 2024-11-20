@@ -6,6 +6,7 @@ import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -216,7 +217,7 @@ public class AcqUnitsServiceTest {
         assertTrue(result.succeeded());
 
         var actClause = result.result();
-        assertThat(actClause, equalTo("fundAcqUnitIds=(" + unitId + ") and budgetAcqUnitIds=(" + unitId + ") or (" + NO_ACQ_UNIT_ASSIGNED_CQL + ")"));
+        assertThat(actClause, equalTo("(fundAcqUnitIds=(" + unitId + ") and budgetAcqUnitIds=(" + unitId + ")) or (" + FD_NO_ACQ_UNIT_ASSIGNED_CQL + ")"));
         verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
 

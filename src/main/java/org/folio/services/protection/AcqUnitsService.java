@@ -73,7 +73,7 @@ public class AcqUnitsService {
     return getAcqUnitIdsForSearch(requestContext)
       .map(ids -> {
         if (ids.isEmpty()) {
-          return NO_ACQ_UNIT_ASSIGNED_CQL;
+          return FD_NO_ACQ_UNIT_ASSIGNED_CQL;
         }
         return String.format("(%s and %s) or (%s)",
           convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),

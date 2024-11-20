@@ -23,7 +23,7 @@ public class FinanceDataService {
   }
 
   public Future<FyFinanceDataCollection> getFinanceDataWithAcqUnitsRestriction(String query, int offset, int limit,
-                                                                 RequestContext requestContext) {
+                                                                               RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .compose(effectiveQuery -> getFinanceData(effectiveQuery, offset, limit, requestContext));

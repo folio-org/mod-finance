@@ -2,7 +2,9 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
+import static org.folio.services.protection.AcqUnitConstants.FD_NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,7 +65,7 @@ public class FinanceDataServiceTest {
   }
 
   @Test
-  void shouldCallGetForRestClientWhenCalledGetFinanceDataWithAcqUnitsRestriction(VertxTestContext vertxTestContext) {
+  void positive_shouldGetFinanceDataWithAcqUnitsRestriction(VertxTestContext vertxTestContext) {
     String query = "fiscalYearId==db9c1ad6-026e-4b1a-9a99-032f41e7099b";
     String acqUnitIdsQuery = "fundAcqUnitIds=(1ee4b4e5-d621-4e43-8a76-0d904b0f491b) and budgetAcqUnitIds=(1ee4b4e5-d621-4e43-8a76-0d904b0f491b) or (" + NO_ACQ_UNIT_ASSIGNED_CQL + ")";
     String expectedQuery = "(" + acqUnitIdsQuery + ") and (" + query + ")";
@@ -78,6 +80,27 @@ public class FinanceDataServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(result.succeeded());
+        verify(restClient).get(assertQueryContains(expectedQuery), eq(FyFinanceDataCollection.class), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+  }
+
+  @Test
+  void negative_shouldReturnEmptyCollectionWhenFinanceDataNotFound(VertxTestContext vertxTestContext) {
+    String query = "fiscalYearId==non-existent-id";
+    String expectedQuery = "(" + FD_NO_ACQ_UNIT_ASSIGNED_CQL + ") and (" + query + ")";
+    int offset = 0;
+    int limit = 10;
+    FyFinanceDataCollection emptyCollection = new FyFinanceDataCollection().withTotalRecords(0);
+
+    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(FD_NO_ACQ_UNIT_ASSIGNED_CQL));
+    when(restClient.get(anyString(), eq(FyFinanceDataCollection.class), any())).thenReturn(succeededFuture(emptyCollection));
+
+    var future = financeDataService.getFinanceDataWithAcqUnitsRestriction(query, offset, limit, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        assertEquals(0, (int) result.result().getTotalRecords());
         verify(restClient).get(assertQueryContains(expectedQuery), eq(FyFinanceDataCollection.class), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
