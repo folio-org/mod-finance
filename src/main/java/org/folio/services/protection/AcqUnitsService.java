@@ -80,7 +80,7 @@ public class AcqUnitsService {
             "(%s and %s) or " + // Case 1: Both fund and budget have matching acqUnits
             "(%s and %s) or " + // Case 2: Fund has matching acqUnit and budget is empty
             "(%s and %s) or " + // Case 3: Fund is empty and budget has matching acqUnit
-            "(%s and %s))",
+            "(%s and %s))",     // Case 4: Both fund and budget are empty
           convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
           convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
           convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
