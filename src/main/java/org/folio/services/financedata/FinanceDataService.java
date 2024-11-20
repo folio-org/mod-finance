@@ -15,7 +15,6 @@ import org.folio.services.protection.AcqUnitsService;
 public class FinanceDataService {
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
-  public static final String ID = "id";
 
   public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService) {
     this.restClient = restClient;
