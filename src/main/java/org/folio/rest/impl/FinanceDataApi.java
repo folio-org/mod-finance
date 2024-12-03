@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.resource.FinanceFinanceData;
 import org.folio.services.financedata.FinanceDataService;
 import org.folio.spring.SpringContextUtil;
@@ -32,6 +33,14 @@ public class FinanceDataApi extends BaseApi implements FinanceFinanceData {
     financeDataService.getFinanceDataWithAcqUnitsRestriction(query, offset, limit,
         new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(financeData -> asyncResultHandler.handle(succeededFuture(buildOkResponse(financeData))))
+      .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
+  }
+
+  @Override
+  @Validate
+  public void putFinanceFinanceData(FyFinanceDataCollection entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+    financeDataService.putFinanceData(entity, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 }

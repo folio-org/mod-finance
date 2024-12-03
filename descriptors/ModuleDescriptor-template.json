@@ -804,6 +804,14 @@
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
+        },
+        {
+          "methods": ["PUT"],
+          "pathPattern": "/finance/finance-data",
+          "permissionsRequired": ["finance.finance-data.collection.put"],
+          "modulePermissions": [
+            "finance-storage.finance-data.collection.put"
+          ]
         }
       ]
     },
@@ -1379,6 +1387,20 @@
       "description": "Get finance data collection"
     },
     {
+      "permissionName": "finance.finance-data.collection.put",
+      "displayName": "Finances - update finance data collection",
+      "description": "Update finance data collection"
+    },
+    {
+      "permissionName": "finance.finance-data.all",
+      "displayName": "Finance data - all permissions",
+      "description": "All finance data permissions",
+      "subPermissions": [
+        "finance.finance-data.collection.get",
+        "finance.finance-data.collection.put"
+      ]
+    },
+    {
       "permissionName": "finance.all",
       "displayName": "Finance module - all permissions",
       "description": "Entire set of permissions needed to use the finance module",
@@ -1398,7 +1420,7 @@
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all",
         "finance.fund-update-logs.all",
-        "finance.finance-data.collection.get"
+        "finance.finance-data.all"
       ],
       "visible": false
     },

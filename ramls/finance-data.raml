@@ -26,7 +26,7 @@ resourceTypes:
 /finance/finance-data:
   type:
     collection-get:
-      exampleCollection: !include acq-models/mod-finance/examples/fy_finance_data_collection.sample
+      exampleCollection: !include acq-models/mod-finance/examples/fy_finance_data_collection_get.sample
       schemaCollection: fy-finance-data-collection
   get:
     description: Get finance data
@@ -34,4 +34,37 @@ resourceTypes:
       searchable: { description: "with valid searchable fields: for example fiscalYearId", example: "[\"fiscalYearId\", \"7a4c4d30-3b63-4102-8e2d-3ee5792d7d02\", \"=\"]" },
       pageable
     ]
+  put:
+    description: Update finance, budget as a bulk
+    is: [ validate ]
+    body:
+      application/json:
+        type: fy-finance-data-collection
+        example: !include acq-models/mod-finance/examples/fy_finance_data_collection_put.sample
+    responses:
+      204:
+        description: "Items successfully updated"
+      404:
+        description: "One or more items not found"
+        body:
+          text/plain:
+            example: |
+              "One or more items not found"
+      400:
+        description: "Bad request, e.g. malformed request body or query parameter. Details of the error (e.g. name of the parameter or line/character number with malformed data) provided in the response."
+        body:
+          text/plain:
+            example: |
+              "unable to update items -- malformed JSON at 13:4"
+      409:
+        description: "Optimistic locking version conflict"
+        body:
+          text/plain:
+            example: "version conflict"
+      500:
+        description: "Internal server error, e.g. due to misconfiguration"
+        body:
+          text/plain:
+            example: "internal server error, contact administrator"
+
 
