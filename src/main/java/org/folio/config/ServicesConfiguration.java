@@ -219,7 +219,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService) {
-    return new FinanceDataService(restClient, acqUnitsService);
+  FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService,
+                                        TransactionService transactionService, FiscalYearService fiscalYearService) {
+    return new FinanceDataService(restClient, acqUnitsService, transactionService, fiscalYearService);
   }
 }
