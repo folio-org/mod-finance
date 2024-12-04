@@ -44,7 +44,8 @@ public class FinanceDataService {
       .compose(effectiveQuery -> getFinanceData(effectiveQuery, offset, limit, requestContext));
   }
 
-  private Future<FyFinanceDataCollection> getFinanceData(String query, int offset, int limit, RequestContext requestContext) {
+  private Future<FyFinanceDataCollection> getFinanceData(String query, int offset, int limit,
+                                                         RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(FINANCE_DATA_STORAGE))
       .withOffset(offset)
       .withLimit(limit)
@@ -53,61 +54,82 @@ public class FinanceDataService {
   }
 
   public Future<Void> putFinanceData(FyFinanceDataCollection financeData, RequestContext requestContext) {
-    validateFinanceData(financeData);
+    financeData.getFyFinanceData().forEach(this::validateFinanceData);
 
     return processAllocationTransaction(financeData, requestContext)
       .compose(v -> updateFinanceData(financeData, requestContext))
       .compose(v -> processLogs(financeData, requestContext));
   }
 
-  private void validateFinanceData(FyFinanceDataCollection financeData) {
-    if (financeData.getFyFinanceData() == null || financeData.getFyFinanceData().isEmpty()) {
-      throw new IllegalArgumentException("Finance data collection is empty");
+  private void validateFinanceData(FyFinanceData financeData) {
+    validateFinanceDataFields(financeData);
+
+    var allocationChange = financeData.getBudgetAllocationChange();
+    var initialAllocation = financeData.getBudgetInitialAllocation();
+    var currentAllocation = financeData.getBudgetCurrentAllocation();
+    var expectedChange = currentAllocation - initialAllocation;
+
+    if (Math.abs(allocationChange) - expectedChange != 0) {
+      throw new IllegalArgumentException(
+        "Allocation change does not match the difference between current and initial allocation");
     }
-
-    financeData.getFyFinanceData().forEach(this::validateFinanceDataItem);
-  }
-
-  private void validateFinanceDataItem(FyFinanceData item) {
-    // Validate fiscal year code format (assuming it should be "FY" followed by 4 digits)
-    if (item.getFiscalYearCode() != null && !item.getFiscalYearCode().matches("FY\\d{4}")) {
-      throw new IllegalArgumentException("Invalid fiscal year code format. Expected FY followed by 4 digits.");
-    }
-
-    validateNumericFields(item);
-
-    // Validate that allocation change matches the difference between current and initial allocation
-    if (item.getAllocationChange() != null && item.getBudgetCurrentAllocation() != null
-      && item.getBudgetInitialAllocation() != null) {
-      double expectedChange = item.getBudgetCurrentAllocation() - item.getBudgetInitialAllocation();
-      if (Math.abs(item.getAllocationChange() - expectedChange) > 0.01) { // allowing for small floating-point discrepancies
-        throw new IllegalArgumentException("Allocation change does not match the difference between current and initial allocation");
-      }
+    if (allocationChange < 0 && Math.abs(allocationChange) > initialAllocation) {
+      throw new IllegalArgumentException("Allocation change cannot be greater than initial allocation");
     }
   }
 
-  private void validateNumericFields(FyFinanceData item) {
-    if (item.getBudgetInitialAllocation() != null && item.getBudgetInitialAllocation() < 0) {
-      throw new IllegalArgumentException("Budget initial allocation must be non-negative");
+  private void validateFinanceDataFields(FyFinanceData financeData) {
+    if (financeData.getFundId() == null) {
+      throw new IllegalArgumentException("Fund ID is required");
     }
-    if (item.getBudgetCurrentAllocation() != null && item.getBudgetCurrentAllocation() < 0) {
-      throw new IllegalArgumentException("Budget current allocation must be non-negative");
+    if (financeData.getFundCode() == null) {
+      throw new IllegalArgumentException("Fund code is required");
     }
-    if (item.getBudgetAllowableExpenditure() != null
-      && (item.getBudgetAllowableExpenditure() < 0 || item.getBudgetAllowableExpenditure() > 100)) {
-      throw new IllegalArgumentException("Budget allowable expenditure must be between 0 and 100");
+    if (financeData.getFundName() == null) {
+      throw new IllegalArgumentException("Fund name is required");
     }
-    if (item.getBudgetAllowableEncumbrance() != null
-      && (item.getBudgetAllowableEncumbrance() < 0 || item.getBudgetAllowableEncumbrance() > 100)) {
-      throw new IllegalArgumentException("Budget allowable encumbrance must be between 0 and 100");
+    if (financeData.getFundDescription() == null) {
+      throw new IllegalArgumentException("Fund description is required");
+    }
+    if (financeData.getFundStatus() == null) {
+      throw new IllegalArgumentException("Fund status is required");
+    }
+    if (financeData.getBudgetId() == null) {
+      throw new IllegalArgumentException("Budget ID is required");
+    }
+    if (financeData.getBudgetName() == null) {
+      throw new IllegalArgumentException("Budget name is required");
+    }
+    if (financeData.getBudgetStatus() == null) {
+      throw new IllegalArgumentException("Budget status is required");
+    }
+    if (financeData.getBudgetInitialAllocation() == null) {
+      throw new IllegalArgumentException("Budget initial allocation is required");
+    }
+    if (financeData.getBudgetAllocationChange() == null) {
+      throw new IllegalArgumentException("Allocation change is required");
+    }
+    if (financeData.getBudgetAllowableExpenditure() == null) {
+      throw new IllegalArgumentException("Budget allowable expenditure is required");
+    }
+    if (financeData.getBudgetAllowableEncumbrance() == null) {
+      throw new IllegalArgumentException("Budget allowable encumbrance is required");
+    }
+    if (financeData.getTransactionDescription() == null) {
+      throw new IllegalArgumentException("Transaction description is required");
+    }
+    if (financeData.getTransactionTag() == null) {
+      throw new IllegalArgumentException("Transaction tag is required");
     }
   }
 
-  private Future<Void> processAllocationTransaction(FyFinanceDataCollection financeData, RequestContext requestContext) {
+  private Future<Void> processAllocationTransaction(FyFinanceDataCollection financeData,
+                                                    RequestContext requestContext) {
     return createAllocationTransaction(financeData, requestContext);
   }
 
-  public Future<Void> createAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection, RequestContext requestContext) {
+  public Future<Void> createAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
+                                                  RequestContext requestContext) {
     var transactionsFuture = fyFinanceDataCollection.getFyFinanceData().stream()
       .map(financeData -> createAllocationTransaction(financeData, requestContext))
       .toList();
