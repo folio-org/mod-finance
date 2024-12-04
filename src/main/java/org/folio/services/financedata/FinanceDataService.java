@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -30,6 +32,8 @@ import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.transactions.TransactionService;
 
 public class FinanceDataService {
+  private static final Logger log = LogManager.getLogger();
+
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
   private final TransactionService transactionService;
@@ -66,7 +70,8 @@ public class FinanceDataService {
 
     return processAllocationTransaction(financeData, requestContext)
       .compose(v -> updateFinanceData(financeData, requestContext))
-      .onComplete(asyncResult -> processLogs(financeData, requestContext, asyncResult));
+      .onSuccess(asyncResult -> processLogs(financeData, requestContext, COMPLETED))
+      .onFailure(asyncResult -> processLogs(financeData, requestContext, ERROR));
   }
 
   private void validateFinanceData(FyFinanceData financeData) {
@@ -74,14 +79,14 @@ public class FinanceDataService {
 
     var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
     var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
-    var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
-    var expectedChange = currentAllocation.subtract(initialAllocation);
-
-    if (allocationChange.abs().subtract(expectedChange).doubleValue() != 0) {
-      throw new IllegalArgumentException(
-        "Allocation change does not match the difference between current and initial allocation");
-    }
-    if (allocationChange.doubleValue() < 0 && allocationChange.doubleValue() > initialAllocation.doubleValue()) {
+//    var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
+//    var expectedChange = currentAllocation.subtract(initialAllocation);
+//
+//    if (allocationChange.abs().subtract(expectedChange).doubleValue() != 0) {
+//      throw new IllegalArgumentException(
+//        "Allocation change does not match the difference between current and initial allocation");
+//    }
+    if (allocationChange.doubleValue() < 0 && allocationChange.abs().doubleValue() > initialAllocation.doubleValue()) {
       throw new IllegalArgumentException("Allocation change cannot be greater than initial allocation");
     }
   }
@@ -131,23 +136,17 @@ public class FinanceDataService {
     }
   }
 
-  private Future<Void> processAllocationTransaction(FyFinanceDataCollection financeData,
-                                                    RequestContext requestContext) {
-    return createAllocationTransaction(financeData, requestContext);
-  }
-
-  public Future<Void> createAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
-                                                  RequestContext requestContext) {
+  public Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
+                                                   RequestContext requestContext) {
     var transactionsFuture = fyFinanceDataCollection.getFyFinanceData().stream()
       .map(financeData -> createAllocationTransaction(financeData, requestContext))
       .toList();
 
     return GenericCompositeFuture.join(transactionsFuture)
-      .map(compositeFuture -> {
+      .compose(compositeFuture -> {
         List<Transaction> transactions = compositeFuture.list();
         return createBatchTransaction(transactions, requestContext);
-      })
-      .mapEmpty();
+      });
   }
 
   public Future<Transaction> createAllocationTransaction(FyFinanceData financeData, RequestContext requestContext) {
@@ -174,14 +173,25 @@ public class FinanceDataService {
     return transactionService.processBatch(batch, requestContext);
   }
 
-  private Future<Void> updateFinanceData(FyFinanceDataCollection financeData, RequestContext requestContext) {
-    return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeData, requestContext)
-      .mapEmpty();
+  private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
+                                         RequestContext requestContext) {
+    log.debug("updateFinanceData:: Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
+    return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
+  }
+
+  private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
+                                         RequestContext requestContext, AsyncResult<Void> asyncResult) {
+    log.debug("updateFinanceData:: Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
+    if (asyncResult.succeeded()) {
+      log.info("");
+      return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
+    } else {
+      return Future.failedFuture(asyncResult.cause());
+    }
   }
 
   private void processLogs(FyFinanceDataCollection financeDataCollection,
-                           RequestContext requestContext, AsyncResult<Void> asyncResult) {
-    FundUpdateLog.Status status = asyncResult.succeeded() ? COMPLETED : ERROR;
+                           RequestContext requestContext, FundUpdateLog.Status status) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
 
     var fundUpdateLog = new FundUpdateLog().withId(UUID.randomUUID().toString())
