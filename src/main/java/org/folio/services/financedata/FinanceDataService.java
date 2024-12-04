@@ -1,9 +1,12 @@
 package org.folio.services.financedata;
 
+import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
+import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 
 import java.math.BigDecimal;
@@ -16,10 +19,13 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.Batch;
+import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
+import org.folio.rest.jaxrs.model.JobDetails;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.transactions.TransactionService;
 
@@ -28,13 +34,15 @@ public class FinanceDataService {
   private final AcqUnitsService acqUnitsService;
   private final TransactionService transactionService;
   private final FiscalYearService fiscalYearService;
+  private final FundUpdateLogService fundUpdateLogService;
 
   public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService,
-                            TransactionService transactionService, FiscalYearService fiscalYearService) {
+                            TransactionService transactionService, FiscalYearService fiscalYearService, FundUpdateLogService fundUpdateLogService) {
     this.restClient = restClient;
     this.acqUnitsService = acqUnitsService;
     this.transactionService = transactionService;
     this.fiscalYearService = fiscalYearService;
+    this.fundUpdateLogService = fundUpdateLogService;
   }
 
   public Future<FyFinanceDataCollection> getFinanceDataWithAcqUnitsRestriction(String query, int offset, int limit,
@@ -58,22 +66,22 @@ public class FinanceDataService {
 
     return processAllocationTransaction(financeData, requestContext)
       .compose(v -> updateFinanceData(financeData, requestContext))
-      .compose(v -> processLogs(financeData, requestContext));
+      .onComplete(asyncResult -> processLogs(financeData, requestContext, asyncResult));
   }
 
   private void validateFinanceData(FyFinanceData financeData) {
     validateFinanceDataFields(financeData);
 
-    var allocationChange = financeData.getBudgetAllocationChange();
-    var initialAllocation = financeData.getBudgetInitialAllocation();
-    var currentAllocation = financeData.getBudgetCurrentAllocation();
-    var expectedChange = currentAllocation - initialAllocation;
+    var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
+    var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
+    var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
+    var expectedChange = currentAllocation.subtract(initialAllocation);
 
-    if (Math.abs(allocationChange) - expectedChange != 0) {
+    if (allocationChange.abs().subtract(expectedChange).doubleValue() != 0) {
       throw new IllegalArgumentException(
         "Allocation change does not match the difference between current and initial allocation");
     }
-    if (allocationChange < 0 && Math.abs(allocationChange) > initialAllocation) {
+    if (allocationChange.doubleValue() < 0 && allocationChange.doubleValue() > initialAllocation.doubleValue()) {
       throw new IllegalArgumentException("Allocation change cannot be greater than initial allocation");
     }
   }
@@ -157,7 +165,7 @@ public class FinanceDataService {
 
   private Double calculateAllocation(FyFinanceData financeData) {
     var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
-    var allocationChange = BigDecimal.valueOf(financeData.getAllocationChange());
+    var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
     return initialAllocation.add(allocationChange).doubleValue();
   }
 
@@ -171,8 +179,18 @@ public class FinanceDataService {
       .mapEmpty();
   }
 
-  private Future<Void> processLogs(FyFinanceDataCollection financeData, RequestContext requestContext) {
-    return Future.succeededFuture();
+  private void processLogs(FyFinanceDataCollection financeDataCollection,
+                           RequestContext requestContext, AsyncResult<Void> asyncResult) {
+    FundUpdateLog.Status status = asyncResult.succeeded() ? COMPLETED : ERROR;
+    var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
+
+    var fundUpdateLog = new FundUpdateLog().withId(UUID.randomUUID().toString())
+      .withJobName("Update finance data")
+      .withStatus(status)
+      .withRecordsCount(financeDataCollection.getTotalRecords())
+      .withJobDetails(jobDetails)
+      .withJobNumber(1);
+    fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
   }
 }
 
