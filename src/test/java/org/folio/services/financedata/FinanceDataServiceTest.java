@@ -1,23 +1,36 @@
 package org.folio.services.financedata;
 
+import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.Collections.singletonList;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.FiscalYear;
+import org.folio.rest.jaxrs.model.FundTags;
+import org.folio.rest.jaxrs.model.FundUpdateLog;
+import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.services.fiscalyear.FiscalYearService;
+import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
+import org.folio.services.transactions.TransactionApiService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,12 +49,16 @@ public class FinanceDataServiceTest {
 
   @InjectMocks
   private FinanceDataService financeDataService;
-
   @Mock
   private RestClient restClient;
-
   @Mock
   private AcqUnitsService acqUnitsService;
+  @Mock
+  private FundUpdateLogService fundUpdateLogService;
+  @Mock
+  private TransactionApiService transactionApiService;
+  @Mock
+  private FiscalYearService fiscalYearService;
 
   private RequestContext requestContextMock;
   private AutoCloseable closeable;
@@ -106,4 +123,145 @@ public class FinanceDataServiceTest {
       });
   }
 
+  @Test
+  void positive_testPutFinanceData_PutFinanceDataSuccessfully(VertxTestContext vertxTestContext) {
+    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
+    when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
+    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+
+    var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        verify(fundUpdateLogService).createFundUpdateLog(argThat(log ->
+          log.getStatus() == FundUpdateLog.Status.COMPLETED
+        ), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+  }
+
+  @Test
+  void negative_testPutFinanceData_LogErrorWhenPutFinanceDataFails(VertxTestContext vertxTestContext) {
+    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+    when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
+    when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
+    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+
+    var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        assertTrue(result.failed());
+        verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+  }
+
+  @Test
+  void negative_testPutFinanceData_FailureInProcessAllocationTransaction(VertxTestContext vertxTestContext) {
+    FyFinanceDataCollection financeData = new FyFinanceDataCollection();
+    FyFinanceData data = createValidFyFinanceData();
+    financeData.setFyFinanceData(singletonList(data));
+
+    when(transactionApiService.processBatch(any(), any())).thenReturn(failedFuture("Process failed"));
+
+    financeDataService.putFinanceData(financeData, requestContextMock)
+      .onComplete(vertxTestContext.failing(error -> {
+        verify(fundUpdateLogService).createFundUpdateLog(argThat(log ->
+          log.getStatus() == FundUpdateLog.Status.ERROR
+        ), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      }));
+  }
+
+//  @Test
+//  void shouldProcessLogsWithCompletedStatus(VertxTestContext vertxTestContext) {
+//    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+//    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+//
+//    financeDataService.processLogs(financeDataCollection, requestContextMock, FundUpdateLog.Status.COMPLETED);
+//    verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+//    vertxTestContext.completeNow();
+//  }
+//
+//  @Test
+//  void shouldProcessLogsWithErrorStatus(VertxTestContext vertxTestContext) {
+//    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+//    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+//
+//    financeDataService.processLogs(financeDataCollection, requestContextMock, FundUpdateLog.Status.ERROR);
+//    verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+//    vertxTestContext.completeNow();
+//  }
+
+
+
+//  @Test
+//  void testValidateFinanceData_ValidData(VertxTestContext vertxTestContext) {
+//    FyFinanceData data = createValidFyFinanceData();
+//
+//    vertxTestContext.verify(() -> {
+//      financeDataService.validateFinanceData(data);
+//      vertxTestContext.completeNow();
+//    });
+//  }
+//
+//  @Test
+//  void testValidateFinanceData_InvalidAllocationChange(VertxTestContext vertxTestContext) {
+//    FyFinanceData data = createValidFyFinanceData();
+//    data.setBudgetInitialAllocation(100.0);
+//    data.setBudgetAllocationChange(-150.0);
+//
+//    vertxTestContext.verify(() -> {
+//      assertThrows(IllegalArgumentException.class, () -> financeDataService.validateFinanceData(data));
+//      vertxTestContext.completeNow();
+//    });
+//  }
+//
+//  @Test
+//  void testValidateFinanceDataFields_MissingRequiredField(VertxTestContext vertxTestContext) {
+//    FyFinanceData data = createValidFyFinanceData();
+//    data.setFundId(null);
+//
+//    vertxTestContext.verify(() -> {
+//      assertThrows(IllegalArgumentException.class, () -> financeDataService.validateFinanceDataFields(data));
+//      vertxTestContext.completeNow();
+//    });
+//  }
+
+  @Test
+  void testCreateAllocationTransaction(VertxTestContext vertxTestContext) {
+    FyFinanceData data = createValidFyFinanceData();
+    FiscalYear fiscalYear = new FiscalYear().withCurrency("USD");
+
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
+
+    financeDataService.createAllocationTransaction(data, requestContextMock)
+      .onComplete(vertxTestContext.succeeding(transaction -> {
+        assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
+        assertEquals(data.getFundId(), transaction.getToFundId());
+        assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
+        assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
+        vertxTestContext.completeNow();
+      }));
+  }
+
+  private FyFinanceData createValidFyFinanceData() {
+    return new FyFinanceData()
+      .withFundId(UUID.randomUUID().toString())
+      .withFundCode("FUND-001")
+      .withFundName("Test Fund")
+      .withFundDescription("Test Fund Description")
+      .withFundStatus(FyFinanceData.FundStatus.ACTIVE)
+      .withBudgetId(UUID.randomUUID().toString())
+      .withBudgetName("Test Budget")
+      .withBudgetStatus(FyFinanceData.BudgetStatus.ACTIVE)
+      .withBudgetInitialAllocation(100.0)
+      .withBudgetAllocationChange(50.0)
+      .withBudgetAllowableExpenditure(150.0)
+      .withBudgetAllowableEncumbrance(150.0)
+      .withTransactionDescription("Test Transaction")
+      .withTransactionTag(new FundTags().withTagList(List.of("tag1", "tag2")))
+      .withFiscalYearId(UUID.randomUUID().toString());
+  }
 }
