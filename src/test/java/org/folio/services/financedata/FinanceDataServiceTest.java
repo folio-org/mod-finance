@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.vertx.core.Future;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
@@ -162,7 +163,9 @@ public class FinanceDataServiceTest {
     FyFinanceDataCollection financeData = new FyFinanceDataCollection();
     FyFinanceData data = createValidFyFinanceData();
     financeData.setFyFinanceData(singletonList(data));
+    FiscalYear fiscalYear = new FiscalYear().withCurrency("USD");
 
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(transactionApiService.processBatch(any(), any())).thenReturn(failedFuture("Process failed"));
 
     financeDataService.putFinanceData(financeData, requestContextMock)
@@ -175,20 +178,24 @@ public class FinanceDataServiceTest {
   }
 
   @Test
-  void testCreateAllocationTransaction(VertxTestContext vertxTestContext) {
+  void testCreateAllocationTransactionUsingReflection(VertxTestContext vertxTestContext) throws Exception {
     FyFinanceData data = createValidFyFinanceData();
     FiscalYear fiscalYear = new FiscalYear().withCurrency("USD");
 
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
 
-    financeDataService.createAllocationTransaction(data, requestContextMock)
-      .onComplete(vertxTestContext.succeeding(transaction -> {
-        assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
-        assertEquals(data.getFundId(), transaction.getToFundId());
-        assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
-        assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
-        vertxTestContext.completeNow();
-      }));
+    // Use reflection to access the private method
+    var method = FinanceDataService.class.getDeclaredMethod("createAllocationTransaction", FyFinanceData.class, RequestContext.class);
+    method.setAccessible(true);
+
+    Future<Transaction> future = (Future<Transaction>) method.invoke(financeDataService, data, requestContextMock);
+    future.onComplete(vertxTestContext.succeeding(transaction -> {
+      assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
+      assertEquals(data.getFundId(), transaction.getToFundId());
+      assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
+      assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
+      vertxTestContext.completeNow();
+    }));
   }
 
   private FyFinanceData createValidFyFinanceData() {

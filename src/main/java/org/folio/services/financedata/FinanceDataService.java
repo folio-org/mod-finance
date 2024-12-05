@@ -129,7 +129,7 @@ public class FinanceDataService {
     }
   }
 
-  public Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
+  private Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
                                                    RequestContext requestContext) {
     var transactionsFuture = fyFinanceDataCollection.getFyFinanceData().stream()
       .map(financeData -> createAllocationTransaction(financeData, requestContext))
@@ -142,7 +142,7 @@ public class FinanceDataService {
       });
   }
 
-  public Future<Transaction> createAllocationTransaction(FyFinanceData financeData, RequestContext requestContext) {
+  private Future<Transaction> createAllocationTransaction(FyFinanceData financeData, RequestContext requestContext) {
     var transaction = new Transaction()
       .withTransactionType(Transaction.TransactionType.ALLOCATION)
       .withId(UUID.randomUUID().toString())
