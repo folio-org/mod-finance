@@ -6,7 +6,6 @@ import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 
 import java.math.BigDecimal;
@@ -29,22 +28,22 @@ import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
-import org.folio.services.transactions.TransactionService;
+import org.folio.services.transactions.TransactionApiService;
 
 public class FinanceDataService {
   private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
-  private final TransactionService transactionService;
+  private final TransactionApiService transactionApiService;
   private final FiscalYearService fiscalYearService;
   private final FundUpdateLogService fundUpdateLogService;
 
-  public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService,
-                            TransactionService transactionService, FiscalYearService fiscalYearService, FundUpdateLogService fundUpdateLogService) {
+  public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService, TransactionApiService transactionApiService,
+                            FiscalYearService fiscalYearService, FundUpdateLogService fundUpdateLogService) {
     this.restClient = restClient;
     this.acqUnitsService = acqUnitsService;
-    this.transactionService = transactionService;
+    this.transactionApiService = transactionApiService;
     this.fiscalYearService = fiscalYearService;
     this.fundUpdateLogService = fundUpdateLogService;
   }
@@ -79,13 +78,7 @@ public class FinanceDataService {
 
     var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
     var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
-//    var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
-//    var expectedChange = currentAllocation.subtract(initialAllocation);
-//
-//    if (allocationChange.abs().subtract(expectedChange).doubleValue() != 0) {
-//      throw new IllegalArgumentException(
-//        "Allocation change does not match the difference between current and initial allocation");
-//    }
+
     if (allocationChange.doubleValue() < 0 && allocationChange.abs().doubleValue() > initialAllocation.doubleValue()) {
       throw new IllegalArgumentException("Allocation change cannot be greater than initial allocation");
     }
@@ -169,8 +162,8 @@ public class FinanceDataService {
   }
 
   public Future<Void> createBatchTransaction(List<Transaction> transactions, RequestContext requestContext) {
-    Batch batch = new Batch().withTransactionsToUpdate(transactions);
-    return transactionService.processBatch(batch, requestContext);
+    Batch batch = new Batch().withTransactionsToCreate(transactions);
+    return transactionApiService.processBatch(batch, requestContext);
   }
 
   private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
@@ -179,21 +172,9 @@ public class FinanceDataService {
     return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
   }
 
-  private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
-                                         RequestContext requestContext, AsyncResult<Void> asyncResult) {
-    log.debug("updateFinanceData:: Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
-    if (asyncResult.succeeded()) {
-      log.info("");
-      return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
-    } else {
-      return Future.failedFuture(asyncResult.cause());
-    }
-  }
-
   private void processLogs(FyFinanceDataCollection financeDataCollection,
                            RequestContext requestContext, FundUpdateLog.Status status) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
-
     var fundUpdateLog = new FundUpdateLog().withId(UUID.randomUUID().toString())
       .withJobName("Update finance data")
       .withStatus(status)
