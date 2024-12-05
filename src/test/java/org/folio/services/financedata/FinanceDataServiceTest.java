@@ -174,61 +174,6 @@ public class FinanceDataServiceTest {
       }));
   }
 
-//  @Test
-//  void shouldProcessLogsWithCompletedStatus(VertxTestContext vertxTestContext) {
-//    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
-//    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
-//
-//    financeDataService.processLogs(financeDataCollection, requestContextMock, FundUpdateLog.Status.COMPLETED);
-//    verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
-//    vertxTestContext.completeNow();
-//  }
-//
-//  @Test
-//  void shouldProcessLogsWithErrorStatus(VertxTestContext vertxTestContext) {
-//    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
-//    when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
-//
-//    financeDataService.processLogs(financeDataCollection, requestContextMock, FundUpdateLog.Status.ERROR);
-//    verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
-//    vertxTestContext.completeNow();
-//  }
-
-
-
-//  @Test
-//  void testValidateFinanceData_ValidData(VertxTestContext vertxTestContext) {
-//    FyFinanceData data = createValidFyFinanceData();
-//
-//    vertxTestContext.verify(() -> {
-//      financeDataService.validateFinanceData(data);
-//      vertxTestContext.completeNow();
-//    });
-//  }
-//
-//  @Test
-//  void testValidateFinanceData_InvalidAllocationChange(VertxTestContext vertxTestContext) {
-//    FyFinanceData data = createValidFyFinanceData();
-//    data.setBudgetInitialAllocation(100.0);
-//    data.setBudgetAllocationChange(-150.0);
-//
-//    vertxTestContext.verify(() -> {
-//      assertThrows(IllegalArgumentException.class, () -> financeDataService.validateFinanceData(data));
-//      vertxTestContext.completeNow();
-//    });
-//  }
-//
-//  @Test
-//  void testValidateFinanceDataFields_MissingRequiredField(VertxTestContext vertxTestContext) {
-//    FyFinanceData data = createValidFyFinanceData();
-//    data.setFundId(null);
-//
-//    vertxTestContext.verify(() -> {
-//      assertThrows(IllegalArgumentException.class, () -> financeDataService.validateFinanceDataFields(data));
-//      vertxTestContext.completeNow();
-//    });
-//  }
-
   @Test
   void testCreateAllocationTransaction(VertxTestContext vertxTestContext) {
     FyFinanceData data = createValidFyFinanceData();
