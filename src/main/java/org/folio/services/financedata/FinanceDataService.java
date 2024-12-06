@@ -13,10 +13,9 @@ import java.util.List;
 import java.util.UUID;
 
 import io.vertx.core.Future;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -35,8 +34,8 @@ import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.transactions.TransactionApiService;
 
+@Log4j2
 public class FinanceDataService {
-  private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
@@ -73,7 +72,7 @@ public class FinanceDataService {
   public Future<Void> putFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
     log.debug("Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
     if (CollectionUtils.isEmpty(financeDataCollection.getFyFinanceData())) {
-      log.info("Finance data collection is empty, nothing to update");
+      log.info("putFinanceData:: Finance data collection is empty, nothing to update");
       return succeededFuture();
     }
 
@@ -90,10 +89,10 @@ public class FinanceDataService {
       var financeData = financeDataCollection.getFyFinanceData().get(i);
       validateFinanceDataFields(financeData, i, fiscalYearId);
 
-      var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-      var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
+      var allocationChange = financeData.getBudgetAllocationChange();
+      var initialAllocation = financeData.getBudgetInitialAllocation();
 
-      if (allocationChange.doubleValue() < 0 && allocationChange.abs().doubleValue() > initialAllocation.doubleValue()) {
+      if (allocationChange < 0 && Math.abs(allocationChange) > initialAllocation) {
         var error = createError("Allocation change cannot be greater than initial allocation",
           String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange()));
         throw new HttpException(422, new Errors().withErrors(List.of(error)));
@@ -120,7 +119,7 @@ public class FinanceDataService {
 
   private Transaction createAllocationTransaction(FyFinanceData financeData, String currency) {
     var allocation = calculateAllocation(financeData);
-    log.info("Creating allocation transaction for fund '{}' and budget '{}' with allocation '{}'",
+    log.info("createAllocationTransaction:: Creating allocation transaction for fund '{}' and budget '{}' with allocation '{}'",
       financeData.getFundId(), financeData.getBudgetId(), allocation);
 
     return new Transaction()
