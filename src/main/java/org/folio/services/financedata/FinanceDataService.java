@@ -7,7 +7,6 @@ import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +51,17 @@ public class FinanceDataService {
     this.fundUpdateLogService = fundUpdateLogService;
   }
 
+  /**
+   * The method will fetch finance data with acq units restriction
+   * 1. First fetch acq units for the user
+   * 2. Build cql clause for finance data with acq units
+   *
+   * @param query           query to filter finance data
+   * @param offset          offset
+   * @param limit           limit
+   * @param requestContext  request context
+   * @return future with finance data collection
+   */
   public Future<FyFinanceDataCollection> getFinanceDataWithAcqUnitsRestriction(String query, int offset, int limit,
                                                                                RequestContext requestContext) {
     log.debug("Trying to get finance data with acq units restriction, query={}", query);
@@ -69,6 +79,17 @@ public class FinanceDataService {
     return restClient.get(requestEntry.buildEndpoint(), FyFinanceDataCollection.class, requestContext);
   }
 
+  /**
+   * The method will update finance data collection in one operation.
+   * 1. Validate finance data collection, if it fails validation exception will be thrown
+   * 2. Create allocation transactions, if it fails process will stop
+   * 3. Update finance data by invoking storage API
+   * 4. Save logs of the operation with COMPLETE or ERROR status
+   *
+   * @param financeDataCollection finance data collection to update
+   * @param requestContext        request context
+   * @return future with void result
+   */
   public Future<Void> putFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
     log.debug("Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
     if (CollectionUtils.isEmpty(financeDataCollection.getFyFinanceData())) {
@@ -118,24 +139,27 @@ public class FinanceDataService {
   }
 
   private Transaction createAllocationTransaction(FyFinanceData financeData, String currency) {
-    var allocation = calculateAllocation(financeData);
+    var allocationChange = financeData.getBudgetAllocationChange();
     log.info("createAllocationTransaction:: Creating allocation transaction for fund '{}' and budget '{}' with allocation '{}'",
-      financeData.getFundId(), financeData.getBudgetId(), allocation);
+      financeData.getFundId(), financeData.getBudgetId(), allocationChange);
 
-    return new Transaction()
+    var transaction = new Transaction()
       .withTransactionType(Transaction.TransactionType.ALLOCATION)
       .withId(UUID.randomUUID().toString())
-      .withAmount(allocation)
+      .withAmount(Math.abs(allocationChange))
       .withFiscalYearId(financeData.getFiscalYearId())
-      .withToFundId(financeData.getFundId())
       .withSource(Transaction.Source.USER)
       .withCurrency(currency);
-  }
 
-  private Double calculateAllocation(FyFinanceData financeData) {
-    var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
-    var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-    return initialAllocation.add(allocationChange).doubleValue();
+    // For negative allocation (decrease), use fromFundId
+    // For positive allocation (increase), use toFundId
+    if (allocationChange > 0) {
+      transaction.withToFundId(financeData.getFundId());
+    } else {
+      transaction.withFromFundId(financeData.getFundId());
+    }
+
+    return transaction;
   }
 
   public Future<Void> createBatchTransaction(List<Transaction> transactions, RequestContext requestContext) {
