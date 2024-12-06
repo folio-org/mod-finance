@@ -180,7 +180,7 @@ public class FinanceDataApiTest {
       .as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is("jakarta.validation.constraints.Pattern.message"));
+    assertThat(errors.getErrors().get(0).getCode(), is("jakarta.validation.constraints.NotNull.message"));
   }
 
   @Test
