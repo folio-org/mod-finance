@@ -117,7 +117,6 @@ public class TransactionApiService {
       .onFailure(t -> log.error("Error unreleasing encumbrance, id={}", id, t));
   }
 
-
   private void validateTransactionType(Transaction transaction, TransactionType transactionType) {
     if (transaction.getTransactionType() != transactionType) {
       log.warn("validateTransactionType:: Transaction '{}' type mismatch. '{}' expected", transaction.getId(), transactionType);
