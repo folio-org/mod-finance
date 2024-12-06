@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import io.vertx.core.Context;
-import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -186,24 +185,19 @@ public class FinanceDataServiceTest {
   }
 
   @Test
-  void testCreateAllocationTransactionUsingReflection(VertxTestContext vertxTestContext) throws Exception {
-    FyFinanceData data = createValidFyFinanceData();
-    FiscalYear fiscalYear = new FiscalYear().withCurrency("USD");
-
-    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
+  void testCreateAllocationTransactionUsingReflection() throws Exception {
+    var data = createValidFyFinanceData();
+    var fiscalYear = new FiscalYear().withCurrency("USD");
 
     // Use reflection to access the private method
-    var method = FinanceDataService.class.getDeclaredMethod("createAllocationTransaction", FyFinanceData.class, RequestContext.class);
+    var method = FinanceDataService.class.getDeclaredMethod("createAllocationTransaction", FyFinanceData.class, String.class);
     method.setAccessible(true);
 
-    Future<Transaction> future = (Future<Transaction>) method.invoke(financeDataService, data, requestContextMock);
-    future.onComplete(vertxTestContext.succeeding(transaction -> {
-      assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
-      assertEquals(data.getFundId(), transaction.getToFundId());
-      assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
-      assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
-      vertxTestContext.completeNow();
-    }));
+    Transaction transaction = (Transaction) method.invoke(financeDataService, data, fiscalYear.getCurrency());
+    assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
+    assertEquals(data.getFundId(), transaction.getToFundId());
+    assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
+    assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
   }
 
   @Test

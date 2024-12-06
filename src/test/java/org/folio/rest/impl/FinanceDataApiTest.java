@@ -48,6 +48,7 @@ import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.services.financedata.FinanceDataService;
 import org.folio.services.protection.AcqUnitsService;
+import org.folio.util.CopilotGenerated;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,7 +57,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
-
+@CopilotGenerated(partiallyGenerated = true)
 public class FinanceDataApiTest {
 
   @Autowired
