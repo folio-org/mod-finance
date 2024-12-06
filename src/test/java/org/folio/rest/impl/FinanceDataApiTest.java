@@ -174,7 +174,7 @@ public class FinanceDataApiTest {
     var jsonObject = new JsonObject(jsonData);
     var financeDataCollection = jsonObject.mapTo(FyFinanceDataCollection.class);
     // Modify one field to make it invalid
-    financeDataCollection.getFyFinanceData().get(0).setFiscalYearId("invalid-uuid");
+    financeDataCollection.getFyFinanceData().get(0).setFiscalYearId(null);
 
     var errors = verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, APPLICATION_JSON, 422)
       .as(Errors.class);

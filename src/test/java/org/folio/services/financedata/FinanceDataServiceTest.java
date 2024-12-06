@@ -6,6 +6,7 @@ import static java.util.Collections.singletonList;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -14,14 +15,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import io.vertx.core.Context;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
@@ -39,11 +46,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
 public class FinanceDataServiceTest {
@@ -126,10 +128,13 @@ public class FinanceDataServiceTest {
 
   @Test
   void positive_testPutFinanceData_PutFinanceDataSuccessfully(VertxTestContext vertxTestContext) {
-    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+    var financeDataCollection = new FyFinanceDataCollection().withFyFinanceData(List.of(createValidFyFinanceData()));
+    var fiscalYear = new FiscalYear().withCurrency("USD");
+
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
     when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
 
     var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -144,7 +149,10 @@ public class FinanceDataServiceTest {
 
   @Test
   void negative_testPutFinanceData_LogErrorWhenPutFinanceDataFails(VertxTestContext vertxTestContext) {
-    FyFinanceDataCollection financeDataCollection = new FyFinanceDataCollection();
+    var financeDataCollection = new FyFinanceDataCollection().withFyFinanceData(List.of(createValidFyFinanceData()));
+    var fiscalYear = new FiscalYear().withCurrency("USD");
+
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
     when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
@@ -196,6 +204,33 @@ public class FinanceDataServiceTest {
       assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
       vertxTestContext.completeNow();
     }));
+  }
+
+  @Test
+  void testPutFinanceData_InvalidAllocationChange() {
+    var financeData = createValidFyFinanceData();
+    financeData.setBudgetInitialAllocation(100.0);
+    financeData.setBudgetAllocationChange(-150.0);
+    var collection = new FyFinanceDataCollection()
+      .withFyFinanceData(Collections.singletonList(financeData))
+      .withTotalRecords(1);
+
+    var exception = assertThrows(HttpException.class,
+      () -> financeDataService.putFinanceData(collection, new RequestContext(Vertx.vertx().getOrCreateContext(), new HashMap<>())));
+    assertEquals("Allocation change cannot be greater than initial allocation", exception.getErrors().getErrors().get(0).getMessage());
+  }
+
+  @Test
+  void testPutFinanceData_MissingRequiredField() {
+    var financeData = createValidFyFinanceData();
+    financeData.setBudgetInitialAllocation(null);
+    var collection = new FyFinanceDataCollection()
+      .withFyFinanceData(Collections.singletonList(financeData))
+      .withTotalRecords(1);
+
+    var exception = assertThrows(HttpException.class,
+      () -> financeDataService.putFinanceData(collection, new RequestContext(Vertx.vertx().getOrCreateContext(), new HashMap<>())));
+    assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
   }
 
   private FyFinanceData createValidFyFinanceData() {

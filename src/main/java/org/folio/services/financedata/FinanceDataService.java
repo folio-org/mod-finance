@@ -1,17 +1,19 @@
 package org.folio.services.financedata;
 
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
-import io.vertx.core.Future;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import io.vertx.core.Future;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,11 +21,15 @@ import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Batch;
+import org.folio.rest.jaxrs.model.Error;
+import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
+import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundUpdateLogService;
@@ -50,6 +56,7 @@ public class FinanceDataService {
 
   public Future<FyFinanceDataCollection> getFinanceDataWithAcqUnitsRestriction(String query, int offset, int limit,
                                                                                RequestContext requestContext) {
+    log.debug("Trying to get finance data with acq units restriction, query={}", query);
     return acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .compose(effectiveQuery -> getFinanceData(effectiveQuery, offset, limit, requestContext));
@@ -64,73 +71,38 @@ public class FinanceDataService {
     return restClient.get(requestEntry.buildEndpoint(), FyFinanceDataCollection.class, requestContext);
   }
 
-  public Future<Void> putFinanceData(FyFinanceDataCollection financeData, RequestContext requestContext) {
-    financeData.getFyFinanceData().forEach(this::validateFinanceData);
+  public Future<Void> putFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
+    log.debug("Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
+    if (CollectionUtils.isEmpty(financeDataCollection.getFyFinanceData())) {
+      log.info("Finance data collection is empty, nothing to update");
+      return succeededFuture();
+    }
 
-    return processAllocationTransaction(financeData, requestContext)
-      .compose(v -> updateFinanceData(financeData, requestContext))
-      .onSuccess(asyncResult -> processLogs(financeData, requestContext, COMPLETED))
-      .onFailure(asyncResult -> processLogs(financeData, requestContext, ERROR));
+    validateFinanceDataCollection(financeDataCollection);
+    return processAllocationTransaction(financeDataCollection, requestContext)
+      .compose(v -> updateFinanceData(financeDataCollection, requestContext))
+      .onSuccess(asyncResult -> processLogs(financeDataCollection, requestContext, COMPLETED))
+      .onFailure(asyncResult -> processLogs(financeDataCollection, requestContext, ERROR));
   }
 
-  private void validateFinanceData(FyFinanceData financeData) {
-    validateFinanceDataFields(financeData);
+  private void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection) {
+    for (int i = 0; i < financeDataCollection.getFyFinanceData().size(); i++) {
+      var financeData = financeDataCollection.getFyFinanceData().get(i);
+      validateFinanceDataFields(financeData, i);
+      var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
+      var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
 
-    var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-    var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
-
-    if (allocationChange.doubleValue() < 0 && allocationChange.abs().doubleValue() > initialAllocation.doubleValue()) {
-      throw new IllegalArgumentException("Allocation change cannot be greater than initial allocation");
-    }
-  }
-
-  private void validateFinanceDataFields(FyFinanceData financeData) {
-    if (financeData.getFundId() == null) {
-      throw new IllegalArgumentException("Fund ID is required");
-    }
-    if (financeData.getFundCode() == null) {
-      throw new IllegalArgumentException("Fund code is required");
-    }
-    if (financeData.getFundName() == null) {
-      throw new IllegalArgumentException("Fund name is required");
-    }
-    if (financeData.getFundDescription() == null) {
-      throw new IllegalArgumentException("Fund description is required");
-    }
-    if (financeData.getFundStatus() == null) {
-      throw new IllegalArgumentException("Fund status is required");
-    }
-    if (financeData.getBudgetId() == null) {
-      throw new IllegalArgumentException("Budget ID is required");
-    }
-    if (financeData.getBudgetName() == null) {
-      throw new IllegalArgumentException("Budget name is required");
-    }
-    if (financeData.getBudgetStatus() == null) {
-      throw new IllegalArgumentException("Budget status is required");
-    }
-    if (financeData.getBudgetInitialAllocation() == null) {
-      throw new IllegalArgumentException("Budget initial allocation is required");
-    }
-    if (financeData.getBudgetAllocationChange() == null) {
-      throw new IllegalArgumentException("Allocation change is required");
-    }
-    if (financeData.getBudgetAllowableExpenditure() == null) {
-      throw new IllegalArgumentException("Budget allowable expenditure is required");
-    }
-    if (financeData.getBudgetAllowableEncumbrance() == null) {
-      throw new IllegalArgumentException("Budget allowable encumbrance is required");
-    }
-    if (financeData.getTransactionDescription() == null) {
-      throw new IllegalArgumentException("Transaction description is required");
-    }
-    if (financeData.getTransactionTag() == null) {
-      throw new IllegalArgumentException("Transaction tag is required");
+      if (allocationChange.doubleValue() < 0 && allocationChange.abs().doubleValue() > initialAllocation.doubleValue()) {
+        var params = List.of(new Parameter().withKey(String.format("financeData[%s].budgetAllocationChange", i))
+          .withValue(String.valueOf(financeData.getBudgetAllocationChange())));
+        var error = new Error().withMessage("Allocation change cannot be greater than initial allocation").withParameters(params);
+        throw new HttpException(422, new Errors().withErrors(List.of(error)));
+      }
     }
   }
 
   private Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
-                                                   RequestContext requestContext) {
+                                                    RequestContext requestContext) {
     var transactionsFuture = fyFinanceDataCollection.getFyFinanceData().stream()
       .map(financeData -> createAllocationTransaction(financeData, requestContext))
       .toList();
@@ -143,13 +115,16 @@ public class FinanceDataService {
   }
 
   private Future<Transaction> createAllocationTransaction(FyFinanceData financeData, RequestContext requestContext) {
+    var allocation = calculateAllocation(financeData);
     var transaction = new Transaction()
       .withTransactionType(Transaction.TransactionType.ALLOCATION)
       .withId(UUID.randomUUID().toString())
-      .withAmount(calculateAllocation(financeData))
+      .withAmount(allocation)
       .withFiscalYearId(financeData.getFiscalYearId())
       .withToFundId(financeData.getFundId())
       .withSource(Transaction.Source.USER);
+    log.info("Creating allocation transaction for fund '{}' and budget '{}' with allocation '{}'",
+      financeData.getFundId(), financeData.getBudgetId(), allocation);
 
     return fiscalYearService.getFiscalYearById(financeData.getFiscalYearId(), requestContext)
       .map(fiscalYear -> transaction.withCurrency(fiscalYear.getCurrency()));
@@ -182,6 +157,35 @@ public class FinanceDataService {
       .withJobDetails(jobDetails)
       .withJobNumber(1);
     fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
+  }
+
+  private void validateFinanceDataFields(FyFinanceData financeData, int i) {
+    var errors = new Errors().withErrors(new ArrayList<>());
+
+    validateField(errors, String.format("financeData[%s].fundCode", i), financeData.getFundCode(), "Fund code is required");
+    validateField(errors, String.format("financeData[%s].fundName", i), financeData.getFundName(), "Fund name is required");
+    validateField(errors, String.format("financeData[%s].fundDescription", i), financeData.getFundDescription(), "Fund description is required");
+    validateField(errors, String.format("financeData[%s].fundStatus", i), financeData.getFundStatus(), "Fund status is required");
+    validateField(errors, String.format("financeData[%s].budgetId", i), financeData.getBudgetId(), "Budget ID is required");
+    validateField(errors, String.format("financeData[%s].budgetName", i), financeData.getBudgetName(), "Budget name is required");
+    validateField(errors, String.format("financeData[%s].budgetStatus", i), financeData.getBudgetStatus(), "Budget status is required");
+    validateField(errors, String.format("financeData[%s].budgetInitialAllocation", i), financeData.getBudgetInitialAllocation(), "Budget initial allocation is required");
+    validateField(errors, String.format("financeData[%s].budgetAllocationChange", i), financeData.getBudgetAllocationChange(), "Allocation change is required");
+    validateField(errors, String.format("financeData[%s].budgetAllowableExpenditure", i), financeData.getBudgetAllowableExpenditure(), "Budget allowable expenditure is required");
+    validateField(errors, String.format("financeData[%s].budgetAllowableEncumbrance", i), financeData.getBudgetAllowableEncumbrance(), "Budget allowable encumbrance is required");
+    validateField(errors, String.format("financeData[%s].transactionDescription", i), financeData.getTransactionDescription(), "Transaction description is required");
+    validateField(errors, String.format("financeData[%s].transactionTag", i), financeData.getTransactionTag(), "Transaction tag is required");
+
+    if (CollectionUtils.isNotEmpty(errors.getErrors())) {
+      throw new HttpException(422, errors);
+    }
+  }
+
+  private void validateField(Errors errors, String fieldName, Object fieldValue, String errorMessage) {
+    if (fieldValue == null) {
+      var params = List.of(new Parameter().withKey(fieldName).withValue("null"));
+      errors.getErrors().add(new Error().withMessage(errorMessage).withParameters(params));
+    }
   }
 }
 
