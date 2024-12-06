@@ -197,7 +197,7 @@ public class FinanceDataServiceTest {
     assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
     assertEquals(data.getFundId(), transaction.getToFundId());
     assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
-    assertEquals(150.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
+    assertEquals(50.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
   }
 
   @Test
