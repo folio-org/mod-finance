@@ -1,5 +1,6 @@
 package org.folio.services.ledger;
 
+import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.removeInitialAllocationByFunds;
 
@@ -99,9 +100,8 @@ public class LedgerTotalsService {
                                                                                           RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
-    var fromTransfer = transactionService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, trTypes, requestContext);
-    var toTransfer = transactionService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, trTypes, requestContext);
+    var fromTransfer = transactionService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
+    var toTransfer = transactionService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
 
     return GenericCompositeFuture.join(List.of(fromTransfer, toTransfer))
       .map(f -> holder.withToTransfers(toTransfer.result()).withFromTransfers(fromTransfer.result()));
