@@ -12,11 +12,12 @@ import org.javamoney.moneta.function.MonetaryFunctions;
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 import javax.money.MonetaryAmount;
-import java.util.Map;
-import java.util.List;
-import java.util.Objects;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -26,7 +27,7 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.CREDIT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PENDING_PAYMENT;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
+import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
 
 public class RecalculatedBudgetBuilder {
 
@@ -106,14 +107,18 @@ public class RecalculatedBudgetBuilder {
   }
 
   /**
-   * Sets the net transfers amount based on the sum of 'Transfer' transactions.
+   * Sets the net transfers amount based on the sum of 'Transfer' and 'Rollover transfer' transactions.
    * Transfers originating from the budget are subtracted, while others are summed.
    *
    * @param fundId Fund ID
    * @return This RecalculatedBudgetBuilder instance for method chaining
    */
   public RecalculatedBudgetBuilder withNetTransfers(String fundId) {
-    netTransfers = getTransactionByType(TRANSFER).stream()
+    List<Transaction> transferTransactions = new ArrayList<>();
+    for (Transaction.TransactionType trType: TRANSFER_TRANSACTION_TYPES) {
+      transferTransactions.addAll(getTransactionByType(trType));
+    }
+    netTransfers = transferTransactions.stream()
       .map(transaction -> {
         MonetaryAmount amount = Money.of(transaction.getAmount(), currency);
         return Objects.equals(transaction.getFromFundId(), fundId) ? amount.negate() : amount;
