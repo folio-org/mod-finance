@@ -7,10 +7,13 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
+import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 
 import io.vertx.core.json.JsonObject;
 
 public final class BudgetUtils {
+
+  public static List<TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
 
   private BudgetUtils() {
 
