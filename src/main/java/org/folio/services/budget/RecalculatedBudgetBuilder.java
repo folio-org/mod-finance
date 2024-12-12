@@ -5,7 +5,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.util.BudgetUtils;
 import org.folio.rest.util.MoneyUtils;
 import org.javamoney.moneta.Money;
 import org.javamoney.moneta.function.MonetaryFunctions;
@@ -28,7 +27,6 @@ import static org.folio.rest.jaxrs.model.Transaction.TransactionType.CREDIT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.ENCUMBRANCE;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PAYMENT;
 import static org.folio.rest.jaxrs.model.Transaction.TransactionType.PENDING_PAYMENT;
-import static org.folio.rest.jaxrs.model.Transaction.TransactionType.TRANSFER;
 import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
 
 public class RecalculatedBudgetBuilder {

@@ -22,7 +22,6 @@ import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.Transaction.TransactionType;
-import org.folio.rest.util.BudgetUtils;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;

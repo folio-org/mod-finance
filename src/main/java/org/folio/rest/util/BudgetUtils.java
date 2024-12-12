@@ -13,7 +13,7 @@ import io.vertx.core.json.JsonObject;
 
 public final class BudgetUtils {
 
-  public static List<TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
+  public static final List<TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
 
   private BudgetUtils() {
 
