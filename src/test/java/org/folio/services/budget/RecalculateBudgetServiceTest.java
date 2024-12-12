@@ -72,6 +72,8 @@ public class RecalculateBudgetServiceTest {
     Transaction transferTo = buildTransaction(anotherFundId, budgetFundId, 150d, Transaction.TransactionType.TRANSFER);
     Transaction transferFrom = buildTransaction(budgetFundId, anotherFundId, 100d, Transaction.TransactionType.TRANSFER);
 
+    Transaction rolloverTransfer = buildTransaction(null, budgetFundId, 4d, Transaction.TransactionType.ROLLOVER_TRANSFER);
+
     Transaction encumbrance = buildTransaction(budgetFundId, null, 120d, Transaction.TransactionType.ENCUMBRANCE);
 
     Transaction pendingPayment1 = buildTransaction(budgetFundId, null, -20d, Transaction.TransactionType.PENDING_PAYMENT);
@@ -81,7 +83,7 @@ public class RecalculateBudgetServiceTest {
     Transaction payment = buildTransaction(budgetFundId, null, 60d, Transaction.TransactionType.PAYMENT);
 
     List<Transaction> transactions = Arrays.asList(initialAllocation,
-      increaseAllocation, decreaseAllocation, transferTo, transferFrom,
+      increaseAllocation, decreaseAllocation, transferTo, transferFrom, rolloverTransfer,
       encumbrance, pendingPayment1, pendingPayment2, credit, payment);
 
     when(budgetServiceMock.getBudgetById(anyString(), any())).thenReturn(succeededFuture(BudgetUtils.convertToSharedBudget(budget)));
@@ -100,7 +102,7 @@ public class RecalculateBudgetServiceTest {
         assertEquals(1500d, capturedBudget.getInitialAllocation()); // initialAllocation
         assertEquals(100d, capturedBudget.getAllocationTo()); // increaseAllocation
         assertEquals(200d, capturedBudget.getAllocationFrom()); // decreaseAllocation
-        assertEquals(50d, capturedBudget.getNetTransfers()); // transferTo - transferFrom
+        assertEquals(54d, capturedBudget.getNetTransfers()); // transferTo - transferFrom
         assertEquals(120d, capturedBudget.getEncumbered()); // encumbrance
         assertEquals(30d, capturedBudget.getAwaitingPayment()); // pendingPayment1 + pendingPayment2
         assertEquals(60d, capturedBudget.getExpenditures()); // payment
