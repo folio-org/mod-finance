@@ -1,5 +1,13 @@
 ## 5.1.0 - Unreleased
 
+## 5.0.1 - Released (Ramsons R2 2024 Bug Fix)
+The focus of this release was to fix issue with including Rollover transfer amounts in Budget summary for Net Transfers
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.0.0...v5.0.1)
+
+### Bug Fixes
+* [MODFIN-394](https://issues.folio.org/browse/MODFIN-394) - Budget summary for Net Transfers do not include Rollover transfer amounts
+
 ## 5.0.0 - Released (Ramsons R2 2024)
 The primary focus of this release was to improve budget and expenditure handling, and update core functionality.
 
