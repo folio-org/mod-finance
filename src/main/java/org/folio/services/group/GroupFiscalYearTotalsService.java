@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
+import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.removeInitialAllocationByFunds;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
@@ -269,10 +270,9 @@ public class GroupFiscalYearTotalsService {
   private Future<GroupFiscalYearTransactionsHolder> updateHolderWithTransfers(RequestContext requestContext, GroupFiscalYearTransactionsHolder holder) {
     List<String> groupFundIds = holder.getGroupFundIds();
     String fiscalYearId = holder.getGroupFiscalYearSummary().getFiscalYearId();
-    List<TransactionType> trTypes = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
 
-    var fromTransfers = baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, trTypes, requestContext);
-    var toTransfers = baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, trTypes, requestContext);
+    var fromTransfers = baseTransactionService.retrieveFromTransactions(groupFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
+    var toTransfers = baseTransactionService.retrieveToTransactions(groupFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
     return GenericCompositeFuture.join(List.of(fromTransfers, toTransfers))
       .map(cf -> holder.withToTransfers(toTransfers.result()).withFromTransfers(fromTransfers.result()));
   }

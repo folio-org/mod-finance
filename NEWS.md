@@ -1,5 +1,13 @@
 ## 5.0.0 - Unreleased
 
+## 4.9.1 - Released (Quesnelia R1 2024)
+The primary focus of this release was to fix an issue with re-calculating budget summary for Net Transfers with including Rollover transfer amounts
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v4.9.0...v4.9.1)
+
+### Bug Fixes
+* [MODFIN-394](https://issues.folio.org/browse/MODFIN-394) - Budget summary for Net Transfers do not include Rollover transfer amounts
+
 ## 4.9.0 - Released (Quesnelia R1 2024)
 The primary focus of this release was to add new Batch Transactions API
 
