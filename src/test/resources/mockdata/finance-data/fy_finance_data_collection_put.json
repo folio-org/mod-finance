@@ -28,8 +28,7 @@
       "transactionDescription": "End of year adjustment",
       "transactionTag": {
         "tagList": ["Urgent", "Review"]
-      },
-      "updateType": "Commit"
+      }
     },
     {
       "fiscalYearId": "123e4567-e89b-12d3-a456-426614174005",
@@ -59,9 +58,9 @@
       "transactionDescription": "Mid-year adjustment",
       "transactionTag": {
         "tagList": ["Urgent", "Review"]
-      },
-      "updateType": "Preview"
+      }
     }
   ],
+  "updateType": "Commit",
   "totalRecords": 2
 }
