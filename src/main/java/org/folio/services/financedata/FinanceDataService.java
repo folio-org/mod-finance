@@ -107,7 +107,7 @@ public class FinanceDataService {
 
     return processAllocationTransaction(financeDataCollection, requestContext)
       .compose(v -> updateFinanceData(financeDataCollection, requestContext))
-      .map(v -> new FyFinanceDataCollection())
+      .map(v -> financeDataCollection)
       .onSuccess(asyncResult -> processLogs(financeDataCollection, requestContext, COMPLETED))
       .onFailure(asyncResult -> processLogs(financeDataCollection, requestContext, ERROR));
   }

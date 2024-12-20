@@ -5,7 +5,6 @@ import static io.vertx.core.Future.succeededFuture;
 import static java.util.Collections.emptyList;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.folio.rest.util.ErrorCodes.GENERIC_ERROR_CODE;
 import static org.folio.rest.util.RestTestUtils.verifyGet;
@@ -140,10 +139,12 @@ public class FinanceDataApiTest {
   void positive_testPutFinanceFinanceDataSuccess() throws IOException {
     var financeDataCollection = getFinanceDataCollection();
     when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
-      .thenReturn(succeededFuture(new FyFinanceDataCollection()));
+      .thenReturn(succeededFuture(financeDataCollection));
 
-    verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, "", NO_CONTENT.getStatusCode());
+    var response = verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, APPLICATION_JSON, OK.getStatusCode())
+      .as(FyFinanceDataCollection.class);
 
+    assertEquals(financeDataCollection, response);
     verify(financeDataService).putFinanceData(eq(financeDataCollection), any(RequestContext.class));
   }
 
@@ -184,10 +185,12 @@ public class FinanceDataApiTest {
       .withTotalRecords(0);
 
     when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
-      .thenReturn(succeededFuture(new FyFinanceDataCollection()));
+      .thenReturn(succeededFuture(entity));
 
-    verifyPut(FINANCE_DATA_ENDPOINT, entity, "", NO_CONTENT.getStatusCode());
+    var response = verifyPut(FINANCE_DATA_ENDPOINT, entity, APPLICATION_JSON, OK.getStatusCode())
+      .as(FyFinanceDataCollection.class);
 
+    assertEquals(entity, response);
     verify(financeDataService).putFinanceData(eq(entity), any(RequestContext.class));
   }
 
@@ -214,11 +217,13 @@ public class FinanceDataApiTest {
 
   static class ContextConfiguration {
 
-    @Bean public FinanceDataService financeDataService() {
+    @Bean
+    public FinanceDataService financeDataService() {
       return mock(FinanceDataService.class);
     }
 
-    @Bean AcqUnitsService acqUnitsService() {
+    @Bean
+    AcqUnitsService acqUnitsService() {
       return mock(AcqUnitsService.class);
     }
   }
