@@ -6,8 +6,11 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+
 import java.util.Map;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
@@ -40,7 +43,13 @@ public class FinanceDataApi extends BaseApi implements FinanceFinanceData {
   @Validate
   public void putFinanceFinanceData(FyFinanceDataCollection entity, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     financeDataService.putFinanceData(entity, new RequestContext(vertxContext, okapiHeaders))
-      .onSuccess(v -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
+      .onSuccess(financeDataCollection -> {
+        if (CollectionUtils.isEmpty(financeDataCollection.getFyFinanceData())) {
+          asyncResultHandler.handle(succeededFuture(buildNoContentResponse()));
+        } else {
+          asyncResultHandler.handle(succeededFuture(buildOkResponse(financeDataCollection)));
+        }
+      })
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 }

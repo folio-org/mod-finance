@@ -138,12 +138,9 @@ public class FinanceDataApiTest {
 
   @Test
   void positive_testPutFinanceFinanceDataSuccess() throws IOException {
-    var jsonData = getMockData("mockdata/finance-data/fy_finance_data_collection_put.json");
-    var jsonObject = new JsonObject(jsonData);
-    var financeDataCollection = jsonObject.mapTo(FyFinanceDataCollection.class);
-
+    var financeDataCollection = getFinanceDataCollection();
     when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
-      .thenReturn(succeededFuture(null));
+      .thenReturn(succeededFuture(new FyFinanceDataCollection()));
 
     verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, "", NO_CONTENT.getStatusCode());
 
@@ -152,11 +149,8 @@ public class FinanceDataApiTest {
 
   @Test
   void negative_testPutFinanceFinanceDataFailure() throws IOException {
-    var jsonData = getMockData("mockdata/finance-data/fy_finance_data_collection_put.json");
-    var jsonObject = new JsonObject(jsonData);
-    var financeDataCollection = jsonObject.mapTo(FyFinanceDataCollection.class);
-
-    Future<Void> failedFuture = failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
+    var financeDataCollection = getFinanceDataCollection();
+    Future<FyFinanceDataCollection> failedFuture = failedFuture(new HttpException(500, INTERNAL_SERVER_ERROR.getReasonPhrase()));
 
     when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
       .thenReturn(failedFuture);
@@ -171,9 +165,7 @@ public class FinanceDataApiTest {
 
   @Test
   void negative_testPutFinanceFinanceDataBadRequest() throws IOException {
-    var jsonData = getMockData("mockdata/finance-data/fy_finance_data_collection_put.json");
-    var jsonObject = new JsonObject(jsonData);
-    var financeDataCollection = jsonObject.mapTo(FyFinanceDataCollection.class);
+    var financeDataCollection = getFinanceDataCollection();
     // Modify one field to make it invalid
     financeDataCollection.getFyFinanceData().get(0).setFiscalYearId(null);
 
@@ -185,17 +177,39 @@ public class FinanceDataApiTest {
   }
 
   @Test
-  void testPutFinanceFinanceDataWithEmptyCollection() {
-    FyFinanceDataCollection entity = new FyFinanceDataCollection()
+  void positive_testPutFinanceFinanceDataWithEmptyCollection() {
+    var entity = new FyFinanceDataCollection()
       .withFyFinanceData(emptyList())
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(0);
 
     when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
-      .thenReturn(succeededFuture(null));
+      .thenReturn(succeededFuture(new FyFinanceDataCollection()));
 
     verifyPut(FINANCE_DATA_ENDPOINT, entity, "", NO_CONTENT.getStatusCode());
 
     verify(financeDataService).putFinanceData(eq(entity), any(RequestContext.class));
+  }
+
+  @Test
+  void positive_testPutFinanceFinanceDataPreviewMode() throws IOException {
+    var financeDataCollection = getFinanceDataCollection();
+    financeDataCollection.setUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    when(financeDataService.putFinanceData(any(FyFinanceDataCollection.class), any(RequestContext.class)))
+      .thenReturn(succeededFuture(financeDataCollection));
+
+    var response = verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, APPLICATION_JSON, OK.getStatusCode())
+      .as(FyFinanceDataCollection.class);
+
+    assertEquals(financeDataCollection, response);
+    verify(financeDataService).putFinanceData(eq(financeDataCollection), any(RequestContext.class));
+  }
+
+  private FyFinanceDataCollection getFinanceDataCollection() throws IOException {
+    var jsonData = getMockData("mockdata/finance-data/fy_finance_data_collection_put.json");
+    var jsonObject = new JsonObject(jsonData);
+    return jsonObject.mapTo(FyFinanceDataCollection.class);
   }
 
   static class ContextConfiguration {

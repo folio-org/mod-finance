@@ -7,6 +7,7 @@ import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -90,17 +91,23 @@ public class FinanceDataService {
    * @param requestContext        request context
    * @return future with void result
    */
-  public Future<Void> putFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
+  public Future<FyFinanceDataCollection> putFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
     log.debug("Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
     if (CollectionUtils.isEmpty(financeDataCollection.getFyFinanceData())) {
       log.info("putFinanceData:: Finance data collection is empty, nothing to update");
-      return succeededFuture();
+      return succeededFuture(financeDataCollection);
     }
 
     validateFinanceDataCollection(financeDataCollection, getFiscalYearId(financeDataCollection));
+    calculateAfterAllocation(financeDataCollection);
+    if (financeDataCollection.getUpdateType().equals(FyFinanceDataCollection.UpdateType.PREVIEW)) {
+      log.info("putFinanceData:: Running dry-run mode finance data collection");
+      return succeededFuture(financeDataCollection);
+    }
 
     return processAllocationTransaction(financeDataCollection, requestContext)
       .compose(v -> updateFinanceData(financeDataCollection, requestContext))
+      .map(v -> new FyFinanceDataCollection())
       .onSuccess(asyncResult -> processLogs(financeDataCollection, requestContext, COMPLETED))
       .onFailure(asyncResult -> processLogs(financeDataCollection, requestContext, ERROR));
   }
@@ -119,6 +126,15 @@ public class FinanceDataService {
         throw new HttpException(422, new Errors().withErrors(List.of(error)));
       }
     }
+  }
+
+  private void calculateAfterAllocation(FyFinanceDataCollection financeDataCollection) {
+    financeDataCollection.getFyFinanceData().forEach(financeData -> {
+      var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
+      var initialAllocation = BigDecimal.valueOf(financeData.getBudgetInitialAllocation());
+      var afterAllocation = initialAllocation.add(allocationChange);
+      financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
+    });
   }
 
   private Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
