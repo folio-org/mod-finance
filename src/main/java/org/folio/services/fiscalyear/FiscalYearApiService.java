@@ -68,11 +68,7 @@ public class FiscalYearApiService {
   }
 
   public Future<Void> updateFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    return configurationEntriesService.getSystemCurrency(requestContext)
-      .compose(currency -> {
-        fiscalYear.setCurrency(currency);
-        return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
-      });
+    return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
   }
 
   public Future<Void> deleteFiscalYear(String id, RequestContext requestContext) {
