@@ -132,11 +132,25 @@ public class FiscalYearTest {
     logger.info("=== Test update FiscalYear with Currency record populated===");
 
     JsonObject body = FISCAL_YEAR.getMockObject();
+    body.put("currency", "UZS");
     RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
 
-    List<JsonObject> rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
-    assertThat(rqRsPostFund.get(0)
-      .getString("currency"), notNullValue());
+    var rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
+    var actualCurrency = rqRsPostFund.get(0).getString("currency");
+    assertEquals("UZS", actualCurrency);
+  }
+
+  @Test
+  void testPutFiscalYearWithoutCurrency() {
+    logger.info("=== Test update FiscalYear without Currency record populated ===");
+
+    JsonObject body = FISCAL_YEAR.getMockObject();
+    body.remove("currency");
+    RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", NO_CONTENT.getStatusCode());
+
+    var rqRsPostFund = MockServer.getRqRsEntries(HttpMethod.PUT, FISCAL_YEAR.name());
+    var actualCurrency = rqRsPostFund.get(0).getString("currency");
+    assertEquals("SEK", actualCurrency); // "SEK" is the default system currency set in the MockServer
   }
 
   @Test
