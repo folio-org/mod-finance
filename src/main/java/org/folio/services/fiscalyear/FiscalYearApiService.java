@@ -33,7 +33,7 @@ public class FiscalYearApiService {
    * This class is only used by FiscalYearApi
    */
   public FiscalYearApiService(FiscalYearService fiscalYearService, ConfigurationEntriesService configurationEntriesService,
-      BudgetService budgetService, AcqUnitsService acqUnitsService) {
+                              BudgetService budgetService, AcqUnitsService acqUnitsService) {
     this.fiscalYearService = fiscalYearService;
     this.configurationEntriesService = configurationEntriesService;
     this.budgetService = budgetService;
@@ -50,7 +50,7 @@ public class FiscalYearApiService {
   }
 
   public Future<FiscalYearsCollection> getFiscalYearsWithAcqUnitsRestriction(String query, int offset, int limit,
-      RequestContext requestContext) {
+                                                                             RequestContext requestContext) {
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
       .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .compose(effectiveQuery -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(effectiveQuery, offset,
@@ -68,7 +68,18 @@ public class FiscalYearApiService {
   }
 
   public Future<Void> updateFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
-    return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
+    log.debug("updateFiscalYear:: Updating fiscal year: {}", fiscalYear.getId());
+    if (StringUtils.isNotEmpty(fiscalYear.getCurrency())) {
+      log.info("updateFiscalYear:: Using currency from fiscal year: {}", fiscalYear.getCurrency());
+      return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
+    }
+
+    return configurationEntriesService.getSystemCurrency(requestContext)
+      .compose(currency -> {
+        log.info("updateFiscalYear:: Currency is empty in fiscal year, using system currency: {}", currency);
+        fiscalYear.setCurrency(currency);
+        return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
+      });
   }
 
   public Future<Void> deleteFiscalYear(String id, RequestContext requestContext) {
