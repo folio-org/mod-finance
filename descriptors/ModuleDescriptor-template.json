@@ -343,6 +343,7 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.transactions.collection.get",
+            "finance-storage.transaction-totals.collection.get",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
@@ -364,6 +365,7 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.transactions.collection.get",
+            "finance-storage.transaction-totals.collection.get",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
@@ -864,6 +866,10 @@
     {
       "id": "finance-storage.transactions",
       "version":"5.0"
+    },
+    {
+      "id": "finance-storage.transaction-totals",
+      "version": "1.0"
     },
     {
       "id": "configuration",

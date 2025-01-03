@@ -33,6 +33,7 @@ import org.folio.services.protection.AcqUnitsService;
 import org.folio.services.protection.ProtectionService;
 import org.folio.services.transactions.TransactionApiService;
 import org.folio.services.transactions.TransactionService;
+import org.folio.services.transactions.TransactionTotalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
@@ -62,6 +63,11 @@ public class ServicesConfiguration {
   @Bean
   TransactionService transactionService(RestClient restClient, FiscalYearService fiscalYearService) {
     return new TransactionService(restClient, fiscalYearService);
+  }
+
+  @Bean
+  TransactionTotalService transactionTotalService(RestClient restClient) {
+    return new TransactionTotalService(restClient);
   }
 
   @Bean
@@ -133,8 +139,8 @@ public class ServicesConfiguration {
 
   @Bean
   LedgerTotalsService ledgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService,
-                                          TransactionService transactionService) {
-    return new LedgerTotalsService(fiscalYearService, budgetService, transactionService);
+                                          TransactionTotalService transactionTotalService) {
+    return new LedgerTotalsService(fiscalYearService, budgetService, transactionTotalService);
   }
 
   @Bean
