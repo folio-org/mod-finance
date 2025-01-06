@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
-class TransactionTotalServiceTest {
+public class TransactionTotalApiServiceTest {
 
   @InjectMocks
   private TransactionTotalService transactionTotalService;

@@ -54,6 +54,7 @@ import org.folio.services.protection.AcqUnitMembershipsServiceTest;
 import org.folio.services.protection.AcqUnitsServiceTest;
 import org.folio.services.protection.ProtectionServiceTest;
 import org.folio.services.transactions.TransactionApiServiceTest;
+import org.folio.services.transactions.TransactionTotalApiServiceTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -251,4 +252,7 @@ public class ApiTestSuite {
 
   @Nested
   class FinanceDataServiceTestNested extends FinanceDataServiceTest {}
+
+  @Nested
+  class TransactionTotalApiServiceTestNested extends TransactionTotalApiServiceTest {}
 }
