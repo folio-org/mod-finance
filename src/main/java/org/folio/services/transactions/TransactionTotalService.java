@@ -49,15 +49,6 @@ public class TransactionTotalService {
       .map(lists -> lists.stream().flatMap(Collection::stream).toList());
   }
 
-  private List<TransactionTotal> filterFundIdsByAllocationDirection(List<String> fundIds, List<TransactionTotal> transactions,
-                                                                    String direction) {
-    // Note that here getToFundId() is used when direction is from (a negation is used afterward)
-    Function<TransactionTotal, String> getFundId = "from".equals(direction) ? TransactionTotal::getToFundId : TransactionTotal::getFromFundId;
-    return transactions.stream()
-      .filter(transaction -> !fundIds.contains(getFundId.apply(transaction)))
-      .toList();
-  }
-
   private Future<List<TransactionTotal>> getTransactionsByFundChunk(List<String> fundIds, String fiscalYearId,
                                                                     List<TransactionTotal.TransactionType> trTypes, String direction, RequestContext requestContext) {
     String fundIdField = "from".equals(direction) ? "fromFundId" : "toFundId";
@@ -68,17 +59,23 @@ public class TransactionTotalService {
     return getAllTransactionsByQuery(query, requestContext);
   }
 
-  public Future<List<TransactionTotal>> getAllTransactionsByQuery(String query, RequestContext requestContext) {
-    log.info("getAllTransactionsByQuery:: Query: {}", query);
-    return getTransactionCollectionByQuery(query, 0, Integer.MAX_VALUE, requestContext)
+  private List<TransactionTotal> filterFundIdsByAllocationDirection(List<String> fundIds, List<TransactionTotal> transactions, String direction) {
+    // Note that here getToFundId() is used when direction is from (a negation is used afterward)
+    Function<TransactionTotal, String> getFundId = "from".equals(direction) ? TransactionTotal::getToFundId : TransactionTotal::getFromFundId;
+    return transactions.stream()
+      .filter(transaction -> !fundIds.contains(getFundId.apply(transaction)))
+      .toList();
+  }
+
+  private Future<List<TransactionTotal>> getAllTransactionsByQuery(String query, RequestContext requestContext) {
+    return getTransactionCollectionByQuery(query, requestContext)
       .map(TransactionTotalCollection::getTransactionTotals);
   }
 
-  public Future<TransactionTotalCollection> getTransactionCollectionByQuery(String query, int offset, int limit,
-                                                                            RequestContext requestContext) {
+  private Future<TransactionTotalCollection> getTransactionCollectionByQuery(String query, RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(TRANSACTION_TOTALS))
-      .withOffset(offset)
-      .withLimit(limit)
+      .withOffset(0)
+      .withLimit(Integer.MAX_VALUE)
       .withQuery(query);
     return restClient.get(requestEntry.buildEndpoint(), TransactionTotalCollection.class, requestContext);
   }
