@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
-import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.rest.jaxrs.model.TransactionTotal;
 import org.folio.rest.jaxrs.model.TransactionTotalCollection;
 
@@ -32,17 +31,17 @@ public class TransactionTotalService {
   }
 
   public Future<List<TransactionTotal>> getTransactionsFromFunds(List<String> fundIds, String fiscalYearId,
-                                                                 List<Transaction.TransactionType> trTypes, RequestContext requestContext) {
+                                                                 List<TransactionTotal.TransactionType> trTypes, RequestContext requestContext) {
     return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, "from", requestContext);
   }
 
   public Future<List<TransactionTotal>> getTransactionsToFunds(List<String> fundIds, String fiscalYearId,
-                                                               List<Transaction.TransactionType> trTypes, RequestContext requestContext) {
+                                                               List<TransactionTotal.TransactionType> trTypes, RequestContext requestContext) {
     return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, "to", requestContext);
   }
 
   private Future<List<TransactionTotal>> getTransactionsFromOrToFunds(List<String> fundIds, String fiscalYearId,
-                                                                      List<Transaction.TransactionType> trTypes, String direction, RequestContext requestContext) {
+                                                                      List<TransactionTotal.TransactionType> trTypes, String direction, RequestContext requestContext) {
     return collectResultsOnSuccess(ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
       .map(ids -> getTransactionsByFundChunk(ids, fiscalYearId, trTypes, direction, requestContext)
         .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, direction)))
@@ -60,10 +59,10 @@ public class TransactionTotalService {
   }
 
   private Future<List<TransactionTotal>> getTransactionsByFundChunk(List<String> fundIds, String fiscalYearId,
-                                                                    List<Transaction.TransactionType> trTypes, String direction, RequestContext requestContext) {
+                                                                    List<TransactionTotal.TransactionType> trTypes, String direction, RequestContext requestContext) {
     String fundIdField = "from".equals(direction) ? "fromFundId" : "toFundId";
     String fundQuery = convertIdsToCqlQuery(fundIds, fundIdField, "==", " OR ");
-    List<String> trTypeValues = trTypes.stream().map(Transaction.TransactionType::value).toList();
+    List<String> trTypeValues = trTypes.stream().map(TransactionTotal.TransactionType::value).toList();
     String trTypeQuery = convertIdsToCqlQuery(trTypeValues, "transactionType", "==", " OR ");
     String query = String.format("(fiscalYearId==%s AND %s) AND %s", fiscalYearId, trTypeQuery, fundQuery);
     return getAllTransactionsByQuery(query, requestContext);

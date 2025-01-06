@@ -1,6 +1,6 @@
 package org.folio.services.ledger;
 
-import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
+import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TOTAL_TYPES;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 import java.math.BigDecimal;
@@ -19,7 +19,6 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
-import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 import org.folio.rest.jaxrs.model.TransactionTotal;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
@@ -93,8 +92,8 @@ public class LedgerTotalsService {
                                                                                  RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
-    var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
+    var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
     return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
       .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
@@ -103,8 +102,8 @@ public class LedgerTotalsService {
                                                                                           RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    var fromTransfer = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
-    var toTransfer = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
+    var fromTransfer = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
+    var toTransfer = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
     return GenericCompositeFuture.join(List.of(fromTransfer, toTransfer))
       .map(f -> holder.withToTransfers(toTransfer.result()).withFromTransfers(fromTransfer.result()));
   }
