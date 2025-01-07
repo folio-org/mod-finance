@@ -80,10 +80,6 @@ public class LedgerTotalsService {
   private void updateLedgerWithAllocation(LedgerFiscalYearTransactionsHolder holder) {
     holder.withToAllocations(new ArrayList<>(holder.getToAllocations()));
     Ledger ledger = holder.getLedger();
-    holder.getToAllocations().forEach(entry ->
-      log.info("updateLedgerWithAllocation:: To allocations, fiscalYearId: {}, toFundId: {}, amount: {}", entry.getFiscalYearId(), entry.getToFundId(), entry.getAmount()));
-    holder.getFromAllocations().forEach(entry ->
-      log.info("updateLedgerWithAllocation:: From allocations: fiscalYearId: {}, fromFundId: {}, amount: {}", entry.getFiscalYearId(), entry.getFromFundId(), entry.getAmount()));
     ledger.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), TransactionTotal::getAmount))
       .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), TransactionTotal::getAmount));
   }
@@ -147,10 +143,6 @@ public class LedgerTotalsService {
    */
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
     Ledger ledger = holder.getLedger();
-    holder.getToTransfers().forEach(entry ->
-      log.info("updateLedgerWithCalculatedFields:: To transfers: fiscalYearId: {}, toFundId: {}, amount: {}", entry.getFiscalYearId(), entry.getToFundId(), entry.getAmount()));
-    holder.getFromTransfers().forEach(entry ->
-      log.info("updateLedgerWithCalculatedFields:: From transfers: fiscalYearId: {}, fromFundId: {}, amount: {}", entry.getFiscalYearId(), entry.getFromFundId(), entry.getAmount()));
     double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), TransactionTotal::getAmount);
     double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), TransactionTotal::getAmount);
     BigDecimal netTransfers = BigDecimal.valueOf(toTransfer).subtract(BigDecimal.valueOf(fromTransfer));
