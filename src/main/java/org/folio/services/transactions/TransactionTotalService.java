@@ -2,6 +2,7 @@ package org.folio.services.transactions;
 
 import io.vertx.core.Future;
 import lombok.extern.log4j.Log4j2;
+import org.folio.models.TransactionTotalSetting;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -32,36 +33,37 @@ public class TransactionTotalService {
 
   public Future<List<TransactionTotal>> getTransactionsFromFunds(List<String> fundIds, String fiscalYearId,
                                                                  List<TransactionTotal.TransactionType> trTypes, RequestContext requestContext) {
-    return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, "from", requestContext);
+    return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, TransactionTotalSetting.FROM_FUND_ID, requestContext);
   }
 
   public Future<List<TransactionTotal>> getTransactionsToFunds(List<String> fundIds, String fiscalYearId,
                                                                List<TransactionTotal.TransactionType> trTypes, RequestContext requestContext) {
-    return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, "to", requestContext);
+    return getTransactionsFromOrToFunds(fundIds, fiscalYearId, trTypes, TransactionTotalSetting.TO_FUND_ID, requestContext);
   }
 
-  private Future<List<TransactionTotal>> getTransactionsFromOrToFunds(List<String> fundIds, String fiscalYearId,
-                                                                      List<TransactionTotal.TransactionType> trTypes, String direction, RequestContext requestContext) {
+  private Future<List<TransactionTotal>> getTransactionsFromOrToFunds(List<String> fundIds, String fiscalYearId, List<TransactionTotal.TransactionType> trTypes,
+                                                                      TransactionTotalSetting setting, RequestContext requestContext) {
     return collectResultsOnSuccess(ofSubLists(new ArrayList<>(fundIds), MAX_FUND_PER_QUERY)
-      .map(ids -> getTransactionsByFundChunk(ids, fiscalYearId, trTypes, direction, requestContext)
-        .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, direction)))
+      .map(ids -> getTransactionsByFundChunk(ids, fiscalYearId, trTypes, setting, requestContext)
+        .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, setting)))
       .toList())
       .map(lists -> lists.stream().flatMap(Collection::stream).toList());
   }
 
-  private Future<List<TransactionTotal>> getTransactionsByFundChunk(List<String> fundIds, String fiscalYearId,
-                                                                    List<TransactionTotal.TransactionType> trTypes, String direction, RequestContext requestContext) {
-    String fundIdField = "from".equals(direction) ? "fromFundId" : "toFundId";
-    String fundQuery = convertIdsToCqlQuery(fundIds, fundIdField, "==", " OR ");
-    List<String> trTypeValues = trTypes.stream().map(TransactionTotal.TransactionType::value).toList();
-    String trTypeQuery = convertIdsToCqlQuery(trTypeValues, "transactionType", "==", " OR ");
-    String query = String.format("(fiscalYearId==%s AND %s) AND %s", fiscalYearId, trTypeQuery, fundQuery);
+  private Future<List<TransactionTotal>> getTransactionsByFundChunk(List<String> fundIds, String fiscalYearId, List<TransactionTotal.TransactionType> trTypes,
+                                                                    TransactionTotalSetting setting, RequestContext requestContext) {
+    var fundQuery = convertIdsToCqlQuery(fundIds, setting.getValue(), "==", " OR ");
+    var trTypeValues = trTypes.stream().map(TransactionTotal.TransactionType::value).toList();
+    var trTypeQuery = convertIdsToCqlQuery(trTypeValues, "transactionType", "==", " OR ");
+    var query = String.format("(fiscalYearId==%s AND %s) AND %s", fiscalYearId, trTypeQuery, fundQuery);
     return getAllTransactionsByQuery(query, requestContext);
   }
 
-  private List<TransactionTotal> filterFundIdsByAllocationDirection(List<String> fundIds, List<TransactionTotal> transactions, String direction) {
+  private List<TransactionTotal> filterFundIdsByAllocationDirection(List<String> fundIds, List<TransactionTotal> transactions,
+                                                                    TransactionTotalSetting setting) {
     // Note that here getToFundId() is used when direction is from (a negation is used afterward)
-    Function<TransactionTotal, String> getFundId = "from".equals(direction) ? TransactionTotal::getToFundId : TransactionTotal::getFromFundId;
+    Function<TransactionTotal, String> getFundId = setting == TransactionTotalSetting.FROM_FUND_ID
+      ? TransactionTotal::getToFundId : TransactionTotal::getFromFundId;
     return transactions.stream()
       .filter(transaction -> !fundIds.contains(getFundId.apply(transaction)))
       .toList();
