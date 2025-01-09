@@ -1,8 +1,7 @@
 package org.folio.services.ledger;
 
-import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TYPES;
+import static org.folio.rest.util.BudgetUtils.TRANSFER_TRANSACTION_TOTAL_TYPES;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
-import static org.folio.rest.util.HelperUtils.removeInitialAllocationByFunds;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,15 +19,14 @@ import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.rest.jaxrs.model.Transaction.TransactionType;
+import org.folio.rest.jaxrs.model.TransactionTotal;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 
 import io.vertx.core.Future;
-import org.folio.services.transactions.TransactionService;
+import org.folio.services.transactions.TransactionTotalService;
 
 public class LedgerTotalsService {
 
@@ -37,12 +35,13 @@ public class LedgerTotalsService {
 
   private final FiscalYearService fiscalYearService;
   private final BudgetService budgetService;
-  private final TransactionService transactionService;
+  private final TransactionTotalService transactionTotalService;
 
-  public LedgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService, TransactionService transactionService) {
+  public LedgerTotalsService(FiscalYearService fiscalYearService, BudgetService budgetService,
+                             TransactionTotalService transactionTotalService) {
     this.fiscalYearService = fiscalYearService;
     this.budgetService = budgetService;
-    this.transactionService = transactionService;
+    this.transactionTotalService = transactionTotalService;
   }
 
   public Future<Ledger> populateLedgerTotals(Ledger ledger, String fiscalYearId, RequestContext requestContext) {
@@ -80,18 +79,17 @@ public class LedgerTotalsService {
 
   private void updateLedgerWithAllocation(LedgerFiscalYearTransactionsHolder holder) {
     holder.withToAllocations(new ArrayList<>(holder.getToAllocations()));
-    removeInitialAllocationByFunds(holder.getToAllocations());
     Ledger ledger = holder.getLedger();
-    ledger.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), Transaction::getAmount))
-      .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), Transaction::getAmount));
+    ledger.withAllocationTo(HelperUtils.calculateTotals(holder.getToAllocations(), TransactionTotal::getAmount))
+      .withAllocationFrom(HelperUtils.calculateTotals(holder.getFromAllocations(), TransactionTotal::getAmount));
   }
 
   private Future<LedgerFiscalYearTransactionsHolder> updateHolderWithAllocations(LedgerFiscalYearTransactionsHolder holder,
                                                                                  RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    var fromAllocations = transactionService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
-    var toAllocations = transactionService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
+    var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
     return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
       .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
@@ -100,9 +98,8 @@ public class LedgerTotalsService {
                                                                                           RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    var fromTransfer = transactionService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
-    var toTransfer = transactionService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
-
+    var fromTransfer = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
+    var toTransfer = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
     return GenericCompositeFuture.join(List.of(fromTransfer, toTransfer))
       .map(f -> holder.withToTransfers(toTransfer.result()).withFromTransfers(fromTransfer.result()));
   }
@@ -146,8 +143,8 @@ public class LedgerTotalsService {
    */
   private void updateLedgerWithCalculatedFields(LedgerFiscalYearTransactionsHolder holder) {
     Ledger ledger = holder.getLedger();
-    double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), Transaction::getAmount);
-    double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), Transaction::getAmount);
+    double toTransfer = HelperUtils.calculateTotals(holder.getToTransfers(), TransactionTotal::getAmount);
+    double fromTransfer = HelperUtils.calculateTotals(holder.getFromTransfers(), TransactionTotal::getAmount);
     BigDecimal netTransfers = BigDecimal.valueOf(toTransfer).subtract(BigDecimal.valueOf(fromTransfer));
     ledger.withNetTransfers(netTransfers.doubleValue());
 

@@ -10,10 +10,12 @@ import org.folio.rest.jaxrs.model.StatusExpenseClass;
 import org.folio.rest.jaxrs.model.Transaction.TransactionType;
 
 import io.vertx.core.json.JsonObject;
+import org.folio.rest.jaxrs.model.TransactionTotal;
 
 public final class BudgetUtils {
 
   public static final List<TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
+  public static final List<TransactionTotal.TransactionType> TRANSFER_TRANSACTION_TOTAL_TYPES = List.of(TransactionTotal.TransactionType.TRANSFER, TransactionTotal.TransactionType.ROLLOVER_TRANSFER);
 
   private BudgetUtils() {
 

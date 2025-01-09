@@ -6,17 +6,17 @@ import java.util.stream.Collectors;
 
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.TransactionTotal;
 
 public class LedgerFiscalYearTransactionsHolder {
   private final String fiscalYearId;
   private final Ledger ledger;
   private final List<Budget> ledgerBudgets;
   private final List<String> ledgerFundIds;
-  private List<Transaction> toAllocations;
-  private List<Transaction> fromAllocations;
-  private List<Transaction> toTransfers;
-  private List<Transaction> fromTransfers;
+  private List<TransactionTotal> toAllocations;
+  private List<TransactionTotal> fromAllocations;
+  private List<TransactionTotal> toTransfers;
+  private List<TransactionTotal> fromTransfers;
 
   public LedgerFiscalYearTransactionsHolder( String fiscalYearId, Ledger ledger, List<Budget> ledgerBudgets) {
     this.fiscalYearId = fiscalYearId;
@@ -29,22 +29,22 @@ public class LedgerFiscalYearTransactionsHolder {
     this.fromTransfers = new ArrayList<>();
   }
 
-  public LedgerFiscalYearTransactionsHolder withToAllocations(List<Transaction> allocations) {
+  public LedgerFiscalYearTransactionsHolder withToAllocations(List<TransactionTotal> allocations) {
     this.toAllocations = allocations;
     return this;
   }
 
-  public LedgerFiscalYearTransactionsHolder withFromAllocations(List<Transaction> allocations) {
+  public LedgerFiscalYearTransactionsHolder withFromAllocations(List<TransactionTotal> allocations) {
     this.fromAllocations = allocations;
     return this;
   }
 
-  public LedgerFiscalYearTransactionsHolder withToTransfers(List<Transaction> transfers) {
+  public LedgerFiscalYearTransactionsHolder withToTransfers(List<TransactionTotal> transfers) {
     this.toTransfers = transfers;
     return this;
   }
 
-  public LedgerFiscalYearTransactionsHolder withFromTransfers(List<Transaction> transfers) {
+  public LedgerFiscalYearTransactionsHolder withFromTransfers(List<TransactionTotal> transfers) {
     this.fromTransfers = transfers;
     return this;
   }
@@ -57,19 +57,19 @@ public class LedgerFiscalYearTransactionsHolder {
     return this.ledger;
   }
 
-  public List<Transaction> getFromAllocations() {
+  public List<TransactionTotal> getFromAllocations() {
     return fromAllocations;
   }
 
-  public List<Transaction> getToAllocations() {
+  public List<TransactionTotal> getToAllocations() {
     return toAllocations;
   }
 
-  public List<Transaction> getToTransfers() {
+  public List<TransactionTotal> getToTransfers() {
     return toTransfers;
   }
 
-  public List<Transaction> getFromTransfers() {
+  public List<TransactionTotal> getFromTransfers() {
     return fromTransfers;
   }
 
