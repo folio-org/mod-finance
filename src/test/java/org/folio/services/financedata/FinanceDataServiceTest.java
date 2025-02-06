@@ -218,7 +218,7 @@ public class FinanceDataServiceTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataService.putFinanceData(collection, new RequestContext(Vertx.vertx().getOrCreateContext(), new HashMap<>())));
-    assertEquals("Allocation change cannot be greater than initial allocation", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
   }
 
   @Test
@@ -248,7 +248,7 @@ public class FinanceDataServiceTest {
         assertEquals(financeDataCollection, result.result());
         result.result().getFyFinanceData().forEach(financeData ->
           assertEquals(
-            financeData.getBudgetInitialAllocation() + financeData.getBudgetAllocationChange(),
+            financeData.getBudgetCurrentAllocation() + financeData.getBudgetAllocationChange(),
             financeData.getBudgetAfterAllocation()));
         verify(restClient, never()).put(anyString(), any(), any());
         verify(transactionApiService, never()).processBatch(any(), any());
@@ -299,7 +299,8 @@ public class FinanceDataServiceTest {
       .withBudgetId(UUID.randomUUID().toString())
       .withBudgetName("Test Budget")
       .withBudgetStatus(FyFinanceData.BudgetStatus.ACTIVE)
-      .withBudgetInitialAllocation(100.0)
+      .withBudgetInitialAllocation(25.0)
+      .withBudgetCurrentAllocation(100.0)
       .withBudgetAllocationChange(50.0)
       .withBudgetAllowableExpenditure(150.0)
       .withBudgetAllowableEncumbrance(150.0)
