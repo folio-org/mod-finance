@@ -2,7 +2,6 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
-import static java.util.Collections.singletonList;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,11 +33,9 @@ import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
-import org.folio.rest.jaxrs.model.Transaction;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
-import org.folio.services.transactions.TransactionApiService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,8 +55,6 @@ public class FinanceDataServiceTest {
   private AcqUnitsService acqUnitsService;
   @Mock
   private FundUpdateLogService fundUpdateLogService;
-  @Mock
-  private TransactionApiService transactionApiService;
   @Mock
   private FiscalYearService fiscalYearService;
 
@@ -134,7 +129,6 @@ public class FinanceDataServiceTest {
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
-    when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
 
@@ -158,7 +152,6 @@ public class FinanceDataServiceTest {
 
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
-    when(transactionApiService.processBatch(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
 
     var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
@@ -168,42 +161,6 @@ public class FinanceDataServiceTest {
         verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
-  }
-
-  @Test
-  void negative_testPutFinanceData_FailureInProcessAllocationTransaction(VertxTestContext vertxTestContext) {
-    var data = createValidFyFinanceData();
-    var financeData = new FyFinanceDataCollection()
-      .withFyFinanceData(singletonList(data))
-      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
-    var fiscalYear = new FiscalYear().withCurrency("USD");
-
-    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
-    when(transactionApiService.processBatch(any(), any())).thenReturn(failedFuture("Process failed"));
-
-    financeDataService.putFinanceData(financeData, requestContextMock)
-      .onComplete(vertxTestContext.failing(error -> {
-        verify(fundUpdateLogService).createFundUpdateLog(argThat(log ->
-          log.getStatus() == FundUpdateLog.Status.ERROR
-        ), eq(requestContextMock));
-        vertxTestContext.completeNow();
-      }));
-  }
-
-  @Test
-  void negative_testCreateAllocationTransactionUsingReflection() throws Exception {
-    var data = createValidFyFinanceData();
-    var fiscalYear = new FiscalYear().withCurrency("USD");
-
-    // Use reflection to access the private method
-    var method = FinanceDataService.class.getDeclaredMethod("createAllocationTransaction", FyFinanceData.class, String.class);
-    method.setAccessible(true);
-
-    Transaction transaction = (Transaction) method.invoke(financeDataService, data, fiscalYear.getCurrency());
-    assertEquals(Transaction.TransactionType.ALLOCATION, transaction.getTransactionType());
-    assertEquals(data.getFundId(), transaction.getToFundId());
-    assertEquals(fiscalYear.getCurrency(), transaction.getCurrency());
-    assertEquals(50.0, transaction.getAmount()); // Assuming initial allocation is 100 and change is 50
   }
 
   @Test
@@ -251,7 +208,6 @@ public class FinanceDataServiceTest {
             financeData.getBudgetCurrentAllocation() + financeData.getBudgetAllocationChange(),
             financeData.getBudgetAfterAllocation()));
         verify(restClient, never()).put(anyString(), any(), any());
-        verify(transactionApiService, never()).processBatch(any(), any());
         verify(fundUpdateLogService, never()).createFundUpdateLog(any(), any());
         vertxTestContext.completeNow();
       });
@@ -269,7 +225,6 @@ public class FinanceDataServiceTest {
         assertTrue(result.succeeded());
         assertEquals(financeDataCollection, result.result());
         verify(restClient, never()).put(anyString(), any(), any());
-        verify(transactionApiService, never()).processBatch(any(), any());
         verify(fundUpdateLogService, never()).createFundUpdateLog(any(), any());
         vertxTestContext.completeNow();
       });

@@ -228,6 +228,6 @@ public class ServicesConfiguration {
   FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService,
                                         TransactionApiService transactionApiService, FiscalYearService fiscalYearService,
                                         FundUpdateLogService fundUpdateLogService) {
-    return new FinanceDataService(restClient, acqUnitsService, transactionApiService, fiscalYearService, fundUpdateLogService);
+    return new FinanceDataService(restClient, acqUnitsService, fundUpdateLogService);
   }
 }
