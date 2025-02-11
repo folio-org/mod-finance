@@ -20,7 +20,6 @@ import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Batch;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
@@ -28,27 +27,20 @@ import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
 import org.folio.rest.jaxrs.model.Parameter;
-import org.folio.rest.jaxrs.model.Transaction;
-import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
-import org.folio.services.transactions.TransactionApiService;
 
 @Log4j2
 public class FinanceDataService {
 
   private final RestClient restClient;
   private final AcqUnitsService acqUnitsService;
-  private final TransactionApiService transactionApiService;
-  private final FiscalYearService fiscalYearService;
   private final FundUpdateLogService fundUpdateLogService;
 
-  public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService, TransactionApiService transactionApiService,
-                            FiscalYearService fiscalYearService, FundUpdateLogService fundUpdateLogService) {
+  public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService,
+                            FundUpdateLogService fundUpdateLogService) {
     this.restClient = restClient;
     this.acqUnitsService = acqUnitsService;
-    this.transactionApiService = transactionApiService;
-    this.fiscalYearService = fiscalYearService;
     this.fundUpdateLogService = fundUpdateLogService;
   }
 
@@ -105,11 +97,14 @@ public class FinanceDataService {
       return succeededFuture(financeDataCollection);
     }
 
-    return processAllocationTransaction(financeDataCollection, requestContext)
-      .compose(v -> updateFinanceData(financeDataCollection, requestContext))
+    return updateFinanceData(financeDataCollection, requestContext)
       .map(v -> financeDataCollection)
       .onSuccess(asyncResult -> processLogs(financeDataCollection, requestContext, COMPLETED))
       .onFailure(asyncResult -> processLogs(financeDataCollection, requestContext, ERROR));
+  }
+
+  private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
+    return fyFinanceDataCollection.getFyFinanceData().get(0).getFiscalYearId();
   }
 
   private void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection, String fiscalYearId) {
@@ -137,51 +132,6 @@ public class FinanceDataService {
     });
   }
 
-  private Future<Void> processAllocationTransaction(FyFinanceDataCollection fyFinanceDataCollection,
-                                                    RequestContext requestContext) {
-    return fiscalYearService.getFiscalYearById(getFiscalYearId(fyFinanceDataCollection), requestContext)
-      .map(fiscalYear -> createAllocationTransactions(fyFinanceDataCollection, fiscalYear.getCurrency()))
-      .compose(transactions -> createBatchTransaction(transactions, requestContext));
-  }
-
-  private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
-    return fyFinanceDataCollection.getFyFinanceData().get(0).getFiscalYearId();
-  }
-
-  private List<Transaction> createAllocationTransactions(FyFinanceDataCollection financeDataCollection, String currency) {
-    return financeDataCollection.getFyFinanceData().stream()
-      .map(financeData -> createAllocationTransaction(financeData, currency))
-      .toList();
-  }
-
-  private Transaction createAllocationTransaction(FyFinanceData financeData, String currency) {
-    var allocationChange = financeData.getBudgetAllocationChange();
-    log.info("createAllocationTransaction:: Creating allocation transaction for fund '{}' and budget '{}' with allocation '{}'",
-      financeData.getFundId(), financeData.getBudgetId(), allocationChange);
-
-    var transaction = new Transaction()
-      .withTransactionType(Transaction.TransactionType.ALLOCATION)
-      .withId(UUID.randomUUID().toString())
-      .withAmount(Math.abs(allocationChange))
-      .withFiscalYearId(financeData.getFiscalYearId())
-      .withSource(Transaction.Source.USER)
-      .withCurrency(currency);
-
-    // For negative allocation (decrease), use fromFundId
-    // For positive allocation (increase), use toFundId
-    if (allocationChange > 0) {
-      transaction.withToFundId(financeData.getFundId());
-    } else {
-      transaction.withFromFundId(financeData.getFundId());
-    }
-
-    return transaction;
-  }
-
-  public Future<Void> createBatchTransaction(List<Transaction> transactions, RequestContext requestContext) {
-    Batch batch = new Batch().withTransactionsToCreate(transactions);
-    return transactionApiService.processBatch(batch, requestContext);
-  }
 
   private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
                                          RequestContext requestContext) {
