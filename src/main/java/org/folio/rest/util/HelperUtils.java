@@ -223,17 +223,7 @@ public final class HelperUtils {
   }
 
   public static String errorsAsString(Errors errors) {
-    if (errors == null) {
-      return GENERIC_ERROR_CODE.getDescription();
-    }
-    List<Error> errorList = errors.getErrors();
-    if (errorList.isEmpty()) {
-      return GENERIC_ERROR_CODE.getDescription();
-    }
-    if (errorList.size() == 1) {
-      return errorAsString(errorList.get(0));
-    }
-    return JsonObject.mapFrom(errorList).encode();
+    return Optional.ofNullable(JsonObject.mapFrom(errors).encode()).orElse(ErrorCodes.GENERIC_ERROR_CODE.getDescription());
   }
 
   public static String errorAsString(Error error) {

@@ -231,9 +231,10 @@ public class FinanceDataServiceTest {
   }
 
   @Test
-  void negative_testPutFinanceData_PreviewMode_MissingRequiredField(VertxTestContext vertxTestContext) {
-    var financeData = createValidFyFinanceData();
-    financeData.setBudgetInitialAllocation(null);
+  void negative_testPutFinanceData_PreviewMode_MissingRequiredFields(VertxTestContext vertxTestContext) {
+    var financeData = createValidFyFinanceData()
+      .withBudgetInitialAllocation(null)
+      .withBudgetCurrentAllocation(null);
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
@@ -241,6 +242,7 @@ public class FinanceDataServiceTest {
     var exception = assertThrows(HttpException.class,
       () -> financeDataService.putFinanceData(financeDataCollection, requestContextMock));
     assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("Budget current allocation is required", exception.getErrors().getErrors().get(1).getMessage());
     vertxTestContext.completeNow();
   }
 
