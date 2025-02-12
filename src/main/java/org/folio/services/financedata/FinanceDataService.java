@@ -152,39 +152,38 @@ public class FinanceDataService {
   }
 
   private void validateFinanceDataFields(FyFinanceData financeData, int i, String fiscalYearId) {
-    var errors = new Errors().withErrors(new ArrayList<>());
+    List<Error> combinedErrors = new ArrayList<>();
 
     if (!financeData.getFiscalYearId().equals(fiscalYearId)) {
-      errors.getErrors().add(createError(
+      combinedErrors.add(createError(
         String.format("Fiscal year ID must be the same as other fiscal year ID(s) '[%s]' in the request", fiscalYearId),
         String.format("financeData[%s].fiscalYearId", i), financeData.getFiscalYearId())
       );
     }
 
-    validateField(errors, String.format("financeData[%s].fundCode", i), financeData.getFundCode(), "Fund code is required");
-    validateField(errors, String.format("financeData[%s].fundName", i), financeData.getFundName(), "Fund name is required");
-    validateField(errors, String.format("financeData[%s].fundDescription", i), financeData.getFundDescription(), "Fund description is required");
-    validateField(errors, String.format("financeData[%s].fundStatus", i), financeData.getFundStatus(), "Fund status is required");
+    validateField(combinedErrors, String.format("financeData[%s].fundCode", i), financeData.getFundCode(), "Fund code is required");
+    validateField(combinedErrors, String.format("financeData[%s].fundName", i), financeData.getFundName(), "Fund name is required");
+    validateField(combinedErrors, String.format("financeData[%s].fundDescription", i), financeData.getFundDescription(), "Fund description is required");
+    validateField(combinedErrors, String.format("financeData[%s].fundStatus", i), financeData.getFundStatus(), "Fund status is required");
     if (financeData.getBudgetId() != null) {
-      validateField(errors, String.format("financeData[%s].budgetName", i), financeData.getBudgetName(), "Budget name is required");
-      validateField(errors, String.format("financeData[%s].budgetStatus", i), financeData.getBudgetStatus(), "Budget status is required");
-      validateField(errors, String.format("financeData[%s].budgetInitialAllocation", i), financeData.getBudgetInitialAllocation(), "Budget initial allocation is required");
-      validateField(errors, String.format("financeData[%s].budgetCurrentAllocation", i), financeData.getBudgetCurrentAllocation(), "Budget current allocation is required");
-      validateField(errors, String.format("financeData[%s].budgetAllocationChange", i), financeData.getBudgetAllocationChange(), "Allocation change is required");
-      validateField(errors, String.format("financeData[%s].budgetAllowableExpenditure", i), financeData.getBudgetAllowableExpenditure(), "Budget allowable expenditure is required");
-      validateField(errors, String.format("financeData[%s].budgetAllowableEncumbrance", i), financeData.getBudgetAllowableEncumbrance(), "Budget allowable encumbrance is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetName", i), financeData.getBudgetName(), "Budget name is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetStatus", i), financeData.getBudgetStatus(), "Budget status is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetInitialAllocation", i), financeData.getBudgetInitialAllocation(), "Budget initial allocation is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetCurrentAllocation", i), financeData.getBudgetCurrentAllocation(), "Budget current allocation is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetAllocationChange", i), financeData.getBudgetAllocationChange(), "Allocation change is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetAllowableExpenditure", i), financeData.getBudgetAllowableExpenditure(), "Budget allowable expenditure is required");
+      validateField(combinedErrors, String.format("financeData[%s].budgetAllowableEncumbrance", i), financeData.getBudgetAllowableEncumbrance(), "Budget allowable encumbrance is required");
     }
-    validateField(errors, String.format("financeData[%s].transactionDescription", i), financeData.getTransactionDescription(), "Transaction description is required");
-    validateField(errors, String.format("financeData[%s].transactionTag", i), financeData.getTransactionTag(), "Transaction tag is required");
 
-    if (CollectionUtils.isNotEmpty(errors.getErrors())) {
+    if (CollectionUtils.isNotEmpty(combinedErrors)) {
+      var errors = new Errors().withErrors(combinedErrors).withTotalRecords(combinedErrors.size());
       throw new HttpException(422, errors);
     }
   }
 
-  private void validateField(Errors errors, String fieldName, Object fieldValue, String errorMessage) {
+  private void validateField(List<Error> combinedErrors, String fieldName, Object fieldValue, String errorMessage) {
     if (fieldValue == null) {
-      errors.getErrors().add(createError(errorMessage, fieldName, "null"));
+      combinedErrors.add(createError(errorMessage, fieldName, "null"));
     }
   }
 
