@@ -1,6 +1,7 @@
 package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
@@ -112,9 +113,8 @@ public class FinanceDataService {
       var financeData = financeDataCollection.getFyFinanceData().get(i);
       validateFinanceDataFields(financeData, i, fiscalYearId);
 
-      var allocationChange = financeData.getBudgetAllocationChange();
-      var currentAllocation = financeData.getBudgetCurrentAllocation();
-
+      double allocationChange = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0);
+      double currentAllocation = requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0);
       if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
         var error = createError("Allocation change cannot be greater than current allocation",
           String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange()));
@@ -125,8 +125,8 @@ public class FinanceDataService {
 
   private void calculateAfterAllocation(FyFinanceDataCollection financeDataCollection) {
     financeDataCollection.getFyFinanceData().forEach(financeData -> {
-      var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-      var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
+      var allocationChange = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0));
+      var currentAllocation = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0));
       var afterAllocation = currentAllocation.add(allocationChange);
       financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
     });
