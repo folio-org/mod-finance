@@ -141,6 +141,8 @@ public class FinanceDataServiceTest {
 
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+    when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
@@ -150,6 +152,9 @@ public class FinanceDataServiceTest {
       .onComplete(result -> {
         assertTrue(result.succeeded());
         verify(fundUpdateLogService).createFundUpdateLog(argThat(log ->
+          log.getStatus() == FundUpdateLog.Status.IN_PROGRESS
+        ), eq(requestContextMock));
+        verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
           log.getStatus() == FundUpdateLog.Status.COMPLETED
         ), eq(requestContextMock));
         vertxTestContext.completeNow();
@@ -166,6 +171,8 @@ public class FinanceDataServiceTest {
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+    when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
@@ -174,6 +181,9 @@ public class FinanceDataServiceTest {
       .onComplete(result -> {
         assertTrue(result.failed());
         verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+        verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
+          log.getStatus() == FundUpdateLog.Status.ERROR
+        ), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
   }

@@ -3,6 +3,7 @@ package org.folio.services.financedata;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
+import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.IN_PROGRESS;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -105,10 +106,12 @@ public class FinanceDataService {
       return succeededFuture(financeDataCollection);
     }
 
-    return updateFinanceData(financeDataCollection, requestContext)
+    var fundUpdateLogId = UUID.randomUUID().toString();
+    return processLogs(fundUpdateLogId, financeDataCollection, requestContext)
+      .compose(fundUpdateLog -> updateFinanceData(financeDataCollection, requestContext))
       .map(v -> financeDataCollection)
-      .onSuccess(asyncResult -> processLogs(financeDataCollection, requestContext, COMPLETED))
-      .onFailure(asyncResult -> processLogs(financeDataCollection, requestContext, ERROR));
+      .onSuccess(asyncResult -> updateLogs(fundUpdateLogId, COMPLETED, requestContext))
+      .onFailure(asyncResult -> updateLogs(fundUpdateLogId, ERROR, requestContext));
   }
 
   private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
@@ -148,16 +151,25 @@ public class FinanceDataService {
     return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
   }
 
-  private void processLogs(FyFinanceDataCollection financeDataCollection,
-                           RequestContext requestContext, FundUpdateLog.Status status) {
+  private Future<FundUpdateLog> processLogs(String fundUpdateLogId, FyFinanceDataCollection financeDataCollection,
+                                            RequestContext requestContext) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
-    var fundUpdateLog = new FundUpdateLog().withId(UUID.randomUUID().toString())
+    var fundUpdateLog = new FundUpdateLog().withId(fundUpdateLogId)
       .withJobName("Update finance data") // TODO: Update job name generation
-      .withStatus(status)
+      .withStatus(IN_PROGRESS)
       .withRecordsCount(financeDataCollection.getTotalRecords())
       .withJobDetails(jobDetails)
       .withJobNumber(1);
-    fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
+    return fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
+  }
+
+  private void updateLogs(String fundUpdateLog, FundUpdateLog.Status status,
+                          RequestContext requestContext) {
+    fundUpdateLogService.getFundUpdateLogById(fundUpdateLog, requestContext)
+      .compose(log -> {
+        log.setStatus(status);
+        return fundUpdateLogService.updateFundUpdateLog(log, requestContext);
+      });
   }
 
   private void validateForDuplication(FyFinanceDataCollection financeDataCollection) {
