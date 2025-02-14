@@ -211,7 +211,7 @@ public class FinanceDataService {
           combinedErrors.add(createError("Fund is not found", String.format("financeData[%s].fundId", i), financeData.getFundId()));
           return succeededFuture();
         }
-        if (financeData.getLedgerId() != null || !Objects.equals(fund.getLedgerId(), financeData.getLedgerId())) {
+        if (financeData.getLedgerId() != null && !Objects.equals(fund.getLedgerId(), financeData.getLedgerId())) {
           combinedErrors.add(createError("Fund ledger ID must be the same as ledger ID", String.format("financeData[%s].fundId", i), financeData.getFundId()));
           return succeededFuture();
         }
