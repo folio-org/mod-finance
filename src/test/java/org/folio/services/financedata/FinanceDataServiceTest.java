@@ -205,6 +205,9 @@ public class FinanceDataServiceTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+
     var exception = assertThrows(HttpException.class,
       () -> financeDataService.putFinanceData(collection, new RequestContext(Vertx.vertx().getOrCreateContext(), new HashMap<>())));
     assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
