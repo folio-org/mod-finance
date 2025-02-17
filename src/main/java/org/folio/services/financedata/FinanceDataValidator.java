@@ -62,8 +62,7 @@ public class FinanceDataValidator {
 
     financeFundBudgetFiscalYearIds.values().forEach(duplicates -> {
       if (duplicates.size() > 1) {
-        var error = createError("Finance data collection contains duplicate fund, budget and fiscal year IDs",
-          "financeData", "duplicate");
+        var error = createError("Finance data collection contains duplicate fund, budget and fiscal year IDs", "financeData", "duplicate");
         log.warn("validateForDuplication:: Validation error: {}", error.getMessage());
         throw new HttpException(422, new Errors().withErrors(List.of(error)));
       }
@@ -83,7 +82,6 @@ public class FinanceDataValidator {
     validateBudgetStatus(financeData.getBudgetStatus(), i);
     validateRequiredField(combinedErrors, String.format("financeData[%s].fundCode", i), financeData.getFundCode(), "Fund code is required");
     validateRequiredField(combinedErrors, String.format("financeData[%s].fundName", i), financeData.getFundName(), "Fund name is required");
-    validateRequiredField(combinedErrors, String.format("financeData[%s].fundDescription", i), financeData.getFundDescription(), "Fund description is required");
     validateRequiredField(combinedErrors, String.format("financeData[%s].fundStatus", i), financeData.getFundStatus(), "Fund status is required");
     if (financeData.getBudgetId() != null) {
       validateRequiredField(combinedErrors, String.format("financeData[%s].budgetName", i), financeData.getBudgetName(), "Budget name is required");
