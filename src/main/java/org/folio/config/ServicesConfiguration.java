@@ -170,12 +170,11 @@ public class ServicesConfiguration {
 
   @Bean
   CreateBudgetService createBudgetService(RestClient restClient,
-                                                             GroupFundFiscalYearService groupFundFiscalYearService,
                                                              FundFiscalYearService fundFiscalYearService,
                                                              BudgetExpenseClassService budgetExpenseClassService,
                                                              TransactionService transactionService,
                                                              FundDetailsService fundDetailsService) {
-    return new CreateBudgetService(restClient, groupFundFiscalYearService, fundFiscalYearService,
+    return new CreateBudgetService(restClient, fundFiscalYearService,
       budgetExpenseClassService, transactionService,  fundDetailsService);
   }
 

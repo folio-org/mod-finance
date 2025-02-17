@@ -34,20 +34,17 @@ public class CreateBudgetService {
   private static final Logger log = LogManager.getLogger();
 
   private final RestClient restClient;
-  private final GroupFundFiscalYearService groupFundFiscalYearService;
   private final FundFiscalYearService fundFiscalYearService;
   private final BudgetExpenseClassService budgetExpenseClassService;
   private final TransactionService transactionService;
   private final FundDetailsService fundDetailsService;
 
   public CreateBudgetService(RestClient restClient,
-                             GroupFundFiscalYearService groupFundFiscalYearService,
                              FundFiscalYearService fundFiscalYearService,
                              BudgetExpenseClassService budgetExpenseClassService,
                              TransactionService transactionService,
                              FundDetailsService fundDetailsService) {
     this.restClient = restClient;
-    this.groupFundFiscalYearService = groupFundFiscalYearService;
     this.fundFiscalYearService = fundFiscalYearService;
     this.budgetExpenseClassService = budgetExpenseClassService;
     this.transactionService = transactionService;
@@ -128,8 +125,7 @@ public class CreateBudgetService {
     double allocatedValue = sharedBudget.getAllocated();
     sharedBudget.setAllocated(0d);
     return restClient.post(resourcesPath(BUDGETS_STORAGE), BudgetUtils.convertToBudget(sharedBudget), Budget.class, requestContext)
-      .compose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext))
-      .compose(createdBudget -> groupFundFiscalYearService.updateBudgetIdForGroupFundFiscalYears(createdBudget, requestContext)
+      .compose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext)
         .compose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContext))
         .map(aVoid -> BudgetUtils.convertToSharedBudget(createdBudget)
           .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
