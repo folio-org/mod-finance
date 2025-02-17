@@ -142,10 +142,12 @@ public class FinanceDataService {
   private void calculateAfterAllocation(FyFinanceDataCollection financeDataCollection) {
     log.info("calculateAfterAllocation:: Calculating after allocation for finance data collection, FY:{}", getFiscalYearId(financeDataCollection));
     financeDataCollection.getFyFinanceData().forEach(financeData -> {
-      var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-      var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
-      var afterAllocation = currentAllocation.add(allocationChange);
-      financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
+      if (financeData.getBudgetAllocationChange() != null) {
+        var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
+        var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
+        var afterAllocation = currentAllocation.add(allocationChange);
+        financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
+      }
     });
   }
 }

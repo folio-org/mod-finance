@@ -1,5 +1,7 @@
 package org.folio.services.financedata;
 
+import static io.vertx.core.Future.failedFuture;
+import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
@@ -40,13 +42,15 @@ public class FinanceDataValidator {
       var financeData = financeDataCollection.getFyFinanceData().get(i);
       validateFinanceDataFields(financeData, i, fiscalYearId);
 
-      var allocationChange = financeData.getBudgetAllocationChange();
-      var currentAllocation = financeData.getBudgetCurrentAllocation();
+      if (financeData.getBudgetAllocationChange() != null) {
+        var allocationChange = financeData.getBudgetAllocationChange();
+        var currentAllocation = financeData.getBudgetCurrentAllocation();
 
-      if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
-        var error = createError("Allocation change cannot be greater than current allocation",
-          String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange()));
-        throw new HttpException(422, new Errors().withErrors(List.of(error)));
+        if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
+          var error = createError("Allocation change cannot be greater than current allocation",
+            String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange()));
+          throw new HttpException(422, new Errors().withErrors(List.of(error)));
+        }
       }
     }
   }
@@ -56,12 +60,14 @@ public class FinanceDataValidator {
       .stream().collect(Collectors.groupingBy(
         financeData -> financeData.getFundId() + financeData.getBudgetId() + financeData.getFiscalYearId()));
 
-    if (financeFundBudgetFiscalYearIds.size() > 1) {
-      var error = createError("Finance data collection contains duplicate fund, budget and fiscal year IDs",
-        "financeData", "duplicate");
-      log.warn("validateForDuplication:: Validation error: {}", error.getMessage());
-      throw new HttpException(422, new Errors().withErrors(List.of(error)));
-    }
+    financeFundBudgetFiscalYearIds.values().forEach(duplicates -> {
+      if (duplicates.size() > 1) {
+        var error = createError("Finance data collection contains duplicate fund, budget and fiscal year IDs",
+          "financeData", "duplicate");
+        log.warn("validateForDuplication:: Validation error: {}", error.getMessage());
+        throw new HttpException(422, new Errors().withErrors(List.of(error)));
+      }
+    });
   }
 
   private void validateFinanceDataFields(FyFinanceData financeData, int i, String fiscalYearId) {
@@ -135,28 +141,35 @@ public class FinanceDataValidator {
   private Future<Void> validateFundId(FyFinanceData financeData, int index, List<Error> errors,
                                       RequestContext requestContext) {
     return fundService.getFundById(financeData.getFundId(), requestContext)
-      .map(fund -> {
-        if (financeData.getLedgerId() != null &&
-          !Objects.equals(fund.getLedgerId(), financeData.getLedgerId())) {
+      .compose(fund -> {
+        if (financeData.getLedgerId() != null && !Objects.equals(fund.getLedgerId(), financeData.getLedgerId())) {
           errors.add(createError("Fund ledger ID must be the same as ledger ID",
-            String.format("financeData[%s].fundId", index),
-            financeData.getFundId()));
+            String.format("financeData[%s].fundId", index), financeData.getFundId()));
         }
-        return null;
-      });
+        return succeededFuture();
+      })
+      .recover(throwable -> {
+        var error = createError("Fund ID not found", String.format("financeData[%s].fundId", index), financeData.getFundId());
+        errors.add(error);
+        return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
+      }).mapEmpty();
   }
 
   private Future<Void> validateBudgetId(FyFinanceData financeData, int index, List<Error> errors,
                                         RequestContext requestContext) {
     return budgetService.getBudgetById(financeData.getBudgetId(), requestContext)
-      .map(budget -> {
+      .compose(budget -> {
         if (!Objects.equals(budget.getFundId(), financeData.getFundId())) {
           errors.add(createError("Budget fund ID must be the same as fund ID",
-            String.format("financeData[%s].budgetId", index),
-            financeData.getBudgetId()));
+            String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
         }
-        return null;
-      });
+        return succeededFuture();
+      })
+      .recover(t -> {
+        var error = createError("Budget ID not found", String.format("financeData[%s].budgetId", index), financeData.getBudgetId());
+        errors.add(error);
+        return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
+      }).mapEmpty();
   }
 
   private Error createError(String message, String key, String value) {

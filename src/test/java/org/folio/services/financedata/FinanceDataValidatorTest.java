@@ -83,6 +83,25 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
+  void negative_validateFinanceDataCollection_DuplicateFinanceData() {
+    var financeData = createValidFyFinanceData();
+    var duplicateFinanceData = createValidFyFinanceData();
+    var collection = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData, duplicateFinanceData))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
+      .withTotalRecords(2);
+
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+
+    var exception = assertThrows(HttpException.class,
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
+    assertEquals("Finance data collection contains duplicate fund, budget and fiscal year IDs", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("financeData", exception.getErrors().getErrors().get(0).getParameters().get(0).getKey());
+    assertEquals("duplicate", exception.getErrors().getErrors().get(0).getParameters().get(0).getValue());
+  }
+
+  @Test
   void negative_validateFinanceDataCollection_InvalidAllocationChange() {
     var financeData = createValidFyFinanceData();
     financeData.setBudgetCurrentAllocation(100.0);
