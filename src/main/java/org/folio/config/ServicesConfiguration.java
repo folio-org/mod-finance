@@ -230,4 +230,9 @@ public class ServicesConfiguration {
                                         FundUpdateLogService fundUpdateLogService, FinanceDataValidator financeDataValidator) {
     return new FinanceDataService(restClient, acqUnitsService, fundUpdateLogService, financeDataValidator);
   }
+
+  @Bean
+  FinanceDataValidator financeDataValidator(FundService fundService, BudgetService budgetService) {
+    return new FinanceDataValidator(fundService, budgetService);
+  }
 }
