@@ -34,12 +34,11 @@ public class FinanceDataValidator {
     this.budgetService = budgetService;
   }
 
-  public void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection, String fiscalYearId,
-                                            RequestContext requestContext) {
+  public void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection, String fiscalYearId) {
     validateForDuplication(financeDataCollection);
     for (int i = 0; i < financeDataCollection.getFyFinanceData().size(); i++) {
       var financeData = financeDataCollection.getFyFinanceData().get(i);
-      validateFinanceDataFields(financeData, i, fiscalYearId, requestContext);
+      validateFinanceDataFields(financeData, i, fiscalYearId);
 
       var allocationChange = financeData.getBudgetAllocationChange();
       var currentAllocation = financeData.getBudgetCurrentAllocation();
@@ -65,7 +64,7 @@ public class FinanceDataValidator {
     }
   }
 
-  private void validateFinanceDataFields(FyFinanceData financeData, int i, String fiscalYearId, RequestContext requestContext) {
+  private void validateFinanceDataFields(FyFinanceData financeData, int i, String fiscalYearId) {
     List<Error> combinedErrors = new ArrayList<>();
 
     if (!financeData.getFiscalYearId().equals(fiscalYearId)) {

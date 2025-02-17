@@ -86,7 +86,7 @@ public class FinanceDataService {
       return succeededFuture(financeDataCollection);
     }
 
-    financeDataValidator.validateFinanceDataCollection(financeDataCollection, getFiscalYearId(financeDataCollection), requestContext);
+    financeDataValidator.validateFinanceDataCollection(financeDataCollection, getFiscalYearId(financeDataCollection));
     calculateAfterAllocation(financeDataCollection);
 
     return financeDataValidator.validateIds(financeDataCollection, requestContext)

@@ -78,7 +78,7 @@ public class FinanceDataValidatorTest {
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID, requestContextMock);
+    financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID);
     vertxTestContext.completeNow();
   }
 
@@ -96,7 +96,7 @@ public class FinanceDataValidatorTest {
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID, requestContextMock));
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
     assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
   }
 
@@ -113,7 +113,7 @@ public class FinanceDataValidatorTest {
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID, requestContextMock));
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
     assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
   }
 
@@ -130,7 +130,7 @@ public class FinanceDataValidatorTest {
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID, requestContextMock));
+      () -> financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID));
     assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
     assertEquals("Budget current allocation is required", exception.getErrors().getErrors().get(1).getMessage());
     vertxTestContext.completeNow();
@@ -149,7 +149,7 @@ public class FinanceDataValidatorTest {
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID, requestContextMock));
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
     assertEquals("Budget status is incorrect", exception.getErrors().getErrors().get(0).getMessage());
     assertEquals(BUDGET_STATUS_INCORRECT.getCode(), exception.getErrors().getErrors().get(0).getCode());
   }

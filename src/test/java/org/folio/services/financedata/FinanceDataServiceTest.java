@@ -263,10 +263,10 @@ public class FinanceDataServiceTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
-    doThrow(new HttpException(422, "Invalid fiscal year ID")).when(financeDataValidator).validateFinanceDataCollection(any(), anyString(), any());
+    doThrow(new HttpException(422, "Invalid fiscal year ID")).when(financeDataValidator).validateFinanceDataCollection(any(), anyString());
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID, requestContextMock));
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
     assertEquals("Invalid fiscal year ID", exception.getErrors().getErrors().get(0).getMessage());
   }
 
