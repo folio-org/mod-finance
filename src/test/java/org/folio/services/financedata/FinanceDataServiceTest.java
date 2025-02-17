@@ -139,8 +139,12 @@ public class FinanceDataServiceTest {
 
   @Test
   void positive_testPutFinanceData_PutFinanceDataSuccessfully(VertxTestContext vertxTestContext) {
+    var financeData = createValidFyFinanceData();
+    var financeData2 = createValidFyFinanceData() // set to null non-required fields
+      .withBudgetId(null).withBudgetAllocationChange(null).withFundDescription(null)
+      .withTransactionTag(null).withTransactionDescription(null);
     var financeDataCollection = new FyFinanceDataCollection()
-      .withFyFinanceData(List.of(createValidFyFinanceData()))
+      .withFyFinanceData(List.of(financeData, financeData2))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
