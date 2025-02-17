@@ -24,7 +24,6 @@ import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.ExpenseClassConverterUtils;
 import org.folio.services.fund.FundDetailsService;
 import org.folio.services.fund.FundFiscalYearService;
-import org.folio.services.group.GroupFundFiscalYearService;
 
 import io.vertx.core.Future;
 import org.folio.services.transactions.TransactionService;
