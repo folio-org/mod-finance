@@ -9,6 +9,7 @@ import org.folio.services.budget.RecalculateBudgetService;
 import org.folio.services.budget.CreateBudgetService;
 import org.folio.services.configuration.ConfigurationEntriesService;
 import org.folio.services.financedata.FinanceDataService;
+import org.folio.services.financedata.FinanceDataValidator;
 import org.folio.services.fiscalyear.FiscalYearApiService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundCodeExpenseClassesService;
@@ -225,8 +226,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService, FundUpdateLogService fundUpdateLogService,
-                                        BudgetService budgetService, FundService fundService) {
-    return new FinanceDataService(restClient, acqUnitsService, fundUpdateLogService, budgetService, fundService);
+  FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService,
+                                        FundUpdateLogService fundUpdateLogService, FinanceDataValidator financeDataValidator) {
+    return new FinanceDataService(restClient, acqUnitsService, fundUpdateLogService, financeDataValidator);
   }
 }
