@@ -125,6 +125,10 @@ public class FinanceDataService {
 
   private void calculateAfterAllocation(FyFinanceDataCollection financeDataCollection) {
     financeDataCollection.getFyFinanceData().forEach(financeData -> {
+      if (financeData.getBudgetId() == null && financeData.getBudgetAllocationChange() == null) {
+        financeData.setBudgetAfterAllocation(null);
+        return;
+      }
       var allocationChange = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0));
       var currentAllocation = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0));
       var afterAllocation = currentAllocation.add(allocationChange);
