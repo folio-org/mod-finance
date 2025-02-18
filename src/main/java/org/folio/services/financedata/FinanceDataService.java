@@ -1,6 +1,7 @@
 package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.IN_PROGRESS;
@@ -108,6 +109,10 @@ public class FinanceDataService {
       .onFailure(asyncResult -> updateLogs(fundUpdateLogId, ERROR, requestContext));
   }
 
+  private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
+    return fyFinanceDataCollection.getFyFinanceData().get(0).getFiscalYearId();
+  }
+
   private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
                                          RequestContext requestContext) {
     log.debug("updateFinanceData:: Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
@@ -135,19 +140,17 @@ public class FinanceDataService {
       });
   }
 
-  private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
-    return fyFinanceDataCollection.getFyFinanceData().get(0).getFiscalYearId();
-  }
-
   private void calculateAfterAllocation(FyFinanceDataCollection financeDataCollection) {
     log.info("calculateAfterAllocation:: Calculating after allocation for finance data collection, FY:{}", getFiscalYearId(financeDataCollection));
     financeDataCollection.getFyFinanceData().forEach(financeData -> {
-      if (financeData.getBudgetAllocationChange() != null) {
-        var allocationChange = BigDecimal.valueOf(financeData.getBudgetAllocationChange());
-        var currentAllocation = BigDecimal.valueOf(financeData.getBudgetCurrentAllocation());
-        var afterAllocation = currentAllocation.add(allocationChange);
-        financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
+      if (financeData.getBudgetId() == null && financeData.getBudgetAllocationChange() == null) {
+        financeData.setBudgetAfterAllocation(null);
+        return;
       }
+      var allocationChange = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0));
+      var currentAllocation = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0));
+      var afterAllocation = currentAllocation.add(allocationChange);
+      financeData.setBudgetAfterAllocation(afterAllocation.doubleValue());
     });
   }
 }

@@ -44,8 +44,8 @@ public class FinanceDataValidator {
       validateFinanceDataFields(financeData, i, fiscalYearId);
 
       if (financeData.getBudgetAllocationChange() != null) {
-        var allocationChange = financeData.getBudgetAllocationChange();
-        var currentAllocation = financeData.getBudgetCurrentAllocation();
+        double allocationChange = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0);
+        double currentAllocation = requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0);
 
         if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
           var error = createError("Allocation change cannot be greater than current allocation",

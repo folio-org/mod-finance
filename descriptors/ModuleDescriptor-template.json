@@ -21,8 +21,6 @@
           "modulePermissions": [
             "finance-storage.budgets.item.post",
             "finance-storage.budgets.collection.get",
-            "finance-storage.group-fund-fiscal-years.collection.get",
-            "finance-storage.group-fund-fiscal-years.item.put",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.budget-expense-classes.collection.get",
@@ -812,7 +810,12 @@
           "pathPattern": "/finance/finance-data",
           "permissionsRequired": ["finance.finance-data.collection.put"],
           "modulePermissions": [
-            "finance-storage.finance-data.collection.put"
+            "finance-storage.budgets.item.get",
+            "finance-storage.finance-data.collection.put",
+            "finance-storage.fund-update-logs.item.get",
+            "finance-storage.fund-update-logs.item.post",
+            "finance-storage.fund-update-logs.item.put",
+            "finance-storage.funds.item.get"
           ]
         }
       ]
