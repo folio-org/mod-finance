@@ -2,6 +2,7 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
@@ -121,9 +122,7 @@ public class FinanceDataValidator {
     for (int i = 0; i < financeDataCollection.getFyFinanceData().size(); i++) {
       var financeData = financeDataCollection.getFyFinanceData().get(i);
       validationFutures.add(compareFund(financeData, i, errors, requestContext));
-      if (financeData.getBudgetId() != null) {
-        validationFutures.add(compareBudget(financeData, i, errors, requestContext));
-      }
+      validationFutures.add(compareBudget(financeData, i, errors, requestContext));
     }
 
     return collectResultsOnSuccess(validationFutures)
@@ -135,17 +134,16 @@ public class FinanceDataValidator {
       });
   }
 
-  private Future<Void> compareFund(FyFinanceData financeData, int index, List<Error> errors,
-                                      RequestContext requestContext) {
+  private Future<Void> compareFund(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
     return fundService.getFundById(financeData.getFundId(), requestContext)
       .compose(existingFund -> {
         if (!Objects.equals(existingFund.getCode(), financeData.getFundCode())) {
           errors.add(createError("fundCode must be the same as existing fund code",
-            String.format("financeData[%s].fundId", index), financeData.getFundId()));
+            String.format("financeData[%s].fundCode", index), financeData.getFundCode()));
         }
         if (!Objects.equals(existingFund.getName(), financeData.getFundName())) {
           errors.add(createError("fundName must be the same as existing fund name",
-            String.format("financeData[%s].fundId", index), financeData.getFundId()));
+            String.format("financeData[%s].fundName", index), financeData.getFundName()));
         }
         if (financeData.getLedgerId() != null && !Objects.equals(existingFund.getLedgerId(), financeData.getLedgerId())) {
           errors.add(createError("Fund ledger ID must be the same as ledger ID",
@@ -167,13 +165,19 @@ public class FinanceDataValidator {
       }).mapEmpty();
   }
 
-  private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors,
-                                        RequestContext requestContext) {
+  private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
+    if (financeData.getBudgetId() == null) {
+      if (financeData.getBudgetStatus() != null || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0) {
+        financeData.setIsBudgetChanged(true);
+      }
+      return succeededFuture();
+    }
+
     return budgetService.getBudgetById(financeData.getBudgetId(), requestContext)
       .compose(existingBudget -> {
         if (!Objects.equals(existingBudget.getName(), financeData.getBudgetName())) {
           errors.add(createError("budgetName must be the same as existing budget name",
-            String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
+            String.format("financeData[%s].budgetName", index), financeData.getBudgetName()));
         }
         if (!Objects.equals(existingBudget.getFundId(), financeData.getFundId())) {
           errors.add(createError("Budget fund ID must be the same as fund ID",
@@ -183,7 +187,10 @@ public class FinanceDataValidator {
         var isBudgetChanged = !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
           || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
           || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure());
-        financeData.setIsBudgetChanged(isBudgetChanged);
+
+        if (Boolean.FALSE.equals(financeData.getIsBudgetChanged())) {
+          financeData.setIsBudgetChanged(isBudgetChanged);
+        }
 
         return succeededFuture();
       })
