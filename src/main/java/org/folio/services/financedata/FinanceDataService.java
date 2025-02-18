@@ -89,7 +89,7 @@ public class FinanceDataService {
     financeDataValidator.validateFinanceDataCollection(financeDataCollection, getFiscalYearId(financeDataCollection));
     calculateAfterAllocation(financeDataCollection);
 
-    return financeDataValidator.validateIds(financeDataCollection, requestContext)
+    return financeDataValidator.compareWithExistingData(financeDataCollection, requestContext)
       .compose(v -> processFinanceData(financeDataCollection, requestContext))
       .onSuccess(ar -> log.info("putFinanceData:: Finance data collection was updated successfully"))
       .onFailure(t -> log.warn("putFinanceData:: Failed to update finance data collection", t));
