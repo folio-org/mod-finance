@@ -167,9 +167,9 @@ public class FinanceDataValidator {
 
   private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
     if (financeData.getBudgetId() == null) {
-      if (financeData.getBudgetStatus() != null || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0) {
-        financeData.setIsBudgetChanged(true);
-      }
+      boolean isBudgetChanged = financeData.getBudgetStatus() != null
+        || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0;
+      financeData.setIsBudgetChanged(isBudgetChanged);
       return succeededFuture();
     }
 
@@ -186,12 +186,10 @@ public class FinanceDataValidator {
 
         var isBudgetChanged = !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
           || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
-          || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure());
+          || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
+          || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
 
-        if (Boolean.FALSE.equals(financeData.getIsBudgetChanged())) {
-          financeData.setIsBudgetChanged(isBudgetChanged);
-        }
-
+        financeData.setIsBudgetChanged(isBudgetChanged);
         return succeededFuture();
       })
       .recover(t -> {
