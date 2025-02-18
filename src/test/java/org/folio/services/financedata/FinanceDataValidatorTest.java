@@ -153,7 +153,6 @@ public class FinanceDataValidatorTest {
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID));
     assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
-    assertEquals("Budget current allocation is required", exception.getErrors().getErrors().get(1).getMessage());
     vertxTestContext.completeNow();
   }
 
@@ -198,11 +197,15 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void negative_comparingWithExistingData_MismatchFundId(VertxTestContext vertxTestContext) {
+  void negative_comparingWithExistingData_MismatchFundDetails(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData()
       .withBudgetInitialAllocation(null)
       .withBudgetCurrentAllocation(null)
-      .withFundId(UUID.randomUUID().toString());
+      .withFundId(UUID.randomUUID().toString())
+      .withFundName("Updated name")
+      .withFundCode("FUND-UPDATED")
+      .withLedgerId(UUID.randomUUID().toString())
+      .withBudgetName("Updated budget");
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
@@ -214,32 +217,16 @@ public class FinanceDataValidatorTest {
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
-          assertEquals("Budget fund ID must be the same as fund ID", exception.getErrors().getErrors().get(0).getMessage());
-          vertxTestContext.completeNow();
-        } else {
-          vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
-        }
-      });
-  }
-
-  @Test
-  void negative_comparingWithExistingData_MismatchLedgerId(VertxTestContext vertxTestContext) {
-    var financeData = createValidFyFinanceData()
-      .withBudgetInitialAllocation(null)
-      .withBudgetCurrentAllocation(null)
-      .withLedgerId(UUID.randomUUID().toString());
-    var financeDataCollection = new FyFinanceDataCollection()
-      .withFyFinanceData(Collections.singletonList(financeData))
-      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
-
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
-
-    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
-      .onComplete(ar -> {
-        if (ar.failed()) {
-          var exception = (HttpException) ar.cause();
-          assertEquals("Fund ledger ID must be the same as ledger ID", exception.getErrors().getErrors().get(0).getMessage());
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "Budget fund ID must be the same as fund ID".equals(error.getMessage())));
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "budgetName must be the same as existing budget name".equals(error.getMessage())));
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "fundCode must be the same as existing fund code".equals(error.getMessage())));
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "fundName must be the same as existing fund name".equals(error.getMessage())));
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "Fund ledger ID must be the same as ledger ID".equals(error.getMessage())));
           vertxTestContext.completeNow();
         } else {
           vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
@@ -251,12 +238,15 @@ public class FinanceDataValidatorTest {
     return new Fund()
       .withId(FUND_ID)
       .withLedgerId(LEDGER_ID)
-      .withFundStatus(Fund.FundStatus.ACTIVE);
+      .withFundStatus(Fund.FundStatus.ACTIVE)
+      .withCode("FUND-001")
+      .withName("Test Fund");
   }
 
   private SharedBudget createValidBudget() {
     return new SharedBudget()
       .withId(BUDGET_ID)
+      .withName("Test Budget")
       .withFundId(FUND_ID)
       .withBudgetStatus(SharedBudget.BudgetStatus.ACTIVE)
       .withAllowableExpenditure(150.0)

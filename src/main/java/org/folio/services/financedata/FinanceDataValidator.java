@@ -139,6 +139,14 @@ public class FinanceDataValidator {
                                       RequestContext requestContext) {
     return fundService.getFundById(financeData.getFundId(), requestContext)
       .compose(existingFund -> {
+        if (!Objects.equals(existingFund.getCode(), financeData.getFundCode())) {
+          errors.add(createError("fundCode must be the same as existing fund code",
+            String.format("financeData[%s].fundId", index), financeData.getFundId()));
+        }
+        if (!Objects.equals(existingFund.getName(), financeData.getFundName())) {
+          errors.add(createError("fundName must be the same as existing fund name",
+            String.format("financeData[%s].fundId", index), financeData.getFundId()));
+        }
         if (financeData.getLedgerId() != null && !Objects.equals(existingFund.getLedgerId(), financeData.getLedgerId())) {
           errors.add(createError("Fund ledger ID must be the same as ledger ID",
             String.format("financeData[%s].fundId", index), financeData.getFundId()));
@@ -163,6 +171,10 @@ public class FinanceDataValidator {
                                         RequestContext requestContext) {
     return budgetService.getBudgetById(financeData.getBudgetId(), requestContext)
       .compose(existingBudget -> {
+        if (!Objects.equals(existingBudget.getName(), financeData.getBudgetName())) {
+          errors.add(createError("budgetName must be the same as existing budget name",
+            String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
+        }
         if (!Objects.equals(existingBudget.getFundId(), financeData.getFundId())) {
           errors.add(createError("Budget fund ID must be the same as fund ID",
             String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
