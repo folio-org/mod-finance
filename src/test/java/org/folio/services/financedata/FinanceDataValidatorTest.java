@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -26,12 +28,16 @@ import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.Tags;
 import org.folio.services.fund.FundService;
 import org.folio.services.budget.BudgetService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -181,19 +187,78 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund().withDescription("Updated")));
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.succeeded()) {
-          assertTrue(financeData.getIsFundChanged());
-          assertFalse(financeData.getIsBudgetChanged());
           vertxTestContext.completeNow();
         } else {
           vertxTestContext.failNow(ar.cause());
         }
       });
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideFinanceDataCollections")
+  void compareWithExistingData_checkIsChanged(FyFinanceDataCollection financeDataCollection, boolean expectedFundChanged, boolean expectedBudgetChanged, VertxTestContext vertxTestContext) {
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+
+    financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.succeeded()) {
+          var financeData = financeDataCollection.getFyFinanceData().get(0);
+          assertEquals(expectedFundChanged, financeData.getIsFundChanged());
+          assertEquals(expectedBudgetChanged, financeData.getIsBudgetChanged());
+          vertxTestContext.completeNow();
+        } else {
+          vertxTestContext.failNow(ar.cause());
+        }
+      });
+  }
+
+  private static Stream<Arguments> provideFinanceDataCollections() {
+    FinanceDataValidatorTest testInstance = new FinanceDataValidatorTest();
+
+    var financeData = testInstance.createValidFyFinanceData()
+      .withFundDescription("New fund description");
+    var financeDataWithNullBudgetId = testInstance.createValidFyFinanceData()
+      .withFundDescription("New fund description")
+      .withBudgetId(null).withBudgetAllocationChange(null).withBudgetStatus(null);
+    var financeDataWithBudgedCreation = testInstance.createValidFyFinanceData()
+      .withBudgetId(null).withBudgetStatus("Active");
+    var financeDataWithBudgetAllocationChange = testInstance.createValidFyFinanceData().withBudgetAllocationChange(50.0);
+    var financeDataWithDifferentBudgetStatus = testInstance.createValidFyFinanceData().withBudgetStatus("Frozen");
+
+    var collection1 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection2 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithNullBudgetId))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection3 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithBudgedCreation))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection4 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithBudgetAllocationChange))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection5 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithDifferentBudgetStatus))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    return Stream.of(
+      arguments(collection1, true, true),
+      arguments(collection2, true, false),
+      arguments(collection3, false, true),
+      arguments(collection4, false, true),
+      arguments(collection5, false, true)
+    );
   }
 
   @Test
@@ -240,7 +305,8 @@ public class FinanceDataValidatorTest {
       .withLedgerId(LEDGER_ID)
       .withFundStatus(Fund.FundStatus.ACTIVE)
       .withCode("FUND-001")
-      .withName("Test Fund");
+      .withName("Test Fund")
+      .withDescription("Test Fund Description");
   }
 
   private SharedBudget createValidBudget() {

@@ -187,6 +187,7 @@ public class FinanceDataValidator {
         var isBudgetChanged = !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
           || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
           || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
+          || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0
           || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
 
         financeData.setIsBudgetChanged(isBudgetChanged);
