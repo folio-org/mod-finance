@@ -153,7 +153,7 @@ public class FinanceDataServiceTest {
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
-    when(financeDataValidator.validateIds(any(), any())).thenReturn(succeededFuture());
+    when(financeDataValidator.comparingWithExistingData(any(), any())).thenReturn(succeededFuture());
 
     var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -181,7 +181,7 @@ public class FinanceDataServiceTest {
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
-    when(financeDataValidator.validateIds(any(), any())).thenReturn(succeededFuture());
+    when(financeDataValidator.comparingWithExistingData(any(), any())).thenReturn(succeededFuture());
 
     var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
     vertxTestContext.assertFailure(future)
@@ -201,7 +201,7 @@ public class FinanceDataServiceTest {
       .withFyFinanceData(List.of(createValidFyFinanceData()))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(financeDataValidator.validateIds(any(), any())).thenReturn(succeededFuture());
+    when(financeDataValidator.comparingWithExistingData(any(), any())).thenReturn(succeededFuture());
 
     var future = financeDataService.putFinanceData(financeDataCollection, requestContextMock);
     vertxTestContext.assertComplete(future)
@@ -245,7 +245,7 @@ public class FinanceDataServiceTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    doReturn(failedFuture(new HttpException(400, "Fund ID is required"))).when(financeDataValidator).validateIds(any(), any());
+    doReturn(failedFuture(new HttpException(400, "Fund ID is required"))).when(financeDataValidator).comparingWithExistingData(any(), any());
 
     financeDataService.putFinanceData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {

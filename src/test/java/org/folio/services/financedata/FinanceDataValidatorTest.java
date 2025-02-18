@@ -3,7 +3,9 @@ package org.folio.services.financedata;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -174,18 +176,20 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void positive_validateIds_ValidIds(VertxTestContext vertxTestContext) {
+  void positive_comparingWithExistingData_ValidIds(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData();
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund().withDescription("Updated")));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.validateIds(financeDataCollection, requestContextMock)
+    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.succeeded()) {
+          assertTrue(financeData.getIsFundChanged());
+          assertFalse(financeData.getIsBudgetChanged());
           vertxTestContext.completeNow();
         } else {
           vertxTestContext.failNow(ar.cause());
@@ -194,7 +198,7 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void negative_validateIds_MismatchFundId(VertxTestContext vertxTestContext) {
+  void negative_comparingWithExistingData_MismatchFundId(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData()
       .withBudgetInitialAllocation(null)
       .withBudgetCurrentAllocation(null)
@@ -206,7 +210,7 @@ public class FinanceDataValidatorTest {
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.validateIds(financeDataCollection, requestContextMock)
+    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
@@ -219,7 +223,7 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void negative_validateIds_MismatchLedgerId(VertxTestContext vertxTestContext) {
+  void negative_comparingWithExistingData_MismatchLedgerId(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData()
       .withBudgetInitialAllocation(null)
       .withBudgetCurrentAllocation(null)
@@ -231,7 +235,7 @@ public class FinanceDataValidatorTest {
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.validateIds(financeDataCollection, requestContextMock)
+    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
@@ -246,13 +250,17 @@ public class FinanceDataValidatorTest {
   private Fund createValidFund() {
     return new Fund()
       .withId(FUND_ID)
-      .withLedgerId(LEDGER_ID);
+      .withLedgerId(LEDGER_ID)
+      .withFundStatus(Fund.FundStatus.ACTIVE);
   }
 
   private SharedBudget createValidBudget() {
     return new SharedBudget()
       .withId(BUDGET_ID)
-      .withFundId(FUND_ID);
+      .withFundId(FUND_ID)
+      .withBudgetStatus(SharedBudget.BudgetStatus.ACTIVE)
+      .withAllowableExpenditure(150.0)
+      .withAllowableEncumbrance(150.0);
   }
 
   private FyFinanceData createValidFyFinanceData() {
