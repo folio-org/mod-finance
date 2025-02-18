@@ -115,7 +115,7 @@ public class FinanceDataValidator {
     }
   }
 
-  public Future<Void> comparingWithExistingData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
+  public Future<Void> compareWithExistingData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
     List<Future<Void>> validationFutures = new ArrayList<>();
     List<Error> errors = new ArrayList<>();
 

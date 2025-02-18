@@ -175,7 +175,7 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void positive_comparingWithExistingData_ValidIds(VertxTestContext vertxTestContext) {
+  void positive_compareWithExistingData_ValidIds(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData();
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
@@ -184,7 +184,7 @@ public class FinanceDataValidatorTest {
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund().withDescription("Updated")));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
+    financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.succeeded()) {
           assertTrue(financeData.getIsFundChanged());
@@ -197,7 +197,7 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
-  void negative_comparingWithExistingData_MismatchFundDetails(VertxTestContext vertxTestContext) {
+  void negative_compareWithExistingData_MismatchFundDetails(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData()
       .withBudgetInitialAllocation(null)
       .withBudgetCurrentAllocation(null)
@@ -213,7 +213,7 @@ public class FinanceDataValidatorTest {
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
-    financeDataValidator.comparingWithExistingData(financeDataCollection, requestContextMock)
+    financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
