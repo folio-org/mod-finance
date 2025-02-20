@@ -19,6 +19,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
+import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.Parameter;
@@ -150,19 +151,33 @@ public class FinanceDataValidator {
             String.format("financeData[%s].fundId", index), financeData.getFundId()));
         }
 
-        var newTags = financeData.getFundTags() != null ? financeData.getFundTags().getTagList() : null;
-        var existingTags = existingFund.getTags() != null ? existingFund.getTags().getTagList() : null;
-        var isFundChanged = !Objects.equals(financeData.getFundStatus().value(), existingFund.getFundStatus().value())
-          || !Objects.equals(newTags, existingTags)
-          || !Objects.equals(financeData.getFundDescription(), existingFund.getDescription());
-        financeData.setIsFundChanged(isFundChanged);
-
+        financeData.setIsFundChanged(isFundChanged(financeData, existingFund));
         return succeededFuture();
       })
       .recover(throwable -> {
         errors.add(createError("Fund ID not found", String.format("financeData[%s].fundId", index), financeData.getFundId()));
         return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
       }).mapEmpty();
+  }
+
+  /**
+   * Checks if the fund has changed by comparing the provided finance data with the existing fund.
+   * <p>
+   * The method performs the following checks with existing fund:
+   * 1. Status, check if the status has changed.
+   * 2. Tags, check if the tags have changed. Edge case - Not changed if the both new and existing tags are null or empty.
+   * 3. Description, check if the description has updated. Edge case - Not changed if the description is null.
+   * </p>
+   * @param financeData   the finance data to be validated
+   * @param existingFund the existing fund to compare against
+   * @return true if the fund has changed, false otherwise
+   */
+  private static boolean isFundChanged(FyFinanceData financeData, Fund existingFund) {
+    var newTags = financeData.getFundTags() != null ? financeData.getFundTags().getTagList() : new ArrayList<>();
+    var existingTags = existingFund.getTags() != null ? existingFund.getTags().getTagList() : new ArrayList<>();
+    return !Objects.equals(financeData.getFundStatus().value(), existingFund.getFundStatus().value())
+      || (!newTags.isEmpty() || !existingTags.isEmpty()) && !Objects.equals(newTags, existingTags)
+      || (financeData.getFundDescription() != null && !Objects.equals(financeData.getFundDescription(), existingFund.getDescription()));
   }
 
   private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
@@ -184,19 +199,35 @@ public class FinanceDataValidator {
             String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
         }
 
-        var isBudgetChanged = !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
-          || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
-          || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
-          || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0
-          || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
-
-        financeData.setIsBudgetChanged(isBudgetChanged);
+        financeData.setIsBudgetChanged(isBudgetChanged(financeData, existingBudget));
         return succeededFuture();
       })
       .recover(t -> {
         errors.add(createError("Budget ID not found", String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
         return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
       }).mapEmpty();
+  }
+
+  /**
+   * Checks if the budget has changed by comparing the provided finance data with the existing budget.
+   * <p>
+   * The method performs the following checks:
+   * 1. Compares the budget status of the finance data with the existing budget.
+   * 2. Compares the allowable encumbrance of the finance data with the existing budget.
+   * 3. Compares the allowable expenditure of the finance data with the existing budget.
+   * 4. Check if allocationChange have updated. Not changed if the allocation change is zero or null
+   * 5. Checks if the budget change flag in the finance data is set to true previously.
+   * </p>
+   * @param financeData   the finance data to be validated
+   * @param existingBudget the existing budget to compare against
+   * @return true if the budget has changed, false otherwise
+   */
+  private static boolean isBudgetChanged(FyFinanceData financeData, SharedBudget existingBudget) {
+    return !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
+      || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
+      || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
+      || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0
+      || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
   }
 
   private Error createError(String message, String key, String value) {

@@ -27,6 +27,7 @@ import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.Tags;
 import org.folio.services.fund.FundService;
 import org.folio.services.budget.BudgetService;
 import org.junit.jupiter.api.AfterEach;
@@ -220,18 +221,27 @@ public class FinanceDataValidatorTest {
   private static Stream<Arguments> provideFinanceDataCollections() {
     FinanceDataValidatorTest testInstance = new FinanceDataValidatorTest();
 
-    var financeData = testInstance.createValidFyFinanceData()
-      .withFundDescription("New fund description");
-    var financeDataWithNullBudgetId = testInstance.createValidFyFinanceData()
+    var financeDataWithNewFundChanges = testInstance.createValidFyFinanceData()
       .withFundDescription("New fund description")
+      .withFundStatus(FyFinanceData.FundStatus.INACTIVE);
+    var financeDataWithNullBudgetId = testInstance.createValidFyFinanceData()
+      .withFundTags(new FundTags().withTagList(List.of("tag1")))
       .withBudgetId(null).withBudgetAllocationChange(null).withBudgetStatus(null);
     var financeDataWithBudgedCreation = testInstance.createValidFyFinanceData()
       .withBudgetId(null).withBudgetStatus("Active");
     var financeDataWithBudgetAllocationChange = testInstance.createValidFyFinanceData().withBudgetAllocationChange(50.0);
     var financeDataWithDifferentBudgetStatus = testInstance.createValidFyFinanceData().withBudgetStatus("Frozen");
+    var financeDataWithoutFundDescription = testInstance.createValidFyFinanceData()
+      .withFundDescription(null).withBudgetAllocationChange(null);
+    var financeDataWithNewFundTags = testInstance.createValidFyFinanceData()
+      .withFundTags(new FundTags().withTagList(List.of("newTag")));
+    var financeDataWithNewBudgetAllowableEncumbrance = testInstance.createValidFyFinanceData()
+      .withBudgetAllowableEncumbrance(200.0);
+    var financeDataWithNewBudgetAllowableExpenditure = testInstance.createValidFyFinanceData()
+      .withBudgetAllowableExpenditure(200.0);
 
     var collection1 = new FyFinanceDataCollection()
-      .withFyFinanceData(List.of(financeData))
+      .withFyFinanceData(List.of(financeDataWithNewFundChanges))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
     var collection2 = new FyFinanceDataCollection()
@@ -250,12 +260,32 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(List.of(financeDataWithDifferentBudgetStatus))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
+    var collection6 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithoutFundDescription))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection7 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithNewFundTags))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection8 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithNewBudgetAllowableEncumbrance))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    var collection9 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithNewBudgetAllowableExpenditure))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
     return Stream.of(
       arguments(collection1, true, true),
       arguments(collection2, true, false),
       arguments(collection3, false, true),
       arguments(collection4, false, true),
-      arguments(collection5, false, true)
+      arguments(collection5, false, true),
+      arguments(collection6, false, false),
+      arguments(collection7, true, true),
+      arguments(collection8, false, true),
+      arguments(collection9, false, true)
     );
   }
 
@@ -304,7 +334,8 @@ public class FinanceDataValidatorTest {
       .withFundStatus(Fund.FundStatus.ACTIVE)
       .withCode("FUND-001")
       .withName("Test Fund")
-      .withDescription("Test Fund Description");
+      .withDescription("Test Fund Description")
+      .withTags(new Tags());
   }
 
   private SharedBudget createValidBudget() {
