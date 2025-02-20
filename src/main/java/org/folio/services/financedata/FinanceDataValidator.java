@@ -165,8 +165,8 @@ public class FinanceDataValidator {
    * <p>
    * The method performs the following checks with existing fund:
    * 1. Status, check if the status has changed.
-   * 2. Tags, check if the tags have changed. Not changed if the both new and existing tags are null or empty.
-   * 3. Description, check if the description has updated. Not changed if the description is null.
+   * 2. Tags, check if the tags have changed. Edge case - Not changed if the both new and existing tags are null or empty.
+   * 3. Description, check if the description has updated. Edge case - Not changed if the description is null.
    * </p>
    * @param financeData   the finance data to be validated
    * @param existingFund the existing fund to compare against
