@@ -30,6 +30,7 @@ import org.folio.services.fund.FundService;
 
 @Log4j2
 public class FinanceDataValidator {
+  private static final String ERROR_KEY_FORMAT = "financeData[%s].%s";
 
   private final FundService fundService;
   private final BudgetService budgetService;
@@ -104,19 +105,19 @@ public class FinanceDataValidator {
 
   private void validateRequiredField(List<Error> combinedErrors, String fieldName, int index, Object fieldValue) {
     if (fieldValue == null) {
-      combinedErrors.add(createError(fieldName + " is required", String.format("financeData[%s].%s", index, fieldName), "null"));
+      combinedErrors.add(createError(fieldName + " is required", String.format(ERROR_KEY_FORMAT, index, fieldName), "null"));
     }
   }
 
   private void validateUuid(List<Error> combinedErrors, String fieldName, int index, String fieldValue) {
     if (!fieldValue.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
-      combinedErrors.add(createError("Invalid UUID format", String.format("financeData[%s].%s", index, fieldName), fieldValue));
+      combinedErrors.add(createError("Invalid UUID format", String.format(ERROR_KEY_FORMAT, index, fieldName), fieldValue));
     }
   }
 
   private void validateNonNullAndNonNegative(List<Error> combinedErrors, String fieldName, int index, Double fieldValue) {
     if (fieldValue != null && fieldValue < 0) {
-      combinedErrors.add(createError(fieldName + " cannot be negative", String.format("financeData[%s].%s", index, fieldName), fieldValue.toString()));
+      combinedErrors.add(createError(fieldName + " cannot be negative", String.format(ERROR_KEY_FORMAT, index, fieldName), fieldValue.toString()));
     }
   }
 
