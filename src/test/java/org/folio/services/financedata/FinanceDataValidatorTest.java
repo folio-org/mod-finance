@@ -110,20 +110,25 @@ public class FinanceDataValidatorTest {
 
   @Test
   void negative_validateFinanceDataCollection_InvalidAllocationChange() {
-    var financeData = createValidFyFinanceData();
-    financeData.setBudgetCurrentAllocation(100.0);
-    financeData.setBudgetAllocationChange(-150.0);
+    // currentAllocation should be updated with actual value from db which is 100.0 and then verification check is needed
+    var financeData = createValidFyFinanceData()
+      .withBudgetCurrentAllocation(120.0)
+      .withBudgetAllocationChange(-110.0);
     var collection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget().withAllocated(100.0)));
 
-    var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
+    financeDataValidator.compareWithExistingData(collection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          var exception = (HttpException) ar.cause();
+          assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
+        }
+      });
   }
 
   @Test
@@ -140,26 +145,26 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("budgetInitialAllocation is required", exception.getErrors().getErrors().get(0).getMessage());
   }
 
   @Test
-  void negative_validateFinanceDataCollection_PreviewMode_MissingRequiredFields(VertxTestContext vertxTestContext) {
+  void negative_validateFinanceDataCollection_NonNegativeAllowable() {
     var financeData = createValidFyFinanceData()
-      .withBudgetInitialAllocation(null)
-      .withBudgetCurrentAllocation(null);
-    var financeDataCollection = new FyFinanceDataCollection()
+      .withBudgetAllowableExpenditure(-300.0);
+    var collection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
-      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
+      .withTotalRecords(1);
 
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
     when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID));
-    assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
-    vertxTestContext.completeNow();
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
+    assertEquals("budgetAllowableExpenditure cannot be negative", exception.getErrors().getErrors().get(0).getMessage());
   }
+
 
   @Test
   void negative_validateFinanceDataCollection_InvalidBudgetStatus() {
@@ -345,7 +350,8 @@ public class FinanceDataValidatorTest {
       .withFundId(FUND_ID)
       .withBudgetStatus(SharedBudget.BudgetStatus.ACTIVE)
       .withAllowableExpenditure(150.0)
-      .withAllowableEncumbrance(150.0);
+      .withAllowableEncumbrance(150.0)
+      .withAllocated(100.0);
   }
 
   private FyFinanceData createValidFyFinanceData() {

@@ -1,6 +1,7 @@
 package org.folio.services.fund;
 
 import static org.folio.rest.util.ResourcePathResolver.FUND_UPDATE_LOGS;
+import static org.folio.rest.util.ResourcePathResolver.JOB_NUMBER;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
@@ -10,6 +11,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FundUpdateLogCollection;
+import org.folio.rest.jaxrs.model.SequenceNumber;
 
 public class FundUpdateLogService {
 
@@ -40,5 +42,9 @@ public class FundUpdateLogService {
 
   public Future<Void> deleteFundUpdateLog(String jobId, RequestContext requestContext) {
     return restClient.delete(resourceByIdPath(FUND_UPDATE_LOGS, jobId), requestContext);
+  }
+
+  public Future<SequenceNumber> getJobNumber(RequestContext requestContext) {
+    return restClient.get(resourcesPath(JOB_NUMBER), SequenceNumber.class, requestContext);
   }
 }

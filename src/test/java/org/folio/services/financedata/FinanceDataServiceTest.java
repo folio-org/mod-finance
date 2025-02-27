@@ -7,6 +7,7 @@ import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNE
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -17,13 +18,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import io.vertx.core.Context;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -36,6 +41,8 @@ import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
+import org.folio.rest.jaxrs.model.JobDetails;
+import org.folio.rest.jaxrs.model.SequenceNumber;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
@@ -46,6 +53,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -151,6 +161,7 @@ public class FinanceDataServiceTest {
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new SequenceNumber().withSequenceNumber("1")));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
@@ -180,6 +191,7 @@ public class FinanceDataServiceTest {
     when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new SequenceNumber().withSequenceNumber("1")));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
 
@@ -190,6 +202,55 @@ public class FinanceDataServiceTest {
         verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
         verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
           log.getStatus() == FundUpdateLog.Status.ERROR
+        ), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+  }
+
+  private static Stream<Arguments> provideTestParameters() {
+    return Stream.of(
+      arguments("Test Worksheet", "Test Worksheet"),
+      arguments(null, "FY2024-LEDGER-001") // set worksheetName to null to test FY code + Ledger code + date format
+    );
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideTestParameters")
+  void positive_testPutFinanceData_processLogs(String worksheetName, String expectedJobName, VertxTestContext vertxTestContext)
+    throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    var fundUpdateLogId = UUID.randomUUID().toString();
+    var financeData = createValidFyFinanceData();
+    var financeDataCollection = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData))
+      .withWorksheetName(worksheetName);
+    var jobNumber = new SequenceNumber().withSequenceNumber("1");
+    var expectedLog = new FundUpdateLog()
+      .withId(fundUpdateLogId)
+      .withJobName(expectedJobName)
+      .withStatus(FundUpdateLog.Status.IN_PROGRESS)
+      .withRecordsCount(financeDataCollection.getTotalRecords())
+      .withJobDetails(new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData()))
+      .withJobNumber(1);
+
+    doReturn(succeededFuture(jobNumber)).when(fundUpdateLogService).getJobNumber(any());
+    doReturn(succeededFuture(expectedLog)).when(fundUpdateLogService).createFundUpdateLog(any(), any());
+
+    var processLogsMethod = FinanceDataService.class.getDeclaredMethod("processLogs", String.class, FyFinanceDataCollection.class, RequestContext.class);
+    processLogsMethod.setAccessible(true);
+    var future = (Future<FundUpdateLog>) processLogsMethod.invoke(financeDataService, fundUpdateLogId, financeDataCollection, requestContextMock);
+
+    vertxTestContext.assertComplete(future)
+      .onComplete(result -> {
+        assertTrue(result.succeeded());
+        assertEquals(expectedLog, result.result());
+        verify(fundUpdateLogService).getJobNumber(any());
+        verify(fundUpdateLogService).createFundUpdateLog(argThat(log ->
+          log.getId().equals(fundUpdateLogId) &&
+            log.getJobName().contains(expectedLog.getJobName()) &&
+            log.getStatus() == FundUpdateLog.Status.IN_PROGRESS &&
+            Objects.equals(log.getRecordsCount(), financeDataCollection.getTotalRecords()) &&
+            log.getJobDetails().getAdditionalProperties().get("fyFinanceData").equals(financeDataCollection.getFyFinanceData()) &&
+            log.getJobNumber() == 1
         ), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
@@ -304,6 +365,8 @@ public class FinanceDataServiceTest {
       .withTransactionDescription("Test Transaction")
       .withTransactionTag(new FundTags().withTagList(List.of("tag1", "tag2")))
       .withFiscalYearId(FISCAL_YEAR_ID)
-      .withLedgerId(LEDGER_ID);
+      .withFiscalYearCode("FY2024")
+      .withLedgerId(LEDGER_ID)
+      .withLedgerCode("LEDGER-001");
   }
 }
