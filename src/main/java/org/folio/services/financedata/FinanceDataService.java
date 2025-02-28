@@ -10,6 +10,8 @@ import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 import io.vertx.core.Future;
@@ -22,6 +24,7 @@ import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
+import org.folio.rest.jaxrs.model.JobNumber;
 import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
 
@@ -121,14 +124,27 @@ public class FinanceDataService {
 
   private Future<FundUpdateLog> processLogs(String fundUpdateLogId, FyFinanceDataCollection financeDataCollection,
                                             RequestContext requestContext) {
+    return fundUpdateLogService.getJobNumber(requestContext)
+      .compose(jobNumber -> {
+        var fundUpdateLog = createFundUpdateLog(fundUpdateLogId, jobNumber, financeDataCollection);
+        return fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
+      });
+  }
+
+  private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, FyFinanceDataCollection financeDataCollection) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
-    var fundUpdateLog = new FundUpdateLog().withId(fundUpdateLogId)
-      .withJobName("Update finance data") // TODO: Update job name generation
+    var financeData = financeDataCollection.getFyFinanceData().get(0);
+    var jobName = StringUtils.isNotEmpty(financeDataCollection.getWorksheetName())
+      ? financeDataCollection.getWorksheetName()
+      : String.format("%s-%s-%s", financeData.getFiscalYearCode(), financeData.getLedgerCode(),
+      new SimpleDateFormat("yyyyMMdd").format(new Date()));
+
+    return new FundUpdateLog().withId(fundUpdateLogId)
+      .withJobName(jobName)
       .withStatus(IN_PROGRESS)
       .withRecordsCount(financeDataCollection.getTotalRecords())
       .withJobDetails(jobDetails)
-      .withJobNumber(1);
-    return fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
+      .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()));
   }
 
   private void updateLogs(String fundUpdateLog, FundUpdateLog.Status status,

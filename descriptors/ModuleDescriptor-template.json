@@ -815,6 +815,7 @@
             "finance-storage.fund-update-logs.item.get",
             "finance-storage.fund-update-logs.item.post",
             "finance-storage.fund-update-logs.item.put",
+            "finance-storage.job-number.get",
             "finance-storage.funds.item.get"
           ]
         }
@@ -900,6 +901,10 @@
     },
     {
       "id": "finance-storage.fund-update-logs",
+      "version":"1.0"
+    },
+    {
+      "id": "finance-storage.job-number.get",
       "version":"1.0"
     },
     {
