@@ -35,7 +35,6 @@ import org.folio.services.protection.ProtectionService;
 import org.folio.services.transactions.TransactionApiService;
 import org.folio.services.transactions.TransactionService;
 import org.folio.services.transactions.TransactionTotalService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
 public class ServicesConfiguration {
