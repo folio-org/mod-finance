@@ -4,12 +4,15 @@ import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
+import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import io.vertx.core.Future;
 import lombok.extern.log4j.Log4j2;
@@ -29,6 +32,7 @@ import org.folio.services.fund.FundService;
 
 @Log4j2
 public class FinanceDataValidator {
+  private static final String ERROR_KEY_FORMAT = "financeData[%s].%s";
 
   private final FundService fundService;
   private final BudgetService budgetService;
@@ -40,21 +44,8 @@ public class FinanceDataValidator {
 
   public void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection, String fiscalYearId) {
     validateForDuplication(financeDataCollection);
-    for (int i = 0; i < financeDataCollection.getFyFinanceData().size(); i++) {
-      var financeData = financeDataCollection.getFyFinanceData().get(i);
-      validateFinanceDataFields(financeData, i, fiscalYearId);
-
-      if (financeData.getBudgetAllocationChange() != null) {
-        double allocationChange = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0);
-        double currentAllocation = requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0);
-
-        if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
-          var error = createError("Allocation change cannot be greater than current allocation",
-            String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange()));
-          throw new HttpException(422, new Errors().withErrors(List.of(error)));
-        }
-      }
-    }
+    IntStream.range(0, financeDataCollection.getFyFinanceData().size())
+      .forEach(i -> validateFinanceDataFields(financeDataCollection.getFyFinanceData().get(i), i, fiscalYearId));
   }
 
   private void validateForDuplication(FyFinanceDataCollection financeDataCollection) {
@@ -81,16 +72,21 @@ public class FinanceDataValidator {
       );
     }
 
-    validateBudgetStatus(financeData.getBudgetStatus(), i);
-    validateRequiredField(combinedErrors, String.format("financeData[%s].fundCode", i), financeData.getFundCode(), "Fund code is required");
-    validateRequiredField(combinedErrors, String.format("financeData[%s].fundName", i), financeData.getFundName(), "Fund name is required");
-    validateRequiredField(combinedErrors, String.format("financeData[%s].fundStatus", i), financeData.getFundStatus(), "Fund status is required");
-    if (financeData.getBudgetId() != null) {
-      validateRequiredField(combinedErrors, String.format("financeData[%s].budgetName", i), financeData.getBudgetName(), "Budget name is required");
-      validateRequiredField(combinedErrors, String.format("financeData[%s].budgetStatus", i), financeData.getBudgetStatus(), "Budget status is required");
-      validateRequiredField(combinedErrors, String.format("financeData[%s].budgetInitialAllocation", i), financeData.getBudgetInitialAllocation(), "Budget initial allocation is required");
-      validateRequiredField(combinedErrors, String.format("financeData[%s].budgetAllowableExpenditure", i), financeData.getBudgetAllowableExpenditure(), "Budget allowable expenditure is required");
-      validateRequiredField(combinedErrors, String.format("financeData[%s].budgetAllowableEncumbrance", i), financeData.getBudgetAllowableEncumbrance(), "Budget allowable encumbrance is required");
+    validateFundStatus(combinedErrors, financeData.getFundStatus(), i);
+    validateBudgetStatus(combinedErrors, financeData.getBudgetStatus(), i);
+    validateRequiredField(combinedErrors, "fundCode", i, financeData.getFundCode());
+    validateRequiredField(combinedErrors, "fundName", i, financeData.getFundName());
+    validateRequiredField(combinedErrors, "fundStatus", i, financeData.getFundStatus());
+
+    if (StringUtils.isNotEmpty(financeData.getBudgetId())) {
+      validateUuid(combinedErrors, "budgetId", i, financeData.getBudgetId());
+      validateRequiredField(combinedErrors, "budgetName", i, financeData.getBudgetName());
+      validateRequiredField(combinedErrors, "budgetStatus", i, financeData.getBudgetStatus());
+      validateRequiredField(combinedErrors, "budgetInitialAllocation", i, financeData.getBudgetInitialAllocation());
+      validateNonNullAndNonNegative(combinedErrors, "budgetAllowableExpenditure", i, financeData.getBudgetAllowableExpenditure());
+      validateNonNullAndNonNegative(combinedErrors, "budgetAllowableEncumbrance", i, financeData.getBudgetAllowableEncumbrance());
+    } else {
+      financeData.setBudgetId(null); // to avoid being process as empty string
     }
 
     if (CollectionUtils.isNotEmpty(combinedErrors)) {
@@ -99,20 +95,45 @@ public class FinanceDataValidator {
     }
   }
 
-  private void validateBudgetStatus(String budgetStatus, int i) {
+  private void validateFundStatus(List<Error> combinedErrors, String fundStatus, int i) {
+    if (StringUtils.isNotEmpty(fundStatus)) {
+      try {
+        Fund.FundStatus.fromValue(fundStatus);
+      } catch (IllegalArgumentException e) {
+        var param = new Parameter().withKey(String.format("financeData[%s].fundStatus", i)).withValue(fundStatus);
+        combinedErrors.add(FUND_STATUS_INCORRECT.toError().withParameters(List.of(param)));
+      }
+    }
+  }
+
+  private void validateBudgetStatus(List<Error> combinedErrors, String budgetStatus, int i) {
     if (StringUtils.isNotEmpty(budgetStatus)) {
       try {
         SharedBudget.BudgetStatus.fromValue(budgetStatus);
       } catch (IllegalArgumentException e) {
         var param = new Parameter().withKey(String.format("financeData[%s].budgetStatus", i)).withValue(budgetStatus);
-        throw new HttpException(422, BUDGET_STATUS_INCORRECT.toError().withParameters(List.of(param)));
+        combinedErrors.add(BUDGET_STATUS_INCORRECT.toError().withParameters(List.of(param)));
       }
     }
   }
 
-  private void validateRequiredField(List<Error> combinedErrors, String fieldName, Object fieldValue, String errorMessage) {
+  private void validateRequiredField(List<Error> combinedErrors, String fieldName, int index, Object fieldValue) {
     if (fieldValue == null) {
-      combinedErrors.add(createError(errorMessage, fieldName, "null"));
+      combinedErrors.add(createError(fieldName + " is required", String.format(ERROR_KEY_FORMAT, index, fieldName), "null"));
+    }
+  }
+
+  private void validateUuid(List<Error> combinedErrors, String fieldName, int index, String fieldValue) {
+    try {
+      UUID.fromString(fieldValue);
+    } catch (Exception ex) {
+      combinedErrors.add(createError("Invalid UUID format", String.format(ERROR_KEY_FORMAT, index, fieldName), fieldValue));
+    }
+  }
+
+  private void validateNonNullAndNonNegative(List<Error> combinedErrors, String fieldName, int index, Double fieldValue) {
+    if (fieldValue != null && fieldValue < 0) {
+      combinedErrors.add(createError(fieldName + " cannot be negative", String.format(ERROR_KEY_FORMAT, index, fieldName), fieldValue.toString()));
     }
   }
 
@@ -128,6 +149,8 @@ public class FinanceDataValidator {
 
     return collectResultsOnSuccess(validationFutures)
       .map(compositeFuture -> {
+        IntStream.range(0, financeDataCollection.getFyFinanceData().size())
+          .forEach(i -> verifyAllocationChange(errors, financeDataCollection.getFyFinanceData().get(i), i));
         if (!errors.isEmpty()) {
           throw new HttpException(422, new Errors().withErrors(errors).withTotalRecords(errors.size()));
         }
@@ -175,13 +198,13 @@ public class FinanceDataValidator {
   private static boolean isFundChanged(FyFinanceData financeData, Fund existingFund) {
     var newTags = financeData.getFundTags() != null ? financeData.getFundTags().getTagList() : new ArrayList<>();
     var existingTags = existingFund.getTags() != null ? existingFund.getTags().getTagList() : new ArrayList<>();
-    return !Objects.equals(financeData.getFundStatus().value(), existingFund.getFundStatus().value())
+    return !Objects.equals(financeData.getFundStatus(), existingFund.getFundStatus().value())
       || (!newTags.isEmpty() || !existingTags.isEmpty()) && !Objects.equals(newTags, existingTags)
-      || (financeData.getFundDescription() != null && !Objects.equals(financeData.getFundDescription(), existingFund.getDescription()));
+      || (StringUtils.isNotEmpty(financeData.getFundDescription()) && !Objects.equals(financeData.getFundDescription(), existingFund.getDescription()));
   }
 
   private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
-    if (financeData.getBudgetId() == null) {
+    if (StringUtils.isEmpty(financeData.getBudgetId())) {
       boolean isBudgetChanged = financeData.getBudgetStatus() != null
         || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0;
       financeData.setIsBudgetChanged(isBudgetChanged);
@@ -199,7 +222,9 @@ public class FinanceDataValidator {
             String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
         }
 
-        financeData.setIsBudgetChanged(isBudgetChanged(financeData, existingBudget));
+        financeData.withIsBudgetChanged(isBudgetChanged(financeData, existingBudget))
+          .withBudgetInitialAllocation(existingBudget.getInitialAllocation())
+          .withBudgetCurrentAllocation(existingBudget.getAllocated());
         return succeededFuture();
       })
       .recover(t -> {
@@ -228,6 +253,18 @@ public class FinanceDataValidator {
       || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
       || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0
       || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
+  }
+
+  private void verifyAllocationChange(List<Error> errors, FyFinanceData financeData, int i) {
+    if (financeData.getBudgetAllocationChange() != null) {
+      double allocationChange = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0);
+      double currentAllocation = requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0);
+
+      if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
+        errors.add(createError("Allocation change cannot be greater than current allocation",
+          String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange())));
+      }
+    }
   }
 
   private Error createError(String message, String key, String value) {

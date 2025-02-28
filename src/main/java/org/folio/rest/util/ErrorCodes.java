@@ -39,7 +39,8 @@ public enum ErrorCodes {
   UPDATE_PAYMENT_TO_CANCEL_INVOICE("updatePaymentToCancelInvoice", "A payment can only be updated to cancel an invoice"),
   UPDATE_CREDIT_TO_CANCEL_INVOICE("updateCreditToCancelInvoice", "A credit can only be updated to cancel an invoice"),
   CONFLICT("conflict", "Conflict when updating a record"),
-  BUDGET_STATUS_INCORRECT("budgetStatusIncorrect", "Budget status is incorrect");
+  BUDGET_STATUS_INCORRECT("budgetStatusIncorrect", "Budget status is incorrect"),
+  FUND_STATUS_INCORRECT("fundStatusIncorrect", "Fund status is incorrect");
 
   private final String code;
   private final String description;

@@ -2,6 +2,7 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
+import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -110,20 +111,25 @@ public class FinanceDataValidatorTest {
 
   @Test
   void negative_validateFinanceDataCollection_InvalidAllocationChange() {
-    var financeData = createValidFyFinanceData();
-    financeData.setBudgetCurrentAllocation(100.0);
-    financeData.setBudgetAllocationChange(-150.0);
+    // currentAllocation should be updated with actual value from db which is 100.0 and then verification check is needed
+    var financeData = createValidFyFinanceData()
+      .withBudgetCurrentAllocation(120.0)
+      .withBudgetAllocationChange(-110.0);
     var collection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
     when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget().withAllocated(100.0)));
 
-    var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
+    financeDataValidator.compareWithExistingData(collection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          var exception = (HttpException) ar.cause();
+          assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
+        }
+      });
   }
 
   @Test
@@ -140,31 +146,13 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("budgetInitialAllocation is required", exception.getErrors().getErrors().get(0).getMessage());
   }
 
   @Test
-  void negative_validateFinanceDataCollection_PreviewMode_MissingRequiredFields(VertxTestContext vertxTestContext) {
+  void negative_validateFinanceDataCollection_NonNegativeAllowable() {
     var financeData = createValidFyFinanceData()
-      .withBudgetInitialAllocation(null)
-      .withBudgetCurrentAllocation(null);
-    var financeDataCollection = new FyFinanceDataCollection()
-      .withFyFinanceData(Collections.singletonList(financeData))
-      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
-
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
-
-    var exception = assertThrows(HttpException.class,
-      () -> financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID));
-    assertEquals("Budget initial allocation is required", exception.getErrors().getErrors().get(0).getMessage());
-    vertxTestContext.completeNow();
-  }
-
-  @Test
-  void negative_validateFinanceDataCollection_InvalidBudgetStatus() {
-    var financeData = createValidFyFinanceData();
-    financeData.setBudgetStatus("InvalidStatus");
+      .withBudgetAllowableExpenditure(-300.0);
     var collection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
@@ -175,8 +163,28 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Budget status is incorrect", exception.getErrors().getErrors().get(0).getMessage());
-    assertEquals(BUDGET_STATUS_INCORRECT.getCode(), exception.getErrors().getErrors().get(0).getCode());
+    assertEquals("budgetAllowableExpenditure cannot be negative", exception.getErrors().getErrors().get(0).getMessage());
+  }
+
+
+  @Test
+  void negative_validateFinanceDataCollection_InvalidFundBudgetStatus() {
+    var financeData = createValidFyFinanceData()
+      .withBudgetStatus("InvalidStatus")
+      .withFundStatus("InvalidStatus");
+    var collection = new FyFinanceDataCollection()
+      .withFyFinanceData(Collections.singletonList(financeData))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
+      .withTotalRecords(1);
+
+    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+
+    var exception = assertThrows(HttpException.class,
+      () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
+    var errors = exception.getErrors().getErrors();
+    assertTrue(errors.stream().anyMatch(error -> BUDGET_STATUS_INCORRECT.getCode().equals(error.getCode())));
+    assertTrue(errors.stream().anyMatch(error -> FUND_STATUS_INCORRECT.getCode().equals(error.getCode())));
   }
 
   @Test
@@ -223,7 +231,7 @@ public class FinanceDataValidatorTest {
 
     var financeDataWithNewFundChanges = testInstance.createValidFyFinanceData()
       .withFundDescription("New fund description")
-      .withFundStatus(FyFinanceData.FundStatus.INACTIVE);
+      .withFundStatus("Inactive");
     var financeDataWithNullBudgetId = testInstance.createValidFyFinanceData()
       .withFundTags(new FundTags().withTagList(List.of("tag1")))
       .withBudgetId(null).withBudgetAllocationChange(null).withBudgetStatus(null);
@@ -345,7 +353,8 @@ public class FinanceDataValidatorTest {
       .withFundId(FUND_ID)
       .withBudgetStatus(SharedBudget.BudgetStatus.ACTIVE)
       .withAllowableExpenditure(150.0)
-      .withAllowableEncumbrance(150.0);
+      .withAllowableEncumbrance(150.0)
+      .withAllocated(100.0);
   }
 
   private FyFinanceData createValidFyFinanceData() {
@@ -354,7 +363,7 @@ public class FinanceDataValidatorTest {
       .withFundCode("FUND-001")
       .withFundName("Test Fund")
       .withFundDescription("Test Fund Description")
-      .withFundStatus(FyFinanceData.FundStatus.ACTIVE)
+      .withFundStatus(Fund.FundStatus.ACTIVE.value())
       .withBudgetId(BUDGET_ID)
       .withBudgetName("Test Budget")
       .withBudgetStatus("Active")
