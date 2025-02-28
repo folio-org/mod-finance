@@ -24,7 +24,7 @@ import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
-import org.folio.rest.jaxrs.model.SequenceNumber;
+import org.folio.rest.jaxrs.model.JobNumber;
 import org.folio.services.fund.FundUpdateLogService;
 import org.folio.services.protection.AcqUnitsService;
 
@@ -131,7 +131,7 @@ public class FinanceDataService {
       });
   }
 
-  private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, SequenceNumber jobNumber, FyFinanceDataCollection financeDataCollection) {
+  private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, FyFinanceDataCollection financeDataCollection) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
     var financeData = financeDataCollection.getFyFinanceData().get(0);
     var jobName = StringUtils.isNotEmpty(financeDataCollection.getWorksheetName())

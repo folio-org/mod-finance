@@ -2,6 +2,7 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
+import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -167,9 +168,10 @@ public class FinanceDataValidatorTest {
 
 
   @Test
-  void negative_validateFinanceDataCollection_InvalidBudgetStatus() {
-    var financeData = createValidFyFinanceData();
-    financeData.setBudgetStatus("InvalidStatus");
+  void negative_validateFinanceDataCollection_InvalidFundBudgetStatus() {
+    var financeData = createValidFyFinanceData()
+      .withBudgetStatus("InvalidStatus")
+      .withFundStatus("InvalidStatus");
     var collection = new FyFinanceDataCollection()
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
@@ -180,8 +182,9 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Budget status is incorrect", exception.getErrors().getErrors().get(0).getMessage());
-    assertEquals(BUDGET_STATUS_INCORRECT.getCode(), exception.getErrors().getErrors().get(0).getCode());
+    var errors = exception.getErrors().getErrors();
+    assertTrue(errors.stream().anyMatch(error -> BUDGET_STATUS_INCORRECT.getCode().equals(error.getCode())));
+    assertTrue(errors.stream().anyMatch(error -> FUND_STATUS_INCORRECT.getCode().equals(error.getCode())));
   }
 
   @Test
@@ -228,7 +231,7 @@ public class FinanceDataValidatorTest {
 
     var financeDataWithNewFundChanges = testInstance.createValidFyFinanceData()
       .withFundDescription("New fund description")
-      .withFundStatus(FyFinanceData.FundStatus.INACTIVE);
+      .withFundStatus("Inactive");
     var financeDataWithNullBudgetId = testInstance.createValidFyFinanceData()
       .withFundTags(new FundTags().withTagList(List.of("tag1")))
       .withBudgetId(null).withBudgetAllocationChange(null).withBudgetStatus(null);
@@ -360,7 +363,7 @@ public class FinanceDataValidatorTest {
       .withFundCode("FUND-001")
       .withFundName("Test Fund")
       .withFundDescription("Test Fund Description")
-      .withFundStatus(FyFinanceData.FundStatus.ACTIVE)
+      .withFundStatus(Fund.FundStatus.ACTIVE.value())
       .withBudgetId(BUDGET_ID)
       .withBudgetName("Test Budget")
       .withBudgetStatus("Active")

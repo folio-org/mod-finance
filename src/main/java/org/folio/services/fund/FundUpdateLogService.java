@@ -11,7 +11,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FundUpdateLogCollection;
-import org.folio.rest.jaxrs.model.SequenceNumber;
+import org.folio.rest.jaxrs.model.JobNumber;
 
 public class FundUpdateLogService {
 
@@ -44,9 +44,9 @@ public class FundUpdateLogService {
     return restClient.delete(resourceByIdPath(FUND_UPDATE_LOGS, jobId), requestContext);
   }
 
-  public Future<SequenceNumber> getJobNumber(RequestContext requestContext) {
+  public Future<JobNumber> getJobNumber(RequestContext requestContext) {
     var requestEntry = new RequestEntry(resourcesPath(JOB_NUMBER))
-      .withQueryParameter("type", "Logs");
-    return restClient.get(requestEntry.buildEndpoint(), SequenceNumber.class, requestContext);
+      .withQueryParameter("type", JobNumber.Type.FUND_UPDATE_LOGS.value());
+    return restClient.get(requestEntry.buildEndpoint(), JobNumber.class, requestContext);
   }
 }

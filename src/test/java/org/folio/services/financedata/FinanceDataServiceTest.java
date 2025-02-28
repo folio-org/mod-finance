@@ -42,7 +42,7 @@ import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
-import org.folio.rest.jaxrs.model.SequenceNumber;
+import org.folio.rest.jaxrs.model.JobNumber;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
@@ -161,7 +161,7 @@ public class FinanceDataServiceTest {
     when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
-    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new SequenceNumber().withSequenceNumber("1")));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
@@ -191,7 +191,7 @@ public class FinanceDataServiceTest {
     when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
-    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new SequenceNumber().withSequenceNumber("1")));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
     when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
 
@@ -223,7 +223,7 @@ public class FinanceDataServiceTest {
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(List.of(financeData))
       .withWorksheetName(worksheetName);
-    var jobNumber = new SequenceNumber().withSequenceNumber("1");
+    var jobNumber = new JobNumber().withSequenceNumber("1");
     var expectedLog = new FundUpdateLog()
       .withId(fundUpdateLogId)
       .withJobName(expectedJobName)
@@ -353,7 +353,7 @@ public class FinanceDataServiceTest {
       .withFundCode("FUND-001")
       .withFundName("Test Fund")
       .withFundDescription("Test Fund Description")
-      .withFundStatus(FyFinanceData.FundStatus.ACTIVE)
+      .withFundStatus(Fund.FundStatus.ACTIVE.value())
       .withBudgetId(BUDGET_ID)
       .withBudgetName("Test Budget")
       .withBudgetStatus("Active")

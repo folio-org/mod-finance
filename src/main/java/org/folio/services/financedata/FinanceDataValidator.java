@@ -4,6 +4,7 @@ import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
+import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 import java.util.ArrayList;
@@ -71,7 +72,8 @@ public class FinanceDataValidator {
       );
     }
 
-    validateBudgetStatus(financeData.getBudgetStatus(), i);
+    validateFundStatus(combinedErrors, financeData.getFundStatus(), i);
+    validateBudgetStatus(combinedErrors, financeData.getBudgetStatus(), i);
     validateRequiredField(combinedErrors, "fundCode", i, financeData.getFundCode());
     validateRequiredField(combinedErrors, "fundName", i, financeData.getFundName());
     validateRequiredField(combinedErrors, "fundStatus", i, financeData.getFundStatus());
@@ -93,13 +95,24 @@ public class FinanceDataValidator {
     }
   }
 
-  private void validateBudgetStatus(String budgetStatus, int i) {
+  private void validateFundStatus(List<Error> combinedErrors, String fundStatus, int i) {
+    if (StringUtils.isNotEmpty(fundStatus)) {
+      try {
+        Fund.FundStatus.fromValue(fundStatus);
+      } catch (IllegalArgumentException e) {
+        var param = new Parameter().withKey(String.format("financeData[%s].fundStatus", i)).withValue(fundStatus);
+        combinedErrors.add(FUND_STATUS_INCORRECT.toError().withParameters(List.of(param)));
+      }
+    }
+  }
+
+  private void validateBudgetStatus(List<Error> combinedErrors, String budgetStatus, int i) {
     if (StringUtils.isNotEmpty(budgetStatus)) {
       try {
         SharedBudget.BudgetStatus.fromValue(budgetStatus);
       } catch (IllegalArgumentException e) {
         var param = new Parameter().withKey(String.format("financeData[%s].budgetStatus", i)).withValue(budgetStatus);
-        throw new HttpException(422, BUDGET_STATUS_INCORRECT.toError().withParameters(List.of(param)));
+        combinedErrors.add(BUDGET_STATUS_INCORRECT.toError().withParameters(List.of(param)));
       }
     }
   }
@@ -185,7 +198,7 @@ public class FinanceDataValidator {
   private static boolean isFundChanged(FyFinanceData financeData, Fund existingFund) {
     var newTags = financeData.getFundTags() != null ? financeData.getFundTags().getTagList() : new ArrayList<>();
     var existingTags = existingFund.getTags() != null ? existingFund.getTags().getTagList() : new ArrayList<>();
-    return !Objects.equals(financeData.getFundStatus().value(), existingFund.getFundStatus().value())
+    return !Objects.equals(financeData.getFundStatus(), existingFund.getFundStatus().value())
       || (!newTags.isEmpty() || !existingTags.isEmpty()) && !Objects.equals(newTags, existingTags)
       || (StringUtils.isNotEmpty(financeData.getFundDescription()) && !Objects.equals(financeData.getFundDescription(), existingFund.getDescription()));
   }
