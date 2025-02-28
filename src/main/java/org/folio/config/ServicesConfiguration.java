@@ -46,7 +46,6 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  @Autowired
   ExpenseClassService expenseClassService(RestClient restClient) {
     return new ExpenseClassService(restClient);
   }
