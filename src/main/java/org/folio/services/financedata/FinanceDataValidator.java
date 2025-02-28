@@ -9,6 +9,7 @@ import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -110,7 +111,9 @@ public class FinanceDataValidator {
   }
 
   private void validateUuid(List<Error> combinedErrors, String fieldName, int index, String fieldValue) {
-    if (!fieldValue.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")) {
+    try {
+      UUID.fromString(fieldValue);
+    } catch (Exception ex) {
       combinedErrors.add(createError("Invalid UUID format", String.format(ERROR_KEY_FORMAT, index, fieldName), fieldValue));
     }
   }

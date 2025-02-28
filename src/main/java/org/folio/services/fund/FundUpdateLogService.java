@@ -45,6 +45,8 @@ public class FundUpdateLogService {
   }
 
   public Future<SequenceNumber> getJobNumber(RequestContext requestContext) {
-    return restClient.get(resourcesPath(JOB_NUMBER), SequenceNumber.class, requestContext);
+    var requestEntry = new RequestEntry(resourcesPath(JOB_NUMBER))
+      .withQueryParameter("type", "Logs");
+    return restClient.get(requestEntry.buildEndpoint(), SequenceNumber.class, requestContext);
   }
 }
