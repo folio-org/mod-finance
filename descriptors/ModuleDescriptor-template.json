@@ -904,7 +904,7 @@
       "version":"1.0"
     },
     {
-      "id": "finance-storage.job-number.get",
+      "id": "finance-storage.job-number",
       "version":"1.0"
     },
     {
@@ -1511,7 +1511,7 @@
       }
     },
     "env": [
-      { "name": "JAVA_OPTIONS",
+      { "name": "AVA_OPTIONS",
         "value": "-XX:MaxRAMPercentage=66.0"
       }
     ]
