@@ -1511,7 +1511,7 @@
       }
     },
     "env": [
-      { "name": "AVA_OPTIONS",
+      { "name": "JAVA_OPTIONS",
         "value": "-XX:MaxRAMPercentage=66.0"
       }
     ]
