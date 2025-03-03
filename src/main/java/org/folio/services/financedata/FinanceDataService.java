@@ -113,7 +113,7 @@ public class FinanceDataService {
   }
 
   private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
-    return fyFinanceDataCollection.getFyFinanceData().get(0).getFiscalYearId();
+    return fyFinanceDataCollection.getFyFinanceData().getFirst().getFiscalYearId();
   }
 
   private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
@@ -133,7 +133,7 @@ public class FinanceDataService {
 
   private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, FyFinanceDataCollection financeDataCollection) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
-    var financeData = financeDataCollection.getFyFinanceData().get(0);
+    var financeData = financeDataCollection.getFyFinanceData().getFirst();
     var jobName = StringUtils.isNotEmpty(financeDataCollection.getWorksheetName())
       ? financeDataCollection.getWorksheetName()
       : String.format("%s-%s-%s", financeData.getFiscalYearCode(), financeData.getLedgerCode(),

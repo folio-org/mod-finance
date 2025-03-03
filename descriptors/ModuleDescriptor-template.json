@@ -904,7 +904,7 @@
       "version":"1.0"
     },
     {
-      "id": "finance-storage.job-number.get",
+      "id": "finance-storage.job-number",
       "version":"1.0"
     },
     {
