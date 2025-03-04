@@ -98,6 +98,23 @@ public class RestClient {
       .mapEmpty();
   }
 
+  public <T> Future<T> put(String endpoint, T dataObject, Class<T> responseType ,RequestContext requestContext) {
+    log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
+
+    var recordData = JsonObject.mapFrom(dataObject);
+    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.PUT, () -> JsonObject.mapFrom(recordData).encodePrettily());
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
+
+    return getVertxWebClient(requestContext.context())
+      .putAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
+      .putHeaders(caseInsensitiveHeader)
+      .expect(SUCCESS_RESPONSE_PREDICATE)
+      .sendJson(recordData)
+      .map(HttpResponse::bodyAsJsonObject)
+      .map(jsonObject -> jsonObject.mapTo(responseType))
+      .onFailure(log::error);
+  }
+
   public Future<Void> delete(String endpointById, boolean skipError404, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.DELETE, endpointById);
 

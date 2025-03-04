@@ -3,13 +3,18 @@ package org.folio.services.financedata;
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
 import static java.util.Objects.requireNonNullElse;
+import org.folio.rest.jaxrs.model.FundTags;
+import org.folio.rest.jaxrs.model.Tags;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
 import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -184,23 +189,36 @@ public class FinanceDataValidator {
   }
 
   /**
-   * Checks if the fund has changed by comparing the provided finance data with the existing fund.
+   * Checks if the fund has changed by comparing finance data with existing fund.
    * <p>
-   * The method performs the following checks with existing fund:
-   * 1. Status, check if the status has changed.
-   * 2. Tags, check if the tags have changed. Edge case - Not changed if the both new and existing tags are null or empty.
-   * 3. Description, check if the description has updated. Edge case - Not changed if the description is null.
-   * </p>
-   * @param financeData   the finance data to be validated
-   * @param existingFund the existing fund to compare against
-   * @return true if the fund has changed, false otherwise
+   * Changes detected include:
+   * - Fund status (if not empty)
+   * - Tags (if either new or existing tags are not empty)
+   * - Description (if not empty)
+   *
+   * @param financeData The finance data to check
+   * @param existingFund The existing fund to compare against
+   * @return true if any fund property has changed
    */
   private static boolean isFundChanged(FyFinanceData financeData, Fund existingFund) {
-    var newTags = financeData.getFundTags() != null ? financeData.getFundTags().getTagList() : new ArrayList<>();
-    var existingTags = existingFund.getTags() != null ? existingFund.getTags().getTagList() : new ArrayList<>();
-    return !Objects.equals(financeData.getFundStatus(), existingFund.getFundStatus().value())
-      || (!newTags.isEmpty() || !existingTags.isEmpty()) && !Objects.equals(newTags, existingTags)
-      || (StringUtils.isNotEmpty(financeData.getFundDescription()) && !Objects.equals(financeData.getFundDescription(), existingFund.getDescription()));
+    var newTags = Optional.ofNullable(financeData.getFundTags())
+      .map(FundTags::getTagList)
+      .orElse(Collections.emptyList());
+
+    var existingTags = Optional.ofNullable(existingFund.getTags())
+      .map(Tags::getTagList)
+      .orElse(Collections.emptyList());
+
+    boolean statusChanged = StringUtils.isNotEmpty(financeData.getFundStatus()) &&
+      !Objects.equals(financeData.getFundStatus(), existingFund.getFundStatus().value());
+
+    boolean tagsChanged = (!newTags.isEmpty() || !existingTags.isEmpty()) &&
+      !Objects.equals(newTags, existingTags);
+
+    boolean descriptionChanged = StringUtils.isNotEmpty(financeData.getFundDescription()) &&
+      !Objects.equals(financeData.getFundDescription(), existingFund.getDescription());
+
+    return statusChanged || tagsChanged || descriptionChanged;
   }
 
   private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
@@ -234,34 +252,39 @@ public class FinanceDataValidator {
   }
 
   /**
-   * Checks if the budget has changed by comparing the provided finance data with the existing budget.
+   * Checks if the budget has changed by comparing finance data with existing budget.
    * <p>
-   * The method performs the following checks:
-   * 1. Compares the budget status of the finance data with the existing budget.
-   * 2. Compares the allowable encumbrance of the finance data with the existing budget.
-   * 3. Compares the allowable expenditure of the finance data with the existing budget.
-   * 4. Check if allocationChange have updated. Not changed if the allocation change is zero or null
-   * 5. Checks if the budget change flag in the finance data is set to true previously.
-   * </p>
-   * @param financeData   the finance data to be validated
-   * @param existingBudget the existing budget to compare against
-   * @return true if the budget has changed, false otherwise
+   * Changes detected include:
+   * - Budget status (if not empty)
+   * - Allowable encumbrance
+   * - Allowable expenditure
+   * - Allocation change (if not zero or null)
+   * - Budget change flag
+   *
+   * @param financeData The finance data to check
+   * @param existingBudget The existing budget to compare against
+   * @return true if any budget property has changed
    */
   private static boolean isBudgetChanged(FyFinanceData financeData, SharedBudget existingBudget) {
-    return !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()))
-      || !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance())
-      || !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure())
-      || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0
-      || financeData.getIsBudgetChanged() != null && financeData.getIsBudgetChanged();
+    boolean statusChanged = StringUtils.isNotEmpty(financeData.getBudgetStatus()) &&
+      !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()));
+
+    boolean allowableChanged = !Objects.equals(financeData.getBudgetAllowableEncumbrance(), existingBudget.getAllowableEncumbrance()) ||
+      !Objects.equals(financeData.getBudgetAllowableExpenditure(), existingBudget.getAllowableExpenditure());
+
+    boolean allocationChanged = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0;
+    boolean flaggedAsChanged = Boolean.TRUE.equals(financeData.getIsBudgetChanged());
+
+    return statusChanged || allowableChanged || allocationChanged || flaggedAsChanged;
   }
 
   private void verifyAllocationChange(List<Error> errors, FyFinanceData financeData, int i) {
     if (financeData.getBudgetAllocationChange() != null) {
-      double allocationChange = requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0);
-      double currentAllocation = requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0);
+      var allocationChange = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0));
+      var currentAllocation = BigDecimal.valueOf(requireNonNullElse(financeData.getBudgetCurrentAllocation(), 0.0));
 
-      if (allocationChange < 0 && Math.abs(allocationChange) > currentAllocation) {
-        errors.add(createError("Allocation change cannot be greater than current allocation",
+      if (allocationChange.compareTo(BigDecimal.ZERO) < 0 && allocationChange.abs().compareTo(currentAllocation) > 0) {
+        errors.add(createError("New total allocation cannot be negative",
           String.format("financeData[%s].budgetAllocationChange", i), String.valueOf(financeData.getBudgetAllocationChange())));
       }
     }
