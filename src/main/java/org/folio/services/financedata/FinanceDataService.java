@@ -146,16 +146,16 @@ public class FinanceDataService {
       .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()));
   }
 
-  private void updateLogs(String fundUpdateLog, FundUpdateLog.Status status, FyFinanceDataCollection updateFdCollection,
+  private void updateLogs(String fundUpdateLogId, FundUpdateLog.Status status, FyFinanceDataCollection updateFdCollection,
                           RequestContext requestContext) {
-    fundUpdateLogService.getFundUpdateLogById(fundUpdateLog, requestContext)
-      .compose(log -> {
+    fundUpdateLogService.getFundUpdateLogById(fundUpdateLogId, requestContext)
+      .compose(fundUpdateLog -> {
         if (updateFdCollection != null) {
           var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", updateFdCollection.getFyFinanceData());
-          log.setJobDetails(jobDetails);
+          fundUpdateLog.setJobDetails(jobDetails);
         }
-        log.setStatus(status);
-        return fundUpdateLogService.updateFundUpdateLog(log, requestContext);
+        fundUpdateLog.setStatus(status);
+        return fundUpdateLogService.updateFundUpdateLog(fundUpdateLog, requestContext);
       });
   }
 
