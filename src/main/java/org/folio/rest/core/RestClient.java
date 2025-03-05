@@ -46,11 +46,9 @@ public class RestClient {
   protected static final ResponsePredicate SUCCESS_RESPONSE_PREDICATE =
     ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ERROR_CONVERTER);
   public static final String REQUEST_MESSAGE_LOG_INFO = "Calling {} {}";
-  public static final String REQUEST_MESSAGE_LOG_DEBUG = "{} request body : {}";
 
   public <T> Future<T> post(String endpoint, T entity, Class<T> responseType, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
-    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.POST, () -> JsonObject.mapFrom(entity).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
@@ -64,7 +62,6 @@ public class RestClient {
 
   public <T> Future<Void> postEmptyResponse(String endpoint, T entity, RequestContext requestContext) {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
-    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.POST, () -> JsonObject.mapFrom(entity).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
@@ -86,7 +83,6 @@ public class RestClient {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
     var recordData = JsonObject.mapFrom(dataObject);
-    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.PUT, () -> JsonObject.mapFrom(recordData).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
 
     return getVertxWebClient(requestContext.context())
@@ -171,12 +167,7 @@ public class RestClient {
       .expect(SUCCESS_RESPONSE_PREDICATE)
       .send()
       .map(HttpResponse::bodyAsJsonObject)
-      .map(jsonObject -> {
-        if (log.isDebugEnabled()) {
-          log.debug("Successfully retrieved: {}", jsonObject.encodePrettily());
-        }
-        return jsonObject.mapTo(responseType);
-      })
+      .map(jsonObject -> jsonObject.mapTo(responseType))
       .onSuccess(promise::complete)
       .onFailure(t -> handleGetMethodErrorResponse(promise, t, skipError404));
 
