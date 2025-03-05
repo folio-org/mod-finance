@@ -99,27 +99,26 @@ public class FinanceDataService {
       .onFailure(t -> log.warn("putFinanceData:: Failed to update finance data collection", t));
   }
 
-  private Future<FyFinanceDataCollection> processFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
-    if (financeDataCollection.getUpdateType().equals(FyFinanceDataCollection.UpdateType.PREVIEW)) {
+  private Future<FyFinanceDataCollection> processFinanceData(FyFinanceDataCollection fdCollection, RequestContext requestContext) {
+    if (fdCollection.getUpdateType().equals(FyFinanceDataCollection.UpdateType.PREVIEW)) {
       log.info("putFinanceData:: Running dry-run mode finance data collection");
-      return succeededFuture(financeDataCollection);
+      return succeededFuture(fdCollection);
     }
     var fundUpdateLogId = UUID.randomUUID().toString();
-    return processLogs(fundUpdateLogId, financeDataCollection, requestContext)
-      .compose(fundUpdateLog -> updateFinanceData(financeDataCollection, requestContext))
-      .map(v -> financeDataCollection)
-      .onSuccess(asyncResult -> updateLogs(fundUpdateLogId, COMPLETED, requestContext))
-      .onFailure(asyncResult -> updateLogs(fundUpdateLogId, ERROR, requestContext));
+    return processLogs(fundUpdateLogId, fdCollection, requestContext)
+      .compose(log -> updateFinanceData(fdCollection, requestContext))
+      .onSuccess(updatedFdCollection -> updateLogs(fundUpdateLogId, COMPLETED, updatedFdCollection, requestContext))
+      .onFailure(asyncResult -> updateLogs(fundUpdateLogId, ERROR, null, requestContext));
   }
 
   private String getFiscalYearId(FyFinanceDataCollection fyFinanceDataCollection) {
     return fyFinanceDataCollection.getFyFinanceData().getFirst().getFiscalYearId();
   }
 
-  private Future<Void> updateFinanceData(FyFinanceDataCollection financeDataCollection,
-                                         RequestContext requestContext) {
+  private Future<FyFinanceDataCollection> updateFinanceData(FyFinanceDataCollection financeDataCollection,
+                                                            RequestContext requestContext) {
     log.debug("updateFinanceData:: Trying to update finance data collection with size: {}", financeDataCollection.getTotalRecords());
-    return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, requestContext);
+    return restClient.put(resourcesPath(FINANCE_DATA_STORAGE), financeDataCollection, FyFinanceDataCollection.class, requestContext);
   }
 
   private Future<FundUpdateLog> processLogs(String fundUpdateLogId, FyFinanceDataCollection financeDataCollection,
@@ -147,12 +146,16 @@ public class FinanceDataService {
       .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()));
   }
 
-  private void updateLogs(String fundUpdateLog, FundUpdateLog.Status status,
+  private void updateLogs(String fundUpdateLogId, FundUpdateLog.Status status, FyFinanceDataCollection updateFdCollection,
                           RequestContext requestContext) {
-    fundUpdateLogService.getFundUpdateLogById(fundUpdateLog, requestContext)
-      .compose(log -> {
-        log.setStatus(status);
-        return fundUpdateLogService.updateFundUpdateLog(log, requestContext);
+    fundUpdateLogService.getFundUpdateLogById(fundUpdateLogId, requestContext)
+      .compose(fundUpdateLog -> {
+        if (updateFdCollection != null) {
+          var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", updateFdCollection.getFyFinanceData());
+          fundUpdateLog.setJobDetails(jobDetails);
+        }
+        fundUpdateLog.setStatus(status);
+        return fundUpdateLogService.updateFundUpdateLog(fundUpdateLog, requestContext);
       });
   }
 

@@ -158,7 +158,7 @@ public class FinanceDataServiceTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
-    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(succeededFuture(financeDataCollection));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
@@ -188,7 +188,7 @@ public class FinanceDataServiceTest {
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
-    when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
@@ -199,10 +199,10 @@ public class FinanceDataServiceTest {
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
         assertTrue(result.failed());
-        verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+        verify(fundUpdateLogService).createFundUpdateLog(any(), any());
         verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
           log.getStatus() == FundUpdateLog.Status.ERROR
-        ), eq(requestContextMock));
+        ), any());
         vertxTestContext.completeNow();
       });
   }
@@ -216,7 +216,7 @@ public class FinanceDataServiceTest {
 
   @ParameterizedTest
   @MethodSource("provideTestParameters")
-  void positive_testPutFinanceData_processLogs(String worksheetName, String expectedJobName, VertxTestContext vertxTestContext)
+  void positive_testProcessLogs_successfullyCreateLogs(String worksheetName, String expectedJobName, VertxTestContext vertxTestContext)
     throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     var fundUpdateLogId = UUID.randomUUID().toString();
     var financeData = createValidFyFinanceData();
@@ -254,6 +254,51 @@ public class FinanceDataServiceTest {
         ), eq(requestContextMock));
         vertxTestContext.completeNow();
       });
+  }
+
+  @Test
+  void positive_testUpdateLogs_updateLogStatusAndDetails(VertxTestContext vertxTestContext)
+    throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    String fundUpdateLogId = UUID.randomUUID().toString();
+    var status = FundUpdateLog.Status.COMPLETED;
+
+    var financeData = createValidFyFinanceData();
+    var updateFdCollection = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData));
+
+    var existingLog = new FundUpdateLog()
+      .withId(fundUpdateLogId)
+      .withJobName("Test")
+      .withStatus(FundUpdateLog.Status.IN_PROGRESS)
+      .withRecordsCount(10)
+      .withJobNumber(1);
+
+    var expectedUpdatedLog = new FundUpdateLog()
+      .withId(fundUpdateLogId)
+      .withJobName("Test")
+      .withStatus(FundUpdateLog.Status.COMPLETED)
+      .withRecordsCount(10)
+      .withJobDetails(new JobDetails().withAdditionalProperty("fyFinanceData", updateFdCollection.getFyFinanceData()))
+      .withJobNumber(1);
+
+    when(fundUpdateLogService.getFundUpdateLogById(eq(fundUpdateLogId), eq(requestContextMock)))
+      .thenReturn(succeededFuture(existingLog));
+    when(fundUpdateLogService.updateFundUpdateLog(eq(expectedUpdatedLog), eq(requestContextMock)))
+      .thenReturn(succeededFuture());
+
+    var updateLogsMethod = FinanceDataService.class.getDeclaredMethod("updateLogs", String.class, FundUpdateLog.Status.class,
+      FyFinanceDataCollection.class, RequestContext.class);
+    updateLogsMethod.setAccessible(true);
+    updateLogsMethod.invoke(financeDataService, fundUpdateLogId, status, updateFdCollection, requestContextMock);
+
+    verify(fundUpdateLogService).getFundUpdateLogById(eq(fundUpdateLogId), eq(requestContextMock));
+    verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
+      log.getId().equals(fundUpdateLogId) &&
+        log.getStatus() == FundUpdateLog.Status.COMPLETED &&
+        log.getJobDetails().getAdditionalProperties().get("fyFinanceData").equals(updateFdCollection.getFyFinanceData())
+    ), eq(requestContextMock));
+
+    vertxTestContext.completeNow();
   }
 
   @Test
@@ -312,7 +357,7 @@ public class FinanceDataServiceTest {
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
-          assertEquals("Fund ID is required", exception.getErrors().getErrors().get(0).getMessage());
+          assertEquals("Fund ID is required", exception.getErrors().getErrors().getFirst().getMessage());
           vertxTestContext.completeNow();
         } else {
           vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
@@ -332,7 +377,7 @@ public class FinanceDataServiceTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Invalid fiscal year ID", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("Invalid fiscal year ID", exception.getErrors().getErrors().getFirst().getMessage());
   }
 
   private Fund createValidFund() {
