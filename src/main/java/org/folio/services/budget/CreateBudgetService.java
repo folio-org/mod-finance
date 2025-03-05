@@ -3,8 +3,10 @@ package org.folio.services.budget;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.RestConstants.BAD_REQUEST;
 import static org.folio.rest.RestConstants.NOT_FOUND;
+import static org.folio.rest.util.BudgetUtils.convertToSharedBudget;
 import static org.folio.rest.util.ErrorCodes.FUND_NOT_FOUND_ERROR;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
+import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.Optional;
@@ -120,13 +122,38 @@ public class CreateBudgetService {
     return createNewBudget(sharedBudget, requestContext);
   }
 
-  public Future<SharedBudget> createNewBudget(SharedBudget sharedBudget, RequestContext requestContext) {
+  private Future<SharedBudget> createNewBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     double allocatedValue = sharedBudget.getAllocated();
     sharedBudget.setAllocated(0d);
-    return restClient.post(resourcesPath(BUDGETS_STORAGE), BudgetUtils.convertToBudget(sharedBudget), Budget.class, requestContext)
+    SharedBudget.BudgetStatus desiredStatus = sharedBudget.getBudgetStatus();
+    if (sharedBudget.getBudgetStatus() != SharedBudget.BudgetStatus.ACTIVE && allocatedValue != 0d) {
+      sharedBudget.setBudgetStatus(SharedBudget.BudgetStatus.ACTIVE);
+    }
+    return createActiveBudgetWithAllocation(BudgetUtils.convertToBudget(sharedBudget), allocatedValue, requestContext)
+      .compose(budget -> updateBudgetStatus(budget, Budget.BudgetStatus.fromValue(desiredStatus.value()), requestContext))
+      .compose(budget -> budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContext)
+        .map(v -> convertToSharedBudget(budget).withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses()))
+      )
+      .onSuccess(budget -> log.info("createNewBudget:: Success creating a new budget, id={}", budget.getId()))
+      .onFailure(t -> log.error("createNewBudget:: Error creating a new budget", t));
+  }
+
+  private Future<Budget> createActiveBudgetWithAllocation(Budget budgetToCreate, double allocatedValue,
+      RequestContext requestContext) {
+    if (allocatedValue == 0.) {
+      return restClient.post(resourcesPath(BUDGETS_STORAGE), budgetToCreate, Budget.class, requestContext);
+    }
+    return restClient.post(resourcesPath(BUDGETS_STORAGE), budgetToCreate, Budget.class, requestContext)
       .compose(createdBudget -> allocateToBudget(createdBudget.withAllocated(allocatedValue), requestContext)
-        .compose(aVoid -> budgetExpenseClassService.createBudgetExpenseClasses(sharedBudget, requestContext))
-        .map(aVoid -> BudgetUtils.convertToSharedBudget(createdBudget)
-          .withStatusExpenseClasses(sharedBudget.getStatusExpenseClasses())));
+        .compose(v -> restClient.get(resourceByIdPath(BUDGETS_STORAGE, createdBudget.getId()), Budget.class, requestContext))
+      );
+  }
+
+  private Future<Budget> updateBudgetStatus(Budget budget, Budget.BudgetStatus desiredStatus, RequestContext requestContext) {
+    if (budget.getBudgetStatus() == desiredStatus) {
+      return succeededFuture(budget);
+    }
+    return restClient.put(resourceByIdPath(BUDGETS_STORAGE, budget.getId()), budget.withBudgetStatus(desiredStatus), requestContext)
+    .compose(v -> restClient.get(resourceByIdPath(BUDGETS_STORAGE, budget.getId()), Budget.class, requestContext));
   }
 }
