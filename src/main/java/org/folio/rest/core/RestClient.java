@@ -102,7 +102,6 @@ public class RestClient {
     log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.PUT, endpoint);
 
     var recordData = JsonObject.mapFrom(dataObject);
-    log.debug(REQUEST_MESSAGE_LOG_DEBUG, () -> HttpMethod.PUT, () -> JsonObject.mapFrom(recordData).encodePrettily());
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
 
     return getVertxWebClient(requestContext.context())
