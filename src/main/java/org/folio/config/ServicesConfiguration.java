@@ -218,14 +218,14 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FundUpdateLogService fundUpdateLogService(RestClient restClient) {
-    return new FundUpdateLogService(restClient);
+  FundUpdateLogService fundUpdateLogService(RestClient restClient, AcqUnitsService acqUnitsService) {
+    return new FundUpdateLogService(restClient, acqUnitsService);
   }
 
   @Bean
-  FinanceDataService financeDataService(RestClient restClient, AcqUnitsService acqUnitsService,
+  FinanceDataService financeDataService(RestClient restClient, LedgerService ledgerService, AcqUnitsService acqUnitsService,
                                         FundUpdateLogService fundUpdateLogService, FinanceDataValidator financeDataValidator) {
-    return new FinanceDataService(restClient, acqUnitsService, fundUpdateLogService, financeDataValidator);
+    return new FinanceDataService(restClient, ledgerService, acqUnitsService, fundUpdateLogService, financeDataValidator);
   }
 
   @Bean
