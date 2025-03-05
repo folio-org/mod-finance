@@ -150,9 +150,11 @@ public class FinanceDataService {
                           RequestContext requestContext) {
     fundUpdateLogService.getFundUpdateLogById(fundUpdateLog, requestContext)
       .compose(log -> {
-        var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", updateFdCollection.getFyFinanceData());
+        if (updateFdCollection != null) {
+          var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", updateFdCollection.getFyFinanceData());
+          log.setJobDetails(jobDetails);
+        }
         log.setStatus(status);
-        log.setJobDetails(jobDetails);
         return fundUpdateLogService.updateFundUpdateLog(log, requestContext);
       });
   }

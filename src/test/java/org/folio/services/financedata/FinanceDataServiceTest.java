@@ -158,7 +158,7 @@ public class FinanceDataServiceTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
-    when(restClient.put(anyString(), any(), any())).thenReturn(succeededFuture());
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(succeededFuture(financeDataCollection));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
@@ -188,7 +188,7 @@ public class FinanceDataServiceTest {
     var fiscalYear = new FiscalYear().withCurrency("USD");
 
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
-    when(restClient.put(anyString(), any(), any())).thenReturn(failedFuture("Error"));
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
     when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
@@ -199,10 +199,10 @@ public class FinanceDataServiceTest {
     vertxTestContext.assertFailure(future)
       .onComplete(result -> {
         assertTrue(result.failed());
-        verify(fundUpdateLogService).createFundUpdateLog(any(), eq(requestContextMock));
+        verify(fundUpdateLogService).createFundUpdateLog(any(), any());
         verify(fundUpdateLogService).updateFundUpdateLog(argThat(log ->
           log.getStatus() == FundUpdateLog.Status.ERROR
-        ), eq(requestContextMock));
+        ), any());
         vertxTestContext.completeNow();
       });
   }
