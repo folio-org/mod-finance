@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static io.vertx.core.Future.succeededFuture;
+import static java.util.Map.entry;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.MockServer.addMockEntry;
 import static org.folio.rest.util.TestConfig.autowireDependencies;
@@ -41,7 +42,7 @@ public class FundUpdateLogApiTest {
 
   @Autowired public FundUpdateLogService fundUpdateLogService;
 
-  public static final String GROUP_ENDPOINT = "finance/fund-update-logs";
+  private static final String ENDPOINT = "finance/fund-update-logs";
 
   @BeforeAll
   static void init() throws InterruptedException, ExecutionException, TimeoutException {
@@ -80,8 +81,8 @@ public class FundUpdateLogApiTest {
     when(fundUpdateLogService.getFundUpdateLogs(anyString(), anyInt(), anyInt(), any()))
       .thenReturn(succeededFuture(fundUpdateLogCollection));
 
-    RestTestUtils.verifyGetWithParam(GROUP_ENDPOINT, APPLICATION_JSON, HttpStatus.HTTP_OK.toInt(),
-        Map.ofEntries(Map.entry("query", "recordsCount=IN_PROGRESS"), Map.entry("offset", 0), Map.entry("limit", 10)))
+    RestTestUtils.verifyGetWithParam(ENDPOINT, APPLICATION_JSON, HttpStatus.HTTP_OK.toInt(),
+        Map.ofEntries(entry("query", "recordsCount=IN_PROGRESS"), entry("offset", 0), entry("limit", 10)))
       .as(FundUpdateLogCollection.class);
   }
 

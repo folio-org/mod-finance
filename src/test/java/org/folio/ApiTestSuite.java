@@ -41,6 +41,7 @@ import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.fund.FundServiceTest;
+import org.folio.services.fund.FundUpdateLogServiceTest;
 import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
 import org.folio.services.group.GroupServiceTest;
@@ -263,4 +264,7 @@ public class ApiTestSuite {
 
   @Nested
   class FundUpdateLogApiTestNested extends FundUpdateLogApiTest {}
+
+  @Nested
+  class FundUpdateLogServiceTestNested extends FundUpdateLogServiceTest {}
 }
