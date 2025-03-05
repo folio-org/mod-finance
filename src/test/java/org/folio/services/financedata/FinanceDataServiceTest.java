@@ -2,6 +2,7 @@ package org.folio.services.financedata;
 
 import static io.vertx.core.Future.failedFuture;
 import static io.vertx.core.Future.succeededFuture;
+import static org.folio.HttpStatus.HTTP_NOT_FOUND;
 import static org.folio.rest.util.TestUtils.assertQueryContains;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -32,6 +34,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import lombok.SneakyThrows;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -43,11 +46,13 @@ import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
 import org.folio.rest.jaxrs.model.JobNumber;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundService;
 import org.folio.services.fund.FundUpdateLogService;
+import org.folio.services.ledger.LedgerService;
 import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,27 +67,21 @@ import org.mockito.MockitoAnnotations;
 
 @ExtendWith(VertxExtension.class)
 public class FinanceDataServiceTest {
+
   private static final String FISCAL_YEAR_ID = UUID.randomUUID().toString();
   private static final String FUND_ID = UUID.randomUUID().toString();
   private static final String BUDGET_ID = UUID.randomUUID().toString();
   private static final String LEDGER_ID = UUID.randomUUID().toString();
 
-  @InjectMocks
-  private FinanceDataService financeDataService;
-  @Mock
-  private RestClient restClient;
-  @Mock
-  private AcqUnitsService acqUnitsService;
-  @Mock
-  private FundUpdateLogService fundUpdateLogService;
-  @Mock
-  private FiscalYearService fiscalYearService;
-  @Mock
-  private FundService fundService;
-  @Mock
-  private BudgetService budgetService;
-  @Mock
-  private FinanceDataValidator financeDataValidator;
+  @Mock private RestClient restClient;
+  @Mock private LedgerService ledgerService;
+  @Mock private AcqUnitsService acqUnitsService;
+  @Mock private FundUpdateLogService fundUpdateLogService;
+  @Mock private FiscalYearService fiscalYearService;
+  @Mock private FundService fundService;
+  @Mock private BudgetService budgetService;
+  @Mock private FinanceDataValidator financeDataValidator;
+  @InjectMocks private FinanceDataService financeDataService;
 
   private RequestContext requestContextMock;
   private AutoCloseable closeable;
@@ -157,7 +156,11 @@ public class FinanceDataServiceTest {
       .withFyFinanceData(List.of(financeData, financeData2))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
     var fiscalYear = new FiscalYear().withCurrency("USD");
+    var ledger = new Ledger()
+      .withId(LEDGER_ID)
+      .withAcqUnitIds(List.of());
 
+    when(ledgerService.retrieveLedgerById(eq(LEDGER_ID), any())).thenReturn(succeededFuture(ledger));
     when(restClient.put(anyString(), any(), any(), any())).thenReturn(succeededFuture(financeDataCollection));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
     when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
@@ -181,12 +184,78 @@ public class FinanceDataServiceTest {
   }
 
   @Test
+  void negative_testPutFinanceData_LedgerIdNotFound(VertxTestContext vertxTestContext) {
+    // set to null ledgerId
+    var financeData = createValidFyFinanceData().withLedgerId(null);
+    var financeData2 = createValidFyFinanceData() // set to null non-required fields
+      .withLedgerId(null).withBudgetId(null).withBudgetAllocationChange(null).withFundDescription(null)
+      .withTransactionTag(null).withTransactionDescription(null);
+    var financeDataCollection = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData, financeData2))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
+    var fiscalYear = new FiscalYear().withCurrency("USD");
+
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(succeededFuture(financeDataCollection));
+    when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
+    when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
+    when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
+
+    financeDataService.putFinanceData(financeDataCollection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          var exception = (NoSuchElementException) ar.cause();
+          assertEquals("Ledger id is not found", exception.getMessage());
+          vertxTestContext.completeNow();
+        } else {
+          vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
+        }
+      });
+  }
+
+  @Test
+  void negative_testPutFinanceData_LedgerNotFound(VertxTestContext vertxTestContext) {
+    var financeData = createValidFyFinanceData();
+    var financeData2 = createValidFyFinanceData() // set to null non-required fields
+      .withBudgetId(null).withBudgetAllocationChange(null).withFundDescription(null)
+      .withTransactionTag(null).withTransactionDescription(null);
+    var financeDataCollection = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeData, financeData2))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
+    var fiscalYear = new FiscalYear().withCurrency("USD");
+
+    when(ledgerService.retrieveLedgerById(any(), any())).thenReturn(failedFuture(new HttpException(HTTP_NOT_FOUND.toInt(), "Not found")));
+    when(restClient.put(anyString(), any(), any(), any())).thenReturn(succeededFuture(financeDataCollection));
+    when(fundUpdateLogService.getFundUpdateLogById(any(), any())).thenReturn(succeededFuture(new FundUpdateLog()));
+    when(fundUpdateLogService.getJobNumber(any())).thenReturn(succeededFuture(new JobNumber().withSequenceNumber("1")));
+    when(fundUpdateLogService.updateFundUpdateLog(any(), any())).thenReturn(succeededFuture());
+    when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
+    when(financeDataValidator.compareWithExistingData(any(), any())).thenReturn(succeededFuture());
+
+    financeDataService.putFinanceData(financeDataCollection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          var exception = (HttpException) ar.cause();
+          assertEquals("Not found", exception.getErrors().getErrors().getFirst().getMessage());
+          vertxTestContext.completeNow();
+        } else {
+          vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
+        }
+      });
+  }
+
+  @Test
   void negative_testPutFinanceData_LogErrorWhenPutFinanceDataFails(VertxTestContext vertxTestContext) {
     var financeDataCollection = new FyFinanceDataCollection()
       .withFyFinanceData(List.of(createValidFyFinanceData()))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT);
     var fiscalYear = new FiscalYear().withCurrency("USD");
+    var ledger = new Ledger()
+      .withId(LEDGER_ID)
+      .withAcqUnitIds(List.of());
 
+    when(ledgerService.retrieveLedgerById(eq(LEDGER_ID), any())).thenReturn(succeededFuture(ledger));
     when(fiscalYearService.getFiscalYearById(any(), any())).thenReturn(succeededFuture(fiscalYear));
     when(restClient.put(anyString(), any(), any(), any())).thenReturn(failedFuture("Error"));
     when(fundUpdateLogService.createFundUpdateLog(any(), any())).thenReturn(succeededFuture());
@@ -214,10 +283,11 @@ public class FinanceDataServiceTest {
     );
   }
 
+  @SneakyThrows
   @ParameterizedTest
+  @SuppressWarnings("unchecked")
   @MethodSource("provideTestParameters")
-  void positive_testProcessLogs_successfullyCreateLogs(String worksheetName, String expectedJobName, VertxTestContext vertxTestContext)
-    throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  void positive_testPutFinanceData_processLogs(String worksheetName, String expectedJobName, VertxTestContext vertxTestContext) {
     var fundUpdateLogId = UUID.randomUUID().toString();
     var financeData = createValidFyFinanceData();
     var financeDataCollection = new FyFinanceDataCollection()
@@ -231,7 +301,11 @@ public class FinanceDataServiceTest {
       .withRecordsCount(financeDataCollection.getTotalRecords())
       .withJobDetails(new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData()))
       .withJobNumber(1);
+    var ledger = new Ledger()
+      .withId(LEDGER_ID)
+      .withAcqUnitIds(List.of());
 
+    doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(eq(LEDGER_ID), any());
     doReturn(succeededFuture(jobNumber)).when(fundUpdateLogService).getJobNumber(any());
     doReturn(succeededFuture(expectedLog)).when(fundUpdateLogService).createFundUpdateLog(any(), any());
 
