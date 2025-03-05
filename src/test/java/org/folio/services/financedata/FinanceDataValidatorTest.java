@@ -104,9 +104,9 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("Finance data collection contains duplicate fund, budget and fiscal year IDs", exception.getErrors().getErrors().get(0).getMessage());
-    assertEquals("financeData", exception.getErrors().getErrors().get(0).getParameters().get(0).getKey());
-    assertEquals("duplicate", exception.getErrors().getErrors().get(0).getParameters().get(0).getValue());
+    assertEquals("Finance data collection contains duplicate fund, budget and fiscal year IDs", exception.getErrors().getErrors().getFirst().getMessage());
+    assertEquals("financeData", exception.getErrors().getErrors().getFirst().getParameters().getFirst().getKey());
+    assertEquals("duplicate", exception.getErrors().getErrors().getFirst().getParameters().getFirst().getValue());
   }
 
   @Test
@@ -127,7 +127,7 @@ public class FinanceDataValidatorTest {
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
-          assertEquals("Allocation change cannot be greater than current allocation", exception.getErrors().getErrors().get(0).getMessage());
+          assertEquals("New total allocation cannot be negative", exception.getErrors().getErrors().getFirst().getMessage());
         }
       });
   }
@@ -146,7 +146,7 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("budgetInitialAllocation is required", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("budgetInitialAllocation is required", exception.getErrors().getErrors().getFirst().getMessage());
   }
 
   @Test
@@ -163,7 +163,7 @@ public class FinanceDataValidatorTest {
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
-    assertEquals("budgetAllowableExpenditure cannot be negative", exception.getErrors().getErrors().get(0).getMessage());
+    assertEquals("budgetAllowableExpenditure cannot be negative", exception.getErrors().getErrors().getFirst().getMessage());
   }
 
 
@@ -216,7 +216,7 @@ public class FinanceDataValidatorTest {
     financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.succeeded()) {
-          var financeData = financeDataCollection.getFyFinanceData().get(0);
+          var financeData = financeDataCollection.getFyFinanceData().getFirst();
           assertEquals(expectedFundChanged, financeData.getIsFundChanged());
           assertEquals(expectedBudgetChanged, financeData.getIsBudgetChanged());
           vertxTestContext.completeNow();
@@ -247,6 +247,10 @@ public class FinanceDataValidatorTest {
       .withBudgetAllowableEncumbrance(200.0);
     var financeDataWithNewBudgetAllowableExpenditure = testInstance.createValidFyFinanceData()
       .withBudgetAllowableExpenditure(200.0);
+    var financeDataWithEmptyStatus = testInstance.createValidFyFinanceData()
+      .withFundStatus(null)
+      .withBudgetStatus(null)
+      .withBudgetAllocationChange(0.0);
 
     var collection1 = new FyFinanceDataCollection()
       .withFyFinanceData(List.of(financeDataWithNewFundChanges))
@@ -284,6 +288,10 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(List.of(financeDataWithNewBudgetAllowableExpenditure))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
+    var collection10 = new FyFinanceDataCollection()
+      .withFyFinanceData(List.of(financeDataWithEmptyStatus))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
     return Stream.of(
       arguments(collection1, true, true),
       arguments(collection2, true, false),
@@ -293,7 +301,8 @@ public class FinanceDataValidatorTest {
       arguments(collection6, false, false),
       arguments(collection7, true, true),
       arguments(collection8, false, true),
-      arguments(collection9, false, true)
+      arguments(collection9, false, true),
+      arguments(collection10, false, false)
     );
   }
 
