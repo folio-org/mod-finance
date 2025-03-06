@@ -15,6 +15,7 @@ import org.folio.rest.impl.ExchangeTest;
 import org.folio.rest.impl.FinanceDataApiTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
+import org.folio.rest.impl.FundUpdateLogApiTest;
 import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
 import org.folio.rest.impl.GroupsApiTest;
@@ -40,6 +41,7 @@ import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
 import org.folio.services.fund.FundServiceTest;
+import org.folio.services.fund.FundUpdateLogServiceTest;
 import org.folio.services.group.GroupExpenseClassTotalsServiceTest;
 import org.folio.services.group.GroupFundFiscalYearServiceTest;
 import org.folio.services.group.GroupServiceTest;
@@ -259,4 +261,10 @@ public class ApiTestSuite {
 
   @Nested
   class TransactionTotalApiServiceTestNested extends TransactionTotalApiServiceTest {}
+
+  @Nested
+  class FundUpdateLogApiTestNested extends FundUpdateLogApiTest {}
+
+  @Nested
+  class FundUpdateLogServiceTestNested extends FundUpdateLogServiceTest {}
 }

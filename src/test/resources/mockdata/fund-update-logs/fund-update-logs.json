@@ -8,6 +8,10 @@
       "jobDetails": {
         "description": "Updating fund records for the day"
       },
+      "ledgerId": "52e3a0a1-5c21-4516-a9c9-da95db5ed0af",
+      "acqUnitIds": [
+        "ac2164c7-ba3d-1bc2-912c-e35ceccbfaf2"
+      ],
       "status": "IN_PROGRESS",
       "recordsCount": 100
     }

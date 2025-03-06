@@ -25,20 +25,24 @@ import org.folio.rest.jaxrs.model.FundUpdateLog;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.JobDetails;
 import org.folio.rest.jaxrs.model.JobNumber;
+import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.services.fund.FundUpdateLogService;
+import org.folio.services.ledger.LedgerService;
 import org.folio.services.protection.AcqUnitsService;
 
 @Log4j2
 public class FinanceDataService {
 
   private final RestClient restClient;
+  private final LedgerService ledgerService;
   private final AcqUnitsService acqUnitsService;
   private final FundUpdateLogService fundUpdateLogService;
   private final FinanceDataValidator financeDataValidator;
 
-  public FinanceDataService(RestClient restClient, AcqUnitsService acqUnitsService,
+  public FinanceDataService(RestClient restClient, LedgerService ledgerService, AcqUnitsService acqUnitsService,
                             FundUpdateLogService fundUpdateLogService, FinanceDataValidator financeDataValidator) {
     this.restClient = restClient;
+    this.ledgerService = ledgerService;
     this.acqUnitsService = acqUnitsService;
     this.fundUpdateLogService = fundUpdateLogService;
     this.financeDataValidator = financeDataValidator;
@@ -123,14 +127,15 @@ public class FinanceDataService {
 
   private Future<FundUpdateLog> processLogs(String fundUpdateLogId, FyFinanceDataCollection financeDataCollection,
                                             RequestContext requestContext) {
+    var ledgerId = financeDataCollection.getFyFinanceData().getFirst().getLedgerId();
     return fundUpdateLogService.getJobNumber(requestContext)
-      .compose(jobNumber -> {
-        var fundUpdateLog = createFundUpdateLog(fundUpdateLogId, jobNumber, financeDataCollection);
-        return fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
-      });
+      .compose(jobNumber -> ledgerService.retrieveLedgerById(ledgerId, requestContext)
+        .map(ledger -> createFundUpdateLog(fundUpdateLogId, jobNumber, ledger, financeDataCollection))
+        .compose(fundUpdateLog -> fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext)));
   }
 
-  private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, FyFinanceDataCollection financeDataCollection) {
+  private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, Ledger ledger,
+                                            FyFinanceDataCollection financeDataCollection) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
     var financeData = financeDataCollection.getFyFinanceData().getFirst();
     var jobName = StringUtils.isNotEmpty(financeDataCollection.getWorksheetName())
@@ -143,7 +148,9 @@ public class FinanceDataService {
       .withStatus(IN_PROGRESS)
       .withRecordsCount(financeDataCollection.getTotalRecords())
       .withJobDetails(jobDetails)
-      .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()));
+      .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()))
+      .withLedgerId(ledger.getId())
+      .withAcqUnitIds(ledger.getAcqUnitIds());
   }
 
   private void updateLogs(String fundUpdateLogId, FundUpdateLog.Status status, FyFinanceDataCollection updateFdCollection,

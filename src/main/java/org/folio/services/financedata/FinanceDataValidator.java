@@ -82,6 +82,7 @@ public class FinanceDataValidator {
     validateRequiredField(combinedErrors, "fundCode", i, financeData.getFundCode());
     validateRequiredField(combinedErrors, "fundName", i, financeData.getFundName());
     validateRequiredField(combinedErrors, "fundStatus", i, financeData.getFundStatus());
+    validateRequiredField(combinedErrors, "ledgerId", i, financeData.getLedgerId());
 
     if (StringUtils.isNotEmpty(financeData.getBudgetId())) {
       validateUuid(combinedErrors, "budgetId", i, financeData.getBudgetId());
