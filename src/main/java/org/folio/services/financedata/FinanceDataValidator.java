@@ -49,8 +49,15 @@ public class FinanceDataValidator {
 
   public void validateFinanceDataCollection(FyFinanceDataCollection financeDataCollection, String fiscalYearId) {
     validateForDuplication(financeDataCollection);
+
+    List<Error> combinedErrors = new ArrayList<>();
     IntStream.range(0, financeDataCollection.getFyFinanceData().size())
-      .forEach(i -> validateFinanceDataFields(financeDataCollection.getFyFinanceData().get(i), i, fiscalYearId));
+      .forEach(i -> validateFinanceDataFields(combinedErrors, financeDataCollection.getFyFinanceData().get(i), i, fiscalYearId));
+
+    if (CollectionUtils.isNotEmpty(combinedErrors)) {
+      var errors = new Errors().withErrors(combinedErrors).withTotalRecords(combinedErrors.size());
+      throw new HttpException(422, errors);
+    }
   }
 
   private void validateForDuplication(FyFinanceDataCollection financeDataCollection) {
@@ -67,9 +74,7 @@ public class FinanceDataValidator {
     });
   }
 
-  private void validateFinanceDataFields(FyFinanceData financeData, int i, String fiscalYearId) {
-    List<Error> combinedErrors = new ArrayList<>();
-
+  private void validateFinanceDataFields(List<Error> combinedErrors, FyFinanceData financeData, int i, String fiscalYearId) {
     if (!financeData.getFiscalYearId().equals(fiscalYearId)) {
       combinedErrors.add(createError(
         String.format("Fiscal year ID must be the same as other fiscal year ID(s) '[%s]' in the request", fiscalYearId),
@@ -82,6 +87,7 @@ public class FinanceDataValidator {
     validateRequiredField(combinedErrors, "fundCode", i, financeData.getFundCode());
     validateRequiredField(combinedErrors, "fundName", i, financeData.getFundName());
     validateRequiredField(combinedErrors, "fundStatus", i, financeData.getFundStatus());
+    validateRequiredField(combinedErrors, "ledgerId", i, financeData.getLedgerId());
 
     if (StringUtils.isNotEmpty(financeData.getBudgetId())) {
       validateUuid(combinedErrors, "budgetId", i, financeData.getBudgetId());
@@ -92,11 +98,6 @@ public class FinanceDataValidator {
       validateNonNullAndNonNegative(combinedErrors, "budgetAllowableEncumbrance", i, financeData.getBudgetAllowableEncumbrance());
     } else {
       financeData.setBudgetId(null); // to avoid being process as empty string
-    }
-
-    if (CollectionUtils.isNotEmpty(combinedErrors)) {
-      var errors = new Errors().withErrors(combinedErrors).withTotalRecords(combinedErrors.size());
-      throw new HttpException(422, errors);
     }
   }
 

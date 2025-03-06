@@ -22,6 +22,7 @@ import static org.folio.rest.util.TestConstants.VALID_UUID;
 import static org.folio.rest.util.TestEntities.BUDGET;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.FUND;
+import static org.folio.rest.util.TestEntities.FUND_UPDATE_LOG;
 import static org.folio.rest.util.TestEntities.GROUP;
 import static org.folio.rest.util.TestEntities.GROUP_FUND_FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
@@ -89,7 +90,6 @@ public class EntitiesCrudBasicsTest {
   private static final List<TestEntities> transactionEntities = Arrays.asList(TRANSACTIONS_ALLOCATION, TRANSACTIONS_TRANSFER);
   private static boolean runningOnOwn;
 
-
   /**
    * Test entities except for FUND
    *
@@ -117,7 +117,10 @@ public class EntitiesCrudBasicsTest {
   }
 
   static Stream<TestEntities> getTestEntitiesWithGetEndpointWithoutGroup() {
-    return getTestEntitiesWithGetEndpoint().filter(e -> ObjectUtils.notEqual(e, GROUP) && ObjectUtils.notEqual(e, FISCAL_YEAR));
+    return getTestEntitiesWithGetEndpoint()
+      .filter(e -> ObjectUtils.notEqual(e, GROUP))
+      .filter(e -> ObjectUtils.notEqual(e, FISCAL_YEAR))
+      .filter(e -> ObjectUtils.notEqual(e, FUND_UPDATE_LOG));
   }
 
   /**
@@ -287,7 +290,7 @@ public class EntitiesCrudBasicsTest {
     }
     record = JsonObject.mapFrom(t);
     RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, APPLICATION_JSON, 422);
-    verifyRecordNotSentToStorage(HttpMethod.POST, testEntity);
+    verifyRecordNotSentToStorage(testEntity);
   }
 
   @ParameterizedTest
@@ -299,7 +302,7 @@ public class EntitiesCrudBasicsTest {
     JsonObject record = testEntity.getMockObject();
 
     RestTestUtils.verifyPostResponse(testEntity.getEndpoint(), record, headers, APPLICATION_JSON,
-        INTERNAL_SERVER_ERROR.getStatusCode());
+      INTERNAL_SERVER_ERROR.getStatusCode());
   }
 
   @ParameterizedTest
@@ -325,7 +328,7 @@ public class EntitiesCrudBasicsTest {
     body.put(ID, ID_FOR_INTERNAL_SERVER_ERROR);
 
     RestTestUtils.verifyPut(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), body, APPLICATION_JSON,
-        INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+      INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -349,7 +352,7 @@ public class EntitiesCrudBasicsTest {
 
     assertThat(errors.getErrors(), hasSize(1));
     assertThat(errors.getErrors()
-      .get(0), equalTo(ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError()));
+      .getFirst(), equalTo(ErrorCodes.MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY.toError()));
   }
 
   @ParameterizedTest
@@ -366,7 +369,7 @@ public class EntitiesCrudBasicsTest {
     logger.info("=== Test delete {} record - Internal Server Error ===", testEntity.name());
 
     RestTestUtils.verifyDeleteResponse(testEntity.getEndpointWithId(ID_FOR_INTERNAL_SERVER_ERROR), APPLICATION_JSON,
-        INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
+      INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
   }
 
   @ParameterizedTest
@@ -393,14 +396,14 @@ public class EntitiesCrudBasicsTest {
     Assertions.assertTrue(matcher.find());
   }
 
-  void verifyRecordNotSentToStorage(HttpMethod method, TestEntities testEntity) {
+  void verifyRecordNotSentToStorage(TestEntities testEntity) {
     // Verify that record not sent to storage
-    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(method, testEntity.name());
+    List<JsonObject> rqRsEntries = MockServer.getRqRsEntries(HttpMethod.POST, testEntity.name());
     assertThat(rqRsEntries, hasSize(0));
   }
 
   /**
-   * Compare the record returned with the record that was sent in request, properties to be ignored from comparision can be added
+   * Compare the record returned with the record that was sent in request, properties to be ignored from comparison can be added
    * @param method
    * @param record
    * @param testEntity
@@ -412,7 +415,7 @@ public class EntitiesCrudBasicsTest {
     assertThat(rqRsEntries, hasSize(1));
 
     // remove "metadata" before comparing
-    JsonObject entry = rqRsEntries.get(0);
+    JsonObject entry = rqRsEntries.getFirst();
     entry.remove("metadata");
     Optional.ofNullable(ignoreProperties).ifPresent(p -> entry.remove(ignoreProperties));
     Object recordToStorage = entry.mapTo(testEntity.getClazz());
