@@ -158,7 +158,7 @@ public class FinanceDataService {
     if (!worksheetName.contains(".csv")) {
       return worksheetName;
     }
-    return worksheetName.replaceAll("\\.csv", "") + ".csv";
+    return worksheetName.replace(".csv", "") + ".csv";
   }
 
   private String createJobName(FyFinanceData financeData) {
