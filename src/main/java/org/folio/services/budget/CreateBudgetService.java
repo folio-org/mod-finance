@@ -140,7 +140,7 @@ public class CreateBudgetService {
 
   private Future<Budget> createActiveBudgetWithAllocation(Budget budgetToCreate, double allocatedValue,
       RequestContext requestContext) {
-    if (allocatedValue == 0.) {
+    if (allocatedValue == 0d) {
       return restClient.post(resourcesPath(BUDGETS_STORAGE), budgetToCreate, Budget.class, requestContext);
     }
     return restClient.post(resourcesPath(BUDGETS_STORAGE), budgetToCreate, Budget.class, requestContext)
@@ -154,6 +154,6 @@ public class CreateBudgetService {
       return succeededFuture(budget);
     }
     return restClient.put(resourceByIdPath(BUDGETS_STORAGE, budget.getId()), budget.withBudgetStatus(desiredStatus), requestContext)
-    .compose(v -> restClient.get(resourceByIdPath(BUDGETS_STORAGE, budget.getId()), Budget.class, requestContext));
+      .compose(v -> restClient.get(resourceByIdPath(BUDGETS_STORAGE, budget.getId()), Budget.class, requestContext));
   }
 }
