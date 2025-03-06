@@ -51,7 +51,6 @@ public class FinanceDataValidator {
     validateForDuplication(financeDataCollection);
 
     List<Error> combinedErrors = new ArrayList<>();
-
     IntStream.range(0, financeDataCollection.getFyFinanceData().size())
       .forEach(i -> validateFinanceDataFields(combinedErrors, financeDataCollection.getFyFinanceData().get(i), i, fiscalYearId));
 
