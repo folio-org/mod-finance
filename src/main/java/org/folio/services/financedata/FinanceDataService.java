@@ -12,8 +12,6 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 import io.vertx.core.Future;
@@ -129,14 +127,11 @@ public class FinanceDataService {
 
   private Future<FundUpdateLog> processLogs(String fundUpdateLogId, FyFinanceDataCollection financeDataCollection,
                                             RequestContext requestContext) {
-    var ledgerId = Optional.ofNullable(financeDataCollection.getFyFinanceData().getFirst().getLedgerId())
-      .orElseThrow(() -> new NoSuchElementException("Ledger id is not found"));
+    var ledgerId = financeDataCollection.getFyFinanceData().getFirst().getLedgerId();
     return fundUpdateLogService.getJobNumber(requestContext)
       .compose(jobNumber -> ledgerService.retrieveLedgerById(ledgerId, requestContext)
-        .compose(ledger -> {
-          var fundUpdateLog = createFundUpdateLog(fundUpdateLogId, jobNumber, ledger, financeDataCollection);
-          return fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext);
-        }));
+        .map(ledger -> createFundUpdateLog(fundUpdateLogId, jobNumber, ledger, financeDataCollection))
+        .compose(fundUpdateLog -> fundUpdateLogService.createFundUpdateLog(fundUpdateLog, requestContext)));
   }
 
   private FundUpdateLog createFundUpdateLog(String fundUpdateLogId, JobNumber jobNumber, Ledger ledger,

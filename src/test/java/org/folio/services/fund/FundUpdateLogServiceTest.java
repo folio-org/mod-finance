@@ -38,7 +38,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(VertxExtension.class)
@@ -129,7 +128,6 @@ public class FundUpdateLogServiceTest {
 
   @Test
   void testDeleteFundUpdateLog(VertxTestContext testContext) {
-    var requestContext = mock(RequestContext.class);
     when(restClient.delete(anyString(), any())).thenReturn(Future.succeededFuture(null));
 
     fundUpdateLogService.deleteFundUpdateLog("1", requestContext)
