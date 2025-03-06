@@ -247,6 +247,9 @@ public class FinanceDataServiceTest {
   private static Stream<Arguments> provideTestParameters() {
     return Stream.of(
       arguments("Test Worksheet", "Test Worksheet"),
+      arguments("FY2024LedgerACode (4).csv-log.csv", "FY2024LedgerACode (4)-log.csv"), // test to remove extra .csv
+      arguments("FY2024LedgerACode (4).csv-2.csv-log.csv", "FY2024LedgerACode (4)-2-log.csv"),
+      arguments("FY2024Fund1.csv", "FY2024Fund1.csv"),
       arguments(null, "FY2024-LEDGER-001") // set worksheetName to null to test FY code + Ledger code + date format
     );
   }

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNullElse;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.COMPLETED;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.ERROR;
 import static org.folio.rest.jaxrs.model.FundUpdateLog.Status.IN_PROGRESS;
+import org.folio.rest.jaxrs.model.FyFinanceData;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
 import static org.folio.rest.util.ResourcePathResolver.FINANCE_DATA_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
@@ -138,10 +139,10 @@ public class FinanceDataService {
                                             FyFinanceDataCollection financeDataCollection) {
     var jobDetails = new JobDetails().withAdditionalProperty("fyFinanceData", financeDataCollection.getFyFinanceData());
     var financeData = financeDataCollection.getFyFinanceData().getFirst();
-    var jobName = StringUtils.isNotEmpty(financeDataCollection.getWorksheetName())
-      ? financeDataCollection.getWorksheetName()
-      : String.format("%s-%s-%s", financeData.getFiscalYearCode(), financeData.getLedgerCode(),
-      new SimpleDateFormat("yyyyMMdd").format(new Date()));
+    var worksheetName = financeDataCollection.getWorksheetName();
+    var jobName = StringUtils.isNotEmpty(worksheetName)
+      ? processWorksheetName(worksheetName)
+      : createJobName(financeData);
 
     return new FundUpdateLog().withId(fundUpdateLogId)
       .withJobName(jobName)
@@ -151,6 +152,21 @@ public class FinanceDataService {
       .withJobNumber(Integer.valueOf(jobNumber.getSequenceNumber()))
       .withLedgerId(ledger.getId())
       .withAcqUnitIds(ledger.getAcqUnitIds());
+  }
+
+  private String processWorksheetName(String worksheetName) {
+    if (!worksheetName.contains(".csv")) {
+      return worksheetName;
+    }
+    return worksheetName.replace(".csv", "") + ".csv";
+  }
+
+  private String createJobName(FyFinanceData financeData) {
+    return String.format("%s-%s-%s",
+      financeData.getFiscalYearCode(),
+      financeData.getLedgerCode(),
+      new SimpleDateFormat("yyyyMMdd").format(new Date())
+    );
   }
 
   private void updateLogs(String fundUpdateLogId, FundUpdateLog.Status status, FyFinanceDataCollection updateFdCollection,
