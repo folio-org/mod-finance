@@ -2,6 +2,7 @@ package org.folio.services.budget;
 
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOCATION_TRANSFER_FAILED;
+import static org.folio.rest.util.ErrorCodes.NEGATIVE_ALLOCATION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -560,6 +561,21 @@ public class CreateBudgetServiceTest {
 
         verify(transactionMockService, never()).createAllocationTransaction(any(), any());
         verify(budgetExpenseClassMockService).createBudgetExpenseClasses(any(SharedBudget.class), eq(requestContextMock));
+        vertxTestContext.completeNow();
+      });
+  }
+
+  @Test
+  void testCreateBudgetWithNegativeAllocation(VertxTestContext vertxTestContext) {
+    currSharedBudget.setAllocated(-10d);
+
+    var future = createBudgetService.createBudget(currSharedBudget, requestContextMock);
+    vertxTestContext.assertFailure(future)
+      .onComplete(result -> {
+        HttpException httpException = (HttpException)result.cause();
+        assertEquals(422, httpException.getCode());
+        assertEquals(NEGATIVE_ALLOCATION.getCode(), httpException.getErrors().getErrors().getFirst().getCode());
+
         vertxTestContext.completeNow();
       });
   }

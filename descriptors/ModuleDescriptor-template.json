@@ -19,6 +19,7 @@
           "pathPattern": "/finance/budgets",
           "permissionsRequired": ["finance.budgets.item.post"],
           "modulePermissions": [
+            "finance-storage.budgets.item.get",
             "finance-storage.budgets.item.post",
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
