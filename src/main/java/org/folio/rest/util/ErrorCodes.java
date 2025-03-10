@@ -40,7 +40,8 @@ public enum ErrorCodes {
   UPDATE_CREDIT_TO_CANCEL_INVOICE("updateCreditToCancelInvoice", "A credit can only be updated to cancel an invoice"),
   CONFLICT("conflict", "Conflict when updating a record"),
   BUDGET_STATUS_INCORRECT("budgetStatusIncorrect", "Budget status is incorrect"),
-  FUND_STATUS_INCORRECT("fundStatusIncorrect", "Fund status is incorrect");
+  FUND_STATUS_INCORRECT("fundStatusIncorrect", "Fund status is incorrect"),
+  NEGATIVE_ALLOCATION("negativeBudgetAllocation", "A negative budget allocation is not allowed");
 
   private final String code;
   private final String description;

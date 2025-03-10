@@ -54,6 +54,10 @@ public class CreateBudgetService {
 
   public Future<SharedBudget> createBudget(SharedBudget sharedBudget, RequestContext requestContext) {
     log.debug("createBudget:: Creating budget for shared budget id: {}", sharedBudget.getId());
+    if (sharedBudget.getAllocated() < 0d) {
+      log.error("createBudget:: Negative allocation");
+      return Future.failedFuture(new HttpException(422, ErrorCodes.NEGATIVE_ALLOCATION));
+    }
     return fundFiscalYearService.retrievePlannedFiscalYear(BudgetUtils.convertToBudget(sharedBudget)
         .getFundId(), requestContext)
       .compose(plannedFiscalYear -> {
