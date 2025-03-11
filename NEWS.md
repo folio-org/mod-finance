@@ -1,4 +1,35 @@
-## 5.1.0 - Unreleased
+## 5.2.0 - Unreleased
+
+## 5.1.0 - Released (Sunflower R1 2025)
+The primary focus of this release was to implement Funds bulk edit functionality.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.0.0...v5.1.0)
+
+### Stories
+* [MODFIN-419](https://issues.folio.org/browse/MODFIN-419) - Display updated values on job details log screen
+* [MODFIN-416](https://issues.folio.org/browse/MODFIN-416) - Batch allocation logs - restrict by acq units
+* [MODFIN-415](https://issues.folio.org/browse/MODFIN-415) - Add job number retrieval and enhance finance data validation
+* [MODFIN-407](https://issues.folio.org/browse/MODFIN-407) - Make fund active when creating or increasing allocation
+* [MODFIN-403](https://issues.folio.org/browse/MODFIN-403) - Improve Bulk Fund Updates validation
+* [MODFIN-402](https://issues.folio.org/browse/MODFIN-402) - Update current budget value and display budget records in appropriate fiscal year in downloaded .csv allocations
+* [MODFIN-391](https://issues.folio.org/browse/MODFIN-391) - Minimize amount of requests to retrieve transactions for ledger
+* [MODFIN-382](https://issues.folio.org/browse/MODFIN-382) - Add dry-run mode for bulk FY finance updates
+* [MODFIN-381](https://issues.folio.org/browse/MODFIN-381) - Implement endpoint to process FY finance bulk update
+* [MODFIN-379](https://issues.folio.org/browse/MODFIN-379) - Create API for fund updates logs
+
+### Bug Fixes
+* [MODFIN-405](https://issues.folio.org/browse/MODFIN-405) - Current budget is created with incorrect values despite the received error
+* [MODFIN-386](https://issues.folio.org/browse/MODFIN-386) - Editing fiscal year at any time changes currency based on current system currency
+
+### Dependencies
+* Bump `java` from `17` to `21`
+* Bump `raml` from `35.3.0` to `35.4.0`
+* Bump `spring` from `6.1.14` to `6.2.3`
+* Bump `vertx` from `4.5.10` to `4.5.13`
+* Bump `log4j` from `2.24.1` to `2.24.3`
+* Bump `rest-assured` from `5.5.0` to `5.5.1`
+* Bump `folio-di-support` from `2.1.0` to `3.0.0`
+* Bump test dependencies and maven plugins to the latest versions
 
 ## 5.0.0 - Released (Ramsons R2 2024)
 The primary focus of this release was to improve budget and expenditure handling, and update core functionality.
