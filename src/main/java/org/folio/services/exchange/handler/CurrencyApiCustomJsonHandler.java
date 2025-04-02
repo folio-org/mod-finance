@@ -26,7 +26,7 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
       .build();
 
     var httpResponse = HTTP_CLIENT.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-    log.info("getExchangeRateFromCurrencyApiCom:: Status code: {}, body: {}", httpResponse.statusCode(), httpResponse.body());
+    log.info("getExchangeRateFromApi:: Status code: {}, body: {}", httpResponse.statusCode(), httpResponse.body());
 
     var exchangeRate = new JsonObject(httpResponse.body())
       .getJsonObject("data")

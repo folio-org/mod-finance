@@ -2,7 +2,6 @@ package org.folio.services.exchange;
 
 import io.vertx.core.Context;
 import io.vertx.core.Future;
-import lombok.extern.log4j.Log4j2;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -20,7 +19,6 @@ import java.util.Objects;
 import static org.folio.rest.util.ResourcePathResolver.EXCHANGE_RATE_SOURCE;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
-@Log4j2
 @Service
 public class ExchangeService {
 
