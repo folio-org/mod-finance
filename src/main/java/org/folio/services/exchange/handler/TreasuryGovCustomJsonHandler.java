@@ -26,7 +26,7 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
   @SneakyThrows
   public BigDecimal getExchangeRateFromApi(String from, String to) {
     if (!StringUtils.equals(from, "USD")) {
-      throw new IllegalStateException("Treasury custom exchange rate provider only supports USD 'from' current");
+      throw new IllegalStateException("Treasury custom exchange rate API only supports USD as a 'from' currency");
     }
 
     var currentQuarterLastDate = getCurrentQuarterLastDate();
