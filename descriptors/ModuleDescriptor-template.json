@@ -691,12 +691,14 @@
         {
           "methods": ["GET"],
           "pathPattern": "/finance/exchange-rate",
-          "permissionsRequired": ["finance.exchange-rate.item.get"]
+          "permissionsRequired": ["finance.exchange-rate.item.get"],
+          "modulePermissions": ["finance-storage.exchange-rate-source.item.get"]
         },
         {
           "methods": ["GET"],
           "pathPattern": "/finance/calculate-exchange",
-          "permissionsRequired": ["finance.calculate-exchange.item.get"]
+          "permissionsRequired": ["finance.calculate-exchange.item.get"],
+          "modulePermissions": ["finance-storage.exchange-rate-source.item.get"]
         }
       ]
     },
@@ -910,6 +912,10 @@
     },
     {
       "id": "finance-storage.finance-data",
+      "version":"1.0"
+    },
+    {
+      "id": "finance-storage.exchange-rate-source",
       "version":"1.0"
     }
   ],
