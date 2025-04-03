@@ -14,6 +14,7 @@ import org.javamoney.moneta.Money;
 import org.springframework.stereotype.Service;
 
 import javax.money.convert.ConversionQueryBuilder;
+import java.net.http.HttpClient;
 import java.util.Objects;
 
 import static org.folio.rest.util.ResourcePathResolver.EXCHANGE_RATE_SOURCE;
@@ -23,19 +24,21 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 public class ExchangeService {
 
   private final RestClient restClient;
+  private final HttpClient httpClient;
 
-  public ExchangeService(RestClient restClient) {
+  public ExchangeService(RestClient restClient, HttpClient httpClient) {
     this.restClient = restClient;
+    this.httpClient = httpClient;
   }
 
   public Future<ExchangeRate> getExchangeRate(String from, String to, Context context, RequestContext requestContext) {
     return getExchangeRateSource(requestContext)
       .flatMap(rateSource -> {
         if (Objects.isNull(rateSource) || Boolean.FALSE.equals(rateSource.getEnabled())) {
-          var convertedAmount = new ExchangeHelper(context).getExchangeRate(from, to);
-          return Future.succeededFuture(convertedAmount);
+          var exchangeRate = new ExchangeHelper(context).getExchangeRate(from, to);
+          return Future.succeededFuture(exchangeRate);
         }
-        var provider = new CustomJsonExchangeRateProvider(rateSource);
+        var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource);
         var exchangeRate = new ExchangeRate().withFrom(from).withTo(to)
           .withExchangeRate(provider.getExchangeRateFromHandler(from, to).doubleValue());
         return Future.succeededFuture(exchangeRate);
@@ -50,7 +53,7 @@ public class ExchangeService {
           var convertedAmount = new ExchangeHelper(context).calculateExchange(from, to, amount, customRate);
           return Future.succeededFuture(convertedAmount);
         }
-        var provider = new CustomJsonExchangeRateProvider(rateSource);
+        var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource);
         var query = ConversionQueryBuilder.of()
           .setBaseCurrency(from).setTermCurrency(to)
           .build();

@@ -15,6 +15,7 @@ import javax.money.convert.ProviderContext;
 import javax.money.convert.ProviderContextBuilder;
 import javax.money.convert.RateType;
 import java.math.BigDecimal;
+import java.net.http.HttpClient;
 
 @Log4j2
 public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
@@ -23,10 +24,12 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
     .set("providerDescription", "Custom exchange rate provider")
     .build();
   private static final String FOLIO_DIGIT_FRACTION = "folio.digit.fraction";
+  private final HttpClient httpClient;
   private final ExchangeRateSource rateSource;
 
-  public CustomJsonExchangeRateProvider(ExchangeRateSource rateSource) {
+  public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource) {
     super(CONTEXT);
+    this.httpClient = httpClient;
     this.rateSource = rateSource;
   }
 
@@ -49,9 +52,9 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
 
   public BigDecimal getExchangeRateFromHandler(String from, String to) {
     var handler =  switch (rateSource.getProviderType()) {
-      case CURRENCYAPI_COM -> new CurrencyApiCustomJsonHandler(rateSource);
-      case TREASURY_GOV -> new TreasuryGovCustomJsonHandler(rateSource);
-      case CONVERA_COM -> new ConveraCustomJsonHandler(rateSource);
+      case CURRENCYAPI_COM -> new CurrencyApiCustomJsonHandler(httpClient, rateSource);
+      case TREASURY_GOV -> new TreasuryGovCustomJsonHandler(httpClient, rateSource);
+      case CONVERA_COM -> new ConveraCustomJsonHandler(httpClient, rateSource);
     };
 
     return handler.getExchangeRateFromApi(from, to);

@@ -5,16 +5,21 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 
+import javax.ws.rs.core.HttpHeaders;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 @Log4j2
 public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
 
-  public CurrencyApiCustomJsonHandler(ExchangeRateSource rateSource) {
-    super(rateSource);
+  private static final String DATA = "data";
+  private static final String EXCHANGE_RATE = "exchangeRate";
+
+  public CurrencyApiCustomJsonHandler(HttpClient httpClient, ExchangeRateSource rateSource) {
+    super(httpClient, rateSource);
   }
 
   @Override
@@ -22,16 +27,16 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
   public BigDecimal getExchangeRateFromApi(String from, String to) {
     var httpRequest = HttpRequest.newBuilder()
       .uri(new URI(String.format(rateSource.getProviderUri(), rateSource.getApiKey(), from, to)))
-      .headers(CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()
+      .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()
       .build();
 
-    var httpResponse = HTTP_CLIENT.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-    log.info("getExchangeRateFromApi:: Status code: {}, body: {}", httpResponse.statusCode(), httpResponse.body());
+    var httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+    log.debug("getExchangeRateFromApi:: Status code: {}, body: {}", httpResponse.statusCode(), httpResponse.body());
 
     var exchangeRate = new JsonObject(httpResponse.body())
-      .getJsonObject("data")
+      .getJsonObject(DATA)
       .getJsonObject(to)
-      .getString("exchangeRate");
+      .getString(EXCHANGE_RATE);
 
     return new BigDecimal(exchangeRate);
   }
