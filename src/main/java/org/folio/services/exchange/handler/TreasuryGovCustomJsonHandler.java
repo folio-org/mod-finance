@@ -15,8 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
 
-import static org.folio.rest.acq.model.finance.ExchangeRateSource.ProviderType.TREASURY_GOV;
-
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
 
@@ -31,7 +29,7 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
   @SneakyThrows
   public BigDecimal getExchangeRateFromApi(String from, String to) {
     if (!StringUtils.equals(from, CountryCurrency.USD.name())) {
-      throw new IllegalStateException(String.format("Current %s handler supports only USD as a 'from' currency", TREASURY_GOV));
+      throw new IllegalStateException("Current handler supports only USD as a 'from' currency");
     }
 
     var currentDateTime = ZonedDateTime.now();

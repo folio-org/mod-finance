@@ -90,7 +90,7 @@ public class ExchangeServiceTest {
 
     exchangeService.getExchangeRate("EUR", "USD", context, requestContext)
       .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
-        assertEquals("Current treasury.gov handler supports only USD as a 'from' currency", throwable.getMessage());
+        assertEquals("Current handler supports only USD as a 'from' currency", throwable.getMessage());
         testContext.completeNow();
       })));
   }
