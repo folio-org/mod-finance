@@ -37,6 +37,8 @@ import org.folio.services.transactions.TransactionService;
 import org.folio.services.transactions.TransactionTotalService;
 import org.springframework.context.annotation.Bean;
 
+import java.net.http.HttpClient;
+
 public class ServicesConfiguration {
 
   @Bean
@@ -231,5 +233,10 @@ public class ServicesConfiguration {
   @Bean
   FinanceDataValidator financeDataValidator(FundService fundService, BudgetService budgetService) {
     return new FinanceDataValidator(fundService, budgetService);
+  }
+
+  @Bean
+  HttpClient httpClient() {
+    return HttpClient.newHttpClient();
   }
 }
