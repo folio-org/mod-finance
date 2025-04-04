@@ -18,6 +18,10 @@ import java.time.format.DateTimeFormatter;
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
 
+  private static final String URI_TEMPLATE = "%s?fields=country_currency_desc,exchange_rate,record_date"
+    + "&filter=country_currency_desc:in:(%s),record_date:lte:%s"
+    + "&sort=-record_date"
+    + "&page[size]=1";
   private static final String DATA = "data";
   private static final String EXCHANGE_RATE = "exchange_rate";
 
@@ -33,11 +37,8 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
     }
 
     var requestDate = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-    var normalizedPreparedUri = String.format("%s?fields=country_currency_desc,exchange_rate,record_date"
-      + "&filter=country_currency_desc:in:(%s),record_date:lte:%s"
-      + "&sort=-record_date"
-      + "&page[size]=1",
-      rateSource.getProviderUri(), CountryCurrency.valueOf(to).value, requestDate).replace(" ", "+");
+    var normalizedPreparedUri = String.format(URI_TEMPLATE, rateSource.getProviderUri(),
+      CountryCurrency.valueOf(to).value, requestDate).replace(" ", "+");
     var httpRequest = HttpRequest.newBuilder()
       .uri(new URI(normalizedPreparedUri))
       .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()

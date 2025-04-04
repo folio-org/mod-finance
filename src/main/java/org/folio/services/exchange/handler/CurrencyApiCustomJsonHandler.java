@@ -15,6 +15,7 @@ import java.net.http.HttpResponse;
 @Log4j2
 public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
 
+  private static final String URI_TEMPLATE = "%s?base_currency=%s&currencies=%s";
   private static final String API_KEY = "apikey";
   private static final String DATA = "data";
   private static final String VALUE = "value";
@@ -26,7 +27,7 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
   @Override
   @SneakyThrows
   public BigDecimal getExchangeRateFromApi(String from, String to) {
-    var preparedUri = String.format("%s?base_currency=%s&currencies=%s", rateSource.getProviderUri(), from, to);
+    var preparedUri = String.format(URI_TEMPLATE, rateSource.getProviderUri(), from, to);
     var httpRequest = HttpRequest.newBuilder()
       .uri(new URI(preparedUri))
       .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8, API_KEY, rateSource.getApiKey()).GET()

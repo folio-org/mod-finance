@@ -34,7 +34,7 @@ public class ExchangeService {
   public Future<ExchangeRate> getExchangeRate(String from, String to, Context context, RequestContext requestContext) {
     return getExchangeRateSource(requestContext)
       .flatMap(rateSource -> {
-        if (Objects.isNull(rateSource) || Boolean.FALSE.equals(rateSource.getEnabled())) {
+        if (Objects.isNull(rateSource) || isRateSourceDisabled(rateSource)) {
           var exchangeRate = new ExchangeHelper(context).getExchangeRate(from, to);
           return Future.succeededFuture(exchangeRate);
         }
@@ -49,7 +49,7 @@ public class ExchangeService {
                                           RequestContext requestContext) {
     return getExchangeRateSource(requestContext)
       .flatMap(rateSource -> {
-        if (Objects.isNull(rateSource) || Boolean.FALSE.equals(rateSource.getEnabled()) || Objects.nonNull(customRate)) {
+        if (Objects.isNull(rateSource) || isRateSourceDisabled(rateSource) || Objects.nonNull(customRate)) {
           var convertedAmount = new ExchangeHelper(context).calculateExchange(from, to, amount, customRate);
           return Future.succeededFuture(convertedAmount);
         }
@@ -74,5 +74,9 @@ public class ExchangeService {
         }
         return Future.failedFuture(e);
       });
+  }
+
+  private boolean isRateSourceDisabled(ExchangeRateSource rateSource) {
+    return Objects.nonNull(rateSource) && Boolean.FALSE.equals(rateSource.getEnabled());
   }
 }
