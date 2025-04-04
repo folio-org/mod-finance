@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
+import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.CURRENCYAPI_COM;
 import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.TREASURY_GOV;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -148,7 +149,7 @@ public class ExchangeServiceTest {
         .withProviderUri("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange");
       case CURRENCYAPI_COM -> new ExchangeRateSource()
         .withId(UUID.randomUUID().toString()).withEnabled(true)
-        .withProviderType(ExchangeRateSource.ProviderType.CURRENCYAPI_COM)
+        .withProviderType(CURRENCYAPI_COM)
         .withProviderUri("https://api.currencyapi.com/v3/latest")
         .withApiKey("apiKey");
       case CONVERA_COM -> null;
