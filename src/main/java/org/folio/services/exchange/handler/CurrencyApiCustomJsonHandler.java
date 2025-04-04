@@ -15,8 +15,9 @@ import java.net.http.HttpResponse;
 @Log4j2
 public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
 
+  private static final String API_KEY = "apikey";
   private static final String DATA = "data";
-  private static final String EXCHANGE_RATE = "exchangeRate";
+  private static final String VALUE = "value";
 
   public CurrencyApiCustomJsonHandler(HttpClient httpClient, ExchangeRateSource rateSource) {
     super(httpClient, rateSource);
@@ -25,9 +26,10 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
   @Override
   @SneakyThrows
   public BigDecimal getExchangeRateFromApi(String from, String to) {
+    var preparedUri = String.format("%s?base_currency=%s&currencies=%s", rateSource.getProviderUri(), from, to);
     var httpRequest = HttpRequest.newBuilder()
-      .uri(new URI(String.format(rateSource.getProviderUri(), rateSource.getApiKey(), from, to)))
-      .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()
+      .uri(new URI(preparedUri))
+      .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8, API_KEY, rateSource.getApiKey()).GET()
       .build();
 
     var httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
@@ -36,7 +38,7 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
     var exchangeRate = new JsonObject(httpResponse.body())
       .getJsonObject(DATA)
       .getJsonObject(to)
-      .getString(EXCHANGE_RATE);
+      .getString(VALUE);
 
     return new BigDecimal(exchangeRate);
   }

@@ -17,6 +17,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
 
+import static org.folio.rest.acq.model.finance.ExchangeRateSource.ProviderType.TREASURY_GOV;
+
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
 
@@ -30,18 +32,18 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
   @Override
   @SneakyThrows
   public BigDecimal getExchangeRateFromApi(String from, String to) {
-    if (!StringUtils.equals(from, "USD")) {
-      throw new IllegalStateException("Treasury custom exchange rate API only supports USD as a 'from' currency");
+    if (!StringUtils.equals(from, CountryCurrency.USD.name())) {
+      throw new IllegalStateException(String.format("%s handler supports USD as a 'from' currency", TREASURY_GOV));
     }
 
     var currentQuarterLastDate = getFiscalQuarterLastDate();
-    var preparedUri = String.format("%s?fields=country_currency_desc,exchange_rate,record_date"
-        + "&filter=country_currency_desc:in:(%s),record_date:gte:%s"
-        + "&sort=-record_date"
-        + "&page[size]=1",
-      super.rateSource.getProviderUri(), CountryCurrency.valueOf(to).value, currentQuarterLastDate).replace(" ", "+");
+    var normalizedPreparedUri = String.format("%s?fields=country_currency_desc,exchange_rate,record_date"
+      + "&filter=country_currency_desc:in:(%s),record_date:gte:%s"
+      + "&page[size]=1",
+      super.rateSource.getProviderUri(), CountryCurrency.valueOf(to).value, currentQuarterLastDate)
+      .replace(" ", "+");
     var httpRequest = HttpRequest.newBuilder()
-      .uri(new URI(preparedUri))
+      .uri(new URI(normalizedPreparedUri))
       .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()
       .build();
 
@@ -56,7 +58,16 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
     return new BigDecimal(exchangeRate);
   }
 
+  private String getFiscalQuarterLastDate() {
+    return ZonedDateTime.now()
+      .minus(1, IsoFields.QUARTER_OF_YEAR.getBaseUnit())
+      .with(TemporalAdjusters.firstDayOfMonth())
+      .minusDays(1)
+      .format(DateTimeFormatter.ISO_LOCAL_DATE);
+  }
+
   enum CountryCurrency {
+    USD("United States of America-Dollar"),
     ZWL("Zimbabwe-Rtgs"),
     AFN("Afghanistan-Afghani"),
     ALL("Albania-Lek"),
@@ -101,7 +112,6 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
     DKK("Denmark-Krone"),
     DJF("Djibouti-Franc"),
     DOP("Dominican Republic-Peso"),
-    USD("Ecuador-Dolares"),
     EGP("Egypt-Pound"),
     SVC("El Salvador-Dollar"),
     XFA("Equatorial Guinea-Cfa Franc"),
@@ -215,13 +225,5 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
     CountryCurrency(String value) {
       this.value = value;
     }
-  }
-
-  private String getFiscalQuarterLastDate() {
-    return ZonedDateTime.now()
-      .minus(1, IsoFields.QUARTER_OF_YEAR.getBaseUnit())
-      .with(TemporalAdjusters.firstDayOfMonth())
-      .minusDays(1)
-      .format(DateTimeFormatter.ISO_LOCAL_DATE);
   }
 }

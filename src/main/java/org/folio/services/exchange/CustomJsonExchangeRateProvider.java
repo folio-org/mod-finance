@@ -9,6 +9,7 @@ import org.javamoney.moneta.convert.ExchangeRateBuilder;
 import org.javamoney.moneta.spi.AbstractRateProvider;
 import org.javamoney.moneta.spi.DefaultNumberValue;
 
+import javax.money.convert.ConversionContext;
 import javax.money.convert.ConversionQuery;
 import javax.money.convert.ExchangeRate;
 import javax.money.convert.ProviderContext;
@@ -23,7 +24,7 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
   private static final ProviderContext CONTEXT = ProviderContextBuilder.of("CUSTOM", RateType.REALTIME)
     .set("providerDescription", "Custom exchange rate provider")
     .build();
-  private static final String FOLIO_DIGIT_FRACTION = "folio.digit.fraction";
+
   private final HttpClient httpClient;
   private final ExchangeRateSource rateSource;
 
@@ -35,14 +36,11 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
 
   @Override
   public ExchangeRate getExchangeRate(ConversionQuery query) {
-    log.info("getExchangeRate:: Using custom exchange rate provider");
     var from = query.getBaseCurrency();
     var to = query.getCurrency();
 
     var exchangeRate = getExchangeRateFromHandler(from.getCurrencyCode(), to.getCurrencyCode());
-    log.info("getExchangeRate:: Exchange rate {} -> {}: {}", from, to, exchangeRate);
-
-    var builder = new ExchangeRateBuilder(this.getExchangeContext(FOLIO_DIGIT_FRACTION));
+    var builder = new ExchangeRateBuilder(ConversionContext.of());
     builder.setBase(from);
     builder.setTerm(to);
     builder.setFactor(DefaultNumberValue.of(exchangeRate));
@@ -57,6 +55,10 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
       case CONVERA_COM -> new ConveraCustomJsonHandler(httpClient, rateSource);
     };
 
-    return handler.getExchangeRateFromApi(from, to);
+    var exchangeRate = handler.getExchangeRateFromApi(from, to);
+    log.info("getExchangeRateFromHandler:: Using {} handler with exchange rate {} -> {}: {}",
+      rateSource.getProviderType(),from, to, exchangeRate);
+
+    return exchangeRate;
   }
 }
