@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
-import org.folio.services.exchange.ExchangeUtil;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.math.BigDecimal;
@@ -14,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
@@ -32,13 +32,12 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
       throw new IllegalStateException("Current handler supports only USD as a 'from' currency");
     }
 
-    var currentDateTime = ZonedDateTime.now();
-    var fiscalQuarterLastDay = ExchangeUtil.getFiscalQuarterLastDay(currentDateTime);
+    var requestDate = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
     var normalizedPreparedUri = String.format("%s?fields=country_currency_desc,exchange_rate,record_date"
-      + "&filter=country_currency_desc:in:(%s),record_date:gte:%s"
+      + "&filter=country_currency_desc:in:(%s),record_date:lte:%s"
+      + "&sort=-record_date"
       + "&page[size]=1",
-      rateSource.getProviderUri(), CountryCurrency.valueOf(to).value, fiscalQuarterLastDay)
-      .replace(" ", "+");
+      rateSource.getProviderUri(), CountryCurrency.valueOf(to).value, requestDate).replace(" ", "+");
     var httpRequest = HttpRequest.newBuilder()
       .uri(new URI(normalizedPreparedUri))
       .headers(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF_8).GET()

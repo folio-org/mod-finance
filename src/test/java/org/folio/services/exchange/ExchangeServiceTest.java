@@ -24,10 +24,6 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.CURRENCYAPI_COM;
@@ -109,36 +105,6 @@ public class ExchangeServiceTest {
         assertEquals(expectedAmount, result);
         testContext.completeNow();
       })));
-  }
-
-  @ParameterizedTest
-  @CsvSource({
-    // If current quarter is 1, use data from 3rd quarter last year
-    "2025-01-01, 2024-09-30",
-    "2025-02-01, 2024-09-30",
-    "2025-03-01, 2024-09-30",
-    // If current quarter is 2, use data from 4th quarter last year
-    "2025-04-01, 2024-12-31",
-    "2025-05-01, 2024-12-31",
-    "2025-06-01, 2024-12-31",
-    // If current quarter is 3, use data from 1st quarter this year
-    "2025-07-01, 2025-01-31",
-    "2025-08-01, 2025-01-31",
-    "2025-09-01, 2025-01-31",
-    // If current quarter is 3, use data 2nd quarter this year
-    "2025-10-01, 2025-03-31",
-    "2025-11-01, 2025-03-31",
-    "2025-12-01, 2025-03-31",
-  })
-  void testGetFiscalQuarterLastDate(String currentDay, String expectedLastDay) {
-    var firstDayMonth = LocalDate.parse(currentDay);
-    var lastDayMonth = firstDayMonth.until(firstDayMonth.with(TemporalAdjusters.lastDayOfMonth()), ChronoUnit.DAYS);
-
-    for (int nextDay = 0; nextDay <= lastDayMonth; nextDay++) {
-      var nextDateTime = firstDayMonth.plusDays(1).atStartOfDay(ZoneOffset.systemDefault());
-
-      assertEquals(expectedLastDay, ExchangeUtil.getFiscalQuarterLastDay(nextDateTime));
-    }
   }
 
   private ExchangeRateSource createExchangeRateSource(ExchangeRateSource.ProviderType providerType) {
