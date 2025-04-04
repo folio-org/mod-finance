@@ -69,10 +69,8 @@ public class ExchangeService {
     var requestEntry = new RequestEntry(resourcesPath(EXCHANGE_RATE_SOURCE));
     return restClient.get(requestEntry.buildEndpoint(), ExchangeRateSource.class, requestContext)
       .recover(e -> {
-        if (e instanceof HttpException ex) {
-          if (ex.getCode() == HttpStatus.HTTP_NOT_FOUND.toInt()) {
-            return Future.succeededFuture(null);
-          }
+        if (e instanceof HttpException ex && ex.getCode() == HttpStatus.HTTP_NOT_FOUND.toInt()) {
+          return Future.succeededFuture(null);
         }
         return Future.failedFuture(e);
       });

@@ -57,7 +57,7 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
 
     var exchangeRate = handler.getExchangeRateFromApi(from, to);
     log.info("getExchangeRateFromHandler:: Using {} handler with exchange rate {} -> {}: {}",
-      rateSource.getProviderType(),from, to, exchangeRate);
+      rateSource.getProviderType().name(), from, to, exchangeRate);
 
     return exchangeRate;
   }

@@ -116,7 +116,7 @@ public class ExchangeServiceTest {
     "2025-01-01, 2024-09-30",
     "2025-02-01, 2024-09-30",
     "2025-03-01, 2024-09-30",
-    // If current quarter is 2, use data from 4th quarter this year
+    // If current quarter is 2, use data from 4th quarter last year
     "2025-04-01, 2024-12-31",
     "2025-05-01, 2024-12-31",
     "2025-06-01, 2024-12-31",
