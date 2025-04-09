@@ -1,6 +1,5 @@
 package org.folio.services.exchange;
 
-import io.vertx.core.Context;
 import io.vertx.core.Future;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
@@ -31,11 +30,11 @@ public class ExchangeService {
     this.httpClient = httpClient;
   }
 
-  public Future<ExchangeRate> getExchangeRate(String from, String to, Context context, RequestContext requestContext) {
+  public Future<ExchangeRate> getExchangeRate(String from, String to, RequestContext requestContext) {
     return getExchangeRateSource(requestContext)
       .flatMap(rateSource -> {
         if (Objects.isNull(rateSource) || isRateSourceDisabled(rateSource)) {
-          var exchangeRate = new ExchangeHelper(context).getExchangeRate(from, to);
+          var exchangeRate = new ExchangeHelper(requestContext.context()).getExchangeRate(from, to);
           return Future.succeededFuture(exchangeRate);
         }
         var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource);
@@ -45,12 +44,11 @@ public class ExchangeService {
       });
   }
 
-  public Future<Double> calculateExchange(String from, String to, Number amount, Number customRate, Context context,
-                                          RequestContext requestContext) {
+  public Future<Double> calculateExchange(String from, String to, Number amount, Number customRate, RequestContext requestContext) {
     return getExchangeRateSource(requestContext)
       .flatMap(rateSource -> {
         if (Objects.isNull(rateSource) || isRateSourceDisabled(rateSource) || Objects.nonNull(customRate)) {
-          var convertedAmount = new ExchangeHelper(context).calculateExchange(from, to, amount, customRate);
+          var convertedAmount = new ExchangeHelper(requestContext.context()).calculateExchange(from, to, amount, customRate);
           return Future.succeededFuture(convertedAmount);
         }
         var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource);

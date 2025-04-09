@@ -1,6 +1,5 @@
 package org.folio.services.exchange;
 
-import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -40,7 +39,6 @@ public class ExchangeServiceTest {
   @Mock private RestClient restClient;
   @Mock private HttpClient httpClient;
   @Mock private HttpResponse<String> httpResponse;
-  @Mock private Context context;
   @Mock private RequestContext requestContext;
   @InjectMocks private ExchangeService exchangeService;
 
@@ -67,7 +65,7 @@ public class ExchangeServiceTest {
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    exchangeService.getExchangeRate("USD", "EUR", context, requestContext)
+    exchangeService.getExchangeRate("USD", "EUR", requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals("USD", result.getFrom());
         assertEquals("EUR", result.getTo());
@@ -84,7 +82,7 @@ public class ExchangeServiceTest {
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    exchangeService.getExchangeRate("EUR", "USD", context, requestContext)
+    exchangeService.getExchangeRate("EUR", "USD", requestContext)
       .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
         assertEquals("Current handler supports only USD as a 'from' currency", throwable.getMessage());
         testContext.completeNow();
@@ -100,7 +98,7 @@ public class ExchangeServiceTest {
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    exchangeService.calculateExchange("USD", "EUR", 10, null, context, requestContext)
+    exchangeService.calculateExchange("USD", "EUR", 10, null, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals(expectedAmount, result);
         testContext.completeNow();
