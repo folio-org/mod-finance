@@ -6,7 +6,6 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.HttpStatus;
 import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 import org.folio.rest.jaxrs.model.Parameter;
@@ -45,8 +44,7 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
       return BigDecimal.ONE;
     }
     if (!StringUtils.equals(from, CountryCurrency.USD.name())) {
-      var errors = List.of(new Error().withCode(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode())
-        .withMessage(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription())
+      var errors = List.of(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.toError()
         .withParameters(List.of(new Parameter().withKey(FROM).withValue(from), new Parameter().withKey(TO).withValue(to))));
       throw new HttpException(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), new Errors().withErrors(errors).withTotalRecords(errors.size()));
     }
