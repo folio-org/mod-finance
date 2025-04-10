@@ -8,7 +8,9 @@ import io.vertx.junit5.VertxTestContext;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
+import org.folio.rest.util.ErrorCodes;
 import org.folio.util.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -75,6 +77,23 @@ public class ExchangeServiceTest {
   }
 
   @Test
+  void testGetExchangeRateUsingCustomJsonExchangeRateProviderWithUsdInBothSidesUsingTreasureGov(VertxTestContext testContext)
+    throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    exchangeService.getExchangeRate("USD", "USD", requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertEquals("USD", result.getFrom());
+        assertEquals("USD", result.getTo());
+        assertEquals(1, result.getExchangeRate());
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
   void testGetExchangeRateUsingCustomJsonExchangeRateProviderWithInvalidTreasureGovFromCurrency(VertxTestContext testContext)
     throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
@@ -84,7 +103,12 @@ public class ExchangeServiceTest {
 
     exchangeService.getExchangeRate("EUR", "USD", requestContext)
       .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
-        assertEquals("Current handler supports only USD as a 'from' currency", throwable.getMessage());
+        if (throwable instanceof HttpException he) {
+          assertEquals(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), he.getCode());
+          var error = he.getErrors().getErrors().getFirst();
+          assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode(), error.getCode());
+          assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription(), error.getMessage());
+        }
         testContext.completeNow();
       })));
   }

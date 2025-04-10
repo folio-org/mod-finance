@@ -49,7 +49,7 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
   }
 
   public BigDecimal getExchangeRateFromHandler(String from, String to) {
-    var handler =  switch (rateSource.getProviderType()) {
+    var handler = switch (rateSource.getProviderType()) {
       case CURRENCYAPI_COM -> new CurrencyApiCustomJsonHandler(httpClient, rateSource);
       case TREASURY_GOV -> new TreasuryGovCustomJsonHandler(httpClient, rateSource);
       case CONVERA_COM -> new ConveraCustomJsonHandler(httpClient, rateSource);

@@ -41,7 +41,8 @@ public enum ErrorCodes {
   CONFLICT("conflict", "Conflict when updating a record"),
   BUDGET_STATUS_INCORRECT("budgetStatusIncorrect", "Budget status is incorrect"),
   FUND_STATUS_INCORRECT("fundStatusIncorrect", "Fund status is incorrect"),
-  NEGATIVE_ALLOCATION("negativeBudgetAllocation", "A negative budget allocation is not allowed");
+  NEGATIVE_ALLOCATION("negativeBudgetAllocation", "A negative budget allocation is not allowed"),
+  UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY("unsupportedExchangeRateFromCurrency", "Unsupported exchange rate from currency - Treasury.gov handler does not support using other 'from' currencies apart from USD");
 
   private final String code;
   private final String description;
