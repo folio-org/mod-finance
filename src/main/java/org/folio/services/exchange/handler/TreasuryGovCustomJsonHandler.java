@@ -45,7 +45,10 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
       return BigDecimal.ONE;
     }
     if (!StringUtils.equals(from, CountryCurrency.USD.name())) {
-      throwHttpExceptionOnUnsupportedFromCurrency(from, to);
+      var errors = List.of(new Error().withCode(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode())
+        .withMessage(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription())
+        .withParameters(List.of(new Parameter().withKey(FROM).withValue(from), new Parameter().withKey(TO).withValue(to))));
+      throw new HttpException(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), new Errors().withErrors(errors).withTotalRecords(errors.size()));
     }
 
     var requestDate = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
@@ -65,13 +68,6 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
       .getString(EXCHANGE_RATE);
 
     return new BigDecimal(exchangeRate);
-  }
-
-  private void throwHttpExceptionOnUnsupportedFromCurrency(String from, String to) {
-    var errors = List.of(new Error().withCode(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode())
-      .withMessage(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription())
-      .withParameters(List.of(new Parameter().withKey(FROM).withValue(from), new Parameter().withKey(TO).withValue(to))));
-    throw new HttpException(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), new Errors().withErrors(errors).withTotalRecords(errors.size()));
   }
 
   enum CountryCurrency {
