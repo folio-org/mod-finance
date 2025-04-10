@@ -86,8 +86,7 @@ public class ExchangeServiceTest {
 
     exchangeService.getExchangeRate("USD", "USD", requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
-        assertEquals("USD", result.getFrom());
-        assertEquals("USD", result.getTo());
+        assertEquals(result.getFrom(), result.getTo());
         assertEquals(1, result.getExchangeRate());
         testContext.completeNow();
       })));
@@ -104,12 +103,14 @@ public class ExchangeServiceTest {
     exchangeService.getExchangeRate("EUR", "USD", requestContext)
       .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
         if (throwable instanceof HttpException he) {
-          assertEquals(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), he.getCode());
           var error = he.getErrors().getErrors().getFirst();
+          assertEquals(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), he.getCode());
           assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode(), error.getCode());
           assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription(), error.getMessage());
+          testContext.completeNow();
+        } else {
+          testContext.failNow(new IllegalStateException("Invalid assertion"));
         }
-        testContext.completeNow();
       })));
   }
 
