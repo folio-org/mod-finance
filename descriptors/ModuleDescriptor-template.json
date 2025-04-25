@@ -804,6 +804,7 @@
           "permissionsRequired": ["finance.finance-data.collection.get"],
           "modulePermissions": [
             "finance-storage.finance-data.collection.get",
+            "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
         },
