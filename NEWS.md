@@ -1,5 +1,14 @@
 ## 5.2.0 - Unreleased
 
+## 5.1.1 - Released (Sunflower R1 2025)
+The primary focus of this release was to simplify acqUnit cheks for finance data 
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.1.0...v5.1.1)
+
+### Bug Fixes
+* [MODFIN-421](https://issues.folio.org/browse/MODFIN-421) - (BF) Cannot access batch edit screen and download batch allocation worksheet
+
+
 ## 5.1.0 - Released (Sunflower R1 2025)
 The primary focus of this release was to implement Funds bulk edit functionality.
 
