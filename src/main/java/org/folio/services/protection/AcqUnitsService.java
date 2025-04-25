@@ -71,7 +71,7 @@ public class AcqUnitsService {
   }
 
   public Future<String> buildAcqUnitsCqlClauseForFinanceData(RequestContext requestContext) {
-    return getAcqUnitIdsForSearch(requestContext)
+    return getAcqUnitIdsForUser(getUserId(requestContext), requestContext)
       .map(ids -> {
         if (ids.isEmpty()) {
           return String.format("(%s and %s)", NO_FD_FUND_UNIT_ASSIGNED_CQL, NO_FD_BUDGET_UNIT_ASSIGNED_CQL);
@@ -93,7 +93,7 @@ public class AcqUnitsService {
   }
 
   private Future<List<String>> getAcqUnitIdsForSearch(RequestContext requestContext) {
-    var unitsForUser = getAcqUnitIdsForUser(requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
+    var unitsForUser = getAcqUnitIdsForUser(getUserId(requestContext), requestContext);
     var unitsAllowRead = getOpenForReadAcqUnitIds(requestContext);
 
     return CompositeFuture.join(unitsForUser, unitsAllowRead)
@@ -131,5 +131,9 @@ public class AcqUnitsService {
         }
         return ids;
       });
+  }
+
+  private String getUserId(RequestContext requestContext) {
+    return requestContext.headers().get(OKAPI_USERID_HEADER);
   }
 }
