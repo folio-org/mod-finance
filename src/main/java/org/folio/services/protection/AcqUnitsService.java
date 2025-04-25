@@ -7,16 +7,16 @@ import static org.folio.rest.util.ResourcePathResolver.ACQUISITIONS_UNITS;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 import static org.folio.services.protection.AcqUnitConstants.ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.ACTIVE_UNITS_CQL;
-import static org.folio.services.protection.AcqUnitConstants.FD_BUDGET_ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.FD_FUND_ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.IS_DELETED_PROP;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
-import static org.folio.services.protection.AcqUnitConstants.NO_FD_BUDGET_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,10 +26,6 @@ import org.folio.rest.acq.model.finance.AcquisitionsUnitMembership;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
-
-import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
-import one.util.streamex.StreamEx;
 
 public class AcqUnitsService {
 
@@ -59,41 +55,26 @@ public class AcqUnitsService {
   }
 
   public Future<String> buildAcqUnitsCqlClause(RequestContext requestContext) {
-    return getAcqUnitIdsForSearch(requestContext)
-      .map(ids -> {
-        if (ids.isEmpty()) {
-          return NO_ACQ_UNIT_ASSIGNED_CQL;
-        }
-        return String.format("%s or (%s)",
-          convertIdsToCqlQuery(ids, ACQUISITIONS_UNIT_IDS, false),
-          NO_ACQ_UNIT_ASSIGNED_CQL);
-      });
+    return buildGenericAcqUnitsCqlClause(requestContext, ACQUISITIONS_UNIT_IDS, NO_ACQ_UNIT_ASSIGNED_CQL);
   }
 
   public Future<String> buildAcqUnitsCqlClauseForFinanceData(RequestContext requestContext) {
+    return buildGenericAcqUnitsCqlClause(requestContext, FD_FUND_ACQUISITIONS_UNIT_IDS, NO_FD_FUND_UNIT_ASSIGNED_CQL);
+  }
+
+  private Future<String> buildGenericAcqUnitsCqlClause(RequestContext requestContext, String fieldName, String noUnitAssignedCql) {
     return getAcqUnitIdsForSearch(requestContext)
       .map(ids -> {
         if (ids.isEmpty()) {
-          return String.format("(%s and %s)", NO_FD_FUND_UNIT_ASSIGNED_CQL, NO_FD_BUDGET_UNIT_ASSIGNED_CQL);
+          return noUnitAssignedCql;
         }
-        return String.format("(" +
-            "(%s and %s) or " + // Case 1: Both fund and budget have matching acqUnits
-            "(%s and %s) or " + // Case 2: Fund has matching acqUnit and budget is empty
-            "(%s and %s) or " + // Case 3: Fund is empty and budget has matching acqUnit
-            "(%s and %s))",     // Case 4: Both fund and budget are empty
-          convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
-          convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
-          convertIdsToCqlQuery(ids, FD_FUND_ACQUISITIONS_UNIT_IDS, false),
-          NO_FD_BUDGET_UNIT_ASSIGNED_CQL,
-          NO_FD_FUND_UNIT_ASSIGNED_CQL,
-          convertIdsToCqlQuery(ids, FD_BUDGET_ACQUISITIONS_UNIT_IDS, false),
-          NO_FD_FUND_UNIT_ASSIGNED_CQL,
-          NO_FD_BUDGET_UNIT_ASSIGNED_CQL);
+        String acqUnitIdsCql = convertIdsToCqlQuery(ids, fieldName, false);
+        return String.format("%s or (%s)", acqUnitIdsCql, noUnitAssignedCql);
       });
   }
 
   private Future<List<String>> getAcqUnitIdsForSearch(RequestContext requestContext) {
-    var unitsForUser = getAcqUnitIdsForUser(requestContext.headers().get(OKAPI_USERID_HEADER), requestContext);
+    var unitsForUser = getAcqUnitIdsForUser(getUserId(requestContext), requestContext);
     var unitsAllowRead = getOpenForReadAcqUnitIds(requestContext);
 
     return CompositeFuture.join(unitsForUser, unitsAllowRead)
@@ -102,7 +83,6 @@ public class AcqUnitsService {
         .distinct()
         .collect(Collectors.toList()));
   }
-
 
   private Future<List<String>> getAcqUnitIdsForUser(String userId, RequestContext requestContext) {
     return acqUnitMembershipsService.getAcquisitionsUnitsMemberships("userId==" + userId, 0, Integer.MAX_VALUE, requestContext)
@@ -131,5 +111,9 @@ public class AcqUnitsService {
         }
         return ids;
       });
+  }
+
+  private String getUserId(RequestContext requestContext) {
+    return requestContext.headers().get(OKAPI_USERID_HEADER);
   }
 }

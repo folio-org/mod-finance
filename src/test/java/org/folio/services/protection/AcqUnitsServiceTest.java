@@ -6,8 +6,8 @@ import static org.folio.rest.util.TestConfig.mockPort;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestConstants.X_OKAPI_USER_ID;
+import static org.folio.services.protection.AcqUnitConstants.FD_FUND_ACQUISITIONS_UNIT_IDS;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
-import static org.folio.services.protection.AcqUnitConstants.NO_FD_BUDGET_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,12 +18,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.acq.model.finance.AcquisitionsUnit;
 import org.folio.rest.acq.model.finance.AcquisitionsUnitCollection;
@@ -38,11 +41,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import io.vertx.core.Context;
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 
 @ExtendWith(VertxExtension.class)
 public class AcqUnitsServiceTest {
@@ -177,14 +175,14 @@ public class AcqUnitsServiceTest {
 
   @Test
   void testShouldBuildCqlClauseForFinanceDataWhenIdsIsEmpty(VertxTestContext vertxTestContext) {
-    var units = new AcquisitionsUnitCollection()
-      .withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
+    var units = new AcquisitionsUnitCollection().withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
     var members = new AcquisitionsUnitMembershipCollection()
       .withAcquisitionsUnitMemberships(Collections.emptyList()).withTotalRecords(0);
-    var expectedQuery = "(" + NO_FD_FUND_UNIT_ASSIGNED_CQL + " and " + NO_FD_BUDGET_UNIT_ASSIGNED_CQL + ")";
 
-    doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
-    doReturn(succeededFuture(members)).when(acqUnitMembershipsService).getAcquisitionsUnitsMemberships(anyString(), anyInt(), anyInt(), eq(requestContext));
+    doReturn(succeededFuture(units)).when(restClient)
+      .get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
+    doReturn(succeededFuture(members)).when(acqUnitMembershipsService)
+      .getAcquisitionsUnitsMemberships(anyString(), anyInt(), anyInt(), eq(requestContext));
 
     var future = acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(requestContext);
 
@@ -193,9 +191,10 @@ public class AcqUnitsServiceTest {
         assertTrue(result.succeeded());
 
         var actClause = result.result();
-        assertThat(actClause, equalTo(expectedQuery));
+        assertThat(actClause, equalTo(NO_FD_FUND_UNIT_ASSIGNED_CQL));
         verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
-        verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
+        verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0,
+          Integer.MAX_VALUE, requestContext);
 
         vertxTestContext.completeNow();
       });
@@ -204,16 +203,12 @@ public class AcqUnitsServiceTest {
   @Test
   void testShouldBuildCqlClauseForFinanceDataWhenIdsIsNotEmpty(VertxTestContext vertxTestContext) {
     var unitId = UUID.randomUUID().toString();
-    var units = new AcquisitionsUnitCollection()
-      .withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
+    var units = new AcquisitionsUnitCollection().withAcquisitionsUnits(Collections.emptyList()).withTotalRecords(0);
     var memberId = UUID.randomUUID().toString();
     var members = new AcquisitionsUnitMembershipCollection()
       .withAcquisitionsUnitMemberships(List.of(new AcquisitionsUnitMembership().withAcquisitionsUnitId(unitId).withId(memberId)))
       .withTotalRecords(1);
-    var expectedQuery = "((fundAcqUnitIds=(" + unitId + ") and budgetAcqUnitIds=(" + unitId + ")) or " +
-      "(fundAcqUnitIds=(" + unitId + ") and cql.allRecords=1 not budgetAcqUnitIds <> []) or " +
-      "(cql.allRecords=1 not fundAcqUnitIds <> [] and budgetAcqUnitIds=(" + unitId + ")) or " +
-      "(cql.allRecords=1 not fundAcqUnitIds <> [] and cql.allRecords=1 not budgetAcqUnitIds <> []))";
+    var expectedQuery = FD_FUND_ACQUISITIONS_UNIT_IDS + "=(" + unitId + ")" + " or " + "(" + NO_FD_FUND_UNIT_ASSIGNED_CQL + ")";
 
     doReturn(succeededFuture(units)).when(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
     doReturn(succeededFuture(members)).when(acqUnitMembershipsService).getAcquisitionsUnitsMemberships(anyString(), anyInt(), anyInt(), eq(requestContext));
@@ -223,8 +218,8 @@ public class AcqUnitsServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertTrue(result.succeeded());
-
         var actClause = result.result();
+
         assertThat(actClause, equalTo(expectedQuery));
         verify(restClient).get(anyString(), eq(AcquisitionsUnitCollection.class), eq(requestContext));
         verify(acqUnitMembershipsService).getAcquisitionsUnitsMemberships("userId==" + X_OKAPI_USER_ID.getValue(), 0, Integer.MAX_VALUE, requestContext);
