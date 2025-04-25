@@ -15,7 +15,6 @@ import static org.folio.rest.util.TestConfig.clearVertxContext;
 import static org.folio.rest.util.TestConfig.initSpringContext;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.services.protection.AcqUnitConstants.NO_FD_BUDGET_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -102,7 +101,6 @@ public class FinanceDataApiTest {
       .withFyFinanceData(List.of(new FyFinanceData().withFiscalYearId(fiscalYearId)))
       .withTotalRecords(1);
     String query = "fiscalYearId==" + fiscalYearId;
-    String notAcqUnitAssignedQuery = "(" + NO_FD_FUND_UNIT_ASSIGNED_CQL + " and " + NO_FD_BUDGET_UNIT_ASSIGNED_CQL + ")";
     int limit = 5;
     int offset = 1;
 
@@ -111,7 +109,7 @@ public class FinanceDataApiTest {
     params.put("limit", limit);
     params.put("offset", offset);
 
-    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(notAcqUnitAssignedQuery));
+    when(acqUnitsService.buildAcqUnitsCqlClauseForFinanceData(any())).thenReturn(succeededFuture(NO_FD_FUND_UNIT_ASSIGNED_CQL));
     when(financeDataService.getFinanceDataWithAcqUnitsRestriction(anyString(), anyInt(), anyInt(), any()))
       .thenReturn(succeededFuture(financeDataCollection));
 
@@ -132,7 +130,7 @@ public class FinanceDataApiTest {
     var errors = verifyGet(FINANCE_DATA_ENDPOINT, APPLICATION_JSON, INTERNAL_SERVER_ERROR.getStatusCode()).as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
+    assertThat(errors.getErrors().getFirst().getCode(), is(GENERIC_ERROR_CODE.getCode()));
   }
 
   @Test
@@ -160,7 +158,7 @@ public class FinanceDataApiTest {
       .as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is(GENERIC_ERROR_CODE.getCode()));
+    assertThat(errors.getErrors().getFirst().getCode(), is(GENERIC_ERROR_CODE.getCode()));
     verify(financeDataService).putFinanceData(eq(financeDataCollection), any(RequestContext.class));
   }
 
@@ -168,13 +166,13 @@ public class FinanceDataApiTest {
   void negative_testPutFinanceFinanceDataBadRequest() throws IOException {
     var financeDataCollection = getFinanceDataCollection();
     // Modify one field to make it invalid
-    financeDataCollection.getFyFinanceData().get(0).setFiscalYearId(null);
+    financeDataCollection.getFyFinanceData().getFirst().setFiscalYearId(null);
 
     var errors = verifyPut(FINANCE_DATA_ENDPOINT, financeDataCollection, APPLICATION_JSON, 422)
       .as(Errors.class);
 
     assertThat(errors.getErrors(), hasSize(1));
-    assertThat(errors.getErrors().get(0).getCode(), is("jakarta.validation.constraints.NotNull.message"));
+    assertThat(errors.getErrors().getFirst().getCode(), is("jakarta.validation.constraints.NotNull.message"));
   }
 
   @Test
