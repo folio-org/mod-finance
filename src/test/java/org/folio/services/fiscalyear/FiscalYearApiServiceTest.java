@@ -31,7 +31,7 @@ import org.folio.rest.jaxrs.model.FinancialSummary;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.services.budget.BudgetService;
-import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.protection.AcqUnitsService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ public class FiscalYearApiServiceTest {
   @Mock
   private RequestContext requestContext;
   @Mock
-  private ConfigurationEntriesService configurationEntriesService;
+  private CommonSettingsService commonSettingsService;
   @Mock
   private AcqUnitsService acqUnitsService;
 
@@ -63,7 +63,7 @@ public class FiscalYearApiServiceTest {
   public void initMocks() {
     mockitoMocks = MockitoAnnotations.openMocks(this);
     FiscalYearService fiscalYearService = new FiscalYearService(restClient);
-    fiscalYearApiService = new FiscalYearApiService(fiscalYearService, configurationEntriesService, budgetService, acqUnitsService);
+    fiscalYearApiService = new FiscalYearApiService(fiscalYearService, commonSettingsService, budgetService, acqUnitsService);
   }
 
   @AfterEach

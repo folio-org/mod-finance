@@ -25,7 +25,7 @@ import static org.folio.rest.util.TestConstants.X_OKAPI_TOKEN;
 import static org.folio.rest.util.TestEntities.FISCAL_YEAR;
 import static org.folio.rest.util.TestEntities.LEDGER;
 import static org.folio.rest.util.TestUtils.convertLocalDateTimeToDate;
-import static org.folio.services.configuration.ConfigurationEntriesService.DEFAULT_CURRENCY;
+import static org.folio.services.configuration.CommonSettingsService.DEFAULT_CURRENCY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;

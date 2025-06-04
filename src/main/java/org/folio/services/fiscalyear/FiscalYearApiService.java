@@ -15,7 +15,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
-import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.protection.AcqUnitsService;
 
 import io.vertx.core.Future;
@@ -25,24 +25,24 @@ public class FiscalYearApiService {
   private static final Logger log = LogManager.getLogger();
 
   private final FiscalYearService fiscalYearService;
-  private final ConfigurationEntriesService configurationEntriesService;
+  private final CommonSettingsService commonSettingsService;
   private final BudgetService budgetService;
   private final AcqUnitsService acqUnitsService;
 
   /**
    * This class is only used by FiscalYearApi
    */
-  public FiscalYearApiService(FiscalYearService fiscalYearService, ConfigurationEntriesService configurationEntriesService,
+  public FiscalYearApiService(FiscalYearService fiscalYearService, CommonSettingsService commonSettingsService,
                               BudgetService budgetService, AcqUnitsService acqUnitsService) {
     this.fiscalYearService = fiscalYearService;
-    this.configurationEntriesService = configurationEntriesService;
+    this.commonSettingsService = commonSettingsService;
     this.budgetService = budgetService;
     this.acqUnitsService = acqUnitsService;
   }
 
   public Future<FiscalYear> createFiscalYear(FiscalYear fiscalYear, RequestContext requestContext) {
     log.debug("createFiscalYear:: Creating fiscal year: {}", fiscalYear.getId());
-    return configurationEntriesService.getSystemCurrency(requestContext)
+    return commonSettingsService.getSystemCurrency(requestContext)
       .compose(currency -> {
         fiscalYear.setCurrency(currency);
         return fiscalYearService.createFiscalYear(fiscalYear, requestContext);
@@ -74,7 +74,7 @@ public class FiscalYearApiService {
       return fiscalYearService.updateFiscalYear(fiscalYear, requestContext);
     }
 
-    return configurationEntriesService.getSystemCurrency(requestContext)
+    return commonSettingsService.getSystemCurrency(requestContext)
       .compose(currency -> {
         log.info("updateFiscalYear:: Currency is empty in fiscal year, using system currency: {}", currency);
         fiscalYear.setCurrency(currency);
