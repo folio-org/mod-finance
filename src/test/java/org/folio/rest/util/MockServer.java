@@ -17,7 +17,7 @@ import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTIO
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.CONFIGURATIONS;
+import static org.folio.rest.util.ResourcePathResolver.COMMON_SETTINGS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
@@ -38,7 +38,7 @@ import static org.folio.rest.util.TestConstants.INVALID_CONFIG_X_OKAPI_TENANT;
 import static org.folio.rest.util.TestConstants.TOTAL_RECORDS;
 import static org.folio.rest.util.TestConstants.X_OKAPI_TENANT;
 import static org.folio.rest.util.TestUtils.getMockData;
-import static org.folio.services.configuration.ConfigurationEntriesService.SYSTEM_CONFIG_MODULE_NAME;
+import static org.folio.services.configuration.CommonSettingsService.TIMEZONE_SETTING;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -209,8 +209,8 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleGetTransactionsCollection(ctx, TestEntities.TRANSACTIONS));
-    router.route(HttpMethod.GET, resourcesPath(CONFIGURATIONS))
-      .handler(this::handleConfigurationModuleResponse);
+    router.route(HttpMethod.GET, resourcesPath(COMMON_SETTINGS))
+      .handler(this::handleSettingsModuleResponse);
     router.route(HttpMethod.GET, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.EXPENSE_CLASSES));
 
@@ -815,7 +815,7 @@ public class MockServer {
     }
   }
 
-  private void handleConfigurationModuleResponse(RoutingContext ctx) {
+  private void handleSettingsModuleResponse(RoutingContext ctx) {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
 
@@ -824,7 +824,7 @@ public class MockServer {
         fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
       } else if (INVALID_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = "invalid_config";
-      } else if (X_OKAPI_TENANT.getValue().equals(tenant) || (ctx.request().absoluteURI().contains(SYSTEM_CONFIG_MODULE_NAME))) {
+      } else if (X_OKAPI_TENANT.getValue().equals(tenant) || (ctx.request().absoluteURI().contains(TIMEZONE_SETTING))) {
         fileName = "config_localeSEK";
       }
 

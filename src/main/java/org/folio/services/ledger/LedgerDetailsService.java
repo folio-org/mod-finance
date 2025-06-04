@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
-import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.fiscalyear.FiscalYearService;
 
 import io.vertx.core.Future;
@@ -24,12 +24,12 @@ public class LedgerDetailsService {
 
   private final FiscalYearService fiscalYearService;
   private final LedgerService ledgerService;
-  private final ConfigurationEntriesService configurationEntriesService;
+  private final CommonSettingsService commonSettingsService;
 
-  public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, ConfigurationEntriesService configurationEntriesService) {
+  public LedgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, CommonSettingsService commonSettingsService) {
     this.fiscalYearService = fiscalYearService;
     this.ledgerService = ledgerService;
-    this.configurationEntriesService = configurationEntriesService;
+    this.commonSettingsService = commonSettingsService;
   }
 
   public Future<FiscalYear> getCurrentFiscalYear(String ledgerId, RequestContext requestContext) {
@@ -73,7 +73,7 @@ public class LedgerDetailsService {
   private Future<List<FiscalYear>> getFirstThreeFiscalYears(String ledgerId, RequestContext requestContext) {
     return ledgerService.retrieveLedgerById(ledgerId, requestContext)
       .compose(ledger -> fiscalYearService.getFiscalYearById(ledger.getFiscalYearOneId(), requestContext))
-      .compose(fyOne -> configurationEntriesService.getSystemTimeZone(requestContext)
+      .compose(fyOne -> commonSettingsService.getSystemTimeZone(requestContext)
         .map(timeZone -> this.buildCurrentFYQuery(fyOne, timeZone)))
       .compose(query -> fiscalYearService.getFiscalYearsWithoutAcqUnitsRestriction(query, 0, 3, requestContext))
       .map(FiscalYearsCollection::getFiscalYears);

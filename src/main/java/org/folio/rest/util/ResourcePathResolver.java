@@ -29,7 +29,7 @@ public class ResourcePathResolver {
   public static final String TRANSACTION_TOTALS = "transactionTotals";
   public static final String BATCH_TRANSACTIONS = "batchTransactions";
   public static final String BATCH_TRANSACTIONS_STORAGE = "batchTransactionsStorage";
-  public static final String CONFIGURATIONS = "configurations";
+  public static final String COMMON_SETTINGS = "settings";
   public static final String EXPENSE_CLASSES_STORAGE_URL = "expenseClassStorageUrl";
   public static final String EXPENSE_CLASSES_URL = "expenseClassUrl";
   public static final String BUDGET_EXPENSE_CLASSES = "budgetExpenseClasses";
@@ -60,7 +60,7 @@ public class ResourcePathResolver {
     apis.put(TRANSACTION_TOTALS, "/finance-storage/transaction-totals");
     apis.put(BATCH_TRANSACTIONS, "/finance/transactions/batch-all-or-nothing");
     apis.put(BATCH_TRANSACTIONS_STORAGE, "/finance-storage/transactions/batch-all-or-nothing");
-    apis.put(CONFIGURATIONS, "/configurations/entries");
+    apis.put(COMMON_SETTINGS, "/settings/entries");
     apis.put(EXPENSE_CLASSES_STORAGE_URL, "/finance-storage/expense-classes");
     apis.put(EXPENSE_CLASSES_URL, "/finance/expense-classes");
     apis.put(BUDGET_EXPENSE_CLASSES, "/finance-storage/budget-expense-classes");
