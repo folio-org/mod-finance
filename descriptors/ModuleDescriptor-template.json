@@ -29,7 +29,7 @@
             "finance-storage.funds.item.get",
             "finance-storage.ledgers.item.get",
             "finance-storage.transactions.batch.execute",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -158,7 +158,7 @@
             "finance-storage.funds.collection.get",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -171,7 +171,7 @@
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.post",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -186,7 +186,7 @@
             "finance-storage.group-fund-fiscal-years.collection.get",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -204,7 +204,7 @@
             "finance-storage.group-fund-fiscal-years.collection.get",
             "finance-storage.group-fund-fiscal-years.item.post",
             "finance-storage.group-fund-fiscal-years.item.delete",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -241,7 +241,7 @@
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
             "finance-storage.budgets.collection.get",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         }
       ]
@@ -266,7 +266,7 @@
           "permissionsRequired": ["finance.fiscal-years.item.post"],
           "modulePermissions": [
             "finance-storage.fiscal-years.item.post",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -286,7 +286,7 @@
           "permissionsRequired": ["finance.fiscal-years.item.put"],
           "modulePermissions": [
             "finance-storage.fiscal-years.item.put",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         },
         {
@@ -393,7 +393,7 @@
             "finance-storage.ledgers.item.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.fiscal-years.collection.get",
-            "mod-settings.global.read.stripes-core.prefs.manage"
+            "mod-settings.entries.collection.get"
           ]
         }
       ]
