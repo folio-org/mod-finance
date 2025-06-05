@@ -20,7 +20,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@CopilotGenerated
+@CopilotGenerated(model = "o3-mini")
 public class CommonSettingsServiceTest {
   @Mock
   private RestClient restClient;
