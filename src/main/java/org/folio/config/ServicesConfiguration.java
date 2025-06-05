@@ -7,7 +7,7 @@ import org.folio.services.budget.BudgetExpenseClassTotalsService;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.budget.RecalculateBudgetService;
 import org.folio.services.budget.CreateBudgetService;
-import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.financedata.FinanceDataService;
 import org.folio.services.financedata.FinanceDataValidator;
 import org.folio.services.fiscalyear.FiscalYearApiService;
@@ -98,9 +98,9 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  FiscalYearApiService fiscalYearApiService(FiscalYearService fiscalYearService, ConfigurationEntriesService configurationEntriesService,
+  FiscalYearApiService fiscalYearApiService(FiscalYearService fiscalYearService, CommonSettingsService commonSettingsService,
       BudgetService budgetService, AcqUnitsService acqUnitsService){
-    return new FiscalYearApiService(fiscalYearService, configurationEntriesService, budgetService, acqUnitsService);
+    return new FiscalYearApiService(fiscalYearService, commonSettingsService, budgetService, acqUnitsService);
   }
 
   @Bean
@@ -160,8 +160,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  LedgerDetailsService ledgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, ConfigurationEntriesService configurationEntriesService) {
-    return new LedgerDetailsService(fiscalYearService, ledgerService, configurationEntriesService);
+  LedgerDetailsService ledgerDetailsService(FiscalYearService fiscalYearService, LedgerService ledgerService, CommonSettingsService commonSettingsService) {
+    return new LedgerDetailsService(fiscalYearService, ledgerService, commonSettingsService);
   }
 
   @Bean
@@ -186,8 +186,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  ConfigurationEntriesService configurationService(RestClient restClient) {
-    return new ConfigurationEntriesService(restClient);
+  CommonSettingsService configurationService(RestClient restClient) {
+    return new CommonSettingsService(restClient);
   }
 
   @Bean

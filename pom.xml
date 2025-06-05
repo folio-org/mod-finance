@@ -57,7 +57,6 @@
 
     <!--Folio dependencies properties-->
     <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
-    <mod-configuration-client.version>5.11.0</mod-configuration-client.version>
 
     <!--Maven plugin properties-->
     <aspectj-maven-plugin.version>1.14</aspectj-maven-plugin.version>
@@ -160,11 +159,6 @@
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.folio</groupId>
-      <artifactId>mod-configuration-client</artifactId>
-      <version>${mod-configuration-client.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -308,6 +302,16 @@
             </goals>
             <configuration>
               <sourceDirectory>${basedir}/ramls/acq-models/acquisitions-unit/schemas</sourceDirectory>
+              <targetPackage>org.folio.rest.acq.model.finance</targetPackage>
+            </configuration>
+          </execution>
+          <execution>
+            <id>common-setting</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${basedir}/ramls/acq-models/mod-settings/schemas</sourceDirectory>
               <targetPackage>org.folio.rest.acq.model.finance</targetPackage>
             </configuration>
           </execution>

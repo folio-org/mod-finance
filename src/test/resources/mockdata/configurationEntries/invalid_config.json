@@ -1,21 +1,17 @@
 {
-  "configs" : [ {
-    "id" : "58f1a50a-dee4-4963-83ce-ab30a9cf717a",
-    "module" : "ORG",
-    "configName" : "localeSettings",
-    "enabled" : true,
-    "value" : "{\"locale\":\"en-SE\",\"timezone\":\"America/New_York\"}",
-    "metadata" : {
-      "createdDate" : "2019-11-21T03:47:03.762+0000",
-      "createdByUserId" : "0d5186fc-eb45-5058-8b41-805418f937a3",
-      "updatedDate" : "2019-11-21T03:47:03.762+0000",
-      "updatedByUserId" : "0d5186fc-eb45-5058-8b41-805418f937a3"
+  "items": [
+    {
+      "id": "409d98c0-323b-48e3-a127-617742bbd42f",
+      "scope": "stripes-core.prefs.manage",
+      "key": "tenantLocaleSettings",
+      "value": {
+        "locale": "en-US",
+        "timezone": "America/New_York"
+      }
     }
-  } ],
-  "totalRecords" : 1,
-  "resultInfo" : {
-    "totalRecords" : 1,
-    "facets" : [ ],
-    "diagnostics" : [ ]
+  ],
+  "resultInfo": {
+    "totalRecords": 1,
+    "diagnostics": []
   }
 }

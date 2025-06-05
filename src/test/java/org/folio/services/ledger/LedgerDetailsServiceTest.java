@@ -33,7 +33,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.FiscalYearsCollection;
 import org.folio.rest.jaxrs.model.Ledger;
-import org.folio.services.configuration.ConfigurationEntriesService;
+import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ public class LedgerDetailsServiceTest {
   @Mock
   private LedgerService ledgerService;
   @Mock
-  private ConfigurationEntriesService configurationEntriesService;
+  private CommonSettingsService commonSettingsService;
 
 
   @BeforeEach
@@ -88,7 +88,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(fiscalYear)).when(fiscalYearService).getFiscalYearById(curFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -126,7 +126,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstFiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -162,7 +162,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -199,7 +199,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -230,7 +230,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -267,7 +267,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("UTC")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("UTC")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getPlannedFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
@@ -304,7 +304,7 @@ public class LedgerDetailsServiceTest {
     doReturn(succeededFuture(ledger)).when(ledgerService).retrieveLedgerById(ledgerId, requestContext);
     doReturn(succeededFuture(firstfiscalYear)).when(fiscalYearService).getFiscalYearById(firstCurFiscalId, requestContext);
     doReturn(succeededFuture(fyCol)).when(fiscalYearService).getFiscalYearsWithoutAcqUnitsRestriction(any(String.class), eq(0), eq(3), eq(requestContext));
-    doReturn(succeededFuture("America/Los_Angeles")).when(configurationEntriesService).getSystemTimeZone(eq(requestContext));
+    doReturn(succeededFuture("America/Los_Angeles")).when(commonSettingsService).getSystemTimeZone(eq(requestContext));
     //When
     var future = ledgerDetailsService.getCurrentFiscalYear(ledgerId, requestContext);
     vertxTestContext.assertComplete(future)
