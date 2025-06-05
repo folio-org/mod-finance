@@ -819,10 +819,8 @@ public class MockServer {
     try {
       String tenant = ctx.request().getHeader(OKAPI_HEADER_TENANT) ;
 
-      String fileName = StringUtils.EMPTY;
-      if (EMPTY_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
-        fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
-      } else if (INVALID_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
+      String fileName = EMPTY_CONFIG_X_OKAPI_TENANT.getValue();
+      if (INVALID_CONFIG_X_OKAPI_TENANT.getValue().equals(tenant)) {
         fileName = "invalid_config";
       } else if (X_OKAPI_TENANT.getValue().equals(tenant) || (ctx.request().absoluteURI().contains(TIMEZONE_SETTING))) {
         fileName = "config_localeSEK";
