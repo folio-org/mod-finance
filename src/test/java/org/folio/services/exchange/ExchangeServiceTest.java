@@ -8,9 +8,7 @@ import io.vertx.junit5.VertxTestContext;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
-import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
-import org.folio.rest.util.ErrorCodes;
 import org.folio.util.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -27,9 +25,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
 import java.util.UUID;
 
+import static org.folio.rest.acq.model.finance.ExchangeRate.OperationMode.DIVIDE;
+import static org.folio.rest.acq.model.finance.ExchangeRate.OperationMode.MULTIPLY;
 import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.CURRENCYAPI_COM;
 import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.TREASURY_GOV;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -88,12 +89,13 @@ public class ExchangeServiceTest {
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals(result.getFrom(), result.getTo());
         assertEquals(1, result.getExchangeRate());
+        assertEquals(MULTIPLY.name(), result.getOperationMode().name());
         testContext.completeNow();
       })));
   }
 
   @Test
-  void testGetExchangeRateUsingCustomJsonExchangeRateProviderWithInvalidTreasureGovFromCurrency(VertxTestContext testContext)
+  void testGetExchangeRateUsingCustomJsonExchangeRateProviderWithDifferentTreasureGovFromCurrency(VertxTestContext testContext)
     throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
     when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
@@ -101,16 +103,12 @@ public class ExchangeServiceTest {
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
     exchangeService.getExchangeRate("EUR", "USD", requestContext)
-      .onComplete(testContext.failing(throwable -> testContext.verify(() -> {
-        if (throwable instanceof HttpException he) {
-          var error = he.getErrors().getErrors().getFirst();
-          assertEquals(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), he.getCode());
-          assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getCode(), error.getCode());
-          assertEquals(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.getDescription(), error.getMessage());
-          testContext.completeNow();
-        } else {
-          testContext.failNow(new IllegalStateException("Invalid assertion"));
-        }
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertEquals("EUR", result.getFrom());
+        assertEquals("USD", result.getTo());
+        assertNotEquals(0, result.getExchangeRate(), 0.0);
+        assertEquals(DIVIDE.name(), result.getOperationMode().name());
+        testContext.completeNow();
       })));
   }
 

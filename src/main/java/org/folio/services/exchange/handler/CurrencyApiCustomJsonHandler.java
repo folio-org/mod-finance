@@ -3,6 +3,8 @@ package org.folio.services.exchange.handler;
 import io.vertx.core.json.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.tuple.Pair;
+import org.folio.rest.jaxrs.model.ExchangeRate;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -11,6 +13,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import static org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.MULTIPLY;
 
 @Log4j2
 public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
@@ -26,7 +30,7 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
 
   @Override
   @SneakyThrows
-  public BigDecimal getExchangeRateFromApi(String from, String to) {
+  public Pair<BigDecimal, ExchangeRate.OperationMode> getExchangeRateFromApi(String from, String to) {
     var preparedUri = String.format(URI_TEMPLATE, rateSource.getProviderUri(), from, to);
     var httpRequest = HttpRequest.newBuilder()
       .uri(new URI(preparedUri))
@@ -41,6 +45,6 @@ public class CurrencyApiCustomJsonHandler extends AbstractCustomJsonHandler {
       .getJsonObject(to)
       .getString(VALUE);
 
-    return new BigDecimal(exchangeRate);
+    return Pair.of(new BigDecimal(exchangeRate), MULTIPLY);
   }
 }
