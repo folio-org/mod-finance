@@ -55,7 +55,6 @@ public class ExchangeService {
           var convertedAmount = new ExchangeHelper(requestContext.context()).calculateExchange(from, to, amount, customRate);
           return Future.succeededFuture(convertedAmount);
         }
-
         var operationMode = getOperationMode(rateSource.getProviderType() == TREASURY_GOV, from);
         var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource, operationMode);
         var query = ConversionQueryBuilder.of()
