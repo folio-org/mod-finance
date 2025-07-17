@@ -35,6 +35,7 @@ import org.folio.services.budget.BudgetServiceTest;
 import org.folio.services.budget.CreateBudgetServiceTest;
 import org.folio.services.budget.RecalculateBudgetServiceTest;
 import org.folio.services.exchange.ExchangeServiceTest;
+import org.folio.services.exchange.ManualCurrencyConversionTest;
 import org.folio.services.financedata.FinanceDataServiceTest;
 import org.folio.services.financedata.FinanceDataValidatorTest;
 import org.folio.services.fiscalyear.FiscalYearApiServiceTest;
@@ -271,4 +272,7 @@ public class ApiTestSuite {
 
   @Nested
   class ExchangeServiceTestNested extends ExchangeServiceTest {}
+
+  @Nested
+  class ManualCurrencyConversionTestNested extends ManualCurrencyConversionTest {}
 }

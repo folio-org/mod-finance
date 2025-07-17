@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @CopilotGenerated(model = "Claude Sonnet 3.5")
-class ManualCurrencyConversionTest {
+public class ManualCurrencyConversionTest {
 
   private ExchangeRateProvider rateProvider;
   private ConversionQuery conversionQuery;
