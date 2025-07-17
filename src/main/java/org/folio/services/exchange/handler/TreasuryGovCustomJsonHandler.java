@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import org.folio.rest.jaxrs.model.ExchangeRate.OperationMode;
 
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
@@ -61,7 +62,7 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
     return Pair.of(new BigDecimal(exchangeRate), operationMode);
   }
 
-  public static org.folio.rest.jaxrs.model.ExchangeRate.OperationMode getOperationMode(boolean isTreasureGovProvider, String from) {
+  public static OperationMode getOperationMode(boolean isTreasureGovProvider, String from) {
     if (isTreasureGovProvider && !StringUtils.equals(from, TreasuryGovCustomJsonHandler.CountryCurrency.USD.name())) {
       return ExchangeRate.OperationMode.DIVIDE;
     }

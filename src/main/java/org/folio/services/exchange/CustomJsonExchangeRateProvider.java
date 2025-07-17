@@ -19,6 +19,7 @@ import javax.money.convert.ProviderContextBuilder;
 import javax.money.convert.RateType;
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
+import org.folio.rest.jaxrs.model.ExchangeRate.OperationMode;
 
 @Log4j2
 public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
@@ -29,17 +30,17 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
 
   private final HttpClient httpClient;
   private final ExchangeRateSource rateSource;
-  private final org.folio.rest.jaxrs.model.ExchangeRate.OperationMode operationMode;
+  private final OperationMode operationMode;
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource) {
     super(CONTEXT);
     this.httpClient = httpClient;
     this.rateSource = rateSource;
-    this.operationMode = org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.MULTIPLY;
+    this.operationMode = OperationMode.MULTIPLY;
   }
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource,
-                                        org.folio.rest.jaxrs.model.ExchangeRate.OperationMode operationMode) {
+                                        OperationMode operationMode) {
     super(CONTEXT);
     this.httpClient = httpClient;
     this.rateSource = rateSource;
@@ -65,7 +66,7 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
     return new ManualCurrencyConversion(conversionQuery, this, ConversionContext.of(this.getContext().getProviderName(), RateType.ANY), operationMode);
   }
 
-  public Pair<BigDecimal, org.folio.rest.jaxrs.model.ExchangeRate.OperationMode> getExchangeRateFromHandler(String from, String to) {
+  public Pair<BigDecimal, OperationMode> getExchangeRateFromHandler(String from, String to) {
     var handler = switch (rateSource.getProviderType()) {
       case CURRENCYAPI_COM -> new CurrencyApiCustomJsonHandler(httpClient, rateSource);
       case TREASURY_GOV -> new TreasuryGovCustomJsonHandler(httpClient, rateSource);

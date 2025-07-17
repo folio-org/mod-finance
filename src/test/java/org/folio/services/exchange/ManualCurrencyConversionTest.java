@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.money.Monetary;
 import javax.money.convert.*;
+import org.folio.rest.jaxrs.model.ExchangeRate.OperationMode;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -68,8 +69,7 @@ public class ManualCurrencyConversionTest {
     var amount = Money.of(10, "USD");
     when(rateProvider.getExchangeRate(any(ConversionQuery.class))).thenReturn(exchangeRate);
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.MULTIPLY);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.MULTIPLY);
     var result = conversion.apply(amount);
 
     assertNotNull(result);
@@ -79,8 +79,7 @@ public class ManualCurrencyConversionTest {
   @Test
   void testApplyDivideModeWithSameCurrency() {
     var amount = Money.of(10, "EUR");
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
 
     var result = conversion.apply(amount);
 
@@ -95,8 +94,7 @@ public class ManualCurrencyConversionTest {
     var contextWithScale = ConversionContext.of(RateType.ANY).toBuilder().set("exchangeRateScale", 2).build();
     when(exchangeRate.getContext()).thenReturn(contextWithScale);
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
     var result = conversion.apply(amount);
 
     assertNotNull(result);
@@ -108,8 +106,7 @@ public class ManualCurrencyConversionTest {
     var amount = Money.of(10, "USD");
     when(rateProvider.getExchangeRate(any(ConversionQuery.class))).thenReturn(null);
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
 
     assertThrows(CurrencyConversionException.class, () -> conversion.apply(amount));
   }
@@ -120,8 +117,7 @@ public class ManualCurrencyConversionTest {
     when(rateProvider.getExchangeRate(any(ConversionQuery.class))).thenReturn(exchangeRate);
     when(exchangeRate.getBaseCurrency()).thenReturn(Monetary.getCurrency("USD")); // Different from amount currency
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
 
     assertThrows(CurrencyConversionException.class, () -> conversion.apply(amount));
   }
@@ -133,8 +129,7 @@ public class ManualCurrencyConversionTest {
     var contextWithNegativeScale = ConversionContext.of(RateType.ANY).toBuilder().set("exchangeRateScale", -1).build();
     when(exchangeRate.getContext()).thenReturn(contextWithNegativeScale);
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
     var result = conversion.apply(amount);
 
     assertNotNull(result);
@@ -148,8 +143,7 @@ public class ManualCurrencyConversionTest {
     var contextWithoutScale = ConversionContext.of(RateType.ANY);
     when(exchangeRate.getContext()).thenReturn(contextWithoutScale);
 
-    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext,
-      org.folio.rest.jaxrs.model.ExchangeRate.OperationMode.DIVIDE);
+    var conversion = new ManualCurrencyConversion(conversionQuery, rateProvider, conversionContext, OperationMode.DIVIDE);
     var result = conversion.apply(amount);
 
     assertNotNull(result);
