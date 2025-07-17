@@ -33,10 +33,7 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
   private final OperationMode operationMode;
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource) {
-    super(CONTEXT);
-    this.httpClient = httpClient;
-    this.rateSource = rateSource;
-    this.operationMode = OperationMode.MULTIPLY;
+    this(httpClient, rateSource, OperationMode.MULTIPLY);
   }
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource,
