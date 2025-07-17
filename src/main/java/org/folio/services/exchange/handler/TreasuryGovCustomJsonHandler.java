@@ -4,12 +4,9 @@ import io.vertx.core.json.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.HttpStatus;
-import org.folio.rest.exception.HttpException;
-import org.folio.rest.jaxrs.model.Errors;
+import org.apache.commons.lang3.tuple.Pair;
+import org.folio.rest.jaxrs.model.ExchangeRate;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
-import org.folio.rest.jaxrs.model.Parameter;
-import org.folio.rest.util.ErrorCodes;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.math.BigDecimal;
@@ -19,13 +16,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import org.folio.rest.jaxrs.model.ExchangeRate.OperationMode;
 
 @Log4j2
 public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
 
-  private static final String FROM = "from";
-  private static final String TO = "to";
   private static final String URI_TEMPLATE = "%s?fields=country_currency_desc,exchange_rate,record_date"
     + "&filter=country_currency_desc:in:(%s),record_date:lte:%s"
     + "&sort=-record_date"
@@ -39,14 +34,13 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
 
   @Override
   @SneakyThrows
-  public BigDecimal getExchangeRateFromApi(String from, String to) {
+  public Pair<BigDecimal, ExchangeRate.OperationMode> getExchangeRateFromApi(String from, String to) {
     if (StringUtils.equals(from, to)) {
-      return BigDecimal.ONE;
+      return Pair.of(BigDecimal.ONE, ExchangeRate.OperationMode.MULTIPLY);
     }
-    if (!StringUtils.equals(from, CountryCurrency.USD.name())) {
-      var errors = List.of(ErrorCodes.UNSUPPORTED_EXCHANGE_RATE_FROM_CURRENCY.toError()
-        .withParameters(List.of(new Parameter().withKey(FROM).withValue(from), new Parameter().withKey(TO).withValue(to))));
-      throw new HttpException(HttpStatus.HTTP_UNPROCESSABLE_ENTITY.toInt(), new Errors().withErrors(errors).withTotalRecords(errors.size()));
+    var operationMode = getOperationMode(true, from);
+    if (operationMode == ExchangeRate.OperationMode.DIVIDE) {
+      to = from;
     }
 
     var requestDate = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
@@ -65,10 +59,17 @@ public class TreasuryGovCustomJsonHandler extends AbstractCustomJsonHandler {
       .getJsonObject(0)
       .getString(EXCHANGE_RATE);
 
-    return new BigDecimal(exchangeRate);
+    return Pair.of(new BigDecimal(exchangeRate), operationMode);
   }
 
-  enum CountryCurrency {
+  public static OperationMode getOperationMode(boolean isTreasureGovProvider, String from) {
+    if (isTreasureGovProvider && !StringUtils.equals(from, TreasuryGovCustomJsonHandler.CountryCurrency.USD.name())) {
+      return ExchangeRate.OperationMode.DIVIDE;
+    }
+    return ExchangeRate.OperationMode.MULTIPLY;
+  }
+
+  public enum CountryCurrency {
     USD("United States of America-Dollar"),
     ZWL("Zimbabwe-Rtgs"),
     AFN("Afghanistan-Afghani"),

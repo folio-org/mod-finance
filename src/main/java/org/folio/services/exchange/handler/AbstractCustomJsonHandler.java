@@ -1,5 +1,7 @@
 package org.folio.services.exchange.handler;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.folio.rest.jaxrs.model.ExchangeRate;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 
 import java.math.BigDecimal;
@@ -17,5 +19,5 @@ public abstract class AbstractCustomJsonHandler {
     this.rateSource = rateSource;
   }
 
-  public abstract BigDecimal getExchangeRateFromApi(String from, String to);
+  public abstract Pair<BigDecimal, ExchangeRate.OperationMode> getExchangeRateFromApi(String from, String to);
 }
