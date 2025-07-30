@@ -42,7 +42,7 @@ public class GroupsApi extends BaseApi implements FinanceGroups {
   @Override
   public void postFinanceGroups(Group entity, Map<String, String> okapiHeaders,
                                 Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
-                                GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
+    GroupsHelper helper = new GroupsHelper(okapiHeaders, vertxContext);
     helper.createGroup(entity, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(type -> asyncResultHandler
         .handle(succeededFuture(buildResponseWithLocation(okapiHeaders.get(OKAPI_URL), String.format(GROUPS_LOCATION_PREFIX, type.getId()), type))))
