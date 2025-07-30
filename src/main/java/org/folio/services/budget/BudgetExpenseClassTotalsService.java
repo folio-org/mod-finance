@@ -2,6 +2,7 @@ package org.folio.services.budget;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static org.folio.models.ExpenseClassUnassigned.getExpenseClassName;
 import static org.folio.rest.util.MoneyUtils.calculateCreditedPercentage;
 import static org.folio.rest.util.MoneyUtils.calculateExpendedPercentage;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
@@ -10,7 +11,6 @@ import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,6 +18,8 @@ import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.folio.models.ExpenseClassUnassigned;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -52,11 +54,19 @@ public class BudgetExpenseClassTotalsService {
 
   public Future<BudgetExpenseClassTotalsCollection> getExpenseClassTotals(String budgetId, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetId), Budget.class, requestContext)
-      .compose(budget -> expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
+      .compose(budget -> getExpenseClasses(budgetId, requestContext)
         .compose(expenseClasses -> transactionService.getBudgetTransactions(budget, requestContext)
           .map(transactions -> buildBudgetExpenseClassesTotals(expenseClasses, transactions, budget))))
       .compose(budgetExpenseClassTotalsCollection -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .map(budgetExpenseClasses -> updateExpenseClassStatus(budgetExpenseClassTotalsCollection, budgetExpenseClasses)));
+  }
+
+  private Future<List<ExpenseClass>> getExpenseClasses(String budgetId, RequestContext requestContext) {
+    return expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext)
+      .map(expenseClasses -> {
+        expenseClasses.add(new ExpenseClass().withId(ExpenseClassUnassigned.ID.getValue()));
+        return expenseClasses;
+      });
   }
 
   private BudgetExpenseClassTotalsCollection buildBudgetExpenseClassesTotals(List<ExpenseClass> expenseClasses, List<Transaction> transactions, Budget budget) {
@@ -64,7 +74,12 @@ public class BudgetExpenseClassTotalsService {
     double totalCredited = budget.getCredits();
 
     Map<String, List<Transaction>> groupedByExpenseClassId = transactions.stream()
-      .filter(transaction -> Objects.nonNull(transaction.getExpenseClassId()))
+      .map(transaction -> {
+        if (StringUtils.isEmpty(transaction.getExpenseClassId())) {
+          return transaction.withExpenseClassId(ExpenseClassUnassigned.ID.getValue());
+        }
+        return transaction;
+      })
       .collect(groupingBy(Transaction::getExpenseClassId));
 
     Map<ExpenseClass, List<Transaction>> groupedByExpenseClass = expenseClasses.stream()
@@ -102,14 +117,15 @@ public class BudgetExpenseClassTotalsService {
       encumbered = recalculatedBudget.getEncumbered();
       awaitingPayment = recalculatedBudget.getAwaitingPayment();
 
-      CurrencyUnit currency = Monetary.getCurrency(transactions.get(0).getCurrency());
+      CurrencyUnit currency = Monetary.getCurrency(transactions.getFirst().getCurrency());
       expendedPercentage = totalExpended == 0 ? null : calculateExpendedPercentage(Money.of(recalculatedBudget.getExpenditures(), currency), totalExpended);
       creditedPercentage = totalCredited == 0 ? null : calculateCreditedPercentage(Money.of(recalculatedBudget.getCredits(), currency), totalCredited);
     }
 
+    String expenseClassName = getExpenseClassName(expenseClass);
     return new BudgetExpenseClassTotal()
       .withId(expenseClass.getId())
-      .withExpenseClassName(expenseClass.getName())
+      .withExpenseClassName(expenseClassName)
       .withEncumbered(encumbered)
       .withAwaitingPayment(awaitingPayment)
       .withExpended(expended)
@@ -126,5 +142,4 @@ public class BudgetExpenseClassTotalsService {
     budgetExpenseClassTotals.forEach(budgetExpenseClassTotal -> budgetExpenseClassTotal.setExpenseClassStatus(idStatusMap.get(budgetExpenseClassTotal.getId())));
     return budgetExpenseClassTotalsCollection;
   }
-
 }

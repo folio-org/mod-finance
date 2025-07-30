@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.folio.models.ExpenseClassUnassigned;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
@@ -37,7 +38,6 @@ import org.mockito.MockitoAnnotations;
 
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-
 
 @ExtendWith(VertxExtension.class)
 public class GroupExpenseClassTotalsServiceTest {
@@ -58,11 +58,9 @@ public class GroupExpenseClassTotalsServiceTest {
   @Mock
   private RequestContext requestContext;
 
-  @Mock
-  private AutoCloseable closeable;
-
   private String groupId;
   private String fiscalYearId;
+  private AutoCloseable closeable;
 
   @BeforeEach
   public void initMocks() {
@@ -99,7 +97,6 @@ public class GroupExpenseClassTotalsServiceTest {
 
   @Test
   void getExpenseClassTotalsEmptyExpenseClassesResponse(VertxTestContext vertxTestContext) {
-
     GroupFundFiscalYear groupFundFiscalYear = new GroupFundFiscalYear()
       .withGroupId(groupId)
       .withFiscalYearId(fiscalYearId)
@@ -118,13 +115,25 @@ public class GroupExpenseClassTotalsServiceTest {
     when(transactionServiceMock.getTransactionsByFundIds(anyList(), anyString(), any()))
       .thenReturn(succeededFuture(Collections.singletonList(transaction)));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(succeededFuture(Collections.emptyList()));
+      .thenReturn(succeededFuture(new ArrayList<>()));
 
     var future = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         var groupExpenseClassTotalsCollection = result.result();
-        assertEquals(new GroupExpenseClassTotalsCollection().withTotalRecords(0), groupExpenseClassTotalsCollection);
+        var expected = new GroupExpenseClassTotalsCollection()
+          .withGroupExpenseClassTotals(List.of(new GroupExpenseClassTotal()
+            .withId(ExpenseClassUnassigned.ID.getValue())
+            .withExpenseClassName(ExpenseClassUnassigned.NAME.getValue())
+            .withEncumbered(0d)
+            .withAwaitingPayment(0d)
+            .withExpended(100d)
+            .withPercentageExpended(100d)
+            .withCredited(0d)
+            .withPercentageCredited(null)))
+          .withTotalRecords(1);
+        assertEquals(expected, groupExpenseClassTotalsCollection);
+
         verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(eq(groupId), eq(fiscalYearId), eq(requestContext));
         verify(transactionServiceMock).getTransactionsByFundIds(eq(Collections.singletonList(groupFundFiscalYear.getFundId())), eq(fiscalYearId), eq(requestContext));
         verify(expenseClassServiceMock).getExpenseClassesByBudgetIds(eq(Collections.singletonList(groupFundFiscalYear.getBudgetId())), eq(requestContext));
@@ -135,7 +144,6 @@ public class GroupExpenseClassTotalsServiceTest {
 
   @Test
   void getExpenseClassTotalsEmptyTransactionsResponse(VertxTestContext vertxTestContext) {
-
     GroupFundFiscalYear groupFundFiscalYear = new GroupFundFiscalYear()
       .withGroupId(groupId)
       .withFiscalYearId(fiscalYearId)
@@ -145,21 +153,23 @@ public class GroupExpenseClassTotalsServiceTest {
     ExpenseClass expenseClass = new ExpenseClass()
       .withId(UUID.randomUUID().toString())
       .withName("Test");
+    List<ExpenseClass> expenseClasses = new ArrayList<>();
+    expenseClasses.add(expenseClass);
 
     when(groupFundFiscalYearServiceMock.getGroupFundFiscalYearsWithBudgetId(anyString(), anyString(), any()))
       .thenReturn(succeededFuture(Collections.singletonList(groupFundFiscalYear)));
     when(transactionServiceMock.getTransactionsByFundIds(anyList(), anyString(), any()))
       .thenReturn(succeededFuture(Collections.emptyList()));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(succeededFuture(Collections.singletonList(expenseClass)));
+      .thenReturn(succeededFuture(expenseClasses));
 
     var future = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         var groupExpenseClassTotalsCollection = result.result();
-        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(1));
-        GroupExpenseClassTotal groupExpenseClassTotal = groupExpenseClassTotalsCollection.getGroupExpenseClassTotals().get(0);
+        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(2));
+        GroupExpenseClassTotal groupExpenseClassTotal = groupExpenseClassTotalsCollection.getGroupExpenseClassTotals().getFirst();
         assertEquals(expenseClass.getName(), groupExpenseClassTotal.getExpenseClassName());
         assertEquals(0d, groupExpenseClassTotal.getExpended());
         assertEquals(0d, groupExpenseClassTotal.getPercentageExpended());
@@ -176,7 +186,6 @@ public class GroupExpenseClassTotalsServiceTest {
 
   @Test
   void getExpenseClassTotalsMultipleRecords(VertxTestContext vertxTestContext) {
-
     String fundId1 = UUID.randomUUID().toString();
     String fundId2 = UUID.randomUUID().toString();
     String expenseClassId1 = UUID.randomUUID().toString();
@@ -202,6 +211,10 @@ public class GroupExpenseClassTotalsServiceTest {
     ExpenseClass expenseClass2 = new ExpenseClass()
       .withId(expenseClassId2)
       .withName("Test2");
+
+    List<ExpenseClass> expenseClasses = new ArrayList<>();
+    expenseClasses.add(expenseClass1);
+    expenseClasses.add(expenseClass2);
 
     Transaction payment = new Transaction()
       .withTransactionType(Transaction.TransactionType.PAYMENT)
@@ -268,13 +281,13 @@ public class GroupExpenseClassTotalsServiceTest {
     when(transactionServiceMock.getTransactionsByFundIds(anyList(), anyString(), any()))
       .thenReturn(succeededFuture(transactions));
     when(expenseClassServiceMock.getExpenseClassesByBudgetIds(anyList(), any()))
-      .thenReturn(succeededFuture(Arrays.asList(expenseClass1, expenseClass2)));
+      .thenReturn(succeededFuture(expenseClasses));
 
     var future = groupExpenseClassTotalsService.getExpenseClassTotals(groupId, fiscalYearId, requestContext);
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         var groupExpenseClassTotalsCollection = result.result();
-        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(2));
+        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), hasSize(3));
 
         GroupExpenseClassTotal expected1 = new GroupExpenseClassTotal()
           .withExpenseClassName(expenseClass1.getName())
@@ -296,7 +309,17 @@ public class GroupExpenseClassTotalsServiceTest {
           .withExpended(905d)
           .withPercentageExpended(90.05);
 
-        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), containsInAnyOrder(expected1, expected2));
+        GroupExpenseClassTotal expectedUnassigned = new GroupExpenseClassTotal()
+          .withExpenseClassName(ExpenseClassUnassigned.NAME.getValue())
+          .withId(ExpenseClassUnassigned.ID.getValue())
+          .withEncumbered(131.31)
+          .withAwaitingPayment(0d)
+          .withExpended(0d)
+          .withPercentageExpended(0d)
+          .withCredited(0d)
+          .withPercentageCredited(0d);
+
+        assertThat(groupExpenseClassTotalsCollection.getGroupExpenseClassTotals(), containsInAnyOrder(expected1, expected2, expectedUnassigned));
 
         verify(groupFundFiscalYearServiceMock).getGroupFundFiscalYearsWithBudgetId(eq(groupId), eq(fiscalYearId), eq(requestContext));
 
@@ -312,7 +335,5 @@ public class GroupExpenseClassTotalsServiceTest {
 
         vertxTestContext.completeNow();
       });
-
   }
-
 }
