@@ -40,39 +40,36 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
   @Autowired
   private RecalculateBudgetService recalculateBudgetService;
 
-
   public BudgetsApi() {
     SpringContextUtil.autowireDependencies(this, Vertx.currentContext());
   }
 
   @Validate
   @Override
-  public void postFinanceBudgets(SharedBudget budget, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
-                                 Context ctx) {
-
+  public void postFinanceBudgets(SharedBudget budget, Map<String, String> headers,
+                                 Handler<AsyncResult<Response>> handler, Context ctx) {
     RequestContext requestContext = new RequestContext(ctx, headers);
     createBudgetService.createBudget(budget, requestContext)
-      .onSuccess(createdBudget -> handler.handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId()), createdBudget))))
+      .onSuccess(createdBudget -> {
+        String format = String.format(BUDGETS_LOCATION_PREFIX, createdBudget.getId());
+        handler.handle(succeededFuture(buildResponseWithLocation(headers.get(OKAPI_URL), format, createdBudget)));
+      })
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
   @Validate
   @Override
   public void getFinanceBudgets(String totalRecords, int offset, int limit, String query, Map<String, String> headers,
-      Handler<AsyncResult<Response>> handler, Context ctx) {
-
+                                Handler<AsyncResult<Response>> handler, Context ctx) {
     budgetService.getBudgets(query, offset, limit, new RequestContext(ctx, headers))
       .onSuccess(budgets -> handler.handle(succeededFuture(buildOkResponse(budgets))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
-
   }
 
   @Validate
   @Override
   public void putFinanceBudgetsById(String id, SharedBudget budget, Map<String, String> headers,
                                     Handler<AsyncResult<Response>> handler, Context ctx) {
-
-
     // Set id if this is available only in path
     if (StringUtils.isEmpty(budget.getId())) {
       budget.setId(id);
@@ -80,47 +77,42 @@ public class BudgetsApi extends BaseApi implements FinanceBudgets {
       handler.handle(succeededFuture(buildErrorResponse(new HttpException(422, MISMATCH_BETWEEN_ID_IN_PATH_AND_BODY))));
       return;
     }
-
     budgetService.updateBudget(budget, new RequestContext(ctx, headers))
       .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
-
   }
 
   @Validate
   @Override
   public void getFinanceBudgetsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
-
     budgetService.getBudgetById(id, new RequestContext(ctx, headers))
       .onSuccess(budget -> handler.handle(succeededFuture(buildOkResponse(budget))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
-
   }
 
   @Validate
   @Override
   public void deleteFinanceBudgetsById(String id, Map<String, String> headers, Handler<AsyncResult<Response>> handler,
       Context ctx) {
-
     budgetService.deleteBudget(id, new RequestContext(ctx, headers))
       .onSuccess(v -> handler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(handler, fail));
-
   }
 
   @Override
-  public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void getFinanceBudgetsExpenseClassesTotalsById(String budgetId, Map<String, String> okapiHeaders,
+                                                        Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     budgetExpenseClassTotalsService.getExpenseClassTotals(budgetId, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildOkResponse(obj))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
 
   @Override
-  public void postFinanceBudgetsRecalculateById(String budgetId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
+  public void postFinanceBudgetsRecalculateById(String budgetId, Map<String, String> okapiHeaders,
+                                                Handler<AsyncResult<Response>> asyncResultHandler, Context vertxContext) {
     recalculateBudgetService.recalculateBudget(budgetId, new RequestContext(vertxContext, okapiHeaders))
       .onSuccess(obj -> asyncResultHandler.handle(succeededFuture(buildNoContentResponse())))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail));
   }
-
 }

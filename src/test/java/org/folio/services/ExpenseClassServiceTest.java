@@ -22,6 +22,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.ExpenseClassCollection;
 import org.folio.rest.util.TestUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,14 +46,20 @@ public class ExpenseClassServiceTest {
   @Mock
   private RequestContext requestContext;
 
+  private AutoCloseable closeable;
+
   @BeforeEach
   public void initMocks() {
-    MockitoAnnotations.openMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
+  }
+
+  @AfterEach
+  public void closeMocks() throws Exception {
+    closeable.close();
   }
 
   @Test
   void getExpenseClassesByBudgetId(VertxTestContext vertxTestContext) {
-
     String budgetId = UUID.randomUUID().toString();
     List<ExpenseClass> expectedExpenseClasses = Collections.singletonList(new ExpenseClass()
       .withName("Test name")
@@ -68,7 +75,7 @@ public class ExpenseClassServiceTest {
     Future<List<ExpenseClass>> future = expenseClassService.getExpenseClassesByBudgetId(budgetId, requestContext);
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
-        String expectedQuery =  String.format("budgetExpenseClass.budgetId==%s", budgetId);
+        String expectedQuery = String.format("budgetExpenseClass.budgetId==%s", budgetId);
         verify(restClient).get(TestUtils.assertQueryContains(expectedQuery), eq(ExpenseClassCollection.class), eq(requestContext));
         assertEquals(expectedExpenseClasses, result.result());
 
@@ -78,7 +85,6 @@ public class ExpenseClassServiceTest {
 
   @Test
   void getExpenseClassesByBudgetIdsInChunks(VertxTestContext vertxTestContext) {
-
     List<String> budgetIds = Stream.generate(() -> UUID.randomUUID().toString())
       .limit(40)
       .collect(Collectors.toList());
@@ -104,7 +110,5 @@ public class ExpenseClassServiceTest {
 
         vertxTestContext.completeNow();
       });
-
   }
-
 }

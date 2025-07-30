@@ -11,11 +11,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.folio.models.ExpenseClassUnassigned;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.Budget;
@@ -59,22 +61,12 @@ public class BudgetExpenseClassTotalsServiceTest {
   @Mock
   private RequestContext requestContext;
 
-  @Mock
-  private AutoCloseable closeable;
-
   private Budget budget;
   private ExpenseClass expenseClass1;
   private ExpenseClass expenseClass2;
   private BudgetExpenseClass budgetExpenseClass1;
   private BudgetExpenseClass budgetExpenseClass2;
-
-  private Transaction buildTransaction(double amount, Transaction.TransactionType type, String expenseClassId) {
-    return new Transaction()
-      .withAmount(amount)
-      .withTransactionType(type)
-      .withExpenseClassId(expenseClassId)
-      .withCurrency("USD");
-  }
+  private AutoCloseable closeable;
 
   @BeforeEach
   public void initMocks() {
@@ -95,18 +87,18 @@ public class BudgetExpenseClassTotalsServiceTest {
       .withStatus(BudgetExpenseClass.Status.ACTIVE);
 
     budgetExpenseClass2 = new BudgetExpenseClass()
-    .withBudgetId(budget.getId())
-    .withExpenseClassId(expenseClass2.getId())
-    .withStatus(BudgetExpenseClass.Status.INACTIVE);
+      .withBudgetId(budget.getId())
+      .withExpenseClassId(expenseClass2.getId())
+      .withStatus(BudgetExpenseClass.Status.INACTIVE);
   }
 
   @AfterEach
   public void releaseMocks() throws Exception {
     closeable.close();
   }
+
   @Test
   void getExpenseClassTotalsComplexPositiveTest(VertxTestContext vertxTestContext) {
-
     Transaction encumbrance1 = buildTransaction(7.5, Transaction.TransactionType.ENCUMBRANCE, expenseClass1.getId());
     Transaction encumbrance2 = buildTransaction(3.33, Transaction.TransactionType.ENCUMBRANCE, expenseClass1.getId());
     Transaction encumbrance3 = buildTransaction(100d, Transaction.TransactionType.ENCUMBRANCE, null);
@@ -122,7 +114,9 @@ public class BudgetExpenseClassTotalsServiceTest {
 
     budget.withExpenditures(26d).withOverExpended(1d).withCredits(10d);
 
-    List<ExpenseClass> expenseClasses = Arrays.asList(expenseClass1, expenseClass2);
+    List<ExpenseClass> expenseClasses = new ArrayList<>();
+    expenseClasses.add(expenseClass1);
+    expenseClasses.add(expenseClass2);
     List<BudgetExpenseClass> budgetExpenseClasses = Arrays.asList(budgetExpenseClass1, budgetExpenseClass2);
     List<Transaction> transactions = Arrays.asList(encumbrance1,
       encumbrance2, encumbrance3, pendingPayment1, pendingPayment2,
@@ -142,11 +136,12 @@ public class BudgetExpenseClassTotalsServiceTest {
         verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(eq(budget.getId()), eq(requestContext));
 
-        assertEquals(2, budgetExpenseClassTotalsCollection.getTotalRecords());
-        assertEquals(2, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertEquals(3, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(3, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
         BudgetExpenseClassTotal expenseClassTotal1 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
-          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass1.getId())).findFirst().get();
+          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass1.getId()))
+          .findFirst().orElseThrow();
 
         assertNotNull(expenseClassTotal1);
         assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal1.getExpenseClassStatus().value());
@@ -158,9 +153,9 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0, expenseClassTotal1.getCredited());
         assertEquals(0, expenseClassTotal1.getPercentageCredited());
 
-
         BudgetExpenseClassTotal expenseClassTotal2 = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
-          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId())).findFirst().get();
+          .stream().filter(budgetExpenseClassTotal -> budgetExpenseClassTotal.getId().equals(expenseClass2.getId()))
+          .findFirst().orElseThrow();
 
         assertNotNull(expenseClassTotal2);
         assertEquals(budgetExpenseClass2.getStatus().value(), expenseClassTotal2.getExpenseClassStatus().value());
@@ -172,6 +167,20 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(10, expenseClassTotal2.getCredited());
         assertEquals(100, expenseClassTotal2.getPercentageCredited()); // (10 / 10) * 100
 
+        BudgetExpenseClassTotal expenseClassUnassignedTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
+
+        assertNotNull(expenseClassUnassignedTotal);
+        assertNull(expenseClassUnassignedTotal.getExpenseClassStatus());
+        assertEquals(ExpenseClassUnassigned.NAME.getValue(), expenseClassUnassignedTotal.getExpenseClassName());
+        assertEquals(100d, expenseClassUnassignedTotal.getEncumbered());
+        assertEquals(1500d, expenseClassUnassignedTotal.getAwaitingPayment());
+        assertEquals(15d, expenseClassUnassignedTotal.getExpended());
+        assertEquals(57.69d, expenseClassUnassignedTotal.getPercentageExpended());
+        assertEquals(0d, expenseClassUnassignedTotal.getCredited());
+        assertEquals(0d, expenseClassUnassignedTotal.getPercentageCredited());
+
         vertxTestContext.completeNow();
       });
   }
@@ -181,7 +190,8 @@ public class BudgetExpenseClassTotalsServiceTest {
     budget.withExpenditures(0d).withOverExpended(0d);
     Transaction payment = buildTransaction(11d, Transaction.TransactionType.PAYMENT, expenseClass1.getId());
     Transaction credit = buildTransaction(11d, Transaction.TransactionType.CREDIT, null);
-    List<ExpenseClass> expenseClasses = Collections.singletonList(expenseClass1);
+    List<ExpenseClass> expenseClasses = new ArrayList<>();
+    expenseClasses.add(expenseClass1);
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
     List<Transaction> transactions = Arrays.asList(payment, credit);
 
@@ -200,11 +210,12 @@ public class BudgetExpenseClassTotalsServiceTest {
         verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
+        assertEquals(2, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(2, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
-        assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
-        assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
-
-        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
+        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> !totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
 
         assertNotNull(expenseClassTotal);
         assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
@@ -216,18 +227,30 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0d, expenseClassTotal.getCredited()); // credit transaction don't have expenseClassId
         assertNull(expenseClassTotal.getPercentageCredited());
 
+        BudgetExpenseClassTotal expenseClassUnassignedTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
+
+        assertNotNull(expenseClassUnassignedTotal);
+        assertNull(expenseClassUnassignedTotal.getExpenseClassStatus());
+        assertEquals(ExpenseClassUnassigned.NAME.getValue(), expenseClassUnassignedTotal.getExpenseClassName());
+        assertEquals(0d, expenseClassUnassignedTotal.getEncumbered());
+        assertEquals(0d, expenseClassUnassignedTotal.getAwaitingPayment());
+        assertEquals(0d, expenseClassUnassignedTotal.getExpended());
+        assertNull(expenseClassUnassignedTotal.getPercentageExpended());
+        assertEquals(11d, expenseClassUnassignedTotal.getCredited());
+        assertNull(expenseClassUnassignedTotal.getPercentageCredited());
+
         vertxTestContext.completeNow();
       });
-
   }
 
   @Test
   void getExpenseClassTotalsWithoutLinkedExpenseClasses(VertxTestContext vertxTestContext) {
-
     Transaction credit = buildTransaction(11d, Transaction.TransactionType.CREDIT, null);
 
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
-    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(Collections.emptyList()));
+    when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(new ArrayList<>()));
     when(transactionServiceMock.getBudgetTransactions(any(), any())).thenReturn(succeededFuture(Collections.singletonList(credit)));
     when(budgetExpenseClassServiceMock.getBudgetExpenseClasses(anyString(), any())).thenReturn(succeededFuture(Collections.emptyList()));
 
@@ -241,17 +264,31 @@ public class BudgetExpenseClassTotalsServiceTest {
         verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
-        assertEquals(0, budgetExpenseClassTotalsCollection.getTotalRecords());
-        assertEquals(0, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+
+        BudgetExpenseClassTotal expenseClassUnassignedTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
+
+        assertNotNull(expenseClassUnassignedTotal);
+        assertNull(expenseClassUnassignedTotal.getExpenseClassStatus());
+        assertEquals(ExpenseClassUnassigned.NAME.getValue(), expenseClassUnassignedTotal.getExpenseClassName());
+        assertEquals(0d, expenseClassUnassignedTotal.getEncumbered());
+        assertEquals(0d, expenseClassUnassignedTotal.getAwaitingPayment());
+        assertEquals(0d, expenseClassUnassignedTotal.getExpended());
+        assertNull(expenseClassUnassignedTotal.getPercentageExpended());
+        assertEquals(11d, expenseClassUnassignedTotal.getCredited());
+        assertNull(expenseClassUnassignedTotal.getPercentageCredited());
+
         vertxTestContext.completeNow();
       });
-
   }
 
   @Test
   void getExpenseClassTotalsWithoutTransactions(VertxTestContext vertxTestContext) {
-
-    List<ExpenseClass> expenseClasses = Collections.singletonList(expenseClass1);
+    List<ExpenseClass> expenseClasses = new ArrayList<>();
+    expenseClasses.add(expenseClass1);
     List<BudgetExpenseClass> budgetExpenseClasses = Collections.singletonList(budgetExpenseClass1);
     when(restClient.get(anyString(), any(), any())).thenReturn(succeededFuture(budget));
     when(expenseClassServiceMock.getExpenseClassesByBudgetId(anyString(), any())).thenReturn(succeededFuture(expenseClasses));
@@ -268,10 +305,12 @@ public class BudgetExpenseClassTotalsServiceTest {
         verify(transactionServiceMock).getBudgetTransactions(eq(budget), eq(requestContext));
         verify(budgetExpenseClassServiceMock).getBudgetExpenseClasses(assertQueryContains(budget.getId()), eq(requestContext));
 
-        assertEquals(1, budgetExpenseClassTotalsCollection.getTotalRecords());
-        assertEquals(1, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
+        assertEquals(2, budgetExpenseClassTotalsCollection.getTotalRecords());
+        assertEquals(2, budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().size());
 
-        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals().get(0);
+        BudgetExpenseClassTotal expenseClassTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> !totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
 
         assertNotNull(expenseClassTotal);
         assertEquals(budgetExpenseClass1.getStatus().value(), expenseClassTotal.getExpenseClassStatus().value());
@@ -281,10 +320,31 @@ public class BudgetExpenseClassTotalsServiceTest {
         assertEquals(0d, expenseClassTotal.getExpended());
         assertEquals(0d, expenseClassTotal.getPercentageExpended());
         assertEquals(0d, expenseClassTotal.getCredited());
-        assertEquals(0d, expenseClassTotal.getCredited());
+        assertEquals(0d, expenseClassTotal.getPercentageCredited());
+
+        BudgetExpenseClassTotal expenseClassUnassignedTotal = budgetExpenseClassTotalsCollection.getBudgetExpenseClassTotals()
+          .stream().filter(totals -> totals.getId().equals(ExpenseClassUnassigned.ID.getValue()))
+          .findFirst().orElseThrow();
+
+        assertNotNull(expenseClassUnassignedTotal);
+        assertNull(expenseClassUnassignedTotal.getExpenseClassStatus());
+        assertEquals(ExpenseClassUnassigned.NAME.getValue(), expenseClassUnassignedTotal.getExpenseClassName());
+        assertEquals(0d, expenseClassUnassignedTotal.getEncumbered());
+        assertEquals(0d, expenseClassUnassignedTotal.getAwaitingPayment());
+        assertEquals(0d, expenseClassUnassignedTotal.getExpended());
+        assertEquals(0d, expenseClassUnassignedTotal.getPercentageExpended());
+        assertEquals(0d, expenseClassUnassignedTotal.getCredited());
+        assertEquals(0d, expenseClassUnassignedTotal.getPercentageCredited());
 
         vertxTestContext.completeNow();
       });
   }
 
+  private Transaction buildTransaction(double amount, Transaction.TransactionType type, String expenseClassId) {
+    return new Transaction()
+      .withAmount(amount)
+      .withTransactionType(type)
+      .withExpenseClassId(expenseClassId)
+      .withCurrency("USD");
+  }
 }
