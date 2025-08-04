@@ -39,17 +39,23 @@ import static org.mockito.Mockito.when;
 @CopilotGenerated(partiallyGenerated = true)
 public class ExchangeServiceTest {
 
-  @Mock private RestClient restClient;
-  @Mock private HttpClient httpClient;
-  @Mock private HttpResponse<String> httpResponse;
-  @Mock private RequestContext requestContext;
-  @InjectMocks private ExchangeService exchangeService;
+  @Mock
+  private RestClient restClient;
+  @Mock
+  private HttpClient httpClient;
+  @Mock
+  private HttpResponse<String> httpResponse;
+  @Mock
+  private RequestContext requestContext;
+  @InjectMocks
+  private ExchangeService exchangeService;
 
   private AutoCloseable openMocks;
 
   @BeforeEach
   void setUp() {
     openMocks = MockitoAnnotations.openMocks(this);
+    exchangeService.init();
   }
 
   @AfterEach
