@@ -2,12 +2,16 @@ package org.folio.rest.impl;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.folio.rest.util.RestTestUtils.verifyGet;
+import static org.folio.rest.util.RestTestUtils.verifyPostResponse;
 import static org.folio.rest.util.TestConfig.isVerticleNotDeployed;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -15,10 +19,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.ApiTestSuite;
 import org.folio.rest.acq.model.finance.ExchangeRate;
-import org.folio.rest.util.RestTestUtils;
+import org.folio.rest.acq.model.finance.ExchangeRateCalculation;
+import org.folio.rest.acq.model.finance.ExchangeRateCalculations;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import io.vertx.core.json.JsonObject;
 
 public class ExchangeTest {
 
@@ -34,6 +41,7 @@ public class ExchangeTest {
   private static final String INVALID_CURRENCY = "?from=US&to=USD";
   private static final String RATE_NOT_AVAILABLE = "?from=USD&to=ALL";
   private static final String CALCULATE_EXCHANGE_PATH = "finance/calculate-exchange";
+  private static final String CALCULATE_EXCHANGE_BATCH_PATH = "finance/calculate-exchange-batch";
   private static final String VALID_REQUEST_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0";
   private static final String VALID_REQUEST_WITH_CUSTOM_RATE_FOR_CALCULATE_EXCHANGE = "?from=EUR&to=USD&amount=100.0&rate=1.08";
   private static final String SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE = "?from=USD&to=USD&amount=100.0";
@@ -78,7 +86,7 @@ public class ExchangeTest {
   }
 
   @Test
-  void getExchangeRateForNonexistentCurrency(){
+  void getExchangeRateForNonexistentCurrency() {
     logger.info("=== Test get exchange rate for non-existent currency code: BAD_REQUEST ===");
     verifyGet(EXCHANGE_RATE_PATH + NON_EXISTENT_CURRENCY, "", 400);
   }
@@ -138,7 +146,7 @@ public class ExchangeTest {
   }
 
   @Test
-  void calculateExchangeForNonexistentCurrency(){
+  void calculateExchangeForNonexistentCurrency() {
     logger.info("=== Test exchange calculation for non-existent currency code: BAD_REQUEST ===");
     verifyGet(CALCULATE_EXCHANGE_PATH + NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 500);
   }
@@ -177,5 +185,16 @@ public class ExchangeTest {
   void getExchangeNoCalculation() {
     logger.info("=== Test exchange calculation FROM currency USD, TO currency ALL : NOT_FOUND ===");
     verifyGet(CALCULATE_EXCHANGE_PATH + EXCHANGE_NOT_AVAILABLE, "", 404);
+  }
+
+  @Test
+  void postExchangeRateBatch() {
+    logger.info("=== Test post exchange rate batch: Success ===");
+    var calculations = List.of(new ExchangeRateCalculation().withFrom("USD").withTo("EUR").withAmount(100.0));
+    var body = new ExchangeRateCalculations().withExchangeRateCalculations(calculations);
+    var response = verifyPostResponse(CALCULATE_EXCHANGE_BATCH_PATH, JsonObject.mapFrom(body), APPLICATION_JSON, 200).as(ExchangeRateCalculations.class);
+    assertNotNull(response);
+    assertThat(response.getExchangeRateCalculations(), hasSize(1));
+    assertThat(response.getExchangeRateCalculations().getFirst().getCalculation(), notNullValue());
   }
 }
