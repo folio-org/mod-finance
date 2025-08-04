@@ -8,6 +8,8 @@ import io.vertx.junit5.VertxTestContext;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.ExchangeRateCalculation;
+import org.folio.rest.jaxrs.model.ExchangeRateCalculations;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 import org.folio.util.CopilotGenerated;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,8 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.folio.rest.acq.model.finance.ExchangeRate.OperationMode.DIVIDE;
@@ -31,12 +35,13 @@ import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.CURRENC
 import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.TREASURY_GOV;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
-@CopilotGenerated(partiallyGenerated = true)
+@CopilotGenerated(partiallyGenerated = true, model = "Claude Sonnet 4", mode = "Agent")
 public class ExchangeServiceTest {
 
   @Mock
@@ -132,6 +137,140 @@ public class ExchangeServiceTest {
         assertEquals(expectedAmount, result);
         testContext.completeNow();
       })));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"TREASURY_GOV", "CURRENCYAPI_COM"})
+  void testCalculateExchangeBatchUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType,
+                                                                     VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(providerType));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculations = createExchangeRateCalculations();
+
+    exchangeService.calculateExchangeBatch(calculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertNotNull(result.getExchangeRateCalculations());
+        assertEquals(3, result.getExchangeRateCalculations().size());
+
+        // Verify each calculation has a result
+        result.getExchangeRateCalculations().forEach(calculation -> {
+          assertNotNull(calculation.getCalculation());
+          assertNotEquals(0.0, calculation.getCalculation());
+        });
+
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
+  void testCalculateExchangeBatchWithEmptyCalculations(VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var emptyCalculations = new ExchangeRateCalculations().withExchangeRateCalculations(List.of());
+
+    exchangeService.calculateExchangeBatch(emptyCalculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertNotNull(result.getExchangeRateCalculations());
+        assertEquals(0, result.getExchangeRateCalculations().size());
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
+  void testCalculateExchangeBatchWithSingleCalculation(VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var singleCalculation = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(List.of(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(null)
+      ));
+
+    exchangeService.calculateExchangeBatch(singleCalculation, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertNotNull(result.getExchangeRateCalculations());
+        assertEquals(1, result.getExchangeRateCalculations().size());
+
+        var calculation = result.getExchangeRateCalculations().getFirst();
+        assertEquals("USD", calculation.getFrom());
+        assertEquals("EUR", calculation.getTo());
+        assertEquals(100.0, calculation.getAmount());
+        assertEquals(96.1d, calculation.getCalculation());
+
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
+  void testCalculateExchangeBatchWithCustomRates(VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculationsWithCustomRates = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(List.of(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(0.85), // Custom rate
+        new ExchangeRateCalculation()
+          .withFrom("GBP")
+          .withTo("USD")
+          .withAmount(50.0)
+          .withRate(1.25) // Custom rate
+      ));
+
+    exchangeService.calculateExchangeBatch(calculationsWithCustomRates, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertNotNull(result.getExchangeRateCalculations());
+        assertEquals(2, result.getExchangeRateCalculations().size());
+
+        result.getExchangeRateCalculations().forEach(calculation -> {
+          assertNotNull(calculation.getCalculation());
+          assertNotNull(calculation.getRate()); // Should preserve custom rates
+        });
+
+        testContext.completeNow();
+      })));
+  }
+
+  private ExchangeRateCalculations createExchangeRateCalculations() {
+    return new ExchangeRateCalculations()
+      .withExchangeRateCalculations(Arrays.asList(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(null),
+        new ExchangeRateCalculation()
+          .withFrom("GBP")
+          .withTo("EUR")
+          .withAmount(50.0)
+          .withRate(null),
+        new ExchangeRateCalculation()
+          .withFrom("EUR")
+          .withTo("EUR")
+          .withAmount(75.0)
+          .withRate(null)
+      ));
   }
 
   private ExchangeRateSource createExchangeRateSource(ExchangeRateSource.ProviderType providerType) {
