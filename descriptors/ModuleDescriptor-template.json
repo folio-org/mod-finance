@@ -699,6 +699,12 @@
           "pathPattern": "/finance/calculate-exchange",
           "permissionsRequired": ["finance.calculate-exchange.item.get"],
           "modulePermissions": ["finance-storage.exchange-rate-source.item.get"]
+        },
+        {
+          "methods": ["POST"],
+          "pathPattern": "/finance/calculate-exchange-batch",
+          "permissionsRequired": ["finance.calculate-exchange.collection.get"],
+          "modulePermissions": ["finance-storage.exchange-rate-source.item.get"]
         }
       ]
     },
@@ -1361,6 +1367,11 @@
       "description" : "Get Exchange calculation"
     },
     {
+      "permissionName" : "finance.calculate-exchange.collection.get",
+      "displayName" : "Finances - Calculate exchange batch",
+      "description" : "Post Exchange calculation batch"
+    },
+    {
       "permissionName" : "finance.fund-codes-expense-classes.collection.get",
       "displayName" : "Pairs fund code - expense class code",
       "description" : "Return collection of the pairs  <fund code, expense classes>"
@@ -1438,6 +1449,7 @@
         "finance.group-fiscal-year-summaries.collection.get",
         "finance.exchange-rate.item.get",
         "finance.calculate-exchange.item.get",
+        "finance.calculate-exchange.collection.get",
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all",
         "finance.fund-update-logs.all",

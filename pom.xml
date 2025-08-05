@@ -54,6 +54,7 @@
     <aspectj.version>1.9.22.1</aspectj.version>
     <rest-assured.version>5.5.1</rest-assured.version>
     <folio-di-support.version>3.0.0</folio-di-support.version>
+    <caffeine.version>3.2.0</caffeine.version>
 
     <!--Folio dependencies properties-->
     <folio-module-descriptor-validator.version>1.0.0</folio-module-descriptor-validator.version>
@@ -193,6 +194,11 @@
         </exclusion>
       </exclusions>
       <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>${caffeine.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

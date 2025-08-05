@@ -25,4 +25,7 @@ public @interface CopilotGenerated {
 
   @AliasFor("model")
   String model() default "";
+
+  @AliasFor("mode")
+  String mode() default "Ask";
 }
