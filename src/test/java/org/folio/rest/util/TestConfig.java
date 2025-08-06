@@ -12,23 +12,21 @@ import org.folio.spring.SpringContextUtil;
 
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
-import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.json.JsonObject;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public final class TestConfig {
   public static final int mockPort = NetworkUtils.nextFreePort();
   public static final Header X_OKAPI_URL = new Header(TestConstants.OKAPI_URL, "http://localhost:" + mockPort);
 
   private static MockServer mockServer;
   private static final Vertx vertx = Vertx.vertx();
-
-  private TestConfig() {}
 
   public static void deployVerticle() throws InterruptedException, ExecutionException, TimeoutException {
     int okapiPort = NetworkUtils.nextFreePort();
@@ -41,7 +39,7 @@ public final class TestConfig {
 
     final DeploymentOptions opt = new DeploymentOptions().setConfig(conf);
     Promise<String> deploymentComplete = Promise.promise();
-    vertx.deployVerticle(RestVerticle.class.getName(), opt, res -> {
+    vertx.deployVerticle(RestVerticle.class.getName(), opt).onComplete(res -> {
       if (res.succeeded()) {
         deploymentComplete.complete(res.result());
       } else {
@@ -91,21 +89,11 @@ public final class TestConfig {
   }
 
   private static Context getFirstContextFromVertx(Vertx vertx) {
-    return vertx.deploymentIDs().stream().flatMap((id) -> ((VertxImpl)vertx)
-      .getDeployment(id).getVerticles().stream())
-      .map(TestConfig::getContextWithReflection)
+    return vertx.deploymentIDs().stream()
+      .flatMap(id -> ((VertxImpl) vertx).deploymentManager().deployment(id).deployment().contexts().stream())
       .filter(Objects::nonNull)
       .findFirst()
       .orElseThrow(() -> new IllegalStateException("Spring context was not created"));
   }
 
-  private static Context getContextWithReflection(Verticle verticle) {
-    try {
-      Field field = AbstractVerticle.class.getDeclaredField("context");
-      field.setAccessible(true);
-      return ((Context)field.get(verticle));
-    } catch (NoSuchFieldException | IllegalAccessException var2) {
-      return null;
-    }
-  }
 }
