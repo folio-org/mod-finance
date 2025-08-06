@@ -1,6 +1,5 @@
 package org.folio.rest.util;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,6 @@ import io.restassured.RestAssured;
 import io.restassured.http.Header;
 import io.vertx.core.Context;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.VertxImpl;
 import io.vertx.core.json.JsonObject;
@@ -38,15 +36,8 @@ public final class TestConfig {
     conf.put("http.port", okapiPort);
 
     final DeploymentOptions opt = new DeploymentOptions().setConfig(conf);
-    Promise<String> deploymentComplete = Promise.promise();
-    vertx.deployVerticle(RestVerticle.class.getName(), opt).onComplete(res -> {
-      if (res.succeeded()) {
-        deploymentComplete.complete(res.result());
-      } else {
-        deploymentComplete.fail(res.cause());
-      }
-    });
-    deploymentComplete.future().toCompletionStage().toCompletableFuture().get(60, TimeUnit.SECONDS);
+    vertx.deployVerticle(RestVerticle.class.getName(), opt)
+      .toCompletionStage().toCompletableFuture().get(60, TimeUnit.SECONDS);
   }
 
   public static void initSpringContext(Class<?> defaultConfiguration) {
