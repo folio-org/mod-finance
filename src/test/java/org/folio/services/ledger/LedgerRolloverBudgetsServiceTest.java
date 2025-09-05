@@ -106,6 +106,7 @@ public class LedgerRolloverBudgetsServiceTest {
       .withInitialAllocation(100.123456)
       .withAllocationTo(200.987654)
       .withAllocationFrom(50.555555)
+      .withAllocated(150.777777)
       .withNetTransfers(25.777777)
       .withEncumbered(75.333333)
       .withAwaitingPayment(125.666666)
@@ -133,6 +134,7 @@ public class LedgerRolloverBudgetsServiceTest {
         assertThat(roundedBudget.getInitialAllocation(), is(100.12));
         assertThat(roundedBudget.getAllocationTo(), is(200.99));
         assertThat(roundedBudget.getAllocationFrom(), is(50.56));
+        assertThat(roundedBudget.getAllocated(), is(150.78));
         assertThat(roundedBudget.getNetTransfers(), is(25.78));
         assertThat(roundedBudget.getEncumbered(), is(75.33));
         assertThat(roundedBudget.getAwaitingPayment(), is(125.67));

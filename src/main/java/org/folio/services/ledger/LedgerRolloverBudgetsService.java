@@ -52,6 +52,7 @@ public class LedgerRolloverBudgetsService {
       .withInitialAllocation(roundAmount(budget.getInitialAllocation(), currency, rounding))
       .withAllocationTo(roundAmount(budget.getAllocationTo(), currency, rounding))
       .withAllocationFrom(roundAmount(budget.getAllocationFrom(), currency, rounding))
+      .withAllocated(roundAmount(budget.getAllocated(), currency, rounding))
       .withNetTransfers(roundAmount(budget.getNetTransfers(), currency, rounding))
       .withEncumbered(roundAmount(budget.getEncumbered(), currency, rounding))
       .withAwaitingPayment(roundAmount(budget.getAwaitingPayment(), currency, rounding))
