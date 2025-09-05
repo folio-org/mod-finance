@@ -457,7 +457,8 @@
           "pathPattern": "/finance/ledger-rollovers-budgets",
           "permissionsRequired": ["finance.ledger-rollovers-budgets.collection.get"],
           "modulePermissions": [
-            "finance-storage.ledger-rollovers-budgets.collection.get"
+            "finance-storage.ledger-rollovers-budgets.collection.get",
+            "mod-settings.global.read.stripes-core.prefs.manage"
           ]
         },
         {
@@ -465,7 +466,8 @@
           "pathPattern": "/finance/ledger-rollovers-budgets/{id}",
           "permissionsRequired": ["finance.ledger-rollovers-budgets.item.get"],
           "modulePermissions": [
-            "finance-storage.ledger-rollovers-budgets.item.get"
+            "finance-storage.ledger-rollovers-budgets.item.get",
+            "mod-settings.global.read.stripes-core.prefs.manage"
           ]
         }
       ]
