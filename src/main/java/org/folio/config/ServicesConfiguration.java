@@ -134,8 +134,8 @@ public class ServicesConfiguration {
   }
 
   @Bean
-  LedgerRolloverBudgetsService ledgerRolloverBudgetsService(RestClient restClient) {
-    return new LedgerRolloverBudgetsService(restClient);
+  LedgerRolloverBudgetsService ledgerRolloverBudgetsService(RestClient restClient, CommonSettingsService commonSettingsService) {
+    return new LedgerRolloverBudgetsService(restClient, commonSettingsService);
   }
 
   @Bean
