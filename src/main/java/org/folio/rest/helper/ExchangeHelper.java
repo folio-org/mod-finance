@@ -45,9 +45,9 @@ public class ExchangeHelper extends AbstractHelper {
     var initialAmount = Money.of(amount, from);
     var rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
     log.debug("calculateExchange:: rate is {}", rate);
-
     return initialAmount.multiply(rate)
       .with(Monetary.getDefaultRounding())
-      .getNumber().doubleValue();
+      .getNumber()
+      .doubleValueExact();
   }
 }
