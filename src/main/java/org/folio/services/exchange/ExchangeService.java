@@ -41,6 +41,8 @@ public class ExchangeService {
 
   private final RestClient restClient;
   private final HttpClient httpClient;
+
+  @SuppressWarnings("squid:S3306") // This field is initialized in @PostConstruct, not injected
   private Map<ProviderType, Cache<@NonNull String, Pair<BigDecimal, OperationMode>>> exchangeProviderCaches;
 
   @Value("${finance.cache.exchange-rate.expiration.time.seconds:300}")
