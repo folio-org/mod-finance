@@ -39,10 +39,10 @@ public class ExchangeApi extends BaseApi implements FinanceExchangeRate, Finance
   }
 
   @Override
-  public void getFinanceCalculateExchange(String from, String to, Number amount, Number customRate, Map<String, String> okapiHeaders,
+  public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, Map<String, String> okapiHeaders,
                                           Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
     var requestContext = new RequestContext(context, okapiHeaders);
-    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, customRate, requestContext)
+    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, exchangeRate, manual, requestContext)
       .onSuccess(convertedAmount -> asyncResultHandler.handle(succeededFuture(buildOkResponse(convertedAmount))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail)));
   }
@@ -55,5 +55,4 @@ public class ExchangeApi extends BaseApi implements FinanceExchangeRate, Finance
       .onSuccess(calculationResults -> asyncResultHandler.handle(succeededFuture(buildOkResponse(calculationResults))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail)));
   }
-
 }

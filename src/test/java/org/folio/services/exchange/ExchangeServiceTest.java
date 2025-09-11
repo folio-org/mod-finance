@@ -124,15 +124,15 @@ public class ExchangeServiceTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"TREASURY_GOV,9.61d", "CURRENCYAPI_COM,9.052401139"})
-  void testCalculateExchangeRateUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double expectedAmount,
-                                                                    VertxTestContext testContext) throws IOException, InterruptedException {
+  @CsvSource({"TREASURY_GOV,0d,false,9.61d", "TREASURY_GOV,10d,true,100d", "CURRENCYAPI_COM,0d,false,9.052401139"})
+  void testCalculateExchangeRateUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double exchangeRate, boolean manual,
+                                                                    double expectedAmount, VertxTestContext testContext) throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
     when(httpResponse.body()).thenReturn(createResponseBody(providerType));
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    exchangeService.calculateExchange("USD", "EUR", 10, null, requestContext)
+    exchangeService.calculateExchange("USD", "EUR", 10, exchangeRate == 0d ? null : exchangeRate, manual, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals(expectedAmount, result);
         testContext.completeNow();

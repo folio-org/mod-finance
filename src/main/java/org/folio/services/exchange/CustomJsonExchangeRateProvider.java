@@ -1,6 +1,7 @@
 package org.folio.services.exchange;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
@@ -32,15 +33,15 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
   private final HttpClient httpClient;
   private final ExchangeRateSource rateSource;
   private final OperationMode operationMode;
-  private final Cache<String, Pair<BigDecimal, OperationMode>> exchangeRateCache;
+  private final Cache<@NonNull String, Pair<BigDecimal, OperationMode>> exchangeRateCache;
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource,
-                                        Cache<String, Pair<BigDecimal, OperationMode>> exchangeRateCache) {
+                                        Cache<@NonNull String, Pair<BigDecimal, OperationMode>> exchangeRateCache) {
     this(httpClient, rateSource, OperationMode.MULTIPLY, exchangeRateCache);
   }
 
   public CustomJsonExchangeRateProvider(HttpClient httpClient, ExchangeRateSource rateSource, OperationMode operationMode,
-                                        Cache<String, Pair<BigDecimal, OperationMode>> exchangeRateCache) {
+                                        Cache<@NonNull String, Pair<BigDecimal, OperationMode>> exchangeRateCache) {
     super(CONTEXT);
     this.httpClient = httpClient;
     this.rateSource = rateSource;
@@ -52,13 +53,11 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
   public ExchangeRate getExchangeRate(ConversionQuery query) {
     var from = query.getBaseCurrency();
     var to = query.getCurrency();
-
-    var exchangeRatePair = getCachedExchangeRate(from.getCurrencyCode(), to.getCurrencyCode());
     var builder = new ExchangeRateBuilder(ConversionContext.of());
     builder.setBase(from);
     builder.setTerm(to);
+    var exchangeRatePair = getCachedExchangeRate(from.getCurrencyCode(), to.getCurrencyCode());
     builder.setFactor(DefaultNumberValue.of(exchangeRatePair.getLeft()));
-
     return builder.build();
   }
 
@@ -82,5 +81,4 @@ public class CustomJsonExchangeRateProvider extends AbstractRateProvider {
     };
     return handler.getExchangeRateFromApi(from, to);
   }
-
 }

@@ -52,6 +52,12 @@ types:
         type: amount
         required: false
         example: 1.08
+      manual:
+        description: "Is the exchange rate manually set?"
+        type: boolean
+        required: false
+        default: false
+        example: false
     responses:
       200:
         description: "Exchange calculation successfully retrieved"
