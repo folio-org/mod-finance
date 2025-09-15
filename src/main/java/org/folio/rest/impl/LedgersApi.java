@@ -113,4 +113,19 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }
 
+  @Validate
+  @Override
+  public void getFinanceLedgersPlannedFiscalYearById(String ledgerId, Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> handler, Context vertxContext) {
+
+    ledgerDetailsService.getPlannedFiscalYear(ledgerId, new RequestContext(vertxContext, okapiHeaders))
+      .onSuccess(plannedFiscalYear -> {
+        if(Objects.nonNull(plannedFiscalYear)) {
+          handler.handle(succeededFuture(buildOkResponse(plannedFiscalYear)));
+        } else {
+          handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), HttpStatus.HTTP_NOT_FOUND.name()))));
+        }
+      })
+      .onFailure(fail -> handleErrorResponse(handler, fail));
+  }
+
 }
