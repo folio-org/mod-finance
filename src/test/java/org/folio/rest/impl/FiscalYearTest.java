@@ -326,8 +326,58 @@ public class FiscalYearTest {
     RestTestUtils.verifyPut(FISCAL_YEAR.getEndpointWithId((String) body.remove(ID)), body, "", 422);
   }
 
+  @Test
+  void testGetPlannedFiscalYear() {
+    logger.info("=== Test Get Planned Fiscal Year ===");
+    LocalDateTime now = LocalDateTime.now();
+
+    FiscalYear currentYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    currentYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    currentYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
+    FiscalYear plannedYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    plannedYear.setPeriodStart(convertLocalDateTimeToDate(now.plusDays(15)));
+    plannedYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(25)));
+
+    String ledgerId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(currentYear.getId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(currentYear));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(plannedYear));
+
+    FiscalYear response = RestTestUtils.verifyGet(getPlannedFiscalYearEndpoint(ledgerId), APPLICATION_JSON, OK.getStatusCode()).as(FiscalYear.class);
+    assertThat(response.getId(), is(plannedYear.getId()));
+  }
+
+  @Test
+  void testGetPlannedFiscalYearNotFound() {
+    logger.info("=== Test Get Planned Fiscal Year - No Planned Year Available ===");
+    LocalDateTime now = LocalDateTime.now();
+
+    FiscalYear currentYear = new FiscalYear().withId(UUID.randomUUID().toString());
+    currentYear.setPeriodStart(convertLocalDateTimeToDate(now.minusDays(10)));
+    currentYear.setPeriodEnd(convertLocalDateTimeToDate(now.plusDays(10)));
+
+    String ledgerId = UUID.randomUUID().toString();
+    Ledger ledger = new Ledger().withId(ledgerId).withFiscalYearOneId(currentYear.getId());
+    addMockEntry(LEDGER.name(), JsonObject.mapFrom(ledger));
+    addMockEntry(FISCAL_YEAR.name(), JsonObject.mapFrom(currentYear));
+
+    RestTestUtils.verifyGet(getPlannedFiscalYearEndpoint(ledgerId), APPLICATION_JSON, NOT_FOUND.getStatusCode());
+  }
+
+  @Test
+  void testGetPlannedFiscalYearLedgerNotFound() {
+    logger.info("=== Test Get Planned Fiscal Year - Ledger Not Found ===");
+    RestTestUtils.verifyGet(getPlannedFiscalYearEndpoint(UUID.randomUUID().toString()), APPLICATION_JSON, NOT_FOUND.getStatusCode());
+  }
+
   private String getCurrentFiscalYearEndpoint(String ledgerId) {
     return HelperUtils.getEndpoint(FinanceLedgers.class) + "/" + ledgerId + "/current-fiscal-year";
+  }
+
+  private String getPlannedFiscalYearEndpoint(String ledgerId) {
+    return HelperUtils.getEndpoint(FinanceLedgers.class) + "/" + ledgerId + "/planned-fiscal-year";
   }
 
 }

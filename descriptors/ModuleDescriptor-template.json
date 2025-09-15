@@ -395,6 +395,17 @@
             "finance-storage.fiscal-years.collection.get",
             "mod-settings.global.read.stripes-core.prefs.manage"
           ]
+        },
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/ledgers/{id}/planned-fiscal-year",
+          "permissionsRequired": ["finance.ledgers.planned-fiscal-year.item.get"],
+          "modulePermissions": [
+            "finance-storage.ledgers.item.get",
+            "finance-storage.fiscal-years.item.get",
+            "finance-storage.fiscal-years.collection.get",
+            "mod-settings.global.read.stripes-core.prefs.manage"
+          ]
         }
       ]
     },
@@ -1138,6 +1149,11 @@
       "description" : "Get a current fiscal year"
     },
     {
+      "permissionName" : "finance.ledgers.planned-fiscal-year.item.get",
+      "displayName" : "Ledgers - get a planned fiscal year for a specific ledger",
+      "description" : "Get a planned fiscal year"
+    },
+    {
       "permissionName" : "finance.ledger-rollovers.collection.get",
       "displayName" : "Ledger rollover - get the collection of ledger rollovers",
       "description" : "Get collection of ledger rollovers"
@@ -1225,6 +1241,7 @@
         "finance.ledger-rollovers-budgets.collection.get",
         "finance.ledger-rollovers-budgets.item.get",
         "finance.ledgers.current-fiscal-year.item.get",
+        "finance.ledgers.planned-fiscal-year.item.get",
         "finance.ledger-rollovers-errors.collection.get",
         "finance.ledger-rollovers-errors.item.post",
         "finance.ledger-rollovers-errors.item.delete",
