@@ -135,7 +135,11 @@ public class ExchangeServiceTest {
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    exchangeService.calculateExchange("USD", "EUR", 10, exchangeRate == 0d ? null : exchangeRate, manual, requestContext)
+    var isManualRate = exchangeRate != 0d;
+    var manualRate = isManualRate ? exchangeRate : null;
+
+    // Use manual rate only if "manual" field is set with a boolean value
+    exchangeService.calculateExchange("USD", "EUR", 10, manualRate, manual, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals(expectedAmount, result);
         testContext.completeNow();
@@ -143,13 +147,16 @@ public class ExchangeServiceTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"TREASURY_GOV,0d,false,9.61d", "TREASURY_GOV,10d,true,100d", "CURRENCYAPI_COM,0d,false,9.052401139"})
-  void testCalculateExchangeRateBatchUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double exchangeRate, boolean manual,
+  @CsvSource({"TREASURY_GOV,0d,9.61d", "TREASURY_GOV,10d,100d", "CURRENCYAPI_COM,0d,9.052401139"})
+  void testCalculateExchangeRateBatchUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double exchangeRate,
                                                                          double expectedAmount, VertxTestContext testContext) throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
     when(httpResponse.body()).thenReturn(createResponseBody(providerType));
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var isManualRate = exchangeRate != 0d;
+    var manualRate = isManualRate ? exchangeRate : null;
 
     var calculations = new ExchangeRateCalculations()
       .withExchangeRateCalculations(Arrays.asList(
@@ -157,7 +164,7 @@ public class ExchangeServiceTest {
           .withFrom("USD")
           .withTo("EUR")
           .withAmount(10.0)
-          .withRate(exchangeRate == 0d ? null : exchangeRate),
+          .withRate(manualRate),
         new ExchangeRateCalculation()
           .withFrom("GBP")
           .withTo("EUR")
@@ -165,6 +172,7 @@ public class ExchangeServiceTest {
           .withRate(null)
       ));
 
+    // Use manual rate only if "rate" field is set with a numeric value
     exchangeService.calculateExchangeBatch(calculations, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertNotNull(result);
@@ -174,7 +182,7 @@ public class ExchangeServiceTest {
         var firstCalculation = result.getExchangeRateCalculations().getFirst();
         log.info("Provider: {}, first rate: {}, calculation: {}", providerType.name(), firstCalculation.getRate(), firstCalculation.getCalculation());
         assertNotNull(firstCalculation.getCalculation());
-        if (manual) {
+        if (isManualRate) {
           assertEquals(exchangeRate, firstCalculation.getRate());
           assertEquals(expectedAmount, firstCalculation.getCalculation());
         } else {
