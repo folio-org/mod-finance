@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import lombok.extern.log4j.Log4j2;
 import org.folio.HttpStatus;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
@@ -36,9 +37,11 @@ import static org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType.TREASUR
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@Log4j2
 @SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
 @CopilotGenerated(partiallyGenerated = true, model = "Claude Sonnet 4", mode = "Agent")
@@ -140,6 +143,58 @@ public class ExchangeServiceTest {
   }
 
   @ParameterizedTest
+  @CsvSource({"TREASURY_GOV,0d,false,9.61d", "TREASURY_GOV,10d,true,100d", "CURRENCYAPI_COM,0d,false,9.052401139"})
+  void testCalculateExchangeRateBatchUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double exchangeRate, boolean manual,
+                                                                         double expectedAmount, VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(providerType));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculations = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(Arrays.asList(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(10.0)
+          .withManual(manual)
+          .withRate(exchangeRate == 0d ? null : exchangeRate),
+        new ExchangeRateCalculation()
+          .withFrom("GBP")
+          .withTo("EUR")
+          .withAmount(50.0)
+          .withRate(null)
+      ));
+
+    exchangeService.calculateExchangeBatch(calculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertNotNull(result.getExchangeRateCalculations());
+        assertEquals(2, result.getExchangeRateCalculations().size());
+
+        var firstCalculation = result.getExchangeRateCalculations().getFirst();
+        log.info("Provider: {}, first rate: {}, calculation: {}", providerType.name(), firstCalculation.getRate(), firstCalculation.getCalculation());
+        assertNotNull(firstCalculation.getCalculation());
+        if (manual) {
+          assertEquals(exchangeRate, firstCalculation.getRate());
+          assertEquals(expectedAmount, firstCalculation.getCalculation());
+        } else {
+          assertNotNull(firstCalculation.getCalculation());
+          assertNull(firstCalculation.getRate());
+          assertNotEquals(0.0, firstCalculation.getCalculation());
+        }
+
+        var secondCalculation = result.getExchangeRateCalculations().getLast();
+        log.info("Provider: {}, second rate: {}, calculation: {}", providerType.name(), secondCalculation.getRate(), secondCalculation.getCalculation());
+        assertNotNull(secondCalculation.getCalculation());
+        assertNull(secondCalculation.getRate());
+        assertNotEquals(0.0, secondCalculation.getCalculation());
+
+        testContext.completeNow();
+      })));
+  }
+
+  @ParameterizedTest
   @CsvSource({"TREASURY_GOV", "CURRENCYAPI_COM"})
   void testCalculateExchangeBatchUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType,
                                                                      VertxTestContext testContext) throws IOException, InterruptedException {
@@ -148,7 +203,24 @@ public class ExchangeServiceTest {
     when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(providerType)));
     when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
 
-    var calculations = createExchangeRateCalculations();
+    var calculations = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(Arrays.asList(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(null),
+        new ExchangeRateCalculation()
+          .withFrom("GBP")
+          .withTo("EUR")
+          .withAmount(50.0)
+          .withRate(null),
+        new ExchangeRateCalculation()
+          .withFrom("EUR")
+          .withTo("EUR")
+          .withAmount(75.0)
+          .withRate(null)
+      ));
 
     exchangeService.calculateExchangeBatch(calculations, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
@@ -229,10 +301,12 @@ public class ExchangeServiceTest {
           .withFrom("USD")
           .withTo("EUR")
           .withAmount(100.0)
+          .withManual(true)
           .withRate(0.85), // Custom rate
         new ExchangeRateCalculation()
           .withFrom("GBP")
           .withTo("USD")
+          .withManual(true)
           .withAmount(50.0)
           .withRate(1.25) // Custom rate
       ));
@@ -243,34 +317,20 @@ public class ExchangeServiceTest {
         assertNotNull(result.getExchangeRateCalculations());
         assertEquals(2, result.getExchangeRateCalculations().size());
 
-        result.getExchangeRateCalculations().forEach(calculation -> {
-          assertNotNull(calculation.getCalculation());
-          assertNotNull(calculation.getRate()); // Should preserve custom rates
-        });
+        var firstCalculation = result.getExchangeRateCalculations().getFirst();
+        log.info("First rate: {}, calculation: {}", firstCalculation.getRate(), firstCalculation.getCalculation());
+        assertNotNull(firstCalculation.getCalculation());
+        assertEquals(0.85, firstCalculation.getRate());
+        assertEquals(85.0, firstCalculation.getCalculation());
+
+        var secondCalculation = result.getExchangeRateCalculations().getLast();
+        log.info("Second rate: {}, calculation: {}", secondCalculation.getRate(), secondCalculation.getCalculation());
+        assertNotNull(secondCalculation.getCalculation());
+        assertEquals(1.25, secondCalculation.getRate());
+        assertEquals(62.5, secondCalculation.getCalculation());
 
         testContext.completeNow();
       })));
-  }
-
-  private ExchangeRateCalculations createExchangeRateCalculations() {
-    return new ExchangeRateCalculations()
-      .withExchangeRateCalculations(Arrays.asList(
-        new ExchangeRateCalculation()
-          .withFrom("USD")
-          .withTo("EUR")
-          .withAmount(100.0)
-          .withRate(null),
-        new ExchangeRateCalculation()
-          .withFrom("GBP")
-          .withTo("EUR")
-          .withAmount(50.0)
-          .withRate(null),
-        new ExchangeRateCalculation()
-          .withFrom("EUR")
-          .withTo("EUR")
-          .withAmount(75.0)
-          .withRate(null)
-      ));
   }
 
   private ExchangeRateSource createExchangeRateSource(ExchangeRateSource.ProviderType providerType) {
