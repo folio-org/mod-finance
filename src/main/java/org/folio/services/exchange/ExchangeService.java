@@ -90,7 +90,7 @@ public class ExchangeService {
   }
 
   private Double doCalculateExchange(ExchangeRateCalculation calculation, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
-    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), calculation.getRate(), false, rateSource, exchangeHelper);
+    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), calculation.getRate(), Objects.nonNull(calculation.getRate()), rateSource, exchangeHelper);
   }
 
   private Double doCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
