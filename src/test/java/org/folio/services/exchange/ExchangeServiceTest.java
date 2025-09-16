@@ -157,7 +157,6 @@ public class ExchangeServiceTest {
           .withFrom("USD")
           .withTo("EUR")
           .withAmount(10.0)
-          .withManual(manual)
           .withRate(exchangeRate == 0d ? null : exchangeRate),
         new ExchangeRateCalculation()
           .withFrom("GBP")
@@ -301,12 +300,10 @@ public class ExchangeServiceTest {
           .withFrom("USD")
           .withTo("EUR")
           .withAmount(100.0)
-          .withManual(true)
           .withRate(0.85), // Custom rate
         new ExchangeRateCalculation()
           .withFrom("GBP")
           .withTo("USD")
-          .withManual(true)
           .withAmount(50.0)
           .withRate(1.25) // Custom rate
       ));
