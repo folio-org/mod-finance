@@ -6,10 +6,12 @@ import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearBatchRequest;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYearCollection;
 
 import io.vertx.core.Future;
@@ -47,5 +49,17 @@ public class GroupFundFiscalYearService {
     String query = String.format("groupId==%s AND fiscalYearId==%s AND budgetId=*", groupId, fiscalYearId);
     return getGroupFundFiscalYears(query, 0, Integer.MAX_VALUE, requestContext)
       .map(GroupFundFiscalYearCollection::getGroupFundFiscalYears);
+  }
+
+  public Future<GroupFundFiscalYearCollection> getGroupFundFiscalYearsByFundIds(GroupFundFiscalYearBatchRequest batchRequest, RequestContext requestContext) {
+    List<String> fundIds = batchRequest.getFundIds();
+    if (CollectionUtils.isEmpty(fundIds)) {
+      return Future.succeededFuture(new GroupFundFiscalYearCollection().withGroupFundFiscalYears(List.of()).withTotalRecords(0));
+    }
+
+    return restClient.postBatch(resourcesPath(GROUP_FUND_FISCAL_YEARS) + "/batch",
+      batchRequest,
+      GroupFundFiscalYearCollection.class,
+      requestContext);
   }
 }
