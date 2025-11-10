@@ -324,7 +324,7 @@
           "pathPattern": "/finance/group-fund-fiscal-years/batch",
           "permissionsRequired": ["finance.group-fund-fiscal-years.batch.post"],
           "modulePermissions": [
-            "finance-storage.group-fund-fiscal-years.collection.get"
+            "finance-storage.group-fund-fiscal-years.batch.post"
           ]
         },
         {
