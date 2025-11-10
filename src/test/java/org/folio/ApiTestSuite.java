@@ -18,6 +18,7 @@ import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundUpdateLogApiTest;
 import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
+import org.folio.rest.impl.GroupFundFiscalYearApiTest;
 import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgerRolloverApiTest;
 import org.folio.rest.impl.LedgerRolloverBudgetsApiTest;
@@ -176,6 +177,10 @@ public class ApiTestSuite {
 
   @Nested
   class GroupsApiTestNested extends GroupsApiTest {
+  }
+
+  @Nested
+  class GroupFundFiscalYearApiTestNested extends GroupFundFiscalYearApiTest {
   }
 
   @Nested
