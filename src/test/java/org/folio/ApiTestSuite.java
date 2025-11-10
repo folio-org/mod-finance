@@ -8,6 +8,7 @@ import static org.folio.rest.util.TestConfig.startMockServer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.folio.rest.core.RestClientTest;
 import org.folio.rest.impl.BudgetsApiTest;
 import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
@@ -18,6 +19,7 @@ import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundUpdateLogApiTest;
 import org.folio.rest.impl.FundsApiTest;
 import org.folio.rest.impl.GroupFiscalYearSummariesTest;
+import org.folio.rest.impl.GroupFundFiscalYearApiTest;
 import org.folio.rest.impl.GroupsApiTest;
 import org.folio.rest.impl.LedgerRolloverApiTest;
 import org.folio.rest.impl.LedgerRolloverBudgetsApiTest;
@@ -179,6 +181,10 @@ public class ApiTestSuite {
   }
 
   @Nested
+  class GroupFundFiscalYearApiTestNested extends GroupFundFiscalYearApiTest {
+  }
+
+  @Nested
   class LedgerServiceTestNested extends LedgerServiceTest {
   }
 
@@ -275,4 +281,7 @@ public class ApiTestSuite {
 
   @Nested
   class ManualCurrencyConversionTestNested extends ManualCurrencyConversionTest {}
+
+  @Nested
+  class RestClientTestNested extends RestClientTest {}
 }

@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.GroupFundFiscalYear;
+import org.folio.rest.jaxrs.model.GroupFundFiscalYearBatchRequest;
 import org.folio.rest.jaxrs.resource.FinanceGroupFundFiscalYears;
 import org.folio.services.group.GroupFundFiscalYearService;
 import org.folio.spring.SpringContextUtil;
@@ -48,6 +49,16 @@ public class GroupFundFiscalYearApi extends BaseApi implements FinanceGroupFundF
     Handler<AsyncResult<Response>> handler, Context ctx) {
 
     groupFundFiscalYearService.getGroupFundFiscalYears(query, offset, limit, new RequestContext(ctx, headers))
+      .onSuccess(groupFundFiscalYears -> handler.handle(succeededFuture(buildOkResponse(groupFundFiscalYears))))
+      .onFailure(fail -> handleErrorResponse(handler, fail));
+  }
+
+  @Override
+  @Validate
+  public void postFinanceGroupFundFiscalYearsBatch(GroupFundFiscalYearBatchRequest entity, Map<String, String> headers,
+      Handler<AsyncResult<Response>> handler, Context ctx) {
+
+    groupFundFiscalYearService.getGroupFundFiscalYearsByFundIds(entity, new RequestContext(ctx, headers))
       .onSuccess(groupFundFiscalYears -> handler.handle(succeededFuture(buildOkResponse(groupFundFiscalYears))))
       .onFailure(fail -> handleErrorResponse(handler, fail));
   }

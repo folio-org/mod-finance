@@ -72,6 +72,19 @@ public class RestClient {
       .mapEmpty();
   }
 
+  public <REQ, RES> Future<RES> postBatch(String endpoint, REQ requestEntity, Class<RES> responseType, RequestContext requestContext) {
+    log.info(REQUEST_MESSAGE_LOG_INFO, HttpMethod.POST, endpoint);
+    var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
+    return getVertxWebClient(requestContext.context())
+      .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
+      .putHeaders(caseInsensitiveHeader)
+      .expect(SUCCESS_RESPONSE_PREDICATE)
+      .sendJson(requestEntity)
+      .map(HttpResponse::bodyAsJsonObject)
+      .map(body -> body.mapTo(responseType))
+      .onFailure(log::error);
+  }
+
   protected MultiMap convertToCaseInsensitiveMap(Map<String, String> okapiHeaders) {
     return MultiMap.caseInsensitiveMultiMap()
       .addAll(okapiHeaders)

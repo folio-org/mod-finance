@@ -320,6 +320,14 @@
           ]
         },
         {
+          "methods": ["POST"],
+          "pathPattern": "/finance/group-fund-fiscal-years/batch",
+          "permissionsRequired": ["finance.group-fund-fiscal-years.batch.post"],
+          "modulePermissions": [
+            "finance-storage.group-fund-fiscal-years.batch.post"
+          ]
+        },
+        {
           "methods": ["DELETE"],
           "pathPattern": "/finance/group-fund-fiscal-years/{id}",
           "permissionsRequired": ["finance.group-fund-fiscal-years.item.delete"],
@@ -1310,13 +1318,19 @@
       "description": "Delete finance group fund fiscal year"
     },
     {
+      "permissionName": "finance.group-fund-fiscal-years.batch.post",
+      "displayName": "Finances - batch query group fund fiscal years by fundIds",
+      "description": "Query multiple group fund fiscal years by fundIds in a single request"
+    },
+    {
       "permissionName": "finance.group-fund-fiscal-years.all",
       "displayName": "Finance group fund fiscal years - all permissions",
       "description": "Entire set of permissions needed to use the Finance - group fund fiscal years interface",
       "subPermissions": [
         "finance.group-fund-fiscal-years.collection.get",
         "finance.group-fund-fiscal-years.item.post",
-        "finance.group-fund-fiscal-years.item.delete"
+        "finance.group-fund-fiscal-years.item.delete",
+        "finance.group-fund-fiscal-years.batch.post"
       ],
       "visible": false
     },
