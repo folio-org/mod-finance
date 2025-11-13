@@ -1,18 +1,14 @@
 package org.folio.services.financedata;
 
-import static io.vertx.core.Future.failedFuture;
-import static io.vertx.core.Future.succeededFuture;
 import static java.util.Objects.requireNonNullElse;
-import org.folio.rest.jaxrs.model.FundTags;
-import org.folio.rest.jaxrs.model.Tags;
 import static org.folio.rest.util.ErrorCodes.BUDGET_STATUS_INCORRECT;
 import static org.folio.rest.util.ErrorCodes.FUND_STATUS_INCORRECT;
-import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,18 +21,25 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.Error;
 import org.folio.rest.jaxrs.model.Errors;
 import org.folio.rest.jaxrs.model.Fund;
+import org.folio.rest.jaxrs.model.FundTags;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
 import org.folio.rest.jaxrs.model.Parameter;
 import org.folio.rest.jaxrs.model.SharedBudget;
+import org.folio.rest.jaxrs.model.Tags;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fund.FundService;
 
+import one.util.streamex.IntStreamEx;
+import one.util.streamex.StreamEx;
+
 @Log4j2
 public class FinanceDataValidator {
+
   private static final String ERROR_KEY_FORMAT = "financeData[%s].%s";
 
   private final FundService fundService;
@@ -144,49 +147,59 @@ public class FinanceDataValidator {
   }
 
   public Future<Void> compareWithExistingData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
-    List<Future<Void>> validationFutures = new ArrayList<>();
-    List<Error> errors = new ArrayList<>();
+    return fetchFundsAndBudgetsForFinanceData(financeDataCollection, requestContext)
+      .compose(comparisonHolderMap -> {
+        List<Error> errors = new ArrayList<>();
 
-    for (int i = 0; i < financeDataCollection.getFyFinanceData().size(); i++) {
-      var financeData = financeDataCollection.getFyFinanceData().get(i);
-      validationFutures.add(compareFund(financeData, i, errors, requestContext));
-      validationFutures.add(compareBudget(financeData, i, errors, requestContext));
-    }
+        comparisonHolderMap.forEach((index, holder) -> {
+          compareFund(holder.fund(), holder.financeData(), index, errors);
+          compareBudget(holder.budget(), holder.financeData(), index, errors);
+        });
 
-    return collectResultsOnSuccess(validationFutures)
-      .map(compositeFuture -> {
-        IntStream.range(0, financeDataCollection.getFyFinanceData().size())
-          .forEach(i -> verifyAllocationChange(errors, financeDataCollection.getFyFinanceData().get(i), i));
-        if (!errors.isEmpty()) {
-          throw new HttpException(422, new Errors().withErrors(errors).withTotalRecords(errors.size()));
-        }
-        return null;
+        IntStreamEx.range(financeDataCollection.getFyFinanceData().size()).forEach(i ->
+          verifyAllocationChange(errors, financeDataCollection.getFyFinanceData().get(i), i));
+
+        return !errors.isEmpty()
+          ? Future.failedFuture(new HttpException(422, new Errors().withErrors(errors).withTotalRecords(errors.size())))
+          : Future.succeededFuture();
       });
   }
 
-  private Future<Void> compareFund(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
-    return fundService.getFundById(financeData.getFundId(), requestContext)
-      .compose(existingFund -> {
-        if (!Objects.equals(existingFund.getCode(), financeData.getFundCode())) {
-          errors.add(createError("fundCode must be the same as existing fund code",
-            String.format("financeData[%s].fundCode", index), financeData.getFundCode()));
-        }
-        if (!Objects.equals(existingFund.getName(), financeData.getFundName())) {
-          errors.add(createError("fundName must be the same as existing fund name",
-            String.format("financeData[%s].fundName", index), financeData.getFundName()));
-        }
-        if (financeData.getLedgerId() != null && !Objects.equals(existingFund.getLedgerId(), financeData.getLedgerId())) {
-          errors.add(createError("Fund ledger ID must be the same as ledger ID",
-            String.format("financeData[%s].fundId", index), financeData.getFundId()));
-        }
+  private Future<Map<Integer, FinanceDataComparisonHolder>> fetchFundsAndBudgetsForFinanceData(FyFinanceDataCollection financeDataCollection, RequestContext requestContext) {
+    var fundIds = StreamEx.of(financeDataCollection.getFyFinanceData()).map(FyFinanceData::getFundId).toSet();
+    var budgetIds = StreamEx.of(financeDataCollection.getFyFinanceData()).map(FyFinanceData::getBudgetId).toSet();
+    return fundService.getFundsBatch(fundIds, requestContext)
+      .compose(funds -> budgetService.getBudgetsBatch(budgetIds, requestContext)
+        .map(budgets -> {
+          var fundMap = StreamEx.of(funds.getFunds()).valuesToMap(Fund::getId);
+          var budgetMap = StreamEx.of(budgets.getBudgets()).valuesToMap(Budget::getId);
 
-        financeData.setIsFundChanged(isFundChanged(financeData, existingFund));
-        return succeededFuture();
-      })
-      .recover(throwable -> {
-        errors.add(createError("Fund ID not found", String.format("financeData[%s].fundId", index), financeData.getFundId()));
-        return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
-      }).mapEmpty();
+          return IntStreamEx.range(financeDataCollection.getFyFinanceData().size()).boxed()
+            .toMap(i -> new FinanceDataComparisonHolder(financeDataCollection.getFyFinanceData().get(i),
+              fundMap.getOrDefault(financeDataCollection.getFyFinanceData().get(i).getFundId(), null),
+              budgetMap.getOrDefault(financeDataCollection.getFyFinanceData().get(i).getBudgetId(), null)));
+        }));
+  }
+
+  private void compareFund(Fund fund, FyFinanceData financeData, int index, List<Error> errors) {
+    if (fund == null) {
+      errors.add(createError("Fund ID not found", String.format("financeData[%s].fundId", index), financeData.getFundId()));
+      return;
+    }
+    if (!Objects.equals(fund.getCode(), financeData.getFundCode())) {
+      errors.add(createError("fundCode must be the same as existing fund code",
+        String.format("financeData[%s].fundCode", index), financeData.getFundCode()));
+    }
+    if (!Objects.equals(fund.getName(), financeData.getFundName())) {
+      errors.add(createError("fundName must be the same as existing fund name",
+        String.format("financeData[%s].fundName", index), financeData.getFundName()));
+    }
+    if (financeData.getLedgerId() != null && !Objects.equals(fund.getLedgerId(), financeData.getLedgerId())) {
+      errors.add(createError("Fund ledger ID must be the same as ledger ID",
+        String.format("financeData[%s].fundId", index), financeData.getFundId()));
+    }
+
+    financeData.setIsFundChanged(isFundChanged(financeData, fund));
   }
 
   /**
@@ -222,34 +235,28 @@ public class FinanceDataValidator {
     return statusChanged || tagsChanged || descriptionChanged;
   }
 
-  private Future<Void> compareBudget(FyFinanceData financeData, int index, List<Error> errors, RequestContext requestContext) {
+  private void compareBudget(Budget budget, FyFinanceData financeData, int index, List<Error> errors) {
     if (StringUtils.isEmpty(financeData.getBudgetId())) {
-      boolean isBudgetChanged = financeData.getBudgetStatus() != null
-        || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0;
-      financeData.setIsBudgetChanged(isBudgetChanged);
-      return succeededFuture();
+      financeData.setIsBudgetChanged(financeData.getBudgetStatus() != null || requireNonNullElse(financeData.getBudgetAllocationChange(), 0.0) != 0);
+      return;
     }
 
-    return budgetService.getBudgetById(financeData.getBudgetId(), requestContext)
-      .compose(existingBudget -> {
-        if (!Objects.equals(existingBudget.getName(), financeData.getBudgetName())) {
-          errors.add(createError("budgetName must be the same as existing budget name",
-            String.format("financeData[%s].budgetName", index), financeData.getBudgetName()));
-        }
-        if (!Objects.equals(existingBudget.getFundId(), financeData.getFundId())) {
-          errors.add(createError("Budget fund ID must be the same as fund ID",
-            String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
-        }
+    if (budget == null) {
+      errors.add(createError("Budget ID not found", String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
+      return;
+    }
+    if (!Objects.equals(budget.getName(), financeData.getBudgetName())) {
+      errors.add(createError("budgetName must be the same as existing budget name",
+        String.format("financeData[%s].budgetName", index), financeData.getBudgetName()));
+    }
+    if (!Objects.equals(budget.getFundId(), financeData.getFundId())) {
+      errors.add(createError("Budget fund ID must be the same as fund ID",
+        String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
+    }
 
-        financeData.withIsBudgetChanged(isBudgetChanged(financeData, existingBudget))
-          .withBudgetInitialAllocation(existingBudget.getInitialAllocation())
-          .withBudgetCurrentAllocation(existingBudget.getAllocated());
-        return succeededFuture();
-      })
-      .recover(t -> {
-        errors.add(createError("Budget ID not found", String.format("financeData[%s].budgetId", index), financeData.getBudgetId()));
-        return failedFuture(new HttpException(422, new Errors().withErrors(errors)));
-      }).mapEmpty();
+    financeData.withIsBudgetChanged(isBudgetChanged(financeData, budget))
+      .withBudgetInitialAllocation(budget.getInitialAllocation())
+      .withBudgetCurrentAllocation(budget.getAllocated());
   }
 
   /**
@@ -266,7 +273,7 @@ public class FinanceDataValidator {
    * @param existingBudget The existing budget to compare against
    * @return true if any budget property has changed
    */
-  private static boolean isBudgetChanged(FyFinanceData financeData, SharedBudget existingBudget) {
+  private static boolean isBudgetChanged(FyFinanceData financeData, Budget existingBudget) {
     boolean statusChanged = StringUtils.isNotEmpty(financeData.getBudgetStatus()) &&
       !Objects.equals(financeData.getBudgetStatus(), String.valueOf(existingBudget.getBudgetStatus()));
 
@@ -296,5 +303,8 @@ public class FinanceDataValidator {
     var param = new Parameter().withKey(key).withValue(value);
     return new Error().withMessage(message).withParameters(List.of(param));
   }
+
+  private record FinanceDataComparisonHolder(FyFinanceData financeData, Fund fund, Budget budget) { }
+
 }
 

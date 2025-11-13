@@ -11,8 +11,10 @@ public class ResourcePathResolver {
   }
 
   public static final String BUDGETS_STORAGE = "budgets";
+  public static final String BUDGETS_BATCH_STORAGE = "budgetsBatch";
   public static final String FINANCE_DATA_STORAGE = "financeData";
   public static final String FUNDS_STORAGE = "funds";
+  public static final String FUNDS_BATCH_STORAGE = "fundsBatch";
   public static final String FUND_TYPES = "fundTypes";
   public static final String FUND_UPDATE_LOGS = "fundUpdateLogs";
   public static final String JOB_NUMBER = "jobNumber";
@@ -42,8 +44,10 @@ public class ResourcePathResolver {
   static {
     Map<String, String> apis = new HashMap<>();
     apis.put(BUDGETS_STORAGE, "/finance-storage/budgets");
+    apis.put(BUDGETS_BATCH_STORAGE, "/finance-storage/budgets/batch");
     apis.put(FINANCE_DATA_STORAGE, "/finance-storage/finance-data");
     apis.put(FUNDS_STORAGE, "/finance-storage/funds");
+    apis.put(FUNDS_BATCH_STORAGE, "/finance-storage/funds/batch");
     apis.put(FUND_TYPES, "/finance-storage/fund-types");
     apis.put(FUND_UPDATE_LOGS, "/finance-storage/fund-update-logs");
     apis.put(JOB_NUMBER, "/finance-storage/job-number");

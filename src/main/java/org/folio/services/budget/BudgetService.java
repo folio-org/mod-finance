@@ -3,21 +3,25 @@ package org.folio.services.budget;
 import static io.vertx.core.Future.succeededFuture;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_ENCUMBRANCE_LIMIT_EXCEEDED;
 import static org.folio.rest.util.ErrorCodes.ALLOWABLE_EXPENDITURE_LIMIT_EXCEEDED;
+import static org.folio.rest.util.ResourcePathResolver.BUDGETS_BATCH_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.BatchIdCollection;
 import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.Error;
@@ -26,6 +30,7 @@ import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.util.BudgetUtils;
 
 import io.vertx.core.Future;
+import one.util.streamex.StreamEx;
 
 public class BudgetService {
 
@@ -51,6 +56,11 @@ public class BudgetService {
     return restClient.get(resourceByIdPath(BUDGETS_STORAGE, budgetId), Budget.class, requestContext)
       .compose(budget -> budgetExpenseClassService.getBudgetExpenseClasses(budgetId, requestContext)
         .map(budgetExpenseClasses -> BudgetUtils.buildSharedBudget(budget, budgetExpenseClasses)));
+  }
+
+  public Future<BudgetsCollection> getBudgetsBatch(Collection<String> budgetIds, RequestContext requestContext) {
+    var batchIdCollection = new BatchIdCollection().withIds(StreamEx.of(budgetIds).nonNull().filter(StringUtils::isNotBlank).toList());
+    return restClient.postBatch(resourcesPath(BUDGETS_BATCH_STORAGE), batchIdCollection, BudgetsCollection.class, requestContext);
   }
 
   public Future<Void> updateBudgetWithAmountFields(SharedBudget sharedBudget, RequestContext requestContext) {

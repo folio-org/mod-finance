@@ -840,13 +840,13 @@
           "pathPattern": "/finance/finance-data",
           "permissionsRequired": ["finance.finance-data.collection.put"],
           "modulePermissions": [
-            "finance-storage.budgets.item.get",
+            "finance-storage.budgets.batch.post",
+            "finance-storage.funds.batch.post",
             "finance-storage.finance-data.collection.put",
             "finance-storage.fund-update-logs.item.get",
             "finance-storage.fund-update-logs.item.post",
             "finance-storage.fund-update-logs.item.put",
-            "finance-storage.job-number.get",
-            "finance-storage.funds.item.get"
+            "finance-storage.job-number.get"
           ]
         }
       ]
