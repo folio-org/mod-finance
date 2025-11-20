@@ -350,7 +350,7 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.transactions.collection.get",
-            "finance-storage.transaction-totals.collection.get",
+            "finance-storage.transaction-totals.batch.post",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
@@ -372,7 +372,7 @@
             "finance-storage.budgets.collection.get",
             "finance-storage.fiscal-years.item.get",
             "finance-storage.transactions.collection.get",
-            "finance-storage.transaction-totals.collection.get",
+            "finance-storage.transaction-totals.batch.post",
             "acquisitions-units-storage.units.collection.get",
             "acquisitions-units-storage.memberships.collection.get"
           ]
