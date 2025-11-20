@@ -20,6 +20,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.TransactionTotal;
+import org.folio.rest.jaxrs.model.TransactionType;
 import org.folio.rest.util.ErrorCodes;
 import org.folio.rest.util.HelperUtils;
 import org.folio.services.budget.BudgetService;
@@ -88,8 +89,8 @@ public class LedgerTotalsService {
                                                                                  RequestContext requestContext) {
     List<String> ledgerFundIds = holder.getLedgerFundIds();
     String fiscalYearId = holder.getFiscalYearId();
-    var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
-    var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
+    var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
+    var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
     return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
       .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
