@@ -32,6 +32,7 @@ import org.folio.rest.jaxrs.model.FiscalYear;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.model.LedgersCollection;
 import org.folio.rest.jaxrs.model.TransactionTotal;
+import org.folio.rest.jaxrs.model.TransactionType;
 import org.folio.services.budget.BudgetService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.transactions.TransactionTotalService;
@@ -148,13 +149,13 @@ public class LedgerTotalsServiceTest {
 
     when(fiscalYearService.getFiscalYearById(anyString(), any())).thenReturn(succeededFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
-    when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(TransactionTotal.TransactionType.ALLOCATION)),
+    when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(TransactionType.ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(allocToTrs));
-    when(transactionTotalService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(TransactionTotal.TransactionType.ALLOCATION)),
+    when(transactionTotalService.getTransactionsFromFunds(anyList(), eq(fiscalYearId), argThat(list -> list.contains(TransactionType.ALLOCATION)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(singletonList(allocFromTr)));
-    List<TransactionTotal.TransactionType> transfers = List.of(TransactionTotal.TransactionType.TRANSFER, TransactionTotal.TransactionType.ROLLOVER_TRANSFER);
+    List<TransactionType> transfers = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
     when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYearId), argThat(list -> list.containsAll(transfers)),
         eq(requestContextMock)))
       .thenReturn(succeededFuture(List.of(tranToTr, tranToRollTr)));
@@ -350,13 +351,13 @@ public class LedgerTotalsServiceTest {
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
     when(fiscalYearService.getFiscalYearById(anyString(), any())).thenReturn(succeededFuture(fiscalYear));
     when(budgetMockService.getBudgets(anyString(), anyInt(), anyInt(), any())).thenReturn(succeededFuture(budgetsCollection));
-    when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYear.getId()), argThat(list -> list.contains(TransactionTotal.TransactionType.ALLOCATION)),
+    when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYear.getId()), argThat(list -> list.contains(TransactionType.ALLOCATION)),
       eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    when(transactionTotalService.getTransactionsFromFunds(anyList(), eq(fiscalYear.getId()), argThat(list -> list.contains(TransactionTotal.TransactionType.ALLOCATION)),
+    when(transactionTotalService.getTransactionsFromFunds(anyList(), eq(fiscalYear.getId()), argThat(list -> list.contains(TransactionType.ALLOCATION)),
       eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
-    List<TransactionTotal.TransactionType> transfers = List.of(TransactionTotal.TransactionType.TRANSFER, TransactionTotal.TransactionType.ROLLOVER_TRANSFER);
+    List<TransactionType> transfers = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
     when(transactionTotalService.getTransactionsToFunds(anyList(), eq(fiscalYear.getId()), argThat(list -> list.containsAll(transfers)),
       eq(requestContextMock)))
       .thenReturn(succeededFuture(Collections.EMPTY_LIST));
