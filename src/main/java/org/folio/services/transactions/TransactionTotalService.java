@@ -1,6 +1,6 @@
 package org.folio.services.transactions;
 
-import static org.folio.rest.util.ResourcePathResolver.TRANSACTION_TOTALS;
+import static org.folio.rest.util.ResourcePathResolver.TRANSACTION_TOTALS_BATCH;
 import static org.folio.rest.util.ResourcePathResolver.resourcesPath;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class TransactionTotalService {
 
   private Future<List<TransactionTotal>> getTransactionsFromOrToFunds(List<String> fundIds, TransactionTotalSetting setting,
                                                                       TransactionTotalBatch batchRequest, RequestContext requestContext) {
-    return restClient.postBatch(resourcesPath(TRANSACTION_TOTALS), batchRequest, TransactionTotalCollection.class, requestContext)
+    return restClient.postBatch(resourcesPath(TRANSACTION_TOTALS_BATCH), batchRequest, TransactionTotalCollection.class, requestContext)
       .map(TransactionTotalCollection::getTransactionTotals)
       .map(transactions -> filterFundIdsByAllocationDirection(fundIds, transactions, setting));
   }
