@@ -35,7 +35,7 @@
 
     <!--Project properties-->
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
-    <raml-module-builder.version>35.4.0</raml-module-builder.version>
+    <raml-module-builder.version>36.0.0-SNAPSHOT</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,8 +44,8 @@
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
 
     <!--Dependency Management Properties-->
-    <spring.version>6.2.7</spring.version>
-    <vertx.version>4.5.13</vertx.version>
+    <spring.version>7.0.2</spring.version>
+    <vertx.version>5.0.5</vertx.version>
     <junit.jupiter.version>5.12.0</junit.jupiter.version>
     <log4j.version>2.24.3</log4j.version>
 
@@ -53,7 +53,7 @@
     <mockito.version>5.15.2</mockito.version>
     <aspectj.version>1.9.22.1</aspectj.version>
     <rest-assured.version>5.5.1</rest-assured.version>
-    <folio-di-support.version>3.0.0</folio-di-support.version>
+    <folio-di-support.version>4.0.0-SNAPSHOT</folio-di-support.version>
     <caffeine.version>3.2.0</caffeine.version>
 
     <!--Folio dependencies properties-->
