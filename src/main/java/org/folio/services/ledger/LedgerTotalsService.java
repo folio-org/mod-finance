@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.LedgerFiscalYearTransactionsHolder;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -91,7 +90,7 @@ public class LedgerTotalsService {
     String fiscalYearId = holder.getFiscalYearId();
     var fromAllocations = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
     var toAllocations = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
-    return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
+    return Future.join(List.of(fromAllocations, toAllocations))
       .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
 
@@ -101,7 +100,7 @@ public class LedgerTotalsService {
     String fiscalYearId = holder.getFiscalYearId();
     var fromTransfer = transactionTotalService.getTransactionsFromFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
     var toTransfer = transactionTotalService.getTransactionsToFunds(ledgerFundIds, fiscalYearId, TRANSFER_TRANSACTION_TOTAL_TYPES, requestContext);
-    return GenericCompositeFuture.join(List.of(fromTransfer, toTransfer))
+    return Future.join(List.of(fromTransfer, toTransfer))
       .map(f -> holder.withToTransfers(toTransfer.result()).withFromTransfers(fromTransfer.result()));
   }
 

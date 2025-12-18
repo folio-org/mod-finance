@@ -12,7 +12,6 @@ import static org.folio.services.protection.AcqUnitConstants.IS_DELETED_PROP;
 import static org.folio.services.protection.AcqUnitConstants.NO_ACQ_UNIT_ASSIGNED_CQL;
 import static org.folio.services.protection.AcqUnitConstants.NO_FD_FUND_UNIT_ASSIGNED_CQL;
 
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,7 +76,7 @@ public class AcqUnitsService {
     var unitsForUser = getAcqUnitIdsForUser(getUserId(requestContext), requestContext);
     var unitsAllowRead = getOpenForReadAcqUnitIds(requestContext);
 
-    return CompositeFuture.join(unitsForUser, unitsAllowRead)
+    return Future.join(unitsForUser, unitsAllowRead)
       .map(cf -> StreamEx.of(unitsForUser.result(), unitsAllowRead.result())
         .flatCollection(strings -> strings)
         .distinct()

@@ -32,7 +32,6 @@ import io.vertx.core.Handler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.helper.AbstractHelper;
 import org.folio.rest.jaxrs.model.Error;
@@ -121,8 +120,7 @@ public final class HelperUtils {
    * @return CompletableFuture with resulting objects
    */
   public static <T> Future<List<T>> collectResultsOnSuccess(List<Future<T>> futures) {
-    return GenericCompositeFuture.join(new ArrayList<>(futures))
-      .map(CompositeFuture::list);
+    return Future.join(new ArrayList<>(futures)).map(CompositeFuture::list);
   }
 
 

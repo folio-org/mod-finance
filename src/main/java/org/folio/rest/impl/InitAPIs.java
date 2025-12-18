@@ -22,20 +22,18 @@ public class InitAPIs implements InitAPI {
 
   @Override
   public void init(Vertx vertx, Context context, Handler<AsyncResult<Boolean>> resultHandler) {
-    vertx.executeBlocking(
-      promise -> {
-        initJavaMoney();
-        SpringContextUtil.init(vertx, context, ApplicationConfig.class);
-        promise.complete();
-      },
-      result -> {
-        if (result.succeeded()) {
-          resultHandler.handle(Future.succeededFuture(true));
-        } else {
-          logger.error("Failure to init API", result.cause());
-          resultHandler.handle(Future.failedFuture(result.cause()));
-        }
-      });
+    vertx.executeBlocking(() -> {
+      initJavaMoney();
+      SpringContextUtil.init(vertx, context, ApplicationConfig.class);
+      return true;
+    }).onComplete(result -> {
+      if (result.succeeded()) {
+        resultHandler.handle(Future.succeededFuture(true));
+      } else {
+        logger.error("Failure to init API", result.cause());
+        resultHandler.handle(Future.failedFuture(result.cause()));
+      }
+    });
   }
 
   private void initJavaMoney() {
