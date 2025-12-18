@@ -24,7 +24,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.GroupFiscalYearTransactionsHolder;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -278,7 +277,7 @@ public class GroupFiscalYearTotalsService {
     var fromAllocations = transactionService.getTransactionsFromFunds(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
     var toAllocations = transactionService.getTransactionsToFunds(groupFundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
 
-    return GenericCompositeFuture.join(List.of(fromAllocations, toAllocations))
+    return Future.join(List.of(fromAllocations, toAllocations))
       .map(cf -> holder.withToAllocations(toAllocations.result()).withFromAllocations(fromAllocations.result()));
   }
 
@@ -288,7 +287,7 @@ public class GroupFiscalYearTotalsService {
 
     var fromTransfers = transactionService.getTransactionsFromFunds(groupFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
     var toTransfers = transactionService.getTransactionsToFunds(groupFundIds, fiscalYearId, TRANSFER_TRANSACTION_TYPES, requestContext);
-    return GenericCompositeFuture.join(List.of(fromTransfers, toTransfers))
+    return Future.join(List.of(fromTransfers, toTransfers))
       .map(cf -> holder.withToTransfers(toTransfers.result()).withFromTransfers(fromTransfers.result()));
   }
 

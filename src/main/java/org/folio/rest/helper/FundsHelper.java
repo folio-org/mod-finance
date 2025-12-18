@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -113,7 +112,7 @@ public class FundsHelper extends AbstractHelper {
     var futures = groupFundFiscalYears.stream()
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .collect(Collectors.toList());
-    return GenericCompositeFuture.join(futures)
+    return Future.join(futures)
       .mapEmpty();
   }
 
@@ -148,7 +147,7 @@ public class FundsHelper extends AbstractHelper {
       .map(groupFundFiscalYear -> groupFundFiscalYearService.createGroupFundFiscalYear(groupFundFiscalYear, new RequestContext(ctx, okapiHeaders)))
       .collect(Collectors.toList());
 
-    return GenericCompositeFuture.join(futures)
+    return Future.join(futures)
       .mapEmpty();
   }
 
@@ -156,7 +155,7 @@ public class FundsHelper extends AbstractHelper {
     var futures = groupFundFiscalYearIds.stream()
       .map(id -> groupFundFiscalYearService.deleteGroupFundFiscalYear(id, new RequestContext(ctx, okapiHeaders)))
       .collect(Collectors.toList());
-    return GenericCompositeFuture.join(futures)
+    return Future.join(futures)
       .mapEmpty();
   }
 
