@@ -9,8 +9,6 @@ import static org.folio.rest.util.HelperUtils.mapToErrors;
 
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.folio.okapi.common.WebClientFactory;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
@@ -21,30 +19,16 @@ import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpResponseExpectation;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.predicate.ErrorConverter;
-import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class RestClient {
 
-  private static final Logger log = LogManager.getLogger();
-  private static final ErrorConverter ERROR_CONVERTER = ErrorConverter.createFullBody(
-    result -> {
-      String errorResponse = result.response().bodyAsString();
-      if (isJsonOfType(errorResponse, Errors.class)) {
-        return new HttpException(result.response().statusCode(), mapToErrors(errorResponse));
-      }
-      else {
-        return getErrorByCode(errorResponse)
-          .map(errorCode -> new HttpException(result.response().statusCode(), errorCode))
-          .orElse(new HttpException(result.response().statusCode(), errorResponse));
-      }
-    });
-  protected static final ResponsePredicate SUCCESS_RESPONSE_PREDICATE =
-    ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, ERROR_CONVERTER);
   public static final String REQUEST_MESSAGE_LOG_INFO = "Calling {} {}";
 
   public <T> Future<T> post(String endpoint, T entity, Class<T> responseType, RequestContext requestContext) {
@@ -53,8 +37,8 @@ public class RestClient {
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(entity)
+      .compose(RestClient::convertHttpResponse)
       .map(HttpResponse::bodyAsJsonObject)
       .map(body -> body.mapTo(responseType))
       .onFailure(log::error);
@@ -66,8 +50,8 @@ public class RestClient {
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(entity)
+      .compose(RestClient::convertHttpResponse)
       .onFailure(log::error)
       .mapEmpty();
   }
@@ -78,8 +62,8 @@ public class RestClient {
     return getVertxWebClient(requestContext.context())
       .postAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(requestEntity)
+      .compose(RestClient::convertHttpResponse)
       .map(HttpResponse::bodyAsJsonObject)
       .map(body -> body.mapTo(responseType))
       .onFailure(log::error);
@@ -101,8 +85,8 @@ public class RestClient {
     return getVertxWebClient(requestContext.context())
       .putAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(recordData)
+      .compose(RestClient::convertHttpResponse)
       .onFailure(log::error)
       .mapEmpty();
   }
@@ -116,8 +100,8 @@ public class RestClient {
     return getVertxWebClient(requestContext.context())
       .putAbs(buildAbsEndpoint(caseInsensitiveHeader, endpoint))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .sendJson(recordData)
+      .compose(RestClient::convertHttpResponse)
       .map(HttpResponse::bodyAsJsonObject)
       .map(jsonObject -> jsonObject.mapTo(responseType))
       .onFailure(log::error);
@@ -132,8 +116,8 @@ public class RestClient {
     getVertxWebClient(requestContext.context())
       .deleteAbs(buildAbsEndpoint(caseInsensitiveHeader, endpointById))
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .send()
+      .compose(RestClient::convertHttpResponse)
       .onSuccess(f -> promise.complete())
       .onFailure(t -> handleErrorResponse(promise, t, skipError404));
 
@@ -177,8 +161,8 @@ public class RestClient {
     getVertxWebClient(requestContext.context())
       .getAbs(absEndpoint)
       .putHeaders(caseInsensitiveHeader)
-      .expect(SUCCESS_RESPONSE_PREDICATE)
       .send()
+      .compose(RestClient::convertHttpResponse)
       .map(HttpResponse::bodyAsJsonObject)
       .map(jsonObject -> jsonObject.mapTo(responseType))
       .onSuccess(promise::complete)
@@ -187,20 +171,35 @@ public class RestClient {
     return promise.future();
   }
 
-  protected WebClient getVertxWebClient(Context context) {
+  private static WebClient getVertxWebClient(Context context) {
     WebClientOptions options = new WebClientOptions();
     options.setLogActivity(true);
     options.setKeepAlive(true);
     options.setConnectTimeout(2000);
     options.setIdleTimeout(5000);
-    options.setTryUseCompression(true);
-
+    options.setDecompressionSupported(true);
     return WebClientFactory.getWebClient(context.owner(), options);
   }
 
-  protected String buildAbsEndpoint(MultiMap okapiHeaders, String endpoint) {
+  private static String buildAbsEndpoint(MultiMap okapiHeaders, String endpoint) {
     var okapiURL = okapiHeaders.get(OKAPI_URL);
     return okapiURL + endpoint;
+  }
+
+  private static <T> Future<HttpResponse<T>> convertHttpResponse(HttpResponse<T> response) {
+    if (HttpResponseExpectation.SC_SUCCESS.test(response)) {
+      return Future.succeededFuture(response);
+    }
+    HttpException exception;
+    var errorResponse = response.bodyAsString();
+    if (isJsonOfType(errorResponse, Errors.class)) {
+      exception = new HttpException(response.statusCode(), mapToErrors(errorResponse));
+    } else {
+      exception = getErrorByCode(errorResponse)
+        .map(errorCode -> new HttpException(response.statusCode(), errorCode))
+        .orElse(new HttpException(response.statusCode(), errorResponse));
+    }
+    return Future.failedFuture(exception);
   }
 
 }

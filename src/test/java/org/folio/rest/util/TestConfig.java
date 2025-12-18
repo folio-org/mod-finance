@@ -41,7 +41,7 @@ public final class TestConfig {
 
     final DeploymentOptions opt = new DeploymentOptions().setConfig(conf);
     Promise<String> deploymentComplete = Promise.promise();
-    vertx.deployVerticle(RestVerticle.class.getName(), opt, res -> {
+    vertx.deployVerticle(RestVerticle.class.getName(), opt).onComplete(res -> {
       if (res.succeeded()) {
         deploymentComplete.complete(res.result());
       } else {
@@ -91,8 +91,9 @@ public final class TestConfig {
   }
 
   private static Context getFirstContextFromVertx(Vertx vertx) {
-    return vertx.deploymentIDs().stream().flatMap((id) -> ((VertxImpl)vertx)
-      .getDeployment(id).getVerticles().stream())
+    return vertx.deploymentIDs().stream()
+      .flatMap(id -> ((VertxImpl)vertx).deploymentManager().deployment(id).deployment().instances().stream())
+      .map(Verticle.class::cast)
       .map(TestConfig::getContextWithReflection)
       .filter(Objects::nonNull)
       .findFirst()
