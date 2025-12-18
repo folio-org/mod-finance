@@ -45,14 +45,14 @@
 
     <!--Dependency Management Properties-->
     <spring.version>7.0.2</spring.version>
-    <vertx.version>5.0.5</vertx.version>
+    <vertx.version>5.0.6</vertx.version>
     <junit.jupiter.version>5.12.0</junit.jupiter.version>
     <log4j.version>2.24.3</log4j.version>
 
     <!--Dependency properties-->
-    <mockito.version>5.15.2</mockito.version>
+    <mockito.version>5.21.0</mockito.version>
     <aspectj.version>1.9.22.1</aspectj.version>
-    <rest-assured.version>5.5.1</rest-assured.version>
+    <rest-assured.version>6.0.0</rest-assured.version>
     <folio-di-support.version>4.0.0-SNAPSHOT</folio-di-support.version>
     <caffeine.version>3.2.0</caffeine.version>
 
