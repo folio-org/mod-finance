@@ -1,5 +1,14 @@
 ## 5.1.0 - Unreleased
 
+## 5.0.2 - Released (Ramsons R2 2024 Bug Fix)
+The primary focus of this release was to implement RMB logging improvements and security fixes
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.0.1...v5.0.2)
+
+### Bug Fixes
+* [MODFIN-449](https://issues.folio.org/browse/MODFIN-449) - Ramsons CSP - RMB 35.3.2 Vertx 4.5.23 fixing CVE-2025-67735 netty CRLF
+* [MODFIN-447](https://issues.folio.org/browse/MODFIN-447) - Ramsons CSP - RMB Logging release - RMB 35.3.1
+
 ## 5.0.1 - Released (Ramsons R2 2024 Bug Fix)
 The focus of this release was to fix issue with including Rollover transfer amounts in Budget summary for Net Transfers
 

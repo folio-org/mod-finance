@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-finance</artifactId>
-  <version>5.0.2-SNAPSHOT</version>
+  <version>5.0.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -33,7 +33,7 @@
     <java.version>17</java.version>
     <spring.version>6.1.14</spring.version>
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
-    <raml-module-builder.version>35.3.0</raml-module-builder.version>
+    <raml-module-builder.version>35.3.2</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +42,7 @@
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
 
     <!--Dependency Management Properties-->
-    <vertx.version>4.5.10</vertx.version>
+    <vertx.version>4.5.23</vertx.version>
     <junit.jupiter.version>5.11.2</junit.jupiter.version>
     <log4j.version>2.24.1</log4j.version>
 
