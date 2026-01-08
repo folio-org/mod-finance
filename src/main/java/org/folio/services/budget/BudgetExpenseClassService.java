@@ -25,7 +25,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.BudgetExpenseClassHolder;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -110,7 +109,7 @@ public class BudgetExpenseClassService {
       return succeededFuture(null);
     }
     return checkNoTransactionsAssigned(deleteList, budget, requestContext)
-      .compose(v -> GenericCompositeFuture.all(deleteList.stream()
+      .compose(v -> Future.all(deleteList.stream()
         .map(budgetExpenseClass -> restClient.delete(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), requestContext))
         .collect(Collectors.toList())))
       .mapEmpty();
@@ -133,7 +132,7 @@ public class BudgetExpenseClassService {
     if (updateList.isEmpty()) {
       return succeededFuture(null);
     }
-    return GenericCompositeFuture.all(updateList.stream()
+    return Future.all(updateList.stream()
         .map(budgetExpenseClass -> restClient.put(resourceByIdPath(BUDGET_EXPENSE_CLASSES, budgetExpenseClass.getId()), budgetExpenseClass, requestContext))
         .collect(Collectors.toList()))
       .mapEmpty();
@@ -146,8 +145,7 @@ public class BudgetExpenseClassService {
     var futures = createList.stream()
       .map(budgetExpenseClass -> restClient.post(resourcesPath(BUDGET_EXPENSE_CLASSES), budgetExpenseClass, BudgetExpenseClass.class, requestContext))
       .collect(Collectors.toList());
-    return GenericCompositeFuture.join(futures)
-      .mapEmpty();
+    return Future.join(futures).mapEmpty();
   }
 
   private boolean isDifferentStatuses(StatusExpenseClass statusExpenseClass, BudgetExpenseClass budgetExpenseClass) {

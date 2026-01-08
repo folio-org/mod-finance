@@ -7,19 +7,17 @@ import org.folio.rest.jaxrs.model.Budget;
 import org.folio.rest.jaxrs.model.BudgetExpenseClass;
 import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.StatusExpenseClass;
-import org.folio.rest.jaxrs.model.Transaction.TransactionType;
+import org.folio.rest.jaxrs.model.Transaction;
+import org.folio.rest.jaxrs.model.TransactionType;
 
 import io.vertx.core.json.JsonObject;
-import org.folio.rest.jaxrs.model.TransactionTotal;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public final class BudgetUtils {
 
-  public static final List<TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
-  public static final List<TransactionTotal.TransactionType> TRANSFER_TRANSACTION_TOTAL_TYPES = List.of(TransactionTotal.TransactionType.TRANSFER, TransactionTotal.TransactionType.ROLLOVER_TRANSFER);
-
-  private BudgetUtils() {
-
-  }
+  public static final List<Transaction.TransactionType> TRANSFER_TRANSACTION_TYPES = List.of(Transaction.TransactionType.TRANSFER, Transaction.TransactionType.ROLLOVER_TRANSFER);
+  public static final List<TransactionType> TRANSFER_TRANSACTION_TOTAL_TYPES = List.of(TransactionType.TRANSFER, TransactionType.ROLLOVER_TRANSFER);
 
   public static SharedBudget buildSharedBudget(Budget budget, List<BudgetExpenseClass> budgetExpenseClasses) {
     List<StatusExpenseClass> statusExpenseClasses = budgetExpenseClasses.stream()
@@ -33,7 +31,7 @@ public final class BudgetUtils {
   }
 
   public static Budget convertToBudget(SharedBudget budget) {
-    JsonObject jsonSharedBudget =  JsonObject.mapFrom(budget);
+    JsonObject jsonSharedBudget = JsonObject.mapFrom(budget);
     jsonSharedBudget.remove("statusExpenseClasses");
     return jsonSharedBudget.mapTo(Budget.class);
   }

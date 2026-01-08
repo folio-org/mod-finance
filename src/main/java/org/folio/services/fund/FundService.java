@@ -4,6 +4,7 @@ import static one.util.streamex.StreamEx.ofSubLists;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
 import static org.folio.rest.util.HelperUtils.combineCqlExpressions;
+import static org.folio.rest.util.ResourcePathResolver.FUNDS_BATCH_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUND_TYPES;
 import static org.folio.rest.util.ResourcePathResolver.resourceByIdPath;
@@ -17,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
+import org.folio.rest.jaxrs.model.BatchIdCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundType;
 import org.folio.rest.jaxrs.model.FundTypesCollection;
@@ -25,6 +27,7 @@ import org.folio.rest.util.HelperUtils;
 import org.folio.services.protection.AcqUnitsService;
 
 import io.vertx.core.Future;
+import one.util.streamex.StreamEx;
 
 public class FundService {
   private final RestClient restClient;
@@ -38,6 +41,11 @@ public class FundService {
 
   public Future<Fund> getFundById(String fundId, RequestContext requestContext) {
     return restClient.get(resourceByIdPath(FUNDS_STORAGE, fundId), Fund.class, requestContext);
+  }
+
+  public Future<FundsCollection> getFundsBatch(Collection<String> fundIds, RequestContext requestContext) {
+    var batchIdCollection = new BatchIdCollection().withIds(StreamEx.of(fundIds).nonNull().filter(StringUtils::isNotBlank).toList());
+    return restClient.postBatch(resourcesPath(FUNDS_BATCH_STORAGE), batchIdCollection, FundsCollection.class, requestContext);
   }
 
   public Future<Fund> createFund(Fund fund, RequestContext requestContext) {

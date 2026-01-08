@@ -13,7 +13,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Budget;
@@ -106,7 +105,7 @@ public class FundDetailsService {
         var expenseClasses = getExpenseClasses(budget, rqContext);
         var budgetExpenseClassIds  = getBudgetExpenseClassIds(budget.getId(), budgetStatus, rqContext);
 
-        return GenericCompositeFuture.join(List.of(expenseClasses, budgetExpenseClassIds))
+        return Future.join(List.of(expenseClasses, budgetExpenseClassIds))
           .map(cf -> expenseClasses.result().stream()
             .filter(expenseClass -> budgetExpenseClassIds.result().contains(expenseClass.getId()))
             .collect(toList()));

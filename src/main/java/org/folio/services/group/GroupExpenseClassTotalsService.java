@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.folio.models.ExpenseClassUnassigned;
-import org.folio.okapi.common.GenericCompositeFuture;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.ExpenseClass;
 import org.folio.rest.jaxrs.model.GroupExpenseClassTotal;
@@ -67,7 +66,7 @@ public class GroupExpenseClassTotalsService {
     }
     var transactions = getTransactions(groupFfys, fiscalYearId, requestContext);
     var expenseClasses = getExpenseClasses(groupFfys, requestContext);
-    return GenericCompositeFuture.join(List.of(transactions, expenseClasses))
+    return Future.join(List.of(transactions, expenseClasses))
       .map(cf -> buildGroupExpenseClassesTotals(expenseClasses.result(), transactions.result()));
   }
 

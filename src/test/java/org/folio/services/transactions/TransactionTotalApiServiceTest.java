@@ -5,7 +5,9 @@ import io.vertx.junit5.VertxTestContext;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.jaxrs.model.TransactionTotal;
+import org.folio.rest.jaxrs.model.TransactionTotalBatch;
 import org.folio.rest.jaxrs.model.TransactionTotalCollection;
+import org.folio.rest.jaxrs.model.TransactionType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,16 +74,16 @@ public class TransactionTotalApiServiceTest {
       .withTransactionTotals(transactionTotals)
       .withTotalRecords(1);
 
-    when(restClient.get(anyString(), eq(TransactionTotalCollection.class), any()))
+    when(restClient.postBatch(anyString(), any(TransactionTotalBatch.class), eq(TransactionTotalCollection.class), any()))
       .thenReturn(succeededFuture(transactionCollection))
       .thenReturn(succeededFuture(new TransactionTotalCollection()));
 
-    var future = transactionTotalService.getTransactionsToFunds(fundIds, fiscalYearId, List.of(TransactionTotal.TransactionType.ALLOCATION), requestContext);
+    var future = transactionTotalService.getTransactionsToFunds(fundIds, fiscalYearId, List.of(TransactionType.ALLOCATION), requestContext);
 
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertThat(result.result(), hasSize(1));
-        verify(restClient, times(10)).get(anyString(), any(), any());
+        verify(restClient, times(1)).postBatch(anyString(), any(TransactionTotalBatch.class), eq(TransactionTotalCollection.class), any());
 
         vertxTestContext.completeNow();
       });
@@ -105,7 +107,7 @@ public class TransactionTotalApiServiceTest {
       .withTransactionTotals(transactionTotals)
       .withTotalRecords(1);
 
-    when(restClient.get(anyString(), eq(TransactionTotalCollection.class), any()))
+    when(restClient.postBatch(anyString(), any(TransactionTotalBatch.class), eq(TransactionTotalCollection.class), any()))
       .thenReturn(succeededFuture(transactionCollection))
       .thenReturn(succeededFuture(new TransactionTotalCollection()));
 
@@ -114,7 +116,7 @@ public class TransactionTotalApiServiceTest {
     vertxTestContext.assertComplete(future)
       .onComplete(result -> {
         assertThat(result.result(), hasSize(1));
-        verify(restClient, times(10)).get(anyString(), any(), any());
+        verify(restClient, times(1)).postBatch(anyString(), any(TransactionTotalBatch.class), eq(TransactionTotalCollection.class), any());
 
         vertxTestContext.completeNow();
       });

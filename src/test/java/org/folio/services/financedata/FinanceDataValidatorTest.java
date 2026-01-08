@@ -23,14 +23,16 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
+import org.folio.rest.jaxrs.model.Budget;
+import org.folio.rest.jaxrs.model.BudgetsCollection;
 import org.folio.rest.jaxrs.model.Fund;
 import org.folio.rest.jaxrs.model.FundTags;
+import org.folio.rest.jaxrs.model.FundsCollection;
 import org.folio.rest.jaxrs.model.FyFinanceData;
 import org.folio.rest.jaxrs.model.FyFinanceDataCollection;
-import org.folio.rest.jaxrs.model.SharedBudget;
 import org.folio.rest.jaxrs.model.Tags;
-import org.folio.services.fund.FundService;
 import org.folio.services.budget.BudgetService;
+import org.folio.services.fund.FundService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,8 +85,8 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     financeDataValidator.validateFinanceDataCollection(financeDataCollection, FISCAL_YEAR_ID);
     vertxTestContext.completeNow();
@@ -99,8 +101,8 @@ public class FinanceDataValidatorTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(2);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
@@ -119,9 +121,11 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
+    var budgets = createValidBudget();
+    budgets.getBudgets().getFirst().withAllocated(100.0);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget().withAllocated(100.0)));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(budgets));
 
     financeDataValidator.compareWithExistingData(collection, requestContextMock)
       .onComplete(ar -> {
@@ -141,8 +145,8 @@ public class FinanceDataValidatorTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
@@ -158,8 +162,8 @@ public class FinanceDataValidatorTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
@@ -177,8 +181,8 @@ public class FinanceDataValidatorTest {
       .withUpdateType(FyFinanceDataCollection.UpdateType.COMMIT)
       .withTotalRecords(1);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     var exception = assertThrows(HttpException.class,
       () -> financeDataValidator.validateFinanceDataCollection(collection, FISCAL_YEAR_ID));
@@ -194,8 +198,8 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
@@ -210,8 +214,8 @@ public class FinanceDataValidatorTest {
   @ParameterizedTest
   @MethodSource("provideFinanceDataCollections")
   void compareWithExistingData_checkIsChanged(FyFinanceDataCollection financeDataCollection, boolean expectedFundChanged, boolean expectedBudgetChanged, VertxTestContext vertxTestContext) {
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
@@ -307,11 +311,38 @@ public class FinanceDataValidatorTest {
   }
 
   @Test
+  void negative_compareWithExistingData_MismatchFundId(VertxTestContext vertxTestContext) {
+    var financeData = createValidFyFinanceData()
+      .withBudgetInitialAllocation(null)
+      .withBudgetCurrentAllocation(null)
+      .withFundId(UUID.randomUUID().toString());
+    var financeDataCollection = new FyFinanceDataCollection()
+      .withFyFinanceData(Collections.singletonList(financeData))
+      .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
+
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+
+    financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
+      .onComplete(ar -> {
+        if (ar.failed()) {
+          var exception = (HttpException) ar.cause();
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "Budget fund ID must be the same as fund ID".equals(error.getMessage())));
+          assertTrue(exception.getErrors().getErrors().stream()
+            .anyMatch(error -> "Fund ID not found".equals(error.getMessage())));
+          vertxTestContext.completeNow();
+        } else {
+          vertxTestContext.failNow(new AssertionError("Expected HttpException to be thrown, but nothing was thrown."));
+        }
+      });
+  }
+
+  @Test
   void negative_compareWithExistingData_MismatchFundDetails(VertxTestContext vertxTestContext) {
     var financeData = createValidFyFinanceData()
       .withBudgetInitialAllocation(null)
       .withBudgetCurrentAllocation(null)
-      .withFundId(UUID.randomUUID().toString())
       .withFundName("Updated name")
       .withFundCode("FUND-UPDATED")
       .withLedgerId(UUID.randomUUID().toString())
@@ -320,15 +351,13 @@ public class FinanceDataValidatorTest {
       .withFyFinanceData(Collections.singletonList(financeData))
       .withUpdateType(FyFinanceDataCollection.UpdateType.PREVIEW);
 
-    when(fundService.getFundById(any(), any())).thenReturn(succeededFuture(createValidFund()));
-    when(budgetService.getBudgetById(any(), any())).thenReturn(succeededFuture(createValidBudget()));
+    when(fundService.getFundsBatch(any(), any())).thenReturn(succeededFuture(createValidFund()));
+    when(budgetService.getBudgetsBatch(any(), any())).thenReturn(succeededFuture(createValidBudget()));
 
     financeDataValidator.compareWithExistingData(financeDataCollection, requestContextMock)
       .onComplete(ar -> {
         if (ar.failed()) {
           var exception = (HttpException) ar.cause();
-          assertTrue(exception.getErrors().getErrors().stream()
-            .anyMatch(error -> "Budget fund ID must be the same as fund ID".equals(error.getMessage())));
           assertTrue(exception.getErrors().getErrors().stream()
             .anyMatch(error -> "budgetName must be the same as existing budget name".equals(error.getMessage())));
           assertTrue(exception.getErrors().getErrors().stream()
@@ -344,26 +373,30 @@ public class FinanceDataValidatorTest {
       });
   }
 
-  private Fund createValidFund() {
-    return new Fund()
-      .withId(FUND_ID)
-      .withLedgerId(LEDGER_ID)
-      .withFundStatus(Fund.FundStatus.ACTIVE)
-      .withCode("FUND-001")
-      .withName("Test Fund")
-      .withDescription("Test Fund Description")
-      .withTags(new Tags());
+  private FundsCollection createValidFund() {
+    return new FundsCollection().withTotalRecords(1).withFunds(List.of(
+      new Fund()
+        .withId(FUND_ID)
+        .withLedgerId(LEDGER_ID)
+        .withFundStatus(Fund.FundStatus.ACTIVE)
+        .withCode("FUND-001")
+        .withName("Test Fund")
+        .withDescription("Test Fund Description")
+        .withTags(new Tags())
+    ));
   }
 
-  private SharedBudget createValidBudget() {
-    return new SharedBudget()
-      .withId(BUDGET_ID)
-      .withName("Test Budget")
-      .withFundId(FUND_ID)
-      .withBudgetStatus(SharedBudget.BudgetStatus.ACTIVE)
-      .withAllowableExpenditure(150.0)
-      .withAllowableEncumbrance(150.0)
-      .withAllocated(100.0);
+  private BudgetsCollection createValidBudget() {
+    return new BudgetsCollection().withTotalRecords(0).withBudgets(List.of(
+      new Budget()
+        .withId(BUDGET_ID)
+        .withName("Test Budget")
+        .withFundId(FUND_ID)
+        .withBudgetStatus(Budget.BudgetStatus.ACTIVE)
+        .withAllowableExpenditure(150.0)
+        .withAllowableEncumbrance(150.0)
+        .withAllocated(100.0)
+    ));
   }
 
   private FyFinanceData createValidFyFinanceData() {
