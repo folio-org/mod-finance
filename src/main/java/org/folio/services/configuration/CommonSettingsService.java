@@ -13,7 +13,6 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 
 public class CommonSettingsService {
   private static final Logger log = LogManager.getLogger();
@@ -49,9 +48,6 @@ public class CommonSettingsService {
         .withQuery(TENANT_LOCALE_QUERY))
       .compose(requestEntry -> restClient.get(requestEntry.buildEndpoint(), CommonSettingsCollection.class, requestContext))
       .map(settings -> {
-        if (log.isDebugEnabled()) {
-          log.debug("loadSettings:: The response from mod-settings: {}", JsonObject.mapFrom(settings).encodePrettily());
-        }
         if (CollectionUtils.isEmpty(settings.getItems())) {
           return defaultValue;
         }
