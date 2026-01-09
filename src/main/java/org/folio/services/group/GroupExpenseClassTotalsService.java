@@ -10,6 +10,7 @@ import static org.folio.rest.util.MoneyUtils.calculateExpendedPercentage;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.money.CurrencyUnit;
@@ -132,7 +133,8 @@ public class GroupExpenseClassTotalsService {
 
   private GroupExpenseClassTotal buildGroupExpenseClassTotal(ExpenseClass expenseClass, List<Transaction> transactions,
                                                              double expendedGrandTotal, double creditedGrandTotal) {
-    log.debug("buildGroupExpenseClassTotal:: Building group expense class totals by using expendedGrandTotal={} and '{}' transaction(s)", expendedGrandTotal, transactions);
+    log.debug("buildGroupExpenseClassTotal:: Building group expense class totals by using expendedGrandTotal={} and '{}' transaction(s)", expendedGrandTotal,
+      Objects.nonNull(transactions) ? transactions.size() : null);
     double expended = 0d;
     double credited = 0d;
     double encumbered = 0d;
