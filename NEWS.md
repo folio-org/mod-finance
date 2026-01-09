@@ -1,5 +1,15 @@
 ## 5.2.0 - Unreleased
 
+## 5.1.2 - Released (Sunflower R1 2025)
+The primary focus of the release was to update to RMB 35.4.2 and Vertx 4.5.23
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.1.1...v5.1.2)
+
+### Bug Fixes
+* [MODFIN-450](https://issues.folio.org/browse/MODFIN-450) - Sunflower CSP - RMB 35.4.2 Vertx 4.5.23 fixing CVE-2025-67735 netty CRLF
+* [MODFIN-448](https://issues.folio.org/browse/MODFIN-448) - Sunflower CSP - RMB Logging release
+
+
 ## 5.1.1 - Released (Sunflower R1 2025)
 The primary focus of this release was to simplify acqUnit cheks for finance data 
 

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.folio</groupId>
   <artifactId>mod-finance</artifactId>
-  <version>5.1.2-SNAPSHOT</version>
+  <version>5.1.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <licenses>
@@ -35,7 +35,7 @@
 
     <!--Project properties-->
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
-    <raml-module-builder.version>35.4.0</raml-module-builder.version>
+    <raml-module-builder.version>35.4.2</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -45,7 +45,7 @@
 
     <!--Dependency Management Properties-->
     <spring.version>6.2.3</spring.version>
-    <vertx.version>4.5.13</vertx.version>
+    <vertx.version>4.5.23</vertx.version>
     <junit.jupiter.version>5.12.0</junit.jupiter.version>
     <log4j.version>2.24.3</log4j.version>
 
