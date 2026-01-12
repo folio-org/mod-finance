@@ -46,7 +46,7 @@
     <!--Dependency Management Properties-->
     <spring.version>7.0.2</spring.version>
     <vertx.version>5.0.6</vertx.version>
-    <junit.jupiter.version>6.0.1</junit.jupiter.version>
+    <junit.jupiter.version>6.0.2</junit.jupiter.version>
     <log4j.version>2.25.3</log4j.version>
 
     <!--Dependency properties-->
