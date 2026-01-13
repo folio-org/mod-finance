@@ -17,6 +17,7 @@ import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.exception.HttpException;
 import org.folio.rest.jaxrs.model.Ledger;
 import org.folio.rest.jaxrs.resource.FinanceLedgers;
+import org.folio.rest.util.ErrorCodes;
 import org.folio.services.ledger.LedgerDetailsService;
 import org.folio.services.ledger.LedgerService;
 import org.folio.spring.SpringContextUtil;
@@ -107,7 +108,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
         if(Objects.nonNull(currentFiscalYear)) {
           handler.handle(succeededFuture(buildOkResponse(currentFiscalYear)));
         } else {
-          handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), HttpStatus.HTTP_NOT_FOUND.name()))));
+          handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), ErrorCodes.CURRENT_FISCAL_YEAR_NOT_FOUND))));
         }
       })
       .onFailure(fail -> handleErrorResponse(handler, fail));
@@ -122,7 +123,7 @@ public class LedgersApi extends BaseApi implements FinanceLedgers {
         if(Objects.nonNull(plannedFiscalYear)) {
           handler.handle(succeededFuture(buildOkResponse(plannedFiscalYear)));
         } else {
-          handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), HttpStatus.HTTP_NOT_FOUND.name()))));
+          handler.handle(succeededFuture(buildErrorResponse(new HttpException(HttpStatus.HTTP_NOT_FOUND.toInt(), ErrorCodes.PLANNED_FISCAL_YEAR_NOT_FOUND))));
         }
       })
       .onFailure(fail -> handleErrorResponse(handler, fail));
