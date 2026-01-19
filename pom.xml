@@ -45,7 +45,7 @@
 
     <!--Dependency Management Properties-->
     <spring.version>7.0.2</spring.version>
-    <vertx.version>5.0.6</vertx.version>
+    <vertx.version>5.0.7</vertx.version>
     <junit.jupiter.version>6.0.1</junit.jupiter.version>
     <log4j.version>2.25.3</log4j.version>
 
@@ -66,7 +66,7 @@
     <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
     <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
-    <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+    <properties-maven-plugin.version>1.3.0</properties-maven-plugin.version>
     <jsonschema2pojo-maven-plugin.version>1.2.2</jsonschema2pojo-maven-plugin.version>
     <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
