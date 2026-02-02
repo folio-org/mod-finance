@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -189,23 +190,24 @@ public final class HelperUtils {
   }
 
 
-  public static String combineCqlExpressions(String operator, String... expressions) {
-    if (ArrayUtils.isEmpty(expressions)) {
+  public static String combineCqlExpressions(String operator, String... allExpressions) {
+    List<String> expressions = StreamEx.of(allExpressions)
+      .filter(StringUtils::isNotBlank)
+      .collect(Collectors.toCollection(ArrayList::new));
+    if (CollectionUtils.isEmpty(expressions)) {
       return EMPTY;
     }
 
     String sorting = EMPTY;
 
     // Check whether last expression contains sorting query. If it does, extract it to be added in the end of the resulting query
-    Matcher matcher = CQL_SORT_BY_PATTERN.matcher(expressions[expressions.length - 1]);
+    Matcher matcher = CQL_SORT_BY_PATTERN.matcher(expressions.getLast());
     if (matcher.find()) {
-      expressions[expressions.length - 1] = matcher.group(1);
+      expressions.set(expressions.size() - 1, matcher.group(1));
       sorting = matcher.group(2);
     }
 
-    return StreamEx.of(expressions)
-      .filter(StringUtils::isNotBlank)
-      .joining(") " + operator + " (", "(", ")") + sorting;
+    return StreamEx.of(expressions).joining(") " + operator + " (", "(", ")") + sorting;
   }
 
   public static void removeInitialAllocationByFunds(List<Transaction> allocationToList) {
