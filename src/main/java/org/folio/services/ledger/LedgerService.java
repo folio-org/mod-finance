@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.core.RestClient;
 import org.folio.rest.core.models.RequestContext;
 import org.folio.rest.core.models.RequestEntry;
@@ -27,10 +26,13 @@ import org.folio.services.protection.AcqUnitsService;
 import io.vertx.core.Future;
 
 public class LedgerService {
+
+  public static final String ID = "id";
+  private static final String FISCAL_YEAR_FIELD = "fiscalYearOneId";
+
   private final RestClient restClient;
   private final LedgerTotalsService ledgerTotalsService;
   private final AcqUnitsService acqUnitsService;
-  public static final String ID = "id";
 
   public LedgerService(RestClient restClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
     this.restClient = restClient;
@@ -65,8 +67,9 @@ public class LedgerService {
   }
 
   public Future<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
+    var fiscalYearQuery = convertIdsToCqlQuery(List.of(fiscalYearId), FISCAL_YEAR_FIELD);
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
+      .map(clause -> combineCqlExpressions("and", clause, fiscalYearQuery, query))
       .compose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));
   }
 
