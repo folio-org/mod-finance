@@ -2,7 +2,6 @@ package org.folio.services.ledger;
 
 import static io.vertx.core.Future.succeededFuture;
 import static one.util.streamex.StreamEx.ofSubLists;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.folio.rest.RestConstants.MAX_IDS_FOR_GET_RQ;
 import static org.folio.rest.util.HelperUtils.collectResultsOnSuccess;
@@ -28,13 +27,10 @@ import org.folio.services.protection.AcqUnitsService;
 import io.vertx.core.Future;
 
 public class LedgerService {
-
-  public static final String ID = "id";
-  private static final String FISCAL_YEAR_FIELD = "fiscalYearOneId";
-
   private final RestClient restClient;
   private final LedgerTotalsService ledgerTotalsService;
   private final AcqUnitsService acqUnitsService;
+  public static final String ID = "id";
 
   public LedgerService(RestClient restClient, LedgerTotalsService ledgerTotalsService, AcqUnitsService acqUnitsService) {
     this.restClient = restClient;
@@ -69,11 +65,8 @@ public class LedgerService {
   }
 
   public Future<LedgersCollection> retrieveLedgersWithAcqUnitsRestrictionAndTotals(String query, int offset, int limit, String fiscalYearId, RequestContext requestContext) {
-    var fiscalYearQuery = StringUtils.isNotBlank(fiscalYearId)
-      ? convertIdsToCqlQuery(List.of(fiscalYearId), FISCAL_YEAR_FIELD)
-      : EMPTY;
     return acqUnitsService.buildAcqUnitsCqlClause(requestContext)
-      .map(clause -> combineCqlExpressions("and", clause, fiscalYearQuery, query))
+      .map(clause -> StringUtils.isEmpty(query) ? clause : combineCqlExpressions("and", clause, query))
       .compose(effectiveQuery -> retrieveLedgersWithTotals(effectiveQuery, offset, limit, fiscalYearId, requestContext));
   }
 
