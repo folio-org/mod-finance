@@ -171,7 +171,7 @@ public class RestClient {
     return promise.future();
   }
 
-  public Future<JsonObject> getJsonObject(String endpoint, RequestContext requestContext) {
+  public Future<JsonObject> getAsJsonObject(String endpoint, RequestContext requestContext) {
     var caseInsensitiveHeader = convertToCaseInsensitiveMap(requestContext.headers());
     var absEndpoint = buildAbsEndpoint(caseInsensitiveHeader, endpoint);
 

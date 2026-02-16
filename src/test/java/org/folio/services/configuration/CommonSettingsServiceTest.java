@@ -42,7 +42,7 @@ public class CommonSettingsServiceTest {
       .put(TIMEZONE_SETTING, "Europe/Paris")
       .put("numberingSystem", "latn");
 
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(localeResponse));
 
     String result = commonSettingsService.getSystemTimeZone(requestContext).result();
@@ -57,7 +57,7 @@ public class CommonSettingsServiceTest {
       .put(TIMEZONE_SETTING, "Europe/London")
       .put("numberingSystem", "latn");
 
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(localeResponse));
 
     String result = commonSettingsService.getSystemCurrency(requestContext).result();
@@ -66,7 +66,7 @@ public class CommonSettingsServiceTest {
 
   @Test
   void systemTimeZoneReturnsDefaultWhenResponseIsNull() {
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(null));
 
     String result = commonSettingsService.getSystemTimeZone(requestContext).result();
@@ -75,7 +75,7 @@ public class CommonSettingsServiceTest {
 
   @Test
   void systemCurrencyReturnsDefaultWhenResponseIsNull() {
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(null));
 
     String result = commonSettingsService.getSystemCurrency(requestContext).result();
@@ -88,7 +88,7 @@ public class CommonSettingsServiceTest {
       .put(TIMEZONE_SETTING, "")
       .put(CURRENCY_SETTING, "USD");
 
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(localeResponse));
 
     String result = commonSettingsService.getSystemTimeZone(requestContext).result();
@@ -100,7 +100,7 @@ public class CommonSettingsServiceTest {
     var localeResponse = new JsonObject()
       .put(TIMEZONE_SETTING, "Asia/Tokyo");
 
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(localeResponse));
 
     String result = commonSettingsService.getSystemCurrency(requestContext).result();
@@ -109,7 +109,7 @@ public class CommonSettingsServiceTest {
 
   @Test
   void systemTimeZoneReturnsDefaultWhenResponseIsEmpty() {
-    when(restClient.getJsonObject(anyString(), eq(requestContext)))
+    when(restClient.getAsJsonObject(anyString(), eq(requestContext)))
       .thenReturn(Future.succeededFuture(new JsonObject()));
 
     String result = commonSettingsService.getSystemTimeZone(requestContext).result();

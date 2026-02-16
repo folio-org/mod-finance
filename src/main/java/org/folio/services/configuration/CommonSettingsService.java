@@ -36,7 +36,7 @@ public class CommonSettingsService {
 
   private Future<String> getLocaleSetting(String settingName, String defaultValue, RequestContext requestContext) {
     log.debug("getSystemSetting:: Trying to load {} from locale settings", settingName);
-    return restClient.getJsonObject(resourcesPath(LOCALE_SETTINGS), requestContext)
+    return restClient.getAsJsonObject(resourcesPath(LOCALE_SETTINGS), requestContext)
       .map(jsonObject -> {
         if (jsonObject == null) {
           return defaultValue;
