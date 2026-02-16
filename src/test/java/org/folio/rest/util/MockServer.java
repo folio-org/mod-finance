@@ -17,7 +17,7 @@ import static org.folio.rest.impl.TransactionApiTest.DELETE_CONNECTED_TRANSACTIO
 import static org.folio.rest.util.ErrorCodes.TRANSACTION_IS_PRESENT_BUDGET_DELETE_ERROR;
 import static org.folio.rest.util.HelperUtils.ID;
 import static org.folio.rest.util.ResourcePathResolver.BUDGETS_STORAGE;
-import static org.folio.rest.util.ResourcePathResolver.COMMON_SETTINGS;
+import static org.folio.rest.util.ResourcePathResolver.LOCALE_SETTINGS;
 import static org.folio.rest.util.ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL;
 import static org.folio.rest.util.ResourcePathResolver.FISCAL_YEARS_STORAGE;
 import static org.folio.rest.util.ResourcePathResolver.FUNDS_STORAGE;
@@ -209,7 +209,7 @@ public class MockServer {
       .handler(ctx -> handleGetCollection(ctx, TestEntities.GROUP));
     router.route(HttpMethod.GET, resourcesPath(TRANSACTIONS))
       .handler(ctx -> handleGetTransactionsCollection(ctx, TestEntities.TRANSACTIONS));
-    router.route(HttpMethod.GET, resourcesPath(COMMON_SETTINGS))
+    router.route(HttpMethod.GET, resourcesPath(LOCALE_SETTINGS))
       .handler(this::handleSettingsModuleResponse);
     router.route(HttpMethod.GET, resourcesPath(ResourcePathResolver.EXPENSE_CLASSES_STORAGE_URL))
       .handler(ctx -> handleGetCollection(ctx, TestEntities.EXPENSE_CLASSES));
