@@ -27,14 +27,14 @@ public class CommonSettingsService {
   }
 
   public Future<String> getSystemTimeZone(RequestContext requestContext) {
-    return getSystemSetting(TIMEZONE_SETTING, DEFAULT_TIMEZONE, requestContext);
+    return getLocaleSetting(TIMEZONE_SETTING, DEFAULT_TIMEZONE, requestContext);
   }
 
   public Future<String> getSystemCurrency(RequestContext requestContext) {
-    return getSystemSetting(CURRENCY_SETTING, DEFAULT_CURRENCY, requestContext);
+    return getLocaleSetting(CURRENCY_SETTING, DEFAULT_CURRENCY, requestContext);
   }
 
-  private Future<String> getSystemSetting(String settingName, String defaultValue, RequestContext requestContext) {
+  private Future<String> getLocaleSetting(String settingName, String defaultValue, RequestContext requestContext) {
     log.debug("getSystemSetting:: Trying to load {} from locale settings", settingName);
     return restClient.getJsonObject(resourcesPath(LOCALE_SETTINGS), requestContext)
       .map(jsonObject -> {
