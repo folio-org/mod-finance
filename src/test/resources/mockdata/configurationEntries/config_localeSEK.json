@@ -1,18 +1,5 @@
 {
-  "items": [
-    {
-      "id": "409d98c0-323b-48e3-a127-617742bbd42f",
-      "scope": "stripes-core.prefs.manage",
-      "key": "tenantLocaleSettings",
-      "value": {
-        "locale": "en-US",
-        "currency": "SEK",
-        "timezone": "America/New_York"
-      }
-    }
-  ],
-  "resultInfo": {
-    "totalRecords": 1,
-    "diagnostics": []
-  }
+  "locale": "en-US",
+  "currency": "SEK",
+  "timezone": "America/New_York"
 }
