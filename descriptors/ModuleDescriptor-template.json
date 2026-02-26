@@ -1534,22 +1534,24 @@
       "description" : "Fetch an budget for fund"
     },
     {
-      "permissionName": "finance.acquisitions-units-assignments.assign",
+      "permissionName": "finance.acquisitions-units-assignments.create.execute",
       "displayName": "Acquisitions unit assignments - create unit assignments",
-      "description": "Assign acquisition units"
+      "description": "Assign acquisition units",
+      "replaces": ["finance.acquisitions-units-assignments.assign"]
     },
     {
-      "permissionName": "finance.acquisitions-units-assignments.manage",
+      "permissionName": "finance.acquisitions-units-assignments.manage.execute",
       "displayName": "Acquisitions unit assignments - manage unit assignments",
-      "description": "Manage acquisition unit assignments"
+      "description": "Manage acquisition unit assignments",
+      "replaces": ["finance.acquisitions-units-assignments.manage"]
     },
     {
       "permissionName": "finance.acquisitions-units-assignments.all",
       "displayName": "Acquisitions unit assignments - all permissions",
       "description": "All acquisition unit assignments permissions",
       "subPermissions": [
-        "finance.acquisitions-units-assignments.assign",
-        "finance.acquisitions-units-assignments.manage"
+        "finance.acquisitions-units-assignments.create.execute",
+        "finance.acquisitions-units-assignments.manage.execute"
       ]
     }
   ],
