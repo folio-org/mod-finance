@@ -9,8 +9,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import org.apache.commons.lang3.StringUtils;
 import org.folio.rest.annotations.Validate;
 import org.folio.rest.core.models.RequestContext;
+import org.folio.rest.jaxrs.model.ExchangeRate;
 import org.folio.rest.jaxrs.model.ExchangeRateCalculations;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchangeBatch;
@@ -39,10 +41,11 @@ public class ExchangeApi extends BaseApi implements FinanceExchangeRate, Finance
   }
 
   @Override
-  public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, Map<String, String> okapiHeaders,
-                                          Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
+  public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, String operationMode,
+                                          Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
     var requestContext = new RequestContext(context, okapiHeaders);
-    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, exchangeRate, manual, requestContext)
+    var manualOperationMode = StringUtils.isNotBlank(operationMode) ? ExchangeRate.OperationMode.fromValue(operationMode.toUpperCase()) : null;
+    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, exchangeRate, manual, manualOperationMode, requestContext)
       .onSuccess(convertedAmount -> asyncResultHandler.handle(succeededFuture(buildOkResponse(convertedAmount))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail)));
   }

@@ -58,6 +58,12 @@ types:
         required: false
         default: false
         example: false
+      operationMode:
+        description: "Operation mode for manual exchange rate use, MULTIPLY (default) or DIVIDE"
+        type: string
+        required: false
+        default: ""
+        example: "MULTIPLY"
     responses:
       200:
         description: "Exchange calculation successfully retrieved"
