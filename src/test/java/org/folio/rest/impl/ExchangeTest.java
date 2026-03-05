@@ -53,6 +53,10 @@ public class ExchangeTest {
   private static final String MISSING_AMOUNT = "?from=USD&to=EUR";
   private static final String INVALID_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=US&to=USD&amount=100.0";
   private static final String EXCHANGE_NOT_AVAILABLE = "?from=USD&to=ALL&amount=100.0";
+  private static final String DIVIDE_OPERATION_REQUEST = "?from=USD&to=EUR&amount=100.0&manual=true&rate=2.0&operationMode=DIVIDE";
+  private static final String MULTIPLY_OPERATION_REQUEST = "?from=USD&to=EUR&amount=100.0&manual=true&rate=2.0&operationMode=MULTIPLY";
+  private static final String DIVIDE_OPERATION_CUSTOM_RATE_REQUEST = "?from=EUR&to=USD&amount=108.0&manual=true&rate=1.08&operationMode=DIVIDE";
+  private static final String DEFAULT_OPERATION_REQUEST = "?from=USD&to=EUR&amount=50.0&manual=true&rate=2.0";
   private static boolean runningOnOwn;
 
   @BeforeAll
@@ -199,5 +203,37 @@ public class ExchangeTest {
     assertNotNull(response);
     assertThat(response.getExchangeRateCalculations(), hasSize(1));
     assertThat(response.getExchangeRateCalculations().getFirst().getCalculation(), notNullValue());
+  }
+
+  @Test
+  void calculateExchangeWithDivideOperationMode() {
+    logger.info("=== Test calculate exchange with DIVIDE operation mode: Success ===");
+    var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + DIVIDE_OPERATION_REQUEST, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+    assertEquals(50.0, exchangeCalculation);
+  }
+
+  @Test
+  void calculateExchangeWithMultiplyOperationMode() {
+    logger.info("=== Test calculate exchange with MULTIPLY operation mode: Success ===");
+    var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + MULTIPLY_OPERATION_REQUEST, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+    assertEquals(200.0, exchangeCalculation);
+  }
+
+  @Test
+  void calculateExchangeWithDivideOperationModeCustomRate() {
+    logger.info("=== Test calculate exchange with DIVIDE operation mode and custom rate: Success ===");
+    var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + DIVIDE_OPERATION_CUSTOM_RATE_REQUEST, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+    assertEquals(100.0, exchangeCalculation);
+  }
+
+  @Test
+  void calculateExchangeDefaultsToMultiplyWhenOperationModeNotSpecified() {
+    logger.info("=== Test calculate exchange defaults to MULTIPLY when operation mode not specified: Success ===");
+    var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + DEFAULT_OPERATION_REQUEST, APPLICATION_JSON, 200).as(Double.class);
+    assertNotNull(exchangeCalculation);
+    assertEquals(100.0, exchangeCalculation);
   }
 }

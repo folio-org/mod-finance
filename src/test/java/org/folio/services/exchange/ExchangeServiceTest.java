@@ -139,7 +139,7 @@ public class ExchangeServiceTest {
     var manualRate = isManualRate ? exchangeRate : null;
 
     // Use manual rate only if "manual" field is set with a boolean value
-    exchangeService.calculateExchange("USD", "EUR", 10, manualRate, manual, requestContext)
+    exchangeService.calculateExchange("USD", "EUR", 10, manualRate, manual, null, requestContext)
       .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
         assertEquals(expectedAmount, result);
         testContext.completeNow();

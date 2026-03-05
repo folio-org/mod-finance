@@ -53,12 +53,19 @@ public class ExchangeHelper extends AbstractHelper {
     }
   }
 
-  public Double calculateExchange(String from, String to, Number amount, Number customRate) {
-    log.debug("calculateExchange:: Calculating exchange sourceCurrency from={}, to={}, amount={} and customRate={}", from, to, amount, customRate);
+  public Double calculateExchange(String from, String to, Number amount,
+                                  ExchangeRate.OperationMode operationMode, Number customRate) {
     var initialAmount = Money.of(amount, from);
-    var rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
-    log.debug("calculateExchange:: rate is {}", rate);
-    return initialAmount.multiply(rate)
+    var exchangeRate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
+    log.debug("calculateExchange:: Calculating exchange exchangeRate, currency from={}, to={}, "
+      + "amount={}, exchangeRate={}, operationMode={}", from, to, amount, exchangeRate, operationMode);
+    if (operationMode == ExchangeRate.OperationMode.DIVIDE) {
+      return initialAmount.divide(exchangeRate)
+        .with(Monetary.getDefaultRounding())
+        .getNumber()
+        .doubleValueExact();
+    }
+    return initialAmount.multiply(exchangeRate)
       .with(Monetary.getDefaultRounding())
       .getNumber()
       .doubleValueExact();

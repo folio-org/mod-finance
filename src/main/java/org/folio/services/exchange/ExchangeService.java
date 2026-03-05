@@ -74,10 +74,11 @@ public class ExchangeService {
       });
   }
 
-  public Future<Double> calculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, RequestContext requestContext) {
+  public Future<Double> calculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual,
+                                          ExchangeRate.OperationMode manualOperationMode, RequestContext requestContext) {
     var exchangeHelper = new ExchangeHelper(requestContext.context());
     return getExchangeRateSource(requestContext)
-      .map(rateSource -> doCalculateExchange(from, to, amount, exchangeRate, manual, rateSource, exchangeHelper));
+      .map(rateSource -> doCalculateExchange(from, to, amount, exchangeRate, manual, manualOperationMode, rateSource, exchangeHelper));
   }
 
   public Future<ExchangeRateCalculations> calculateExchangeBatch(ExchangeRateCalculations exchangeRateCalculations, RequestContext requestContext) {
@@ -90,12 +91,13 @@ public class ExchangeService {
   }
 
   private Double doCalculateExchange(ExchangeRateCalculation calculation, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
-    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), calculation.getRate(), Objects.nonNull(calculation.getRate()), rateSource, exchangeHelper);
+    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), calculation.getRate(), Objects.nonNull(calculation.getRate()), null , rateSource, exchangeHelper);
   }
 
-  private Double doCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
+  private Double doCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual,
+                                     ExchangeRate.OperationMode manualOperationMode, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
     if (isRateSourceUnavailable(rateSource) || manual) {
-      return exchangeHelper.calculateExchange(from, to, amount, exchangeRate);
+      return exchangeHelper.calculateExchange(from, to, amount, manualOperationMode, exchangeRate);
     }
     var operationMode = getOperationMode(rateSource.getProviderType() == ProviderType.TREASURY_GOV, from);
     var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource, operationMode, exchangeProviderCaches.get(rateSource.getProviderType()));
