@@ -20,6 +20,7 @@ import org.folio.rest.jaxrs.model.ExchangeRateCalculation;
 import org.folio.rest.jaxrs.model.ExchangeRateCalculations;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 import org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType;
+import org.folio.rest.util.ExchangeRateUtil;
 import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -92,7 +93,8 @@ public class ExchangeService {
   }
 
   private Double doCalculateExchange(ExchangeRateCalculation calculation, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
-    var rateProperties = new RateProperties(calculation.getRate(), Objects.nonNull(calculation.getRate()), null);
+    var manualOperationMode = ExchangeRateUtil.getManualOperationMode(calculation.getOperationMode());
+    var rateProperties = new RateProperties(calculation.getRate(), Objects.nonNull(calculation.getRate()), manualOperationMode);
     return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), rateProperties, rateSource, exchangeHelper);
   }
 

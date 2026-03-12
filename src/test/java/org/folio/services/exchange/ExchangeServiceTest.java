@@ -338,6 +338,115 @@ public class ExchangeServiceTest {
       })));
   }
 
+  @ParameterizedTest
+  @CsvSource({
+    "MULTIPLY, 2.0, 100.0, 200.0",
+    "DIVIDE, 2.0, 100.0, 50.0",
+    "MULTIPLY, 0.85, 100.0, 85.0",
+    "DIVIDE, 0.5, 50.0, 100.0"
+  })
+  void testCalculateExchangeBatchWithOperationMode(String operationMode, double rate, double amount, double expectedResult,
+                                                   VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculations = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(List.of(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(amount)
+          .withRate(rate)
+          .withOperationMode(operationMode)
+      ));
+
+    exchangeService.calculateExchangeBatch(calculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        var calculation = result.getExchangeRateCalculations().getFirst();
+        assertEquals(rate, calculation.getRate());
+        assertEquals(expectedResult, calculation.getCalculation());
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
+  void testCalculateExchangeBatchWithMixedOperationModes(VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculations = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(List.of(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(0.85)
+          .withOperationMode("MULTIPLY"),
+        new ExchangeRateCalculation()
+          .withFrom("EUR")
+          .withTo("USD")
+          .withAmount(85.0)
+          .withRate(0.85)
+          .withOperationMode("DIVIDE"),
+        new ExchangeRateCalculation()
+          .withFrom("GBP")
+          .withTo("EUR")
+          .withAmount(50.0)
+          .withRate(null) // Auto-fetched rate, no operation mode
+      ));
+
+    exchangeService.calculateExchangeBatch(calculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        assertEquals(3, result.getExchangeRateCalculations().size());
+
+        var firstCalc = result.getExchangeRateCalculations().get(0);
+        assertEquals(85.0, firstCalc.getCalculation());
+
+        var secondCalc = result.getExchangeRateCalculations().get(1);
+        assertEquals(100.0, secondCalc.getCalculation());
+
+        var thirdCalc = result.getExchangeRateCalculations().get(2);
+        assertNotNull(thirdCalc.getCalculation());
+        assertNotEquals(0.0, thirdCalc.getCalculation());
+
+        testContext.completeNow();
+      })));
+  }
+
+  @Test
+  void testCalculateExchangeBatchWithNullOperationModeAndCustomRate(VertxTestContext testContext) throws IOException, InterruptedException {
+    when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
+    when(httpResponse.body()).thenReturn(createResponseBody(TREASURY_GOV));
+    when(restClient.get(any(), any(), any())).thenReturn(Future.succeededFuture(createExchangeRateSource(TREASURY_GOV)));
+    when(httpClient.send(any(), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(httpResponse);
+
+    var calculations = new ExchangeRateCalculations()
+      .withExchangeRateCalculations(List.of(
+        new ExchangeRateCalculation()
+          .withFrom("USD")
+          .withTo("EUR")
+          .withAmount(100.0)
+          .withRate(0.85)
+          .withOperationMode(null) // Custom rate with null operation mode - should default to MULTIPLY
+      ));
+
+    exchangeService.calculateExchangeBatch(calculations, requestContext)
+      .onComplete(testContext.succeeding(result -> testContext.verify(() -> {
+        assertNotNull(result);
+        var calculation = result.getExchangeRateCalculations().getFirst();
+        assertEquals(0.85, calculation.getRate());
+        // When operationMode is null with manual rate, it should default to MULTIPLY behavior
+        assertEquals(85.0, calculation.getCalculation());
+        testContext.completeNow();
+      })));
+  }
+
   private ExchangeRateSource createExchangeRateSource(ExchangeRateSource.ProviderType providerType) {
     return switch (providerType) {
       case TREASURY_GOV -> new ExchangeRateSource()
