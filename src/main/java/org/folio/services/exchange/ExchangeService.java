@@ -20,6 +20,7 @@ import org.folio.rest.jaxrs.model.ExchangeRateCalculation;
 import org.folio.rest.jaxrs.model.ExchangeRateCalculations;
 import org.folio.rest.jaxrs.model.ExchangeRateSource;
 import org.folio.rest.jaxrs.model.ExchangeRateSource.ProviderType;
+import org.folio.rest.util.ExchangeRateUtil;
 import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -77,8 +78,9 @@ public class ExchangeService {
   public Future<Double> calculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual,
                                           ExchangeRate.OperationMode manualOperationMode, RequestContext requestContext) {
     var exchangeHelper = new ExchangeHelper(requestContext.context());
+    var rateProperties = new RateProperties(exchangeRate, manual, manualOperationMode);
     return getExchangeRateSource(requestContext)
-      .map(rateSource -> doCalculateExchange(from, to, amount, exchangeRate, manual, manualOperationMode, rateSource, exchangeHelper));
+      .map(rateSource -> doCalculateExchange(from, to, amount, rateProperties, rateSource, exchangeHelper));
   }
 
   public Future<ExchangeRateCalculations> calculateExchangeBatch(ExchangeRateCalculations exchangeRateCalculations, RequestContext requestContext) {
@@ -91,13 +93,18 @@ public class ExchangeService {
   }
 
   private Double doCalculateExchange(ExchangeRateCalculation calculation, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
-    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), calculation.getRate(), Objects.nonNull(calculation.getRate()), null , rateSource, exchangeHelper);
+    var manualOperationMode = ExchangeRateUtil.getManualOperationMode(calculation.getOperationMode());
+    var rateProperties = new RateProperties(calculation.getRate(), Objects.nonNull(calculation.getRate()), manualOperationMode);
+    return doCalculateExchange(calculation.getFrom(), calculation.getTo(), calculation.getAmount(), rateProperties, rateSource, exchangeHelper);
   }
 
-  private Double doCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual,
-                                     ExchangeRate.OperationMode manualOperationMode, ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
-    if (isRateSourceUnavailable(rateSource) || manual) {
-      return exchangeHelper.calculateExchange(from, to, amount, manualOperationMode, exchangeRate);
+  record RateProperties(Number exchangeRate, boolean manual, ExchangeRate.OperationMode operationMode) {
+  }
+
+  private Double doCalculateExchange(String from, String to, Number amount, RateProperties rateProperties,
+                                     ExchangeRateSource rateSource, ExchangeHelper exchangeHelper) {
+    if (isRateSourceUnavailable(rateSource) || rateProperties.manual) {
+      return exchangeHelper.calculateExchange(from, to, amount, rateProperties.operationMode, rateProperties.exchangeRate);
     }
     var operationMode = getOperationMode(rateSource.getProviderType() == ProviderType.TREASURY_GOV, from);
     var provider = new CustomJsonExchangeRateProvider(httpClient, rateSource, operationMode, exchangeProviderCaches.get(rateSource.getProviderType()));
