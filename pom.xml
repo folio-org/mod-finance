@@ -45,9 +45,9 @@
 
     <!--Dependency Management Properties-->
     <spring.version>7.0.6</spring.version>
-    <vertx.version>5.0.8</vertx.version>
+    <vertx.version>5.0.10</vertx.version>
     <junit.jupiter.version>6.0.3</junit.jupiter.version>
-    <log4j.version>2.25.3</log4j.version>
+    <log4j.version>2.25.4</log4j.version>
 
     <!--Dependency properties-->
     <mockito.version>5.23.0</mockito.version>
