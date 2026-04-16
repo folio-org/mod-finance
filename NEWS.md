@@ -1,4 +1,35 @@
-## 5.2.0 - Unreleased
+## 5.2.0 - Released (Trillium R1 2025)
+The primary focus of this release was to upgrade to Vert.x 5.0, implement batch endpoints, alternate exchange rate provider and improve finance data handling.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.1.0...v5.2.0)
+
+### Stories
+* [MODFIN-455](https://folio-org.atlassian.net/browse/MODFIN-455) - Update GitHub Workflows for Maven
+* [MODFIN-453](https://folio-org.atlassian.net/browse/MODFIN-453) - Use GET /locale to get tenant language & locale setting selections
+* [MODFIN-444](https://folio-org.atlassian.net/browse/MODFIN-444) - Implement batch endpoint for transaction-totals and add database indexes
+* [MODFIN-443](https://folio-org.atlassian.net/browse/MODFIN-443) - Implement batch endpoints for fetching funds and budgets
+* [MODFIN-442](https://folio-org.atlassian.net/browse/MODFIN-442) - Implement batch endpoint for group-fund-fiscal-years
+* [MODFIN-439](https://folio-org.atlassian.net/browse/MODFIN-439) - Add endpoint to provide planned fiscal year
+* [MODFIN-438](https://folio-org.atlassian.net/browse/MODFIN-438) - Upgrade module to Vert.x 5.0
+* [MODFIN-435](https://folio-org.atlassian.net/browse/MODFIN-435) - Setup dependabot for your module
+* [MODFIN-434](https://folio-org.atlassian.net/browse/MODFIN-434) - Update Treasury exchange rate provider handler to allow using the same exchange rate in both directions
+* [MODFIN-433](https://folio-org.atlassian.net/browse/MODFIN-433) - Include totals without expense class for expense-classes-totals
+* [MODFIN-430](https://folio-org.atlassian.net/browse/MODFIN-430) - Leverage mod-settings for retrieving currency and timezone
+* [MODFIN-423](https://folio-org.atlassian.net/browse/MODFIN-423) - Provide batch endpoint to get exchange rates
+* [MODFIN-410](https://folio-org.atlassian.net/browse/MODFIN-410) - Integrate alternate exchange rate provider into Exchange Rate API
+* [MODFIN-408](https://folio-org.atlassian.net/browse/MODFIN-408) - Sensitive data in logs cleanup
+
+### Bug Fixes
+* [MODFIN-445](https://folio-org.atlassian.net/browse/MODFIN-445) - Generic error message appears when current fiscal year lapses for a ledger
+
+### Dependencies
+* Bump `raml-module-builder` from `35.4.0` to `36.0.0`
+* Bump `vertx` from `4.5.13` to `5.0.8`
+* Bump `spring` from `6.2.3` to `7.0.6`
+* Bump `log4j` from `2.24.3` to `2.25.3`
+* Bump `folio-di-support` from `3.0.0` to `4.0.0`
+* Bump `junit-jupiter` from `5.12.0` to `6.0.3`
+* Bump `rest-assured` from `5.5.1` to `6.0.0`
 
 ## 5.1.0 - Released (Sunflower R1 2025)
 The primary focus of this release was to implement Funds bulk edit functionality.
