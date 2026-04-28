@@ -40,6 +40,7 @@ public class ExchangeApi extends BaseApi implements FinanceExchangeRate, Finance
   }
 
   @Override
+  @Validate
   public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, String operationMode,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
     var requestContext = new RequestContext(context, okapiHeaders);
