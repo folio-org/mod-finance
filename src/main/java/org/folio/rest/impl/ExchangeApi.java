@@ -28,6 +28,7 @@ public class ExchangeApi implements FinanceExchangeRate, FinanceCalculateExchang
   }
 
   @Override
+  @Validate
   public void getFinanceCalculateExchange(String from, String to, Number amount, Number rate,
                                           Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler,
                                           Context vertxContext) {

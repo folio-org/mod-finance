@@ -1,8 +1,12 @@
 package org.folio.rest.helper;
 
+import static org.folio.HttpStatus.HTTP_UNPROCESSABLE_ENTITY;
 import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
 import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import javax.money.Monetary;
 import javax.money.convert.CurrencyConversionException;
 import javax.money.convert.MonetaryConversions;
@@ -43,13 +47,26 @@ public class ExchangeHelper extends AbstractHelper {
   }
 
   public Double calculateExchange(String from, String to, Number amount, Number customRate) {
-    log.debug("calculateExchange:: Calculating exchange sourceCurrency from={}, to={}, amount={} and customRate={}", from, to, amount, customRate);
-    var initialAmount = Money.of(amount, from);
-    var rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
-    log.debug("calculateExchange:: rate is {}", rate);
-
-    return initialAmount.multiply(rate)
+    validateRequiredParameters(List.of("from", "to", "amount"), Arrays.asList(from, to, amount));
+    Number rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
+    log.debug("calculateExchange:: Calculating exchange exchangeRate, currency from={}, to={}, "
+      + "amount={}, exchangeRate={}, operationMode={}", from, to, amount, rate, operationMode);
+    BigDecimal bdAmount = new BigDecimal(amount.toString());
+    BigDecimal bdRate = new BigDecimal(rate.toString());
+    BigDecimal newAmount = bdAmount.multiply(bdRate);;
+    Double result = Money.of(newAmount, to)
       .with(Monetary.getDefaultRounding())
-      .getNumber().doubleValue();
+      .getNumber()
+      .doubleValueExact();
+    log.debug("calculateExchange:: result is {}", result);
+    return result;
+  }
+
+  private void validateRequiredParameters(List<String> names, List<Object> values) {
+    for (int i = 0; i < names.size(); i++) {
+      if (values.get(i) == null) {
+        throw new HttpException(HTTP_UNPROCESSABLE_ENTITY.toInt(), String.format("Missing required parameter: %s", names.get(i)));
+      }
+    }
   }
 }
