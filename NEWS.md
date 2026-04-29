@@ -1,5 +1,13 @@
 ## 5.2.0 - Unreleased
 
+## 5.1.3 - Released (Sunflower R1 2025)
+The primary focus of this release was to fix issues with currency conversion.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.1.2...v5.1.3)
+
+### Bug Fixes
+* [MODFIN-461](https://issues.folio.org/browse/MODFIN-461) - Sunflower backport - Exchange rate conversion gives wrong number of decimals
+
 ## 5.1.2 - Released (Sunflower R1 2025)
 The primary focus of the release was to update to RMB 35.4.2 and Vertx 4.5.23
 
