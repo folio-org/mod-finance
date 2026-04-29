@@ -28,6 +28,7 @@ public class ExchangeHelper extends AbstractHelper {
 
   public ExchangeRate getExchangeRate(String from, String to) {
     log.debug("getExchangeRate:: Getting exchange rate from={}, to={}", from, to);
+    validateRequiredParameters(List.of("from", "to"), Arrays.asList(from, to));
     try {
       double exchangeRate = MonetaryConversions.getExchangeRateProvider(IDENTITY, ECB)
         .getExchangeRate(from, to)
@@ -50,7 +51,7 @@ public class ExchangeHelper extends AbstractHelper {
     validateRequiredParameters(List.of("from", "to", "amount"), Arrays.asList(from, to, amount));
     Number rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
     log.debug("calculateExchange:: Calculating exchange exchangeRate, currency from={}, to={}, "
-      + "amount={}, exchangeRate={}, operationMode={}", from, to, amount, rate, operationMode);
+      + "amount={}, exchangeRate={}", from, to, amount, rate);
     BigDecimal bdAmount = new BigDecimal(amount.toString());
     BigDecimal bdRate = new BigDecimal(rate.toString());
     BigDecimal newAmount = bdAmount.multiply(bdRate);;
