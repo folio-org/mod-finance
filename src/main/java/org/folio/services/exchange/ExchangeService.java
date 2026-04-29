@@ -25,6 +25,7 @@ import org.javamoney.moneta.Money;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.money.Monetary;
 import javax.money.convert.ConversionQueryBuilder;
 import java.math.BigDecimal;
 import java.net.http.HttpClient;
@@ -113,6 +114,7 @@ public class ExchangeService {
       .build();
     return Money.of(amount, from)
       .with(provider.getCurrencyConversion(query))
+      .with(Monetary.getDefaultRounding())
       .getNumber()
       .doubleValueExact();
   }
