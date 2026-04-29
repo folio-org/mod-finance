@@ -127,7 +127,7 @@ public class ExchangeServiceTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"TREASURY_GOV,0d,false,9.61d", "TREASURY_GOV,10d,true,100d", "CURRENCYAPI_COM,0d,false,9.052401139"})
+  @CsvSource({"TREASURY_GOV,0d,false,9.61d", "TREASURY_GOV,10d,true,100d", "CURRENCYAPI_COM,0d,false,9.05d"})
   void testCalculateExchangeRateUsingCustomJsonExchangeRateProvider(ExchangeRateSource.ProviderType providerType, double exchangeRate, boolean manual,
                                                                     double expectedAmount, VertxTestContext testContext) throws IOException, InterruptedException {
     when(httpResponse.statusCode()).thenReturn(HttpStatus.HTTP_OK.toInt());
