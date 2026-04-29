@@ -1,6 +1,5 @@
 package org.folio.rest.helper;
 
-import static org.folio.HttpStatus.HTTP_UNPROCESSABLE_ENTITY;
 import static org.javamoney.moneta.convert.ExchangeRateType.ECB;
 import static org.javamoney.moneta.convert.ExchangeRateType.IDENTITY;
 
@@ -29,15 +28,36 @@ public class ExchangeHelper extends AbstractHelper {
   public ExchangeRate getExchangeRate(String from, String to) {
     log.debug("getExchangeRate:: Getting exchange rate from={}, to={}", from, to);
     validateRequiredParameters(List.of("from", "to"), Arrays.asList(from, to));
+    Number rateAsNumber = getRateFactor(from, to);
+    double rateAsDouble = rateAsNumber.doubleValue();
+    log.debug("getExchangeRate:: Fetched exchange rate={}", rateAsDouble);
+    return new ExchangeRate().withFrom(from)
+      .withTo(to)
+      .withExchangeRate(rateAsDouble);
+  }
+
+  public Double calculateExchange(String from, String to, Number amount, Number customRate) {
+    log.debug("calculateExchange:: Calculating exchange sourceCurrency from={}, to={}, amount={} and customRate={}", from, to, amount, customRate);
+    validateRequiredParameters(List.of("from", "to", "amount"), Arrays.asList(from, to, amount));
+    Number rate = customRate == null ? getRateFactor(from, to) : customRate;
+    log.debug("calculateExchange:: rate is {}", rate);
+    BigDecimal bdAmount = new BigDecimal(amount.toString());
+    BigDecimal bdRate = new BigDecimal(rate.toString());
+    BigDecimal newAmount;
+    newAmount = bdAmount.multiply(bdRate);
+    Double result = Money.of(newAmount, to)
+      .with(Monetary.getDefaultRounding())
+      .getNumber()
+      .doubleValueExact();
+    log.debug("calculateExchange:: result is {}", result);
+    return result;
+  }
+
+  private Number getRateFactor(String from, String to) {
     try {
-      double exchangeRate = MonetaryConversions.getExchangeRateProvider(IDENTITY, ECB)
+      return MonetaryConversions.getExchangeRateProvider(IDENTITY, ECB)
         .getExchangeRate(from, to)
-        .getFactor()
-        .doubleValue();
-      log.debug("getExchangeRate:: Fetched exchange rate={}", exchangeRate);
-      return new ExchangeRate().withFrom(from)
-        .withTo(to)
-        .withExchangeRate(exchangeRate);
+        .getFactor();
     } catch (CurrencyConversionException e) {
       log.error("Failed to converse currency", e);
       throw new HttpException(404, e.getMessage());
@@ -47,26 +67,10 @@ public class ExchangeHelper extends AbstractHelper {
     }
   }
 
-  public Double calculateExchange(String from, String to, Number amount, Number customRate) {
-    validateRequiredParameters(List.of("from", "to", "amount"), Arrays.asList(from, to, amount));
-    Number rate = customRate == null ? getExchangeRate(from, to).getExchangeRate() : customRate;
-    log.debug("calculateExchange:: Calculating exchange exchangeRate, currency from={}, to={}, "
-      + "amount={}, exchangeRate={}", from, to, amount, rate);
-    BigDecimal bdAmount = new BigDecimal(amount.toString());
-    BigDecimal bdRate = new BigDecimal(rate.toString());
-    BigDecimal newAmount = bdAmount.multiply(bdRate);;
-    Double result = Money.of(newAmount, to)
-      .with(Monetary.getDefaultRounding())
-      .getNumber()
-      .doubleValueExact();
-    log.debug("calculateExchange:: result is {}", result);
-    return result;
-  }
-
   private void validateRequiredParameters(List<String> names, List<Object> values) {
     for (int i = 0; i < names.size(); i++) {
       if (values.get(i) == null) {
-        throw new HttpException(HTTP_UNPROCESSABLE_ENTITY.toInt(), String.format("Missing required parameter: %s", names.get(i)));
+        throw new HttpException(422, String.format("Missing required parameter: %s", names.get(i)));
       }
     }
   }
