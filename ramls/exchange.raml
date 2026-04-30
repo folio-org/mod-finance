@@ -26,10 +26,14 @@ types:
     description: Exchange calculation expressed as a total calculation of exchange
     example: 99.95
 
+traits:
+  validate: !include raml-util/traits/validation.raml
+
 /finance/calculate-exchange:
   displayName: Calculate exchange
   description: Calculate exchange API
   get:
+    is: [ validate ]
     description: "Get exchange calculation"
     queryParameters:
       from:
@@ -102,6 +106,7 @@ types:
   displayName: Exchange rate
   description: Exchange rate API
   get:
+    is: [ validate ]
     description: "Get exchange rate"
     queryParameters:
       from:

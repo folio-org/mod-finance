@@ -46,6 +46,7 @@ public class ExchangeTest {
   private static final String CALCULATE_EXCHANGE_BATCH_PATH = "finance/calculate-exchange-batch";
   private static final String VALID_REQUEST_FOR_CALCULATE_EXCHANGE = "?from=USD&to=EUR&amount=100.0";
   private static final String VALID_REQUEST_WITH_CUSTOM_RATE_FOR_CALCULATE_EXCHANGE = "?from=EUR&to=USD&amount=100.0&rate=1.08";
+  private static final String CURRENCIES_USING_DIFFERENT_DECIMALS = "?from=JPY&to=USD&amount=1000&rate=0.00719";
   private static final String SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE = "?from=USD&to=USD&amount=100.0";
   private static final String NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE = "?from=ABC&to=EUR&amount=100.0";
   private static final String MISSING_FROM_FOR_CALCULATE_EXCHANGE = "?to=EUR&amount=100.0";
@@ -101,19 +102,19 @@ public class ExchangeTest {
   @Test
   void getExchangeRateMissingParameters() {
     logger.info("=== Test get exchange rate missing query parameters: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH, "", 400);
+    verifyGet(EXCHANGE_RATE_PATH, "", 422);
   }
 
   @Test
   void getExchangeRateMissingFromParameter() {
     logger.info("=== Test get exchange rate missing FROM parameter: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + MISSING_FROM, "", 400);
+    verifyGet(EXCHANGE_RATE_PATH + MISSING_FROM, "", 422);
   }
 
   @Test
   void getExchangeRateMissingToParameter() {
     logger.info("=== Test get exchange rate missing TO parameter: BAD_REQUEST ===");
-    verifyGet(EXCHANGE_RATE_PATH + MISSING_TO, "", 400);
+    verifyGet(EXCHANGE_RATE_PATH + MISSING_TO, "", 422);
   }
 
   @Test
@@ -146,6 +147,13 @@ public class ExchangeTest {
   }
 
   @Test
+  void calculateExchangeForDifferentDecimals() {
+    logger.info("=== Test exchange calculation with currencies using a different number of decimals: Success ===");
+    var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + CURRENCIES_USING_DIFFERENT_DECIMALS, APPLICATION_JSON, 200).as(Double.class);
+    assertThat(7.19, equalTo(exchangeCalculation));
+  }
+
+  @Test
   void calculateExchangeForSameCurrencies() {
     logger.info("=== Test exchange calculation for same currency codes: Success, Amount=100.0 ===");
     var exchangeCalculation = verifyGet(CALCULATE_EXCHANGE_PATH + SAME_CURRENCIES_FOR_CALCULATE_EXCHANGE, APPLICATION_JSON, 200).as(Double.class);
@@ -155,37 +163,37 @@ public class ExchangeTest {
   @Test
   void calculateExchangeForNonexistentCurrency() {
     logger.info("=== Test exchange calculation for non-existent currency code: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH + NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 500);
+    verifyGet(CALCULATE_EXCHANGE_PATH + NON_EXISTENT_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 400);
   }
 
   @Test
   void calculateExchangeMissingParameters() {
     logger.info("=== Test exchange calculation missing query parameters: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH, "", 500);
+    verifyGet(CALCULATE_EXCHANGE_PATH, "", 422);
   }
 
   @Test
   void calculateExchangeMissingSourceCurrencyParameter() {
     logger.info("=== Test exchange calculation missing FROM parameter: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_FROM_FOR_CALCULATE_EXCHANGE, "", 500);
+    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_FROM_FOR_CALCULATE_EXCHANGE, "", 422);
   }
 
   @Test
   void calculateExchangeMissingTargetCurrencyParameter() {
     logger.info("=== Test exchange calculation missing TO parameter: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_TO_FOR_CALCULATE_EXCHANGE, "", 400);
+    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_TO_FOR_CALCULATE_EXCHANGE, "", 422);
   }
 
   @Test
   void calculateExchangeMissingAmountParameter() {
     logger.info("=== Test exchange calculation missing AMOUNT parameter: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_AMOUNT, "", 500);
+    verifyGet(CALCULATE_EXCHANGE_PATH + MISSING_AMOUNT, "", 422);
   }
 
   @Test
   void calculateExchangeInvalidCurrencyCode() {
     logger.info("=== Test exchange calculation for invalid currency code: BAD_REQUEST ===");
-    verifyGet(CALCULATE_EXCHANGE_PATH + INVALID_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 500);
+    verifyGet(CALCULATE_EXCHANGE_PATH + INVALID_CURRENCY_FOR_CALCULATE_EXCHANGE, "", 400);
   }
 
   @Test

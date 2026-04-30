@@ -1,4 +1,12 @@
-## 5.2.0 - Released (Trillium R1 2025)
+## 5.2.1 - Released (Trillium R1 2026 Bug Fix)
+The primary focus of this release was to fix issues with currency conversion.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.2.0...v5.2.1)
+
+### Bug Fixes
+* [MODFIN-460](https://folio-org.atlassian.net/browse/MODFIN-460) - Exchange rate conversion gives wrong number of decimals
+
+## 5.2.0 - Released (Trillium R1 2026)
 The primary focus of this release was to upgrade to Vert.x 5.0, implement batch endpoints, alternate exchange rate provider and improve finance data handling.
 
 [Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.1.0...v5.2.0)
