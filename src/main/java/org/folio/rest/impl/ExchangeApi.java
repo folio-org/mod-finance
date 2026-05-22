@@ -15,6 +15,7 @@ import org.folio.rest.jaxrs.model.ExchangeRateCalculations;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchange;
 import org.folio.rest.jaxrs.resource.FinanceCalculateExchangeBatch;
 import org.folio.rest.jaxrs.resource.FinanceExchangeRate;
+import org.folio.rest.util.ExchangeRateUtil;
 import org.folio.services.exchange.ExchangeService;
 import org.folio.spring.SpringContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +40,12 @@ public class ExchangeApi extends BaseApi implements FinanceExchangeRate, Finance
   }
 
   @Override
-  public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, Map<String, String> okapiHeaders,
-                                          Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
+  @Validate
+  public void getFinanceCalculateExchange(String from, String to, Number amount, Number exchangeRate, boolean manual, String operationMode,
+                                          Map<String, String> okapiHeaders, Handler<AsyncResult<Response>> asyncResultHandler, Context context) {
     var requestContext = new RequestContext(context, okapiHeaders);
-    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, exchangeRate, manual, requestContext)
+    var manualOperationMode = ExchangeRateUtil.getManualOperationMode(operationMode);
+    context.executeBlocking(() -> exchangeService.calculateExchange(from, to, amount, exchangeRate, manual, manualOperationMode, requestContext)
       .onSuccess(convertedAmount -> asyncResultHandler.handle(succeededFuture(buildOkResponse(convertedAmount))))
       .onFailure(fail -> handleErrorResponse(asyncResultHandler, fail)));
   }

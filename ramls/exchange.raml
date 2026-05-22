@@ -26,10 +26,14 @@ types:
     description: Exchange calculation expressed as a total calculation of exchange
     example: 99.95
 
+traits:
+  validate: !include raml-util/traits/validation.raml
+
 /finance/calculate-exchange:
   displayName: Calculate exchange
   description: Calculate exchange API
   get:
+    is: [ validate ]
     description: "Get exchange calculation"
     queryParameters:
       from:
@@ -58,6 +62,12 @@ types:
         required: false
         default: false
         example: false
+      operationMode:
+        description: "Operation mode for manual exchange rate use, MULTIPLY (default) or DIVIDE"
+        type: string
+        required: false
+        default: ""
+        example: "MULTIPLY"
     responses:
       200:
         description: "Exchange calculation successfully retrieved"
@@ -96,6 +106,7 @@ types:
   displayName: Exchange rate
   description: Exchange rate API
   get:
+    is: [ validate ]
     description: "Get exchange rate"
     queryParameters:
       from:
