@@ -35,7 +35,7 @@
 
     <!--Project properties-->
     <ramlfiles_path>${basedir}/ramls</ramlfiles_path>
-    <raml-module-builder.version>36.0.0</raml-module-builder.version>
+    <raml-module-builder.version>36.0.1</raml-module-builder.version>
     <sonar.exclusions>**/models/*.java</sonar.exclusions>
     <sonar.test.exclusions>**/*Test.java</sonar.test.exclusions>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -44,10 +44,10 @@
     <jsonschema_paths>acq-models/mod-finance/schemas,raml-util/schemas,acq-models/common/schemas</jsonschema_paths>
 
     <!--Dependency Management Properties-->
-    <spring.version>7.0.7</spring.version>
-    <vertx.version>5.1.2</vertx.version>
-    <junit.jupiter.version>6.1.0</junit.jupiter.version>
-    <log4j.version>2.26.0</log4j.version>
+    <spring.version>7.0.8</spring.version>
+    <vertx.version>5.1.6</vertx.version>
+    <junit.jupiter.version>6.1.2</junit.jupiter.version>
+    <log4j.version>2.26.1</log4j.version>
 
     <!--Dependency properties-->
     <mockito.version>5.23.0</mockito.version>
@@ -154,7 +154,7 @@
     <dependency>
       <groupId>one.util</groupId>
       <artifactId>streamex</artifactId>
-      <version>0.8.4</version>
+      <version>0.9.0</version>
     </dependency>
     <dependency>
       <groupId>commons-lang</groupId>
