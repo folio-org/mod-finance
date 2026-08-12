@@ -39,6 +39,7 @@ public class ResourcePathResolver {
   public static final String ACQUISITIONS_UNITS = "acquisitionsUnits";
   public static final String ACQUISITIONS_MEMBERSHIPS = "acquisitionsMemberships";
   public static final String EXCHANGE_RATE_SOURCE = "exchangeRateSource";
+  public static final String FISCAL_YEAR_HIERARCHY_STORAGE = "fiscalYearHierarchy";
 
   private static final Map<String, String> SUB_OBJECT_ITEM_APIS;
   private static final Map<String, String> SUB_OBJECT_COLLECTION_APIS;
@@ -73,6 +74,7 @@ public class ResourcePathResolver {
     apis.put(ACQUISITIONS_UNITS, "/acquisitions-units-storage/units");
     apis.put(ACQUISITIONS_MEMBERSHIPS, "/acquisitions-units-storage/memberships");
     apis.put(EXCHANGE_RATE_SOURCE, "/finance-storage/exchange-rate-source");
+    apis.put(FISCAL_YEAR_HIERARCHY_STORAGE, "/finance-storage/fiscal-year-hierarchy");
 
     SUB_OBJECT_COLLECTION_APIS = Collections.unmodifiableMap(apis);
     SUB_OBJECT_ITEM_APIS = Collections.unmodifiableMap(
