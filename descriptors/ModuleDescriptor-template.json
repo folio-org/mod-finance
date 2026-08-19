@@ -933,7 +933,7 @@
     },
     {
       "id": "finance-storage.fiscal-year-hierarchy",
-      "version":"1.1"
+      "version":"1.0"
     },
     {
       "id": "finance-storage.ledger-rollovers-budgets",
