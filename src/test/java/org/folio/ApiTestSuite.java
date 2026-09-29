@@ -14,6 +14,7 @@ import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeTest;
 import org.folio.rest.impl.FinanceDataApiTest;
+import org.folio.rest.impl.FiscalYearHierarchyApiTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundUpdateLogApiTest;
@@ -114,6 +115,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloversLogsApiTestNested extends LedgerRolloverLogsApiTest {
+  }
+
+  @Nested
+  class FiscalYearHierarchyApiTestNested extends FiscalYearHierarchyApiTest {
   }
 
   @Nested
