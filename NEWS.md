@@ -1,3 +1,8 @@
+## WIP
+
+### Stories
+* [MODFIN-466](https://folio-org.atlassian.net/browse/MODFIN-466) - Upgrade from Java 21 to Java 25
+
 ## 5.2.0 - Released (Trillium R1 2025)
 The primary focus of this release was to upgrade to Vert.x 5.0, implement batch endpoints, alternate exchange rate provider and improve finance data handling.
 
