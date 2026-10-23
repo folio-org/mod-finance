@@ -468,6 +468,20 @@
       ]
     },
     {
+      "id": "finance.fiscal-year-hierarchy",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": ["GET"],
+          "pathPattern": "/finance/fiscal-year-hierarchy",
+          "permissionsRequired": ["finance.fiscal-year-hierarchy.collection.get"],
+          "modulePermissions": [
+            "finance-storage.fiscal-year-hierarchy.collection.get"
+          ]
+        }
+      ]
+    },
+    {
       "id": "finance.ledger-rollovers-budgets",
       "version": "1.0",
       "handlers": [
@@ -918,6 +932,10 @@
       "version":"1.0"
     },
     {
+      "id": "finance-storage.fiscal-year-hierarchy",
+      "version":"1.0"
+    },
+    {
       "id": "finance-storage.ledger-rollovers-budgets",
       "version":"1.0"
     },
@@ -1185,6 +1203,19 @@
       "permissionName" : "finance.ledger-rollovers-logs.item.get",
       "displayName" : "Ledger rollover - get the ledger rollover log",
       "description" : "Fetch a ledger rollover log"
+    },
+    {
+      "permissionName" : "finance.fiscal-year-hierarchy.collection.get",
+      "displayName" : "Get the ledger/group/fund/budget/expense-class hierarchy for a fiscal year",
+      "description" : "Get the ledger/group/fund/budget/expense-class hierarchy for a fiscal year"
+    },
+    {
+      "permissionName" : "finance.fiscal-year-hierarchy.all",
+      "displayName" : "All fiscal-year-hierarchy permissions",
+      "description" : "All permissions for the fiscal year hierarchy",
+      "subPermissions" : [
+        "finance.fiscal-year-hierarchy.collection.get"
+      ]
     },
     {
       "permissionName" : "finance.ledger-rollovers-budgets.collection.get",
@@ -1486,7 +1517,8 @@
         "finance.expense-classes.all",
         "finance.acquisitions-units-assignments.all",
         "finance.fund-update-logs.all",
-        "finance.finance-data.all"
+        "finance.finance-data.all",
+        "finance.fiscal-year-hierarchy.all"
       ],
       "visible": false
     },

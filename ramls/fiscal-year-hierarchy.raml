@@ -1,0 +1,57 @@
+#%RAML 1.0
+title: "mod-finance"
+baseUri: https://github.com/folio-org/mod-finance
+version: v1
+
+documentation:
+  - title: mod-finance (Fiscal year hierarchy)
+    content: <b>Read-only API for retrieving the ledger/group/fund/budget/expense-class hierarchy for a fiscal year</b>
+
+types:
+  errors: !include raml-util/schemas/errors.schema
+  fiscal-year-hierarchy-collection: !include acq-models/mod-finance/schemas/fiscal_year_hierarchy_collection.json
+
+/finance/fiscal-year-hierarchy:
+  get:
+    description: Get the ledger/group/fund/budget/expense-class hierarchy for a fiscal year, one entry per ledger
+    queryParameters:
+      fiscalYearId:
+        description: UUID of the fiscal year to build the hierarchy for
+        type: string
+        required: true
+      ledgerStatus:
+        description: Only include ledgers with this status (Active, Inactive, Frozen)
+        type: string
+        required: false
+      groupStatus:
+        description: Only include groups with this status (Active, Frozen, Inactive); excludes ungrouped funds
+        type: string
+        required: false
+      fundStatus:
+        description: Only include funds with this status (Active, Frozen, Inactive)
+        type: string
+        required: false
+      budgetStatus:
+        description: Only include budgets with this status (Active, Frozen, Inactive, Planned, Closed)
+        type: string
+        required: false
+      expenseClassStatus:
+        description: Only include budget expense classes with this status (Active, Inactive)
+        type: string
+        required: false
+    responses:
+      200:
+        body:
+          application/json:
+            type: fiscal-year-hierarchy-collection
+            example: !include acq-models/mod-finance/examples/fiscal_year_hierarchy_collection_get.sample
+      400:
+        description: "Bad request, e.g. missing or malformed fiscalYearId parameter"
+        body:
+          text/plain:
+            example: "unable to process request -- malformed parameter 'fiscalYearId'"
+      500:
+        description: "Internal server error, e.g. due to misconfiguration"
+        body:
+          text/plain:
+            example: "internal server error, contact administrator"
