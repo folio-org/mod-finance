@@ -42,6 +42,7 @@ import org.folio.services.exchange.ManualCurrencyConversionTest;
 import org.folio.services.financedata.FinanceDataServiceTest;
 import org.folio.services.financedata.FinanceDataValidatorTest;
 import org.folio.services.fiscalyear.FiscalYearApiServiceTest;
+import org.folio.services.fiscalyear.FiscalYearHierarchyServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
@@ -235,6 +236,10 @@ public class ApiTestSuite {
 
   @Nested
   class FiscalYearServiceTestNested extends FiscalYearServiceTest {
+  }
+
+  @Nested
+  class FiscalYearHierarchyServiceTestNested extends FiscalYearHierarchyServiceTest {
   }
 
   @Nested
