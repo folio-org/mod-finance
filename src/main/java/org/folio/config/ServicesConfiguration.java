@@ -11,6 +11,7 @@ import org.folio.services.configuration.CommonSettingsService;
 import org.folio.services.financedata.FinanceDataService;
 import org.folio.services.financedata.FinanceDataValidator;
 import org.folio.services.fiscalyear.FiscalYearApiService;
+import org.folio.services.fiscalyear.FiscalYearHierarchyService;
 import org.folio.services.fiscalyear.FiscalYearService;
 import org.folio.services.fund.FundCodeExpenseClassesService;
 import org.folio.services.fund.FundDetailsService;
@@ -106,6 +107,11 @@ public class ServicesConfiguration {
   @Bean
   FiscalYearService fiscalYearService(RestClient restClient){
     return new FiscalYearService(restClient);
+  }
+
+  @Bean
+  FiscalYearHierarchyService fiscalYearHierarchyService(RestClient restClient) {
+    return new FiscalYearHierarchyService(restClient);
   }
 
   @Bean
