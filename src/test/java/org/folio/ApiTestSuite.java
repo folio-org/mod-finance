@@ -14,6 +14,7 @@ import org.folio.rest.impl.EncumbrancesTest;
 import org.folio.rest.impl.EntitiesCrudBasicsTest;
 import org.folio.rest.impl.ExchangeTest;
 import org.folio.rest.impl.FinanceDataApiTest;
+import org.folio.rest.impl.FiscalYearHierarchyApiTest;
 import org.folio.rest.impl.FiscalYearTest;
 import org.folio.rest.impl.FundCodeExpenseClassesApiTest;
 import org.folio.rest.impl.FundUpdateLogApiTest;
@@ -41,6 +42,7 @@ import org.folio.services.exchange.ManualCurrencyConversionTest;
 import org.folio.services.financedata.FinanceDataServiceTest;
 import org.folio.services.financedata.FinanceDataValidatorTest;
 import org.folio.services.fiscalyear.FiscalYearApiServiceTest;
+import org.folio.services.fiscalyear.FiscalYearHierarchyServiceTest;
 import org.folio.services.fiscalyear.FiscalYearServiceTest;
 import org.folio.services.fund.FundCodeExpenseClassesServiceTest;
 import org.folio.services.fund.FundDetailsServiceTest;
@@ -114,6 +116,10 @@ public class ApiTestSuite {
 
   @Nested
   class LedgerRolloversLogsApiTestNested extends LedgerRolloverLogsApiTest {
+  }
+
+  @Nested
+  class FiscalYearHierarchyApiTestNested extends FiscalYearHierarchyApiTest {
   }
 
   @Nested
@@ -230,6 +236,10 @@ public class ApiTestSuite {
 
   @Nested
   class FiscalYearServiceTestNested extends FiscalYearServiceTest {
+  }
+
+  @Nested
+  class FiscalYearHierarchyServiceTestNested extends FiscalYearHierarchyServiceTest {
   }
 
   @Nested
