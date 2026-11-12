@@ -1,0 +1,146 @@
+{
+  "description": "mod-finance configuration template. Default values are calibrated against a reference bugfest environment (tebfcon-mod-finance revision 14, image 5.2.1); see ADR-0013 (Module configuration management) for the governance model behind this file. mod-finance is a stateless RMB business-logic module over mod-finance-storage: it has no database, no Kafka and no secret store, so it reads only JVM options and logging configuration from the environment. Resource values and JVM limits must be adjusted to the target host capacity.",
+  "moduleDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "64",
+        "description": "CPU request/limit for the mod-finance container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for the mod-finance container in MiB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "896",
+        "description": "Memory reservation (soft limit) for the mod-finance container in MiB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xmx",
+        "value": "768m",
+        "description": "Maximum Java heap size. Value taken from bugfest; with MaxMetaspaceSize it leaves only about 128 MiB of the container for non-heap memory"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "128m",
+        "description": "Maximum Java metaspace size. Value taken from bugfest"
+      },
+      {
+        "name": "MetaspaceSize",
+        "value": "88m",
+        "description": "Threshold for the first metaspace garbage collection, not a limit. Value taken from bugfest"
+      }
+    ],
+    "deployment": {
+      "isHaSupported": true,
+      "replicasRecommendedCount": 2,
+      "description": "mod-finance is stateless: all data lives in mod-finance-storage and the in-memory caches are per-replica, so replicas run side by side without coordination."
+    },
+    "kong": {
+      "timeouts": {
+        "connect": "60s",
+        "send": "60s",
+        "read": "60s"
+      },
+      "description": "Default Kong proxy timeouts are sufficient for mod-finance endpoints."
+    },
+    "EnvVars": [
+      {
+        "name": "JAVA_OPTIONS",
+        "value": null,
+        "description": "JVM options for the module, read by the run-java.sh entrypoint of the folioci JRE image: heap sizing from the java block and -Dhttp.port when the port differs from 8081 (bugfest uses 8082)",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "LOG4J_CONFIGURATION_FILE",
+        "value": null,
+        "description": "External Log4j2 configuration file overriding the bundled log4j2.properties; the bundled log4j2-json.properties can be selected for JSON logs",
+        "type": "CONFIG",
+        "essential": false
+      }
+    ]
+  },
+  "sidecarDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "64",
+        "description": "CPU request/limit for the sidecar container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for the sidecar container in MiB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "512",
+        "description": "Memory reservation (soft limit) for the sidecar container in MiB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xms",
+        "value": "128m",
+        "description": "Initial Java heap size"
+      },
+      {
+        "name": "xmx",
+        "value": "256m",
+        "description": "Maximum Java heap size"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "96m",
+        "description": "Maximum Java metaspace size"
+      },
+      {
+        "name": "UseZGC",
+        "value": "true",
+        "description": "Use the ZGC low-pause collector"
+      }
+    ],
+    "EnvVars": [
+      {
+        "name": "ENV",
+        "value": null,
+        "description": "Deployment environment identifier; must match the other modules and sidecars",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "JAVA_OPTS",
+        "value": null,
+        "description": "JVM options for the sidecar: sizing from the java block plus the Quarkus flags set on bugfest",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_NAME",
+        "value": "mod-finance",
+        "description": "Name of the backend module the sidecar fronts",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_URL",
+        "value": null,
+        "description": "Internal URL at which the mod-finance container is reachable from its sidecar; the port must match the module's http.port",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_VERSION",
+        "value": null,
+        "description": "Version of the mod-finance module deployed alongside this sidecar",
+        "type": "CONFIG",
+        "essential": true
+      }
+    ]
+  }
+}
