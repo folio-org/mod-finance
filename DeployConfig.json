@@ -1,0 +1,153 @@
+{
+  "description": "Deployment configuration for mod-finance. Default values are calibrated against a reference bugfest environment (tebfcon-mod-finance revision 14)",
+  "moduleDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "64",
+        "description": "CPU request/limit for the mod-finance container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for the mod-finance container in MiB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "896",
+        "description": "Memory reservation (soft limit) for the mod-finance container in MiB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xmx",
+        "value": "768m",
+        "description": "Maximum Java heap size (-Xmx)."
+      },
+      {
+        "name": "MetaspaceSize",
+        "value": "88m",
+        "description": "Initial Java metaspace size, threshold at which the first metaspace garbage collection runs (-XX:MetaspaceSize)."
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "128m",
+        "description": "Maximum Java metaspace size (-XX:MaxMetaspaceSize)."
+      }
+    ],
+    "deployment": {
+      "isHaSupported": true,
+      "replicasRecommendedCount": 2,
+      "description": "The module is stateless: no local persistence, no scheduled jobs."
+    },
+    "kong": {
+      "timeouts": {
+        "connect": "60s",
+        "send": "60s",
+        "read": "60s"
+      },
+      "description": "Kong route timeouts in milliseconds for mod-finance."
+    },
+    "EnvVars": [
+      {
+        "name": "JAVA_OPTIONS",
+        "value": "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory -Dhttp.port=8082",
+        "description": "Additional JVM options for the mod-finance process (heap sizing, GC, agent flags, -Dhttp.port to change the listen port (default 8081), etc.)",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "FINANCE_CACHE_EXCHANGE_RATE_EXPIRATION_TIME_SECONDS",
+        "value": "300",
+        "description": "How long, in seconds, a fetched exchange rate stays in the per-instance cache before the provider is queried again.",
+        "type": "CACHE",
+        "essential": false
+      },
+      {
+        "name": "LOG4J_CONFIGURATION_FILE",
+        "value": null,
+        "description": "Location of the Log4j2 configuration file, read directly by Log4j from the environment (equivalent to -Dlog4j.configurationFile)",
+        "type": "CONFIG",
+        "essential": false
+      }
+    ]
+  },
+  "sidecarDefaults": {
+    "resources": [
+      {
+        "name": "cpu",
+        "value": "64",
+        "description": "CPU request/limit for the sidecar container"
+      },
+      {
+        "name": "memory",
+        "value": "1024",
+        "description": "Memory hard limit for the sidecar container, in MB"
+      },
+      {
+        "name": "memoryReservation",
+        "value": "512",
+        "description": "Memory reservation for the sidecar container, in MB"
+      }
+    ],
+    "java": [
+      {
+        "name": "xms",
+        "value": "128m",
+        "description": "Initial Java heap size"
+      },
+      {
+        "name": "xmx",
+        "value": "256m",
+        "description": "Maximum Java heap size"
+      },
+      {
+        "name": "MaxMetaspaceSize",
+        "value": "96m",
+        "description": "Maximum Java metaspace size"
+      },
+      {
+        "name": "UseZGC",
+        "value": "true",
+        "description": "Use ZGC low-pause collector; preferred for a proxy-shaped workload where tail latency matters more than throughput"
+      }
+    ],
+    "EnvVars": [
+      {
+        "name": "ENV",
+        "value": null,
+        "description": "Deployment environment identifier",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "JAVA_OPTS",
+        "value": null,
+        "description": "Additional JVM options for the sidecar process",
+        "type": "CONFIG",
+        "essential": false
+      },
+      {
+        "name": "MODULE_NAME",
+        "value": null,
+        "description": "Name of the module this sidecar fronts",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_URL",
+        "value": null,
+        "description": "Internal URL (host:port) at which the mod-finance backend container is reachable from its sidecar",
+        "type": "CONFIG",
+        "essential": true
+      },
+      {
+        "name": "MODULE_VERSION",
+        "value": null,
+        "description": "Version of the mod-finance module deployed alongside this sidecar",
+        "type": "CONFIG",
+        "essential": true
+      }
+    ]
+  }
+}
