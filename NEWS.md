@@ -1,3 +1,11 @@
+## 5.2.2 - Released (Trillium R1 2026 Bug Fix)
+The primary focus of this release was to add DeployConfig.json file.
+
+[Full Changelog](https://github.com/folio-org/mod-finance/compare/v5.2.1...v5.2.2)
+
+### Bug Fixes
+* [MODFIN-465](https://folio-org.atlassian.net/browse/MODFIN-465) - Add DeployConfig.json to mod-finance
+
 ## 5.2.1 - Released (Trillium R1 2026 Bug Fix)
 The primary focus of this release was to fix issues with currency conversion.
 
